@@ -17,8 +17,7 @@
 #include <map>
 #include <vector>
 #include <string>
-
-#pragma pack(push, 1)
+#include <chrono>
 
 #include "Global/Struct.h"
 #include "Global/Function.h"
