@@ -221,11 +221,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		PrimitiveList = nullptr;
 	}
 
-	// KeyManager 인스턴스 해제
 	FKeyManager* KeyManager = FKeyManager::GetInstance();
 	if (KeyManager)
 	{
 		delete KeyManager;
+	}
+
+	FTimeManager* TimeManager = FTimeManager::GetInstance();
+	if (TimeManager)
+	{
+		delete TimeManager;
 	}
 
 	Renderer.TotalShutDown();

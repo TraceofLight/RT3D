@@ -7,7 +7,9 @@
 
 #include "Actor/Public/UBall.h"
 #include "Manager/Public/KeyManager.h"
+#include "Manager/Public/TimeManager.h"
 #include "Render/Public/Renderer.h"
+#include "Global/Macro.h"
 
 /**
  * @brief ImGui Initializer
@@ -97,7 +99,55 @@ void FImGuiManager::RenderImGui()
 		ImGui::Text("Space: Add Ball");
 		ImGui::Text("Delete: Remove Ball");
 		ImGui::Text("Left Click: Remove Target Ball");
-		ImGui::Text("Left Click: Set Gravity Ball / Release");
+		ImGui::Text("Right Click: Set Gravity Ball / Release");
+}
+
+	ImGui::End();
+
+	ImGui::Begin("Frame Performance Info");
+
+	FTimeManager* TimeManager = FTimeManager::GetInstance();
+
+	if (TimeManager)
+	{
+		ImGui::Text("Current FPS: %.1f", TimeManager->GetFPS());
+		ImGui::Text("Delta Time: %.4f ms", TimeManager->GetDeltaTime() * 1000.0f);
+		ImGui::Text("Game Time: %.2f s", TimeManager->GetGameTime());
+
+		ImGui::Separator();
+
+		if (TimeManager->IsPaused())
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "Game Paused");
+		}
+		else
+		{
+			ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Game Resumed");
+		}
+
+		ImGui::Separator();
+
+		float CurrentFPS = TimeManager->GetFPS();
+		ImVec4 FPSColor;
+
+		if (CurrentFPS >= 60.0f)
+		{
+			FPSColor = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 녹색 (우수)
+		}
+		else if (CurrentFPS >= 30.0f)
+		{
+			FPSColor = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 (보통)
+		}
+		else
+		{
+			FPSColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 빨간색 (주의)
+		}
+
+		ImGui::TextColored(FPSColor, "Current FPS: %.1f", CurrentFPS);
+	}
+	else
+	{
+		ImGui::Text("TimeManager를 찾을 수 없습니다.");
 	}
 
 	ImGui::End();

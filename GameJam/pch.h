@@ -18,6 +18,7 @@
 #include <vector>
 #include <string>
 #include <chrono>
+#include <algorithm>
 
 #include "Global/Struct.h"
 #include "Global/Function.h"
@@ -27,5 +28,6 @@
 using std::map;
 using std::vector;
 using std::string;
+using std::clamp;
 
 #include "Manager/Public/TimeManager.h"

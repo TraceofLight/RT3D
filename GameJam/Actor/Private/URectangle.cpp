@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Actor/Public/URectangle.h"
+#include "Global/Macro.h"
 
 URectangle::URectangle()
 {
@@ -20,18 +21,28 @@ URectangle::URectangle()
 
 void URectangle::Move()
 {
-	const float FixedDeltaTime = 1.0f / 30.0f;
-	Location += Velocity * FixedDeltaTime;
-	// 벽 충돌 처리
-	if ((Location.x > 1.0f - Width / 2 && Velocity.x > 0) || (Location.x < -1.0f + Width / 2 &&
-		Velocity.x < 0))
+	// === DeltaTime 기반 위치 업데이트 ===
+	Location += Velocity * DT; // 프레임레이트에 무관한 움직임
+
+	// === 벽 충돌 처리 ===
+	// X축 벽 충돌
+	if ((Location.x > 1.0f - Width / 2 && Velocity.x > 0) || (Location.x < -1.0f + Width / 2 && Velocity.x < 0))
 	{
-		Velocity.x *= -1.0f;
+		Velocity.x *= -1.0f; // 반사
+
+		// 벽 안쪽으로 위치 보정
+		if (Location.x > 1.0f - Width / 2) Location.x = 1.0f - Width / 2;
+		if (Location.x < -1.0f + Width / 2) Location.x = -1.0f + Width / 2;
 	}
-	if ((Location.y > 1.0f - Height / 2 && Velocity.y > 0) || (Location.y < -1.0f + Height / 2 &&
-		Velocity.y < 0))
+
+	// Y축 벽 충돌
+	if ((Location.y > 1.0f - Height / 2 && Velocity.y > 0) || (Location.y < -1.0f + Height / 2 && Velocity.y < 0))
 	{
-		Velocity.y *= -1.0f;
+		Velocity.y *= -1.0f; // 반사
+
+		// 벽 안쪽으로 위치 보정
+		if (Location.y > 1.0f - Height / 2) Location.y = 1.0f - Height / 2;
+		if (Location.y < -1.0f + Height / 2) Location.y = -1.0f + Height / 2;
 	}
 }
 
