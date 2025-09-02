@@ -1,3 +1,5 @@
+#pragma once
+
 // D3D 사용에 필요한 라이브러리들을 링크합니다.
 #pragma comment(lib, "user32")
 #pragma comment(lib, "d3d11")
@@ -11,3 +13,5 @@
 #include "ImGui/imgui_internal.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
+
+#include "Global/struct.h"
