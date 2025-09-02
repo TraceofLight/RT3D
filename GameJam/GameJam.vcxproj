@@ -176,6 +176,8 @@
     <ClInclude Include="ImGui\imstb_rectpack.h"/>
     <ClInclude Include="ImGui\imstb_textedit.h"/>
     <ClInclude Include="ImGui\imstb_truetype.h"/>
+    <ClInclude Include="Manager\Public\KeyManager.h" />
+    <ClInclude Include="Manager\Public\ImGuiManager.h" />
     <ClInclude Include="pch.h"/>
     <ClInclude Include="Render\Public\Renderer.h"/>
   </ItemGroup>
@@ -187,9 +189,6 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="Manager\Public\ImGuiManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
