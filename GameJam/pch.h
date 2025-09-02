@@ -11,10 +11,14 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+#include <cmath>
+
 // STD
 #include <map>
 #include <vector>
 #include <string>
+
+#pragma pack(push, 1)
 
 #include "Global/Struct.h"
 #include "Global/Function.h"
