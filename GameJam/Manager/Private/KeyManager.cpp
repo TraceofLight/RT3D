@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Manager/Public/KeyManager.h"
+#include <magic_enum/magic_enum.hpp>
 
 FKeyManager* FKeyManager::Instance = nullptr;
 
@@ -215,50 +216,8 @@ vector<EKeyInput> FKeyManager::GetPressedKeys() const
 
 const char* FKeyManager::KeyInputToString(EKeyInput InKey)
 {
-	switch (InKey)
-	{
-	case EKeyInput::W: return "W";
-	case EKeyInput::A: return "A";
-	case EKeyInput::S: return "S";
-	case EKeyInput::D: return "D";
+	static string KeyString;
+	KeyString = string(magic_enum::enum_name<EKeyInput>(InKey));
 
-	case EKeyInput::Up: return "↑";
-	case EKeyInput::Down: return "↓";
-	case EKeyInput::Left: return "←";
-	case EKeyInput::Right: return "→";
-
-	case EKeyInput::Space: return "Space";
-	case EKeyInput::Enter: return "Enter";
-	case EKeyInput::Esc: return "Esc";
-	case EKeyInput::Tab: return "Tab";
-	case EKeyInput::Shift: return "Shift";
-	case EKeyInput::Ctrl: return "Ctrl";
-	case EKeyInput::Alt: return "Alt";
-
-	case EKeyInput::Num0: return "0";
-	case EKeyInput::Num1: return "1";
-	case EKeyInput::Num2: return "2";
-	case EKeyInput::Num3: return "3";
-	case EKeyInput::Num4: return "4";
-	case EKeyInput::Num5: return "5";
-	case EKeyInput::Num6: return "6";
-	case EKeyInput::Num7: return "7";
-	case EKeyInput::Num8: return "8";
-	case EKeyInput::Num9: return "9";
-
-	case EKeyInput::MouseLeft: return "Mouse Left Click";
-	case EKeyInput::MouseRight: return "Mouse Right Click";
-	case EKeyInput::MouseMiddle: return "Mouse Wheel Click";
-
-	case EKeyInput::F1: return "F1";
-	case EKeyInput::F2: return "F2";
-	case EKeyInput::F3: return "F3";
-	case EKeyInput::F4: return "F4";
-	case EKeyInput::Backspace: return "Backspace";
-	case EKeyInput::Delete: return "Delete";
-	case EKeyInput::End:
-		// Nothing
-
-	default: return "Unknown";
-	}
+	return KeyString.c_str();
 }

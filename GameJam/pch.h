@@ -14,6 +14,7 @@
 // STD
 #include <map>
 #include <vector>
+#include <string>
 
 #include "Global/Struct.h"
 #include "Global/Function.h"
@@ -21,3 +22,4 @@
 
 using std::map;
 using std::vector;
+using std::string;
