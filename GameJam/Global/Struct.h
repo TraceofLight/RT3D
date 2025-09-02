@@ -2,6 +2,8 @@
  * @brief 전역 struct 모음 File
  */
 
+#include <cmath>
+
 struct FVertexSimple
 {
     float x, y, z; // Position
@@ -62,7 +64,7 @@ struct FVector3
     }
 
     float LengthSquare() const { return x * x + y * y + z * z; }
-    float Length() const { return sqrtf(LengthSquare()); }
+    float Length() const { return std::sqrtf(LengthSquare()); }
 
     FVector3& Normalize()
     {

@@ -1,3 +1,5 @@
+#include "pch.h"
+
 // dear imgui, v1.92.2 WIP
 // (tables and columns code)
 
