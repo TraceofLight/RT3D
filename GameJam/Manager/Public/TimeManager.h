@@ -33,6 +33,7 @@ public:
 	// Getter & Setter
 	float GetFPS() const { return FPS; }
 	float GetDeltaTime() const { return DeltaTime; }
+	float GetGameTime() const { return GameTime; }
 	bool IsPaused() const { return bIsPaused; }
 
 	void PauseGame() { bIsPaused = true; }

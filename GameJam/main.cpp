@@ -35,11 +35,130 @@ UPrimitive** PrimitiveList = nullptr;
 static int frameCount = 0;
 static const int minFramesBeforeFirstBall = 5;
 
+void RenderProcess(const URenderer& InRenderer);
+
 /**
  * @brief 매 프레임 반복되는 Logic을 처리하는 함수
  */
 static void MainLoop(URenderer& InRenderer)
 {
+	FTimeManager* TimeManager = FTimeManager::GetInstance();
+	FKeyManager* KeyManager = FKeyManager::GetInstance();
+
+	bool bIsExit = false;
+	while (!bIsExit)
+	{
+		// Update TimeManager
+		TimeManager->Update();
+
+		// 윈도우 메시지 처리
+		MSG Message;
+		while (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&Message);
+			DispatchMessage(&Message);
+
+			if (Message.message == WM_QUIT)
+			{
+				bIsExit = true;
+				break;
+			}
+		}
+
+		if (bIsExit)
+		{
+			break;
+		}
+
+		// KeyManager 업데이트
+		KeyManager->Update();
+
+		// === 입력 처리 ===
+		// ESC키로 종료
+		if (KeyManager->IsKeyPressed(EKeyInput::Esc))
+		{
+			PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
+			bIsExit = true;
+			continue;
+		}
+
+		// Space키로 공 추가
+		if (KeyManager->IsKeyPressed(EKeyInput::Space))
+		{
+			AddNewBall();
+		}
+
+		// Delete키로 공 제거
+		if (KeyManager->IsKeyPressed(EKeyInput::Delete))
+		{
+			RemoveRandomBall();
+		}
+
+		// === 게임 로직 업데이트 ===
+		// 시간 기반 공 생성 제어 (프레임 기반에서 시간 기반으로 변경)
+		if (TimeManager->GetGameTime())
+		{
+			// 공 개수 자동 조절
+			if (TotalPrimitives < UBall::TotalNumBalls)
+			{
+				AddNewBall();
+				OutputDebugStringA("[MAINLOOP] Ball added\n");
+			}
+			else if (TotalPrimitives > UBall::TotalNumBalls)
+			{
+				RemoveRandomBall();
+				OutputDebugStringA("[MAINLOOP] Ball removed\n");
+			}
+		}
+
+		// 공들의 물리 시뮬레이션 업데이트
+		for (int i = 0; i < TotalPrimitives; ++i)
+		{
+			UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
+			Ball->Move(); // 이 함수 내부에서 DT 매크로 사용 가능
+		}
+
+		// 사각형 물리 업데이트
+		GRectangle.Move(); // 이 함수 내부에서도 DT 매크로 사용 가능
+
+		// === 충돌 처리 ===
+		HandleCollisions();
+		HandleBallRectangleCollisions();
+
+		// Rendering
+		RenderProcess(InRenderer);
+	}
+}
+
+void RenderProcess(const URenderer& InRenderer)
+{
+	InRenderer.Prepare();
+	InRenderer.PrepareShader();
+
+	// 공들 렌더링
+	for (int i = 0; i < TotalPrimitives; ++i)
+	{
+		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
+		InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
+		InRenderer.RenderPrimitive();
+	}
+
+	// 사각형 렌더링
+	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
+	InRenderer.RenderRectangle();
+
+	// ImGui 렌더링 (TimeManager 정보 표시 가능)
+	FImGuiManager::RenderImGui();
+
+	// 백버퍼 스왑
+	InRenderer.SwapBuffer();
+}
+
+static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
+{
+	// Renderer Initialize
+	InRenderer.TotalInit(InWindowHandle);
+
 	// Sphere 버텍스 버퍼
 	UINT numVerticesSphere = sizeof(sphere_vertices) / sizeof(FVertexSimple);
 	InRenderer.vertexBufferSphere = InRenderer.CreateVertexBuffer(
@@ -53,119 +172,9 @@ static void MainLoop(URenderer& InRenderer)
 		rectangle_indices, sizeof(rectangle_indices));
 	InRenderer.numIndicesRectangle = _countof(rectangle_indices);
 
-	const int TargetFPS = 30;
-	const double TargetFrameTime = 1000.0 / TargetFPS;
-
-	LARGE_INTEGER Frequency;
-	QueryPerformanceFrequency(&Frequency);
-
-	LARGE_INTEGER StartTime, EndTime;
-	double ElapsedTime = 0.0;
-	bool bIsExit = false;
-
-	// KeyManager 인스턴스 가져오기
-	FKeyManager* KeyManager = FKeyManager::GetInstance();
-
-	while (bIsExit == false)
-	{
-		QueryPerformanceCounter(&StartTime);
-
-		MSG msg;
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg);
-			DispatchMessage(&msg);
-
-			if (msg.message == WM_QUIT)
-			{
-				bIsExit = true;
-				break;
-			}
-		}
-		if (bIsExit)
-		{
-			break;
-		}
-
-		// KeyManager 업데이트
-		KeyManager->Update();
-
-		// 키 입력 처리 예시 - ESC키로 나가기
-		if (KeyManager->IsKeyPressed(EKeyInput::Esc))
-		{
-			PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
-			bIsExit = true;
-		}
-
-		// 키 입력 처리 예시 - Space키로 공 추가
-		if (KeyManager->IsKeyPressed(EKeyInput::Space))
-		{
-			AddNewBall();
-		}
-
-		// 키 입력 처리 예시 - Delete키로 공 제거
-		if (KeyManager->IsKeyPressed(EKeyInput::Delete))
-		{
-			RemoveRandomBall();
-		}
-
-		frameCount++;
-
-		// 첫 몇 프레임 동안은 공 생성을 지연
-		if (frameCount > minFramesBeforeFirstBall)
-		{
-			// 한 프레임에 하나씩만 공을 추가/제거하여 안정성 향상
-			if (TotalPrimitives < UBall::TotalNumBalls)
-			{
-				AddNewBall();
-				OutputDebugStringA("[MAINLOOP] Ball added\n");
-			}
-			else if (TotalPrimitives > UBall::TotalNumBalls)
-			{
-				RemoveRandomBall();
-				OutputDebugStringA("[MAINLOOP] Ball removed\n");
-			}
-		}
-
-		// 물리 업데이트
-		for (int i = 0; i < TotalPrimitives; ++i)
-		{
-			UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-			Ball->Move();
-		}
-		GRectangle.Move();
-
-		// 물리 업데이트 후 충돌 처리
-		HandleCollisions();
-		HandleBallRectangleCollisions();
-
-		// 렌더링
-		InRenderer.Prepare();
-		InRenderer.PrepareShader();
-
-		for (int i = 0; i < TotalPrimitives; ++i)
-		{
-			UBall* ball = static_cast<UBall*>(PrimitiveList[i]);
-			InRenderer.UpdateConstant(ball->Location, ball->Radius);
-			InRenderer.RenderPrimitive();
-		}
-
-		// Rectangle Render
-		InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-		InRenderer.RenderRectangle();
-
-		FImGuiManager::RenderImGui();
-
-		InRenderer.SwapBuffer();
-
-		// 일정한 프레임 타임을 유지
-		do
-		{
-			Sleep(0);
-			QueryPerformanceCounter(&EndTime);
-			ElapsedTime = (EndTime.QuadPart - StartTime.QuadPart) * 1000.0 / Frequency.QuadPart;
-		} while (ElapsedTime < TargetFrameTime);
-	}
+	// Initialize Managers
+	FTimeManager::GetInstance();
+	FKeyManager::GetInstance();
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -193,11 +202,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	// Make Window Handle Global
 	GlobalWindowHandle = WindowHandle;
-
+	// Make Renderer
 	URenderer Renderer;
 
-	Renderer.TotalInit(WindowHandle);
-
+	InitEngine(WindowHandle, Renderer);
 	MainLoop(Renderer);
 
 	// Release Balls

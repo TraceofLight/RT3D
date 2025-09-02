@@ -22,7 +22,10 @@
 #include "Global/Struct.h"
 #include "Global/Function.h"
 #include "Global/Enum.h"
+#include "Global/Macro.h"
 
 using std::map;
 using std::vector;
 using std::string;
+
+#include "Manager/Public/TimeManager.h"

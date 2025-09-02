@@ -167,7 +167,9 @@
     <ClInclude Include="Asset\Rectangle.h" />
     <ClInclude Include="Asset\Sphere.h" />
     <ClInclude Include="Core\Public\Primitive.h"/>
+    <ClInclude Include="Global\Enum.h" />
     <ClInclude Include="Global\Function.h"/>
+    <ClInclude Include="Global\Macro.h" />
     <ClInclude Include="Global\Struct.h"/>
     <ClInclude Include="ImGui\imconfig.h"/>
     <ClInclude Include="ImGui\imgui.h"/>

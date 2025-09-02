@@ -35,9 +35,9 @@ void FTimeManager::Initialize()
 
 	bIsPaused = false;
 
-	for (int Index : FPS_SAMPLE_COUNT)
+	for (int i = 0; i < FPS_SAMPLE_COUNT; ++i)
 	{
-		FrameSpeedSamples[Index] = 0.0f;
+		FrameSpeedSamples[i] = 0.0f;
 	}
 }
 
