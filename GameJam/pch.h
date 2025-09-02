@@ -11,15 +11,23 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+#include <cmath>
+
 // STD
 #include <map>
 #include <vector>
 #include <string>
+#include <chrono>
+#include <algorithm>
 
 #include "Global/Struct.h"
 #include "Global/Function.h"
 #include "Global/Enum.h"
+#include "Global/Macro.h"
 
 using std::map;
 using std::vector;
 using std::string;
+using std::clamp;
+
+#include "Manager/Public/TimeManager.h"

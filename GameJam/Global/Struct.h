@@ -2,8 +2,6 @@
  * @brief 전역 struct 모음 File
  */
 
-#include <cmath>
-
 struct FVertexSimple
 {
     float x, y, z; // Position
