@@ -6,7 +6,7 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Sphere.h"
+#include "Asset/Sphere.h"
 #include "Actor/Public/UBall.h"
 #include "Core/Public/Primitive.h"
 #include "Manager/Public/ImGuiManager.h"
