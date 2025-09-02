@@ -1,18 +1,16 @@
 #include "pch.h"
-#include <windows.h>
 
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_internal.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
+#include "Core/Public/Primitive.h"
 #include "Asset/Sphere.h"
 #include "Actor/Public/UBall.h"
-#include "Core/Public/Primitive.h"
 #include "Manager/Public/ImGuiManager.h"
+#include "Manager/Public/KeyManager.h"
 #include "Render/Public/Renderer.h"
-
-class UBall;
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
 static void RemoveSpecificBall(int IndexToRemove);
@@ -56,6 +54,9 @@ static void MainLoop(URenderer& InRenderer)
 	double ElapsedTime = 0.0;
 	bool bIsExit = false;
 
+	// KeyManager 인스턴스 가져오기
+	FKeyManager* KeyManager = FKeyManager::GetInstance();
+
 	while (bIsExit == false)
 	{
 		QueryPerformanceCounter(&StartTime);
@@ -75,6 +76,28 @@ static void MainLoop(URenderer& InRenderer)
 		if (bIsExit)
 		{
 			break;
+		}
+
+		// KeyManager 업데이트
+		KeyManager->Update();
+
+		// 키 입력 처리 예시 - ESC키로 나가기
+		if (KeyManager->IsKeyPressed(EKeyInput::Esc))
+		{
+			PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
+			bIsExit = true;
+		}
+
+		// 키 입력 처리 예시 - Space키로 공 추가
+		if (KeyManager->IsKeyPressed(EKeyInput::Space))
+		{
+			AddNewBall();
+		}
+
+		// 키 입력 처리 예시 - Delete키로 공 제거
+		if (KeyManager->IsKeyPressed(EKeyInput::Delete))
+		{
+			RemoveRandomBall();
 		}
 
 		frameCount++;
@@ -176,6 +199,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		PrimitiveList = nullptr;
 	}
 
+	// KeyManager 인스턴스 해제
+	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	if (KeyManager)
+	{
+		delete KeyManager;
+	}
+
 	Renderer.TotalShutDown();
 
 	return 0;
@@ -193,6 +223,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			return true;
 		}
+	}
+
+	// KeyManager에 메시지 전달 (옵션)
+	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	if (KeyManager)
+	{
+		KeyManager->ProcessKeyMessage(message, wParam, lParam);
 	}
 
 	switch (message)
