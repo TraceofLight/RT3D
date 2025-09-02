@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Actor/Public/UBall.h"
+#include "Actor/Public/URectangle.h"
 
 // Static variable definitions
 int UBall::TotalNumBalls = 0;

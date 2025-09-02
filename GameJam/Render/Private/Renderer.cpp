@@ -266,6 +266,22 @@ void URenderer::RenderPrimitive() const
 }
 
 /**
+ * @brief Rectangle 그리는 함수
+ */
+void URenderer::RenderRectangle() const
+{
+	if (!vertexBufferRectangle || !indexBufferRectangle)
+	{
+		return;
+	}
+
+	UINT Offset = 0;
+	DeviceContext->IASetVertexBuffers(0, 1, &vertexBufferRectangle, &Stride, &Offset);
+	DeviceContext->IASetIndexBuffer(indexBufferRectangle, DXGI_FORMAT_R32_UINT, 0);
+	DeviceContext->DrawIndexed(numIndicesRectangle, 0, 0);
+}
+
+/**
  * @brief 정점 Buffer 생성 함수
  * @param InVertices
  * @param InByteWidth
@@ -286,6 +302,27 @@ ID3D11Buffer* URenderer::CreateVertexBuffer(FVertexSimple* InVertices, UINT InBy
     Device->CreateBuffer(&VertexBufferDesc, &VertexBufferSRD, &vertexBuffer);
 
     return vertexBuffer;
+}
+
+/**
+ * @brief Index Buffer 생성 함수
+ * @param InIndices
+ * @param InByteWidth
+ * @return
+ */
+ID3D11Buffer* URenderer::CreateIndexBuffer(const void* InIndices, UINT InByteWidth) const
+{
+    D3D11_BUFFER_DESC desc = {};
+    desc.ByteWidth = InByteWidth;
+    desc.Usage = D3D11_USAGE_IMMUTABLE;
+    desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+    D3D11_SUBRESOURCE_DATA srd = {};
+    srd.pSysMem = InIndices;
+
+    ID3D11Buffer* buffer = nullptr;
+    Device->CreateBuffer(&desc, &srd, &buffer);
+    return buffer;
 }
 
 /**
@@ -339,11 +376,35 @@ void URenderer::UpdateConstant(FVector3 InOffset, float InScale) const
         // update constant buffer every frame
         FConstants* constants = (FConstants*)constantbufferMSR.pData;
         {
-            constants->Offset = InOffset;
-            constants->Scale = InScale;
+			constants->Offset = InOffset;
+			constants->ScaleX = InScale;
+			constants->ScaleY = InScale;
         }
         DeviceContext->Unmap(ConstantBuffer, 0);
     }
+}
+
+/**
+ * @brief Rectangle용 상수 버퍼 업데이트 함수
+ * @param InOffset
+ * @param InScaleX Rectangle Width
+ * @param InScaleY Rectangle Height
+ */
+void URenderer::UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY) const
+{
+	if (ConstantBuffer)
+	{
+		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+		DeviceContext->Map(ConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+		// update constant buffer every frame
+		FConstants* constants = (FConstants*)constantbufferMSR.pData;
+		{
+			constants->Offset = InOffset;
+			constants->ScaleX = InScaleX * 0.5f;
+			constants->ScaleY = InScaleY * 0.5f;
+		}
+		DeviceContext->Unmap(ConstantBuffer, 0);
+	}
 }
 
 void URenderer::TotalInit(HWND InWindowHandle)

@@ -1,7 +1,8 @@
 cbuffer constants : register(b0)
 {
     float3 Offset;
-    float Scale;
+    float ScaleX;
+    float ScaleY;
 }
 
 // ShaderW0.hlsl
@@ -21,10 +22,11 @@ PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
     
-    // 1. 입력된 정점 위치에 Scale(반지름)을 곱하여 크기를 조절합니다.
-    // 2. 그 결과에 Offset(위치)을 더하여 공을 최종 위치로 이동시킵니다.
-    output.position = float4(input.position.xyz * Scale, 1.0f);
-    output.position.xyz += Offset;
+    // 비균등 스케일 적용
+    float3 scaledPos = float3(input.position.x * ScaleX,
+                              input.position.y * ScaleY,
+                              input.position.z);
+    output.position = float4(scaledPos + Offset, 1.0f);
     
     // 색상은 그대로 전달합니다.
     output.color = input.color;
