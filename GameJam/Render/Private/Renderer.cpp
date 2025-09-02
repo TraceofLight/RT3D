@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Render/Public/Renderer.h"
 
+#include "Manager/Public/ImGuiManager.h"
+
 /**
  * @brief Renderer Initializer
  * @param InWindowHandle Window Handle
@@ -351,12 +353,12 @@ void URenderer::TotalInit(HWND InWindowHandle)
 
     CreateConstantBuffer();
 
-    InitializeImGui(InWindowHandle, *this);
+    FImGuiManager::InitializeImGui(InWindowHandle, *this);
 }
 
 void URenderer::TotalShutDown()
 {
-    ReleaseImGui();
+    FImGuiManager::ReleaseImGui();
 
     // Release Balls
     for (int i = 0; i < TotalPrimitives; ++i)
