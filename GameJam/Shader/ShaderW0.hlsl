@@ -3,6 +3,7 @@ cbuffer constants : register(b0)
     float3 Offset;
     float ScaleX;
     float ScaleY;
+    float Rotation;
 }
 
 // ShaderW0.hlsl
@@ -22,11 +23,19 @@ PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
     
-    // 비균등 스케일 적용
-    float3 scaledPos = float3(input.position.x * ScaleX,
-                              input.position.y * ScaleY,
-                              input.position.z);
-    output.position = float4(scaledPos + Offset, 1.0f);
+    // 비등방 스케일
+    float2 scaled = float2(input.position.x * ScaleX, input.position.y * ScaleY);
+
+    // 회전
+    float c = cos(Rotation);
+    float s = sin(Rotation);
+    float2 rotated = float2(scaled.x * c - scaled.y * s,
+                            scaled.x * s + scaled.y * c);
+
+    // Offset (이미 NDC 공간을 직접 사용하므로 단순 더하기)
+    float2 world = rotated + Offset.xy;
+    
+    output.position = float4(world.xy, input.position.z + Offset.z, 1.0f);
     
     // 색상은 그대로 전달합니다.
     output.color = input.color;

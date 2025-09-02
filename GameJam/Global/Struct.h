@@ -147,5 +147,6 @@ struct FConstants
 	FVector3 Offset;
 	float ScaleX;
 	float ScaleY;
-	float Pad[3];
+	float Rotation;
+	float Pad[2];
 };

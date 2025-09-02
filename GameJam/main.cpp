@@ -8,8 +8,10 @@
 #include "Core/Public/Primitive.h"
 #include "Asset/Sphere.h"
 #include "Asset/Rectangle.h"
+#include "Asset/Triangle.h"
 #include "Mesh/Public/UBall.h"
 #include "Mesh/Public/URectangle.h"
+#include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/ImGuiManager.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
@@ -130,6 +132,10 @@ void RenderProcess(const URenderer& InRenderer)
 	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
 	InRenderer.RenderRectangle();
 
+	// Triangle Render
+	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation);
+	InRenderer.RenderTriangle();
+
 	// ImGui 렌더링 (TimeManager 정보 표시 가능)
 	FImGuiManager::RenderImGui();
 
@@ -194,6 +200,10 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	InRenderer.indexBufferRectangle = InRenderer.CreateIndexBuffer(
 		rectangle_indices, sizeof(rectangle_indices));
 	InRenderer.numIndicesRectangle = _countof(rectangle_indices);
+
+	// Triangle 버텍스 버퍼
+	InRenderer.vertexBufferTriangle = InRenderer.CreateVertexBuffer(
+		triangle_vertices, sizeof(triangle_vertices));
 
 	// Initialize Managers
 	FTimeManager::GetInstance();
