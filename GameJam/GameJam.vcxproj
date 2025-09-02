@@ -130,7 +130,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <AdditionalIncludeDirectories>$(SolutionDir)\External;$(SolutionDir);$(ProjectDir)</AdditionalIncludeDirectories>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
@@ -170,7 +170,9 @@
     <ClInclude Include="ImGui\imstb_truetype.h"/>
     <ClInclude Include="pch.h"/>
     <ClInclude Include="Render\Public\Renderer.h"/>
-    <ClInclude Include="Sphere.h"/>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Manager\Public\ImGuiManager.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="ShaderW0.hlsl">
@@ -179,7 +181,7 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Manager\Public\ImGuiManager.h" />
+    <Folder Include="Asset\" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets">
