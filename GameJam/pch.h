@@ -13,9 +13,11 @@
 
 // STD
 #include <map>
+#include <vector>
 
 #include "Global/Struct.h"
 #include "Global/Function.h"
 #include "Global/Enum.h"
 
 using std::map;
+using std::vector;

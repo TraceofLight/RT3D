@@ -21,6 +21,12 @@ public:
 	bool IsKeyPressed(EKeyInput InKey) const;
 	bool IsKeyReleased(EKeyInput InKey) const;
 
+	// 현재 눌린 키들의 목록을 가져오기
+	vector<EKeyInput> GetPressedKeys() const;
+
+	// EKeyInput을 문자열로 변환
+	static const char* KeyInputToString(EKeyInput InKey);
+
 	static FKeyManager* GetInstance();
 	~FKeyManager();
 };
