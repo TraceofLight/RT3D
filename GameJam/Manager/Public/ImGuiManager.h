@@ -1,6 +1,7 @@
 #pragma once
 #include "Render/Public/Renderer.h"
 
+// FIXME(KHJ): Singleton 패턴화해서 구현되면 적용할 것
 class FImGuiManager
 {
 public:

@@ -1,10 +1,12 @@
 #include "pch.h"
 #include "Manager/Public/ImGuiManager.h"
 
-#include "Actor/Public/UBall.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
+
+#include "Actor/Public/UBall.h"
+#include "Manager/Public/KeyManager.h"
 #include "Render/Public/Renderer.h"
 
 /**
@@ -58,6 +60,45 @@ void FImGuiManager::RenderImGui()
 	}
 
 	/** 여기까지 ImGui에 필요한 UI 작성 **/
+
+	ImGui::End();
+
+	// 키 입력 상태를 표시하는 창 추가
+	ImGui::Begin("Key Input Status");
+
+	// KeyManager에서 현재 눌린 키들 가져오기
+	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	if (KeyManager)
+	{
+		vector<EKeyInput> PressedKeys = KeyManager->GetPressedKeys();
+
+		ImGui::Text("Pressed Keys: ");
+		ImGui::Separator();
+
+		if (PressedKeys.empty())
+		{
+			ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "(Nothing Input)");
+		}
+		else
+		{
+			for (const EKeyInput& Key : PressedKeys)
+			{
+				const char* KeyString = FKeyManager::KeyInputToString(Key);
+				ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "- %s", KeyString);
+			}
+		}
+
+		ImGui::Separator();
+		ImGui::Text("Total %d Key Typing Now", static_cast<int>(PressedKeys.size()));
+
+		ImGui::Spacing();
+		ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "Manual: ");
+		ImGui::Text("ESC: Exit");
+		ImGui::Text("Space: Add Ball");
+		ImGui::Text("Delete: Remove Ball");
+		ImGui::Text("Left Click: Remove Target Ball");
+		ImGui::Text("Left Click: Set Gravity Ball / Release");
+	}
 
 	ImGui::End();
 
