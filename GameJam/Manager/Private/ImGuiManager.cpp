@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Manager/Public/ImGuiManager.h"
 
+#include "Actor/Public/UBall.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"

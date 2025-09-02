@@ -141,6 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor\Private\UBall.cpp" />
     <ClCompile Include="Core\Private\Primitive.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
@@ -155,6 +156,7 @@
     <ClCompile Include="Render\Private\Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor\Public\UBall.h" />
     <ClInclude Include="Core\Public\Primitive.h"/>
     <ClInclude Include="Global\Function.h"/>
     <ClInclude Include="Global\Struct.h"/>

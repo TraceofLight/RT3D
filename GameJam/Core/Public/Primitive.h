@@ -1,6 +1,6 @@
 #pragma once
 
-extern UINT PrimitiveNumber = 0;
+extern UINT PrimitiveNumber;
 
 class UPrimitive
 {

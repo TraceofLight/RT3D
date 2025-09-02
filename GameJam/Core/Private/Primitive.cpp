@@ -1,5 +1,8 @@
 #include "pch.h"
-#include "GameJam/Core/Public/Primitive.h"
+#include "Core/Public/Primitive.h"
+
+// Global variable definition
+UINT PrimitiveNumber = 0;
 
 UPrimitive::UPrimitive()
 {

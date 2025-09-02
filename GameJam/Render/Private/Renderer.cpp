@@ -360,19 +360,6 @@ void URenderer::TotalShutDown()
 {
     FImGuiManager::ReleaseImGui();
 
-    // Release Balls
-    for (int i = 0; i < TotalPrimitives; ++i)
-    {
-        delete PrimitiveList[i];
-    }
-
-    // Release & Remove Dangling Pointer
-    if (PrimitiveList)
-    {
-        delete[] PrimitiveList;
-        PrimitiveList = nullptr;
-    }
-
     ReleaseVertexBuffer(this->vertexBufferSphere);
     ReleaseConstantBuffer();
     ReleaseShader();
