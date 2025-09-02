@@ -48,6 +48,11 @@ public:
     ID3D11Buffer* vertexBufferSphere;
     UINT numVerticesSphere;
 
+	// Rectangle용 버퍼
+	ID3D11Buffer* vertexBufferRectangle = nullptr;
+	ID3D11Buffer* indexBufferRectangle = nullptr;
+	UINT numIndicesRectangle = 0;
+
 public:
     void Create(HWND InWindowHandle);
     void CreateDeviceAndSwapChain(HWND InWindowHandle);
@@ -67,12 +72,15 @@ public:
     void Prepare() const;
     void PrepareShader() const;
     void RenderPrimitive() const;
+	void RenderRectangle() const;
 
     ID3D11Buffer* CreateVertexBuffer(FVertexSimple* InVertices, UINT InByteWidth) const;
+	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, UINT InByteWidth) const;
     static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
     void CreateConstantBuffer();
     void ReleaseConstantBuffer();
     void UpdateConstant(FVector3 InOffset, float InScale) const;
+	void UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY) const;
 
     void TotalInit(HWND InWindowHandle);
     void TotalShutDown();

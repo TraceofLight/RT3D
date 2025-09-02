@@ -78,3 +78,11 @@ struct FVector3
         return *this;
     }
 };
+
+struct FConstants
+{
+	FVector3 Offset;
+	float ScaleX;
+	float ScaleY;
+	float Pad[3];
+};

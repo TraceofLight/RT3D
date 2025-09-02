@@ -7,7 +7,9 @@
 
 #include "Core/Public/Primitive.h"
 #include "Asset/Sphere.h"
+#include "Asset/Rectangle.h"
 #include "Actor/Public/UBall.h"
+#include "Actor/Public/URectangle.h"
 #include "Manager/Public/ImGuiManager.h"
 #include "Manager/Public/KeyManager.h"
 #include "Render/Public/Renderer.h"
@@ -16,6 +18,8 @@ static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
 static void RemoveSpecificBall(int IndexToRemove);
 static void SetGravityCenter(int IndexToSet);
 static void HandleCollisions();
+static void HandleBallRectangleCollisions();
+static void ResolveBallRectangle(UBall* Ball, const URectangle* Rect);
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void AddNewBall();
@@ -36,13 +40,18 @@ static const int minFramesBeforeFirstBall = 5;
  */
 static void MainLoop(URenderer& InRenderer)
 {
-	// Renderer와 Shader 생성 이후에 버텍스 버퍼를 생성합니다.
+	// Sphere 버텍스 버퍼
 	UINT numVerticesSphere = sizeof(sphere_vertices) / sizeof(FVertexSimple);
-
 	InRenderer.vertexBufferSphere = InRenderer.CreateVertexBuffer(
 		sphere_vertices, sizeof(sphere_vertices));
-
 	InRenderer.numVerticesSphere = numVerticesSphere;
+
+	// Rectangle 버텍스/인덱스 버퍼
+	InRenderer.vertexBufferRectangle = InRenderer.CreateVertexBuffer(
+		rectangle_vertices, sizeof(rectangle_vertices));
+	InRenderer.indexBufferRectangle = InRenderer.CreateIndexBuffer(
+		rectangle_indices, sizeof(rectangle_indices));
+	InRenderer.numIndicesRectangle = _countof(rectangle_indices);
 
 	const int TargetFPS = 30;
 	const double TargetFrameTime = 1000.0 / TargetFPS;
@@ -124,9 +133,11 @@ static void MainLoop(URenderer& InRenderer)
 			UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
 			Ball->Move();
 		}
+		GRectangle.Move();
 
 		// 물리 업데이트 후 충돌 처리
 		HandleCollisions();
+		HandleBallRectangleCollisions();
 
 		// 렌더링
 		InRenderer.Prepare();
@@ -139,6 +150,10 @@ static void MainLoop(URenderer& InRenderer)
 			InRenderer.RenderPrimitive();
 		}
 
+		// Rectangle Render
+		InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
+		InRenderer.RenderRectangle();
+
 		FImGuiManager::RenderImGui();
 
 		InRenderer.SwapBuffer();
@@ -149,8 +164,7 @@ static void MainLoop(URenderer& InRenderer)
 			Sleep(0);
 			QueryPerformanceCounter(&EndTime);
 			ElapsedTime = (EndTime.QuadPart - StartTime.QuadPart) * 1000.0 / Frequency.QuadPart;
-		}
-		while (ElapsedTime < TargetFrameTime);
+		} while (ElapsedTime < TargetFrameTime);
 	}
 }
 
@@ -166,16 +180,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	WCHAR Title[] = L"Game Tech Lab";
 
 	// 각종 메시지를 처리할 함수인 WndProc의 함수 포인터를 WindowClass 구조체에 넣는다.
-	WNDCLASSW wndclass = {0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass};
+	WNDCLASSW wndclass = { 0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass };
 
 	// 윈도우 클래스 등록
 	RegisterClassW(&wndclass);
 
 	// 1024 x 1024 크기에 윈도우 생성
 	HWND WindowHandle = CreateWindowExW(0, WindowClass, Title,
-	                                    WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
-	                                    CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
-	                                    nullptr, nullptr, hInstance, nullptr);
+		WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
+		nullptr, nullptr, hInstance, nullptr);
 
 	// Make Window Handle Global
 	GlobalWindowHandle = WindowHandle;
@@ -234,18 +248,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
-	// 마우스 왼쪽 버튼 클릭
+		// 마우스 왼쪽 버튼 클릭
 	case WM_LBUTTONDOWN:
-		{
-			HandleMouseClick(LOWORD(lParam), HIWORD(lParam), true);
-			return 0;
-		}
+	{
+		HandleMouseClick(LOWORD(lParam), HIWORD(lParam), true);
+		return 0;
+	}
 	// 마우스 오른쪽 버튼 클릭
 	case WM_RBUTTONDOWN:
-		{
-			HandleMouseClick(LOWORD(lParam), HIWORD(lParam), false);
-			return 0;
-		}
+	{
+		HandleMouseClick(LOWORD(lParam), HIWORD(lParam), false);
+		return 0;
+	}
 	case WM_DESTROY:
 		// Signal that the app should quit
 		PostQuitMessage(0);
@@ -263,7 +277,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 void AddNewBall()
 {
 	// Make New List
-	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
+	UPrimitive** NewList = new UPrimitive * [TotalPrimitives + 1];
 
 	// Copy
 	for (int i = 0; i < TotalPrimitives; ++i)
@@ -312,7 +326,7 @@ void RemoveRandomBall()
 	UPrimitive** NewList = nullptr;
 	if (TotalPrimitives - 1 > 0)
 	{
-		NewList = new UPrimitive*[TotalPrimitives - 1];
+		NewList = new UPrimitive * [TotalPrimitives - 1];
 	}
 
 	// Copy
@@ -383,6 +397,93 @@ void HandleCollisions()
 }
 
 /**
+ * @brief 공과 사각형 간의 충돌을 감지하고 처리하는 함수
+ * @param Ball 충돌을 검사할 공 객체
+ * @param Rect 충돌을 검사할 사각형 객체
+ */
+void ResolveBallRectangle(UBall* Ball, const URectangle* Rect)
+{
+	float HalfW = Rect->Width * 0.5f;
+	float HalfH = Rect->Height * 0.5f;
+
+	// 볼 중심에서 사각형 중심으로의 벡터 (사각형 로컬 좌표)
+	FVector3 Delta = Ball->Location - Rect->Location;
+
+	// 사각형 안에서 가장 가까운 점 (로컬)
+	float ClampedX = Clamp(Delta.x, -HalfW, HalfW);
+	float ClampedY = Clamp(Delta.y, -HalfH, HalfH);
+
+	// 월드 좌표의 가장 가까운 점
+	FVector3 Closest(Rect->Location.x + ClampedX,
+		Rect->Location.y + ClampedY,
+		Rect->Location.z);
+
+	FVector3 Diff = Ball->Location - Closest;
+	float DistSq = Diff.LengthSquare();
+	float Radius = Ball->Radius;
+
+	if (DistSq > Radius * Radius)
+	{
+		return; // 충돌 없음
+	}
+
+	FVector3 Normal;
+	float Dist = sqrtf(DistSq);
+
+	if (Dist > 0.00001f)
+	{
+		Normal = Diff / Dist;
+	}
+	else
+	{
+		// 중심선과 겹쳤을 때(볼 중심이 사각형 내부 깊숙하거나 정확히 중심)
+		float PenX = HalfW - fabsf(Delta.x);
+		float PenY = HalfH - fabsf(Delta.y);
+
+		if (PenX < PenY)
+		{
+			Normal = FVector3((Delta.x >= 0.f) ? 1.f : -1.f, 0.f, 0.f);
+			Dist = Radius - PenX;
+		}
+		else
+		{
+			Normal = FVector3(0.f, (Delta.y >= 0.f) ? 1.f : -1.f, 0.f);
+			Dist = Radius - PenY;
+		}
+	}
+
+	// 침투 깊이
+	float Penetration = Radius - Dist;
+	if (Penetration < 0.f)
+	{
+		return;
+	}
+
+	// 위치 보정 (사각형은 정적취급)
+	Ball->Location += Normal * Penetration;
+
+	// 속도 반사
+	float Vn = Dot(Ball->Velocity, Normal);
+	if (Vn < 0.f)
+	{
+		float Restitution = 1.0f; // 필요시 조정
+		Ball->Velocity -= Normal * (1.f + Restitution) * Vn;
+	}
+}
+
+/**
+ * @brief 공과 사각형 간의 충돌을 감지하고 처리하는 함수
+ */
+void HandleBallRectangleCollisions()
+{
+	for (int i = 0; i < TotalPrimitives; ++i)
+	{
+		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
+		ResolveBallRectangle(Ball, &GRectangle);
+	}
+}
+
+/**
  * @brief 특정 index의 공을 제거하는 함수
  * @param IndexToRemove 제거할 공의 index
  */
@@ -406,7 +507,7 @@ void RemoveSpecificBall(int IndexToRemove)
 	UPrimitive** NewList = nullptr;
 	if (TotalPrimitives - 1 > 0)
 	{
-		NewList = new UPrimitive*[TotalPrimitives - 1];
+		NewList = new UPrimitive * [TotalPrimitives - 1];
 	}
 
 	// Copy

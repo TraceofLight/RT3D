@@ -20,8 +20,22 @@ static float Dot(const FVector3& InLeft, const FVector3& InRight)
     return InLeft.x * InRight.x + InLeft.y * InRight.y + InLeft.z * InRight.z;
 }
 
-struct FConstants
+/**
+ * @brief 값의 범위를 지정된 최소값과 최대값 사이로 제한하는 함수
+ * @param InValue 제한할 값
+ * @param InMin 최소값
+ * @param InMax 최대값
+ * @return 제한된 값
+ */
+static inline float Clamp(float InValue, float InMin, float InMax)
 {
-    FVector3 Offset;
-    float Scale;
-};
+	if (InValue < InMin)
+	{
+		return InMin;
+	}
+	if (InValue > InMax)
+	{
+		return InMax;
+	}
+	return InValue;
+}
