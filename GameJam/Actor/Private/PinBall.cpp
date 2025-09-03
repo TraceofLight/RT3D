@@ -17,7 +17,7 @@ UPinBall::~UPinBall()
 
 void UPinBall::Init()
 {
-	Shape = new UBall();
+	Shape = new UBall(0.05f);
 	Location = FVector3(0.0f, 0.0f, 0.0f);
 	Velocity = FVector3(0.0f, 0.0f, 0.0f);
 	bPinballGravity = true; // 기본 중력 활성화

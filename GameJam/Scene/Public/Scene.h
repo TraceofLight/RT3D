@@ -23,6 +23,16 @@ public:
 	bool IsActive() const { return m_isActive; }
 	void SetActive(bool active) { m_isActive = active; }
 	void AddPrimitive(UPrimitive* InPrimitive) { ScenePrimivites.push_back(InPrimitive); }
+	void RemovePrimitive(UPrimitive* InPrimitive)
+	{
+		auto iter = std::find(ScenePrimivites.begin(), ScenePrimivites.end(), InPrimitive);
+		if (iter != ScenePrimivites.end())
+		{
+			ScenePrimivites.erase(iter);
+		}
+	}
+	vector<UPrimitive*> GetScenePrimitives() const { return ScenePrimivites; }
+
 	vector<UPrimitive*>* GetScenePrimitives()  { return &ScenePrimivites; }
 	bool SetPause(bool p) { pause = p; }
 	bool GetPause() { return pause; }

@@ -16,6 +16,7 @@ public:
 	Scene* GetCurrentScene() const { return m_currentScene; }
 	vector<UPrimitive*>* GetAllScenePrimivites() const { return m_currentScene->GetScenePrimitives(); }
 	void AddPrimitiveToScene(UPrimitive* InPrimitive) { m_currentScene->AddPrimitive(InPrimitive); }
+	void RemovePrimitiveFromScene(UPrimitive* InPrimitive) { m_currentScene->RemovePrimitive(InPrimitive); }
 
 private:
 	FSceneManager() = default;

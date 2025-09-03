@@ -52,6 +52,9 @@ void GameScene::Update(float deltaTime)
     FInputManager* KeyManager = FInputManager::GetInstance();
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 
+	// 지연 삭제 처리 (프레임 시작 시)
+	ProcessDelayedDeletions();
+
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
     InputProcess();
@@ -61,17 +64,21 @@ void GameScene::Update(float deltaTime)
 
 	m_TotalPrimitives = static_cast<int>(m_PrimitiveList->size());
 
-    // 모든 볼 객체의 움직임 업데이트
-    for (int i = 0; i < m_TotalPrimitives; ++i)
-    {
-        UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
-        Ball->Move();
-    }
+	// 삭제 예정인 볼을 제외한 모든 볼 객체의 움직임 업데이트
+	for (int i = 0; i < m_TotalPrimitives; ++i)
+	{
+		auto PrimitiveList = *m_PrimitiveList;
+		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
+		if (!IsMarkedForDeletion(Ball))
+		{
+			Ball->Move();
+		}
+	}
 
-    m_Rectangle->Move();
+	m_Rectangle->Move();
 
 	//m_PadPair.Update(KeyManager, TimeManager->GetDeltaTime());
-	if (isGameOver())
+	if (IsGameOver())
 	{
 		pause = true;
 	}
@@ -80,6 +87,9 @@ void GameScene::Update(float deltaTime)
     // HandleCollisions();
     // HandleBallRectangleCollisions();
 	HandleBallPadPairCollisions();
+
+	// 공 트리거 체크 (공이 화면 하단에 도달하거나 범위를 벗어난 경우)
+	CheckBallTriggers();
 }
 
 void GameScene::Render()
@@ -100,11 +110,13 @@ void GameScene::Cleanup()
         m_Rectangle = nullptr;
     }
 
-
 	delete Shooter;
 	delete m_PadPair;
 
-    m_TotalPrimitives = 0;
+	// Clear Delayed Task Target
+	m_BallsToDelete.clear();
+
+	m_TotalPrimitives = 0;
 }
 
 void GameScene::InputProcess()
@@ -117,22 +129,67 @@ void GameScene::InputProcess()
 		return;
 	}
 
-	// 스페이스바 처리 - 차징 및 발사
-	if (Shooter)
+	// Charging & Shoot
+	if (Shooter && Shooter->CanShoot())
 	{
 		if (KeyManager->IsKeyDown(EKeyInput::Space))
 		{
-			// 스페이스바를 누르고 있는 동안 차징
-			DEBUG_PRINT("[MAINLOOP] Shooter Charging...\n");
+			// 스페이스바를 누르고 있는 동안 차징 (발사 가능할 때만)
+			DEBUG_PRINT("[Shooter] Shooter Charging...\n");
 			Shooter->Charging();
 		}
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
 		{
-			// 스페이스바를 뗐을 때 발사
-			if (m_TotalPrimitives < 1)
+			Shooter->Shoot();
+			DEBUG_PRINT("[Shooter] Shooter Fire!\n");
+		}
+	}
+	else if (Shooter && !Shooter->CanShoot())
+	{
+		if (KeyManager->IsKeyPressed(EKeyInput::Space))
+		{
+			DEBUG_PRINT("[Shooter] Shooter not ready - ball already fired!\n");
+		}
+	}
+}
+
+void GameScene::CheckBallTriggers()
+{
+	for (UPrimitive* Ball : *m_PrimitiveList)
+	{
+		UPinBall* PinBall = dynamic_cast<UPinBall*>(Ball);
+		if (PinBall && PinBall != m_GravityCenterBall)
+		{
+			// 화면 범위를 벗어났거나 하단에 도달했는지 확인
+			bool ShouldTrigger = false;
+			FVector3 pos = PinBall->GetLocation();
+
+			// 화면 하단 도달 체크 (정규화된 좌표계에서 -1.0f가 화면 하단)
+			if (pos.y <= -1.0f + PinBall->GetShape()->GetRadius())
 			{
-				Shooter->Shoot();
-				DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
+				ShouldTrigger = true;
+				DEBUG_PRINT("[Ball Trigger] Ball reached bottom of screen\n");
+			}
+			// 좌우 범위 벗어남 체크 (정규화된 좌표계에서 ±1.5f 정도가 화면 밖)
+			else if (pos.x < -1.5f || pos.x > 1.5f)
+			{
+				ShouldTrigger = true;
+				DEBUG_PRINT("[Ball Trigger] Ball went out of bounds (x=%.2f)\n", pos.x);
+			}
+
+			if (ShouldTrigger)
+			{
+				// 이미 삭제 예정인 볼인지 확인
+				auto iter = std::find(m_BallsToDelete.begin(), m_BallsToDelete.end(), PinBall);
+				if (iter == m_BallsToDelete.end()) // 아직 삭제 목록에 없으면
+				{
+					// 슈터에 볼 트리거 알림
+					Shooter->OnBallTrigger();
+
+					// 삭제할 볼 목록에 추가 (다음 프레임에서 삭제)
+					m_BallsToDelete.push_back(PinBall);
+					DEBUG_PRINT("[Ball Trigger] Ball marked for deletion\n");
+				}
 			}
 		}
 	}
@@ -147,15 +204,18 @@ void GameScene::RenderProcess()
     for (int i = 0; i < m_TotalPrimitives; ++i)
     {
         UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
-        Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
-        Renderer->RenderPrimitive();
+    	if (!IsMarkedForDeletion(Ball))
+    	{
+    		Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
+    		Renderer->RenderPrimitive();
+    	}
     }
 
     // Shooter 렌더링 추가
     if (Shooter && Shooter->GetShape())
     {
-        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(), 
-                                           Shooter->GetShape()->GetWidth(), 
+        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
+                                           Shooter->GetShape()->GetWidth(),
                                            Shooter->GetShape()->GetHeight());
         Renderer->RenderRectangle();
     }
@@ -322,22 +382,29 @@ void GameScene::HandleBallPadPairCollisions()
 {
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
-		ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
-		ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
+		auto PrimitiveList = *m_PrimitiveList;
+		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
+		if (!IsMarkedForDeletion(Ball))
+		{
+			ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
+			ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
+		}
 	}
 }
 
+// void GameScene::HandleBallRectangleCollisions()
+// {
+// 	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
+// 	{
+// 		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+// 		if (!IsMarkedForDeletion(Ball))
+// 		{
+// 			ResolveBallRectangle(Ball, &GRectangle);
+// 		}
+// 	}
+// }
 
-/*void GameScene::HandleBallRectangleCollisions()
-{
-	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
-	{
-		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
-		ResolveBallRectangle(Ball, &GRectangle);
-	}
-}*/
-bool GameScene::isGameOver()
+bool GameScene::IsGameOver()
 {
 	if (m_TotalPrimitives > 0)
 	{
@@ -348,4 +415,35 @@ bool GameScene::isGameOver()
 		}
 	}
 	return false;
+}
+
+void GameScene::ProcessDelayedDeletions()
+{
+	if (m_BallsToDelete.empty())
+		return;
+
+	DEBUG_PRINT("[Delayed Deletion] Processing %d balls for deletion\n", static_cast<int>(m_BallsToDelete.size()));
+
+	FSceneManager& SceneManager = FSceneManager::GetInstance();
+
+	// 삭제할 볼들을 순회하면서 처리
+	for (UPinBall* BallToDelete : m_BallsToDelete)
+	{
+		// SceneManager를 통해 씨너의 프리미티브 리스트에서 제거
+		SceneManager.RemovePrimitiveFromScene(BallToDelete);
+		DEBUG_PRINT("[Delayed Deletion] Ball removed from scene primitives\n");
+
+		// 메모리에서 삭제
+		delete BallToDelete;
+		DEBUG_PRINT("[Delayed Deletion] Ball deleted from memory\n");
+	}
+
+	// 삭제 목록 비우기
+	m_BallsToDelete.clear();
+	DEBUG_PRINT("[Delayed Deletion] Deletion process completed\n");
+}
+
+bool GameScene::IsMarkedForDeletion(UPinBall* InBall) const
+{
+	return std::find(m_BallsToDelete.begin(), m_BallsToDelete.end(), InBall) != m_BallsToDelete.end();
 }

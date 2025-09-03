@@ -13,5 +13,6 @@ public:
 	float GetMass() const { return Mass; }
 
 	UBall();
+	UBall(float InRadius);
 	~UBall() override;
 };

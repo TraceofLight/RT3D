@@ -5,19 +5,19 @@
 
 class Button : public UIElement {
 private:
-	Text text;
-	std::function<void()> onClick;
-	bool isPressed = false;
-	bool isHovered = false;
+	Text ButtonText;
+	function<void()> OnClickFunction;
+	bool bIsPressed = false;
+	bool bIsHovered = false;
 
 public:
-	Button(const std::string& buttonText, std::function<void()> callback);
+	Button(const string& InButtonText, function<void()> InCallback);
 
-	void Update(float deltaTime) override;
+	void Update(float InDeltaTime) override;
 	void Render() override;
 
-	void SetOnClick(std::function<void()> callback) { onClick = callback; }
-	void SetText(std::string str) { text.SetText(str); }
+	void SetOnClick(function<void()> InCallback) { OnClickFunction = InCallback; }
+	void SetText(string InString) { ButtonText.SetText(InString); }
 
-	bool OnMouseClick(FVector3 loc);
+	bool OnMouseClick(FVector3 loc) override;
 };
