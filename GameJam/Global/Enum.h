@@ -50,3 +50,14 @@ enum class EKeyInput : UINT8
 
 	End
 };
+
+enum class EKeyStatus : UINT8
+{
+	Up,        // 눌려있지 않은 상태 (현재 false)
+	Pressed,   // 이번 프레임에 눌림 (이전 false, 현재 true)
+	Down,      // 눌려있는 상태 (현재 true)
+	Released,  // 이번 프레임에 떼어짐 (이전 true, 현재 false)
+	Unknown,    // 알 수 없음
+
+	End
+};

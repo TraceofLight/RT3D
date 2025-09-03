@@ -198,20 +198,63 @@ void FKeyManager::ProcessKeyMessage(UINT InMessage, WPARAM WParam, LPARAM LParam
 	}
 }
 
-vector<EKeyInput> FKeyManager::GetPressedKeys() const
+vector<EKeyInput> FKeyManager::GetKeysByStatus(EKeyStatus InStatus) const
 {
-	vector<EKeyInput> PressedKeys;
+	vector<EKeyInput> Keys;
 
-	for (const auto& KeyPair : CurrentKeyState)
+	for (int i = 0; i < static_cast<int>(EKeyInput::End); ++i)
 	{
-		// 키가 눌린 상태일 경우 처리
-		if (KeyPair.second)
+		EKeyInput Key = static_cast<EKeyInput>(i);
+		if (GetKeyStatus(Key) == InStatus)
 		{
-			PressedKeys.push_back(KeyPair.first);
+			Keys.push_back(Key);
 		}
 	}
 
-	return PressedKeys;
+	return Keys;
+}
+
+EKeyStatus FKeyManager::GetKeyStatus(EKeyInput InKey) const
+{
+	auto CurrentIter = CurrentKeyState.find(InKey);
+	auto PrevIter = PreviousKeyState.find(InKey);
+
+	if (CurrentIter == CurrentKeyState.end() || PrevIter == PreviousKeyState.end())
+	{
+		return EKeyStatus::Unknown;
+	}
+
+	// Pressed -> Released -> Down -> Up
+	if (CurrentIter->second && !PrevIter->second)
+	{
+		return EKeyStatus::Pressed;
+	}
+	if (!CurrentIter->second && PrevIter->second)
+	{
+		return EKeyStatus::Released;
+	}
+	if (CurrentIter->second)
+	{
+		return EKeyStatus::Down;
+	}
+	return EKeyStatus::Up;
+}
+
+vector<EKeyInput> FKeyManager::GetPressedKeys() const
+{
+	return GetKeysByStatus(EKeyStatus::Down);
+}
+
+vector<EKeyInput> FKeyManager::GetNewlyPressedKeys() const
+{
+	// Pressed 상태의 키들을 반환
+	return GetKeysByStatus(EKeyStatus::Pressed);
+}
+
+vector<EKeyInput> FKeyManager::GetReleasedKeys() const
+{
+	// Released 상태의 키들을 반환
+	return GetKeysByStatus(EKeyStatus::Released);
 }
 
 const char* FKeyManager::KeyInputToString(EKeyInput InKey)
