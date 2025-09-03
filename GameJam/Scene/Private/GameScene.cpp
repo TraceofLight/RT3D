@@ -2,13 +2,14 @@
 #include "Scene/Public/GameScene.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
-#include "Render/Public/Renderer.h" // Renderer를 사용하기 위해 포함
+#include "Manager/Public/SceneManager.h"
+#include "Render/Public/Renderer.h"
+#include "Actor/Public/PinBall.h"
 #include "Mesh/Public/UBall.h"
-#include <cassert> // assert 사용
 
 // 생성자: 멤버 변수 초기화
 GameScene::GameScene()
-	: Scene("GAME SCENE"),TotalPrimitives(0), PrimitiveList(nullptr), GravityCenterBall(nullptr)
+	: Scene("GAME SCENE")
 {
 	Init();
 }
@@ -27,19 +28,12 @@ void GameScene::Init()
 
 void GameScene::Cleanup()
 {
-	// 씬이 끝날 때 모든 공 객체 삭제
-	for (int i = 0; i < TotalPrimitives; ++i)
+	for (UPinBall* Ball : PinBalls)
 	{
-		delete PrimitiveList[i];
+		delete Ball;
 	}
 
-	if (PrimitiveList)
-	{
-		delete[] PrimitiveList;
-		PrimitiveList = nullptr;
-	}
-	TotalPrimitives = 0;
-	GravityCenterBall = nullptr;
+	PinBalls.clear();
 }
 
 void GameScene::Update(float deltaTime)
@@ -47,45 +41,22 @@ void GameScene::Update(float deltaTime)
 	// ================== MainLoop에서 가져온 게임 로직 ==================
 	FTimeManager* TimeManager = FTimeManager::GetInstance();
 	FInputManager* KeyManager = FInputManager::GetInstance();
+	FSceneManager& SceneManager = FSceneManager::GetInstance();
 
-	// === 입력 처리 ===
-	// Space키로 공 추가
-	if (KeyManager->IsKeyPressed(EKeyInput::Space))
-	{
-		AddNewBall();
-	}
-
-	// Delete키로 공 제거
-	if (KeyManager->IsKeyPressed(EKeyInput::Delete))
-	{
-		RemoveRandomBall();
-	}
-
-	// === 게임 로직 업데이트 ===
-	// 공 개수 자동 조절
-	if (TotalPrimitives < UBall::TotalNumBalls)
-	{
-		AddNewBall();
-	}
-	else if (TotalPrimitives > UBall::TotalNumBalls)
-	{
-		RemoveRandomBall();
-	}
+	ScenePrimitives = SceneManager.GetAllScenePrimivites();
 
 	// 공들의 물리 시뮬레이션 업데이트
-	for (int i = 0; i < TotalPrimitives; ++i)
+	for (UPinBall* Ball : PinBalls)
 	{
-		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-		// 중력 중심 공은 움직이지 않음
-		if (Ball == GravityCenterBall) continue;
-		Ball->Move(); // 중력 중심 공 전달
+	// 	// PinBall의 물리 업데이트 처리
+	// 	Ball->Update();
 	}
 
 	// 사각형 물리 업데이트
 	GRectangle.Move();
 
 	// === 충돌 처리 ===
-	HandleCollisions();
+	// HandleCollisions(); 공이 1개인 것을 전제로 한다
 	HandleBallRectangleCollisions();
 }
 
@@ -96,10 +67,9 @@ void GameScene::Render()
 
 	// ================== RenderProcess에서 가져온 렌더링 로직 ==================
 	// 공들 렌더링
-	for (int i = 0; i < TotalPrimitives; ++i)
+	for (UPinBall* Ball : PinBalls)
 	{
-		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-		InRenderer->UpdateConstant(Ball->Location, Ball->Radius);
+		InRenderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
 		InRenderer->RenderPrimitive();
 	}
 
@@ -108,126 +78,51 @@ void GameScene::Render()
 	InRenderer->RenderRectangle();
 }
 
-void GameScene::AddNewBall()
-{
-	// Make New List
-	UPrimitive** NewList = new UPrimitive * [TotalPrimitives + 1];
-
-	// Copy
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		NewList[i] = PrimitiveList[i];
-	}
-
-	// Add New Ball
-	NewList[TotalPrimitives] = new UBall();
-
-	// Release
-	if (PrimitiveList != nullptr)
-	{
-		delete[] PrimitiveList;
-	}
-
-	// Swap List
-	PrimitiveList = NewList;
-
-	++TotalPrimitives;
-}
-
-/**
- * @brief 임의의 공을 제거하는 함수
- */
-void GameScene::RemoveRandomBall()
-{
-	if (TotalPrimitives <= 0)
-	{
-		return;
-	}
-
-	// Select Index
-	int IndexToRemove = rand() % TotalPrimitives;
-
-	// If Gravity Center, Make Null First
-	if (PrimitiveList[IndexToRemove] == GravityCenterBall)
-	{
-		GravityCenterBall = nullptr;
-	}
-
-	// Remove Object
-	delete PrimitiveList[IndexToRemove];
-
-	// Make New List
-	UPrimitive** NewList = nullptr;
-	if (TotalPrimitives - 1 > 0)
-	{
-		NewList = new UPrimitive * [TotalPrimitives - 1];
-	}
-
-	// Copy
-	int NewIndex = 0;
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		if (i == IndexToRemove)
-		{
-			continue;
-		}
-		NewList[NewIndex] = PrimitiveList[i];
-		NewIndex++;
-	}
-
-	// Release
-	delete[] PrimitiveList;
-
-	// Swap List
-	PrimitiveList = NewList;
-
-	--TotalPrimitives;
-}
-
 /**
  * @brief 공들 간의 충돌을 감지하고 처리하는 함수
  */
+[[deprecated]]
 void GameScene::HandleCollisions()
 {
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		for (int j = i + 1; j < TotalPrimitives; ++j)
-		{
-			UBall* Ball1 = static_cast<UBall*>(PrimitiveList[i]);
-			UBall* Ball2 = static_cast<UBall*>(PrimitiveList[j]);
-
-			FVector3 Delta = Ball1->Location - Ball2->Location;
-			float DistanceSq = Delta.LengthSquare();
-			float CombinedRadius = Ball1->Radius + Ball2->Radius;
-
-			if (DistanceSq < CombinedRadius * CombinedRadius && DistanceSq > 0.0f)
-			{
-				// 충돌 발생
-				float Distance = sqrtf(DistanceSq);
-				FVector3 Normal = Delta / Distance;
-
-				// 겹침 해결
-				float Overlap = 0.5f * (CombinedRadius - Distance);
-				Ball1->Location += Normal * Overlap;
-				Ball2->Location -= Normal * Overlap;
-
-				// 탄성 충돌 계산
-				FVector3 relativeVelocity = Ball1->Velocity - Ball2->Velocity;
-				float VelocityAlongNormal = Dot(relativeVelocity, Normal);
-
-				if (VelocityAlongNormal < 0)
-				{
-					float Restitution = 1.0f; // 완전 탄성 충돌
-					float ImpulseScalar = -(1.0f + Restitution) * VelocityAlongNormal;
-					ImpulseScalar /= (1.0f / Ball1->Mass) + (1.0f / Ball2->Mass);
-
-					FVector3 impulse = Normal * ImpulseScalar;
-					Ball1->Velocity += impulse * (1.0f / Ball1->Mass);
-					Ball2->Velocity -= impulse * (1.0f / Ball2->Mass);
-				}
-			}
-		}
-	}
+	// for (int i = 0; i < ScenePrimitives.size(); ++i)
+	// {
+	// 	for (int j = i + 1; j < ScenePrimitives.size(); ++j)
+	// 	{
+	// 		UBall* Ball1 = static_cast<UBall*>(ScenePrimitives[i]);
+	// 		UBall* Ball2 = static_cast<UBall*>(ScenePrimitives[j]);
+	//
+	// 		FVector3 Delta = Ball1->Location - Ball2->Location;
+	// 		float DistanceSq = Delta.LengthSquare();
+	// 		float CombinedRadius = Ball1->Radius + Ball2->Radius;
+	//
+	// 		if (DistanceSq < CombinedRadius * CombinedRadius && DistanceSq > 0.0f)
+	// 		{
+	// 			// 충돌 발생
+	// 			float Distance = sqrtf(DistanceSq);
+	// 			FVector3 Normal = Delta / Distance;
+	//
+	// 			// 겹침 해결
+	// 			float Overlap = 0.5f * (CombinedRadius - Distance);
+	// 			Ball1->Location += Normal * Overlap;
+	// 			Ball2->Location -= Normal * Overlap;
+	//
+	// 			// 탄성 충돌 계산
+	// 			FVector3 relativeVelocity = Ball1->Velocity - Ball2->Velocity;
+	// 			float VelocityAlongNormal = Dot(relativeVelocity, Normal);
+	//
+	// 			if (VelocityAlongNormal < 0)
+	// 			{
+	// 				float Restitution = 1.0f; // 완전 탄성 충돌
+	// 				float ImpulseScalar = -(1.0f + Restitution) * VelocityAlongNormal;
+	// 				ImpulseScalar /= (1.0f / Ball1->Mass) + (1.0f / Ball2->Mass);
+	//
+	// 				FVector3 impulse = Normal * ImpulseScalar;
+	// 				Ball1->Velocity += impulse * (1.0f / Ball1->Mass);
+	// 				Ball2->Velocity -= impulse * (1.0f / Ball2->Mass);
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 /**
@@ -235,13 +130,13 @@ void GameScene::HandleCollisions()
  * @param Ball 충돌을 검사할 공 객체
  * @param Rect 충돌을 검사할 사각형 객체
  */
-void GameScene::ResolveBallRectangle(UBall* Ball, const URectangle* Rect)
+void GameScene::ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect)
 {
 	float HalfW = Rect->Width * 0.5f;
 	float HalfH = Rect->Height * 0.5f;
 
 	// 볼 중심에서 사각형 중심으로의 벡터 (사각형 로컬 좌표)
-	FVector3 Delta = Ball->Location - Rect->Location;
+	FVector3 Delta = Ball->GetLocation() - Rect->Location;
 
 	// 사각형 안에서 가장 가까운 점 (로컬)
 	float ClampedX = Clamp(Delta.x, -HalfW, HalfW);
@@ -249,12 +144,12 @@ void GameScene::ResolveBallRectangle(UBall* Ball, const URectangle* Rect)
 
 	// 월드 좌표의 가장 가까운 점
 	FVector3 Closest(Rect->Location.x + ClampedX,
-		Rect->Location.y + ClampedY,
-		Rect->Location.z);
+	                 Rect->Location.y + ClampedY,
+	                 Rect->Location.z);
 
-	FVector3 Diff = Ball->Location - Closest;
+	FVector3 Diff = Ball->GetLocation() - Closest;
 	float DistSq = Diff.LengthSquare();
-	float Radius = Ball->Radius;
+	float Radius = Ball->GetShape()->GetRadius();
 
 	if (DistSq > Radius * Radius)
 	{
@@ -294,14 +189,14 @@ void GameScene::ResolveBallRectangle(UBall* Ball, const URectangle* Rect)
 	}
 
 	// 위치 보정 (사각형은 정적취급)
-	Ball->Location += Normal * Penetration;
+	Ball->GetLocation() += Normal * Penetration;
 
 	// 속도 반사
-	float Vn = Dot(Ball->Velocity, Normal);
+	float Vn = Dot(Ball->GetVelocity(), Normal);
 	if (Vn < 0.f)
 	{
 		float Restitution = 1.0f; // 필요시 조정
-		Ball->Velocity -= Normal * (1.f + Restitution) * Vn;
+		Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
 	}
 }
 
@@ -310,9 +205,9 @@ void GameScene::ResolveBallRectangle(UBall* Ball, const URectangle* Rect)
  */
 void GameScene::HandleBallRectangleCollisions()
 {
-	for (int i = 0; i < TotalPrimitives; ++i)
+	for (int i = 0; i < static_cast<int>(ScenePrimitives.size()); ++i)
 	{
-		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
+		UPinBall* Ball = static_cast<UPinBall*>(ScenePrimitives[i]);
 		ResolveBallRectangle(Ball, &GRectangle);
 	}
 }

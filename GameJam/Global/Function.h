@@ -1,14 +1,5 @@
 #pragma once
 
-// Forward declarations
-class UBall;
-
-// Global variables extern declarations
-extern UBall* GravityCenterBall;
-extern bool bPinballGravity;
-extern int TotalPrimitives;
-extern class UPrimitive** PrimitiveList;
-
 /**
 * @brief 벡터의 내적 함수
  * @param InLeft Vector 1

@@ -5,7 +5,6 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Mesh/Public/UBall.h"
 #include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
@@ -48,22 +47,6 @@ void FImGuiManager::RenderImGui()
 	/** 여기서부터 ImGui에 필요한 UI 작성 **/
 
 	ImGui::Text("Hello Jungle World!");
-
-	ImGui::Checkbox("Gravity", &bPinballGravity);
-
-	if (ImGui::InputInt("Number of Balls", &UBall::TotalNumBalls, 1))
-	{
-		UBall::TotalNumBalls = max(0, UBall::TotalNumBalls);
-	}
-
-	if (GravityCenterBall)
-	{
-		ImGui::Text("Gravity Center Is Active.");
-	}
-	else
-	{
-		ImGui::Text("Right-Click A Ball To Set Gravity Center.");
-	}
 
 	// ----- Triangle UI 추가 시작 -----
 	ImGui::Separator();
@@ -129,11 +112,9 @@ void FImGuiManager::RenderImGui()
 		ImGui::Spacing();
 		ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "Manual: ");
 		ImGui::Text("ESC: Exit");
-		ImGui::Text("Space: Add Ball");
+		ImGui::Text("Space: Charge Shooter (Hold / Release)");
 		ImGui::Text("Delete: Remove Ball");
-		ImGui::Text("Left Click: Remove Target Ball");
-		ImGui::Text("Right Click: Set Gravity Ball / Release");
-}
+	}
 
 	ImGui::End();
 

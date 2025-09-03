@@ -10,7 +10,7 @@ void LobbyScene::Init()//UI생성 및 추가
 	Button* startButton = new Button("GAME START", []() {
 		std::cout << "Game Start Button Pressed!";
 		UIManager::GetInstance().Cleanup();
-		SceneManager::GetInstance().LoadScene("GAME START");});
+		FSceneManager::GetInstance().LoadScene("GAME START");});
 
 	startButton->SetPosition(FVector3(0.0f, -0.2f, 0.0f));
 	startButton->SetSize(FVector3(0.2f, 0.2f, 0.0f));
