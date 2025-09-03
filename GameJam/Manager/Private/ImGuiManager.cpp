@@ -40,6 +40,8 @@ void FImGuiManager::RenderImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	static bool bShowCredits = false;
+
 	ImGui::Begin("Jungle Property Window");
 
 	/** 여기서부터 ImGui에 필요한 UI 작성 **/
@@ -189,8 +191,24 @@ void FImGuiManager::RenderImGui()
 	{
 		ImGui::Text("Current Score: %d", ScoreManager->GetCurrentScore());
 	}
-	
+
 	ImGui::End();
+
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::Begin("Options");
+	if (ImGui::Button("Credits"))
+		bShowCredits = true;
+	ImGui::End();
+
+	if (bShowCredits)
+	{
+		ImGui::Begin("Credits");
+		ImGui::Text("Team 5");
+		ImGui::Text("Kim HeeJun, Lee HoJin,");
+		ImGui::Text("Jung SeYeon, Heo Jun");
+		ImGui::End();
+	}
+
 
 	// Render ImGui
 	ImGui::Render();
