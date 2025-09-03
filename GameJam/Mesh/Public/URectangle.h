@@ -6,7 +6,6 @@ class URectangle :
 {
 public:
 	FVector3 Location;
-	float Rotation;
 	FVector3 Velocity;
 	float Width;
 	float Height;

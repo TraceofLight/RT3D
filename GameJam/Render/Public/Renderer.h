@@ -90,7 +90,7 @@ public:
 	void CreateConstantBuffer();
 	void ReleaseConstantBuffer();
 	void UpdateConstant(FVector3 InOffset, float InScale) const;
-	void UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY, float InRotation) const;
+	void UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY) const;
 	void UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation,
 	                               float InRadius) const;
 

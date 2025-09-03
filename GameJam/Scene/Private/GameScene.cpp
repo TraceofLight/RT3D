@@ -126,15 +126,15 @@ void GameScene::RenderProcess()
         Renderer->RenderPrimitive();
     }
 
-    Renderer->UpdateConstantForRectangle(m_Rectangle->Location, m_Rectangle->Width, m_Rectangle->Height, m_Rectangle->Rotation);
+    Renderer->UpdateConstantForRectangle(m_Rectangle->Location, m_Rectangle->Width, m_Rectangle->Height);
     Renderer->RenderRectangle();
 
     // Shooter 렌더링 추가
     if (Shooter && Shooter->GetShape())
     {
-        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
-                                           Shooter->GetShape()->GetWidth(),
-                                           Shooter->GetShape()->GetHeight(), 0.0f);
+        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(), 
+                                           Shooter->GetShape()->GetWidth(), 
+                                           Shooter->GetShape()->GetHeight());
         Renderer->RenderRectangle();
     }
 

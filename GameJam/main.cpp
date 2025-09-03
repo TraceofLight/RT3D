@@ -29,21 +29,11 @@ static bool bExternalTerminalInitialized = false;
 static void InitializeExternalTerminal();
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static void AddNewRectangle(FVector3 location, float rotation, float width, float height);
-static void AddNewTriangle(FVector3 location, float rotation, float base, float height);
-static void RemoveRandomBall();
-static void InitSceneTemp();
 
 // Static
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void RenderProcess(const URenderer& InRenderer);
 static HWND GlobalWindowHandle = nullptr;
-
-// Global variables definition
-int TotalPrimitives = 0;
-UPrimitive** PrimitiveList = nullptr;
-static int frameCount = 0;
-static const int minFramesBeforeFirstBall = 5;
 
 //void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter = nullptr);
 void InputProcess(bool& InExitFlag);
@@ -150,45 +140,10 @@ static void MainLoop(URenderer& InRenderer)
 				CurrentScene->Render();
 			}
 		}
+
+		// Rendering
+		InRenderer.SwapBuffer();
 	}
-}
-
-void RenderProcess(const URenderer& InRenderer)
-{
-	InRenderer.Prepare();
-	InRenderer.PrepareShader();
-
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		UPrimitive* Primitive = PrimitiveList[i];
-
-		if (URectangle* Rectangle = dynamic_cast<URectangle*>(Primitive))
-		{
-			InRenderer.UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height, Rectangle->Rotation);
-			InRenderer.RenderRectangle();
-		}
-		else if (UTriangle* Triangle = dynamic_cast<UTriangle*>(Primitive))
-		{
-			InRenderer.UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height, Triangle->Rotation,
-										 Triangle->Radius);
-			InRenderer.RenderTriangle();
-		}
-	}
-
-	// 사각형 렌더링
-	// InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-	// InRenderer.RenderRectangle();
-
-	// Triangle Render
-	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation,
-										 GTriangle.Radius);
-	InRenderer.RenderTriangle();
-
-	// ImGui 렌더링 (TimeManager 정보 표시 가능)
-	FImGuiManager::RenderImGui();
-
-	// 백버퍼 스왑
-	InRenderer.SwapBuffer();
 }
 
 void InputProcess(bool& InExitFlag)
@@ -232,24 +187,6 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	SceneManager.LoadScene("LOBBY");
 }
 
-static void InitSceneTemp()
-{
-	FVector3 randomLocation = FVector3(-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f,
-		-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f, 1.0f);
-
-	float randomRotation = -0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f;
-
-	// AddNewTriangle(randomLocation, randomRotation, 0.3f, 0.9f);
-	AddNewRectangle(randomLocation, randomRotation, 0.1f, 0.1f);
-	// AddNewRectangle(FVector3(), 1.0f, 1.0f, 1.0f);
-	// AddNewBall();
-
-	// right wall
-	AddNewRectangle(FVector3(0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
-	// left wall
-	AddNewRectangle(FVector3(-0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
-}
-
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	// 외부 터미널 초기화
@@ -270,10 +207,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	                                    nullptr, nullptr, hInstance, nullptr);
 	GlobalWindowHandle = WindowHandle;
 	InitEngine(WindowHandle, *(URenderer::GetInstance()));
-
-	InitSceneTemp();
-	//SceneManager::GetInstance().LoadScene("GAME SCENE");
-
 	MainLoop(*URenderer::GetInstance());
 
 	FInputManager* KeyManager = FInputManager::GetInstance();
@@ -328,67 +261,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-
-void AddNewRectangle(FVector3 location, float rotation, float width, float height)
+void RenderProcess(const URenderer& InRenderer)
 {
-	// Make New List
-	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
+	InRenderer.Prepare();
+	InRenderer.PrepareShader();
 
-	// Copy
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		NewList[i] = PrimitiveList[i];
-	}
+	// ImGui 렌더링 (TimeManager 정보 표시 가능)
+	FImGuiManager::RenderImGui();
 
-	// Add New Rectangle
-	URectangle* NewRectangle = new URectangle();
-	NewRectangle->Location = location;
-	NewRectangle->Rotation = rotation;
-	NewRectangle->Width = width;
-	NewRectangle->Height = height;
-	NewRectangle->Mass = width * height;
-	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
-	NewList[TotalPrimitives] = NewRectangle;
-
-	// Release
-	if (PrimitiveList != nullptr)
-	{
-		delete[] PrimitiveList;
-	}
-
-	// Swap List
-	PrimitiveList = NewList;
-
-	++TotalPrimitives;
-}
-
-void AddNewTriangle(FVector3 location, float rotation, float base, float height)
-{
-	// Make New List
-	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
-
-	// Copy
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		NewList[i] = PrimitiveList[i];
-	}
-
-	// Add New Rectangle
-	UTriangle* NewTriangle = new UTriangle();
-	NewTriangle->Location = location;
-	NewTriangle->Rotation = rotation;
-	NewTriangle->Base = base;
-	NewTriangle->Height = height;
-	NewList[TotalPrimitives] = NewTriangle;
-
-	// Release
-	if (PrimitiveList != nullptr)
-	{
-		delete[] PrimitiveList;
-	}
-
-	// Swap List
-	PrimitiveList = NewList;
-
-	++TotalPrimitives;
+	// 백버퍼 스왑
 }
