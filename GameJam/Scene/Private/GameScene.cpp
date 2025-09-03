@@ -24,6 +24,9 @@ GameScene::~GameScene()
 
 void GameScene::Init()
 {
+	pause = false;
+    m_Rectangle = new URectangle();
+
 	Shooter = new UShooter();
 	Shooter->SetLocation({0.3f, -0.8f, 0.0f});
 
@@ -56,15 +59,22 @@ void GameScene::Update(float deltaTime)
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
 		return;
 
-	m_TotalPrimitives = static_cast<int>(m_PrimitiveList.size());
+	m_TotalPrimitives = static_cast<int>(m_PrimitiveList->size());
 
     // 모든 볼 객체의 움직임 업데이트
     for (int i = 0; i < m_TotalPrimitives; ++i)
     {
-        UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+        UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
         Ball->Move();
     }
 
+    m_Rectangle->Move();
+
+	//m_PadPair.Update(KeyManager, TimeManager->GetDeltaTime());
+	if (isGameOver())
+	{
+		pause = true;
+	}
 	m_PadPair->Update(KeyManager, TimeManager->GetDeltaTime());
 
     // HandleCollisions();
@@ -81,8 +91,15 @@ void GameScene::Cleanup()
 {
     for (int i = 0; i < m_TotalPrimitives; ++i)
     {
-        delete m_PrimitiveList[i];
+        delete (*m_PrimitiveList)[i];
     }
+	m_PrimitiveList->clear();
+    if(m_Rectangle)
+    {
+        delete m_Rectangle;
+        m_Rectangle = nullptr;
+    }
+
 
 	delete Shooter;
 	delete m_PadPair;
@@ -112,8 +129,11 @@ void GameScene::InputProcess()
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
 		{
 			// 스페이스바를 뗐을 때 발사
-  			Shooter->Shoot();
-			DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
+			if (m_TotalPrimitives < 1)
+			{
+				Shooter->Shoot();
+				DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
+			}
 		}
 	}
 }
@@ -126,7 +146,7 @@ void GameScene::RenderProcess()
 
     for (int i = 0; i < m_TotalPrimitives; ++i)
     {
-        UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+        UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
         Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
         Renderer->RenderPrimitive();
     }
@@ -302,17 +322,30 @@ void GameScene::HandleBallPadPairCollisions()
 {
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
 		ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
 		ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
 	}
 }
-//
-//void GameScene::HandleBallRectangleCollisions()
-//{
-//	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
-//	{
-//		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-//		ResolveBallRectangle(Ball, m_Rectangle);
-//	}
-//}
+
+
+/*void GameScene::HandleBallRectangleCollisions()
+{
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
+	{
+		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
+		ResolveBallRectangle(Ball, &GRectangle);
+	}
+}*/
+bool GameScene::isGameOver()
+{
+	if (m_TotalPrimitives > 0)
+	{
+		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[0]);
+		if (Ball->GetLocation().y < -1.0f)
+		{
+			return true;
+		}
+	}
+	return false;
+}

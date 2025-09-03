@@ -27,10 +27,12 @@ private:
 	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 	void HandleBallPadPairCollisions();
+	bool isGameOver();
 
 private:
 	int m_TotalPrimitives = 0;
-	vector<UPrimitive*> m_PrimitiveList;
+	vector<UPrimitive*>* m_PrimitiveList;
+	URectangle* m_Rectangle = nullptr;
 	UPinBall* m_GravityCenterBall = nullptr;
 	UPadPair* m_PadPair = nullptr;
 	UShooter* Shooter;

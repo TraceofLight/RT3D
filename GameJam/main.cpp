@@ -118,10 +118,13 @@ static void MainLoop(URenderer& InRenderer)
 		Scene* CurrentScene = SceneManager->GetCurrentScene();
 		if (CurrentScene)
 		{
-			CurrentScene->Update(TimeManager->GetDeltaTime());
-			if (CurrentScene == SceneManager->GetCurrentScene())
+			if (!CurrentScene->GetPause())
 			{
-				CurrentScene->Render();
+				CurrentScene->Update(TimeManager->GetDeltaTime());
+				if (CurrentScene == SceneManager->GetCurrentScene())
+				{
+					CurrentScene->Render();
+				}
 			}
 		}
 

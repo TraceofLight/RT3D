@@ -14,7 +14,7 @@ public:
 	void Render(ID3D11DeviceContext* context);
 
 	Scene* GetCurrentScene() const { return m_currentScene; }
-	vector<UPrimitive*> GetAllScenePrimivites() const { return m_currentScene->GetScenePrimitives(); }
+	vector<UPrimitive*>* GetAllScenePrimivites() const { return m_currentScene->GetScenePrimitives(); }
 	void AddPrimitiveToScene(UPrimitive* InPrimitive) { m_currentScene->AddPrimitive(InPrimitive); }
 
 private:
