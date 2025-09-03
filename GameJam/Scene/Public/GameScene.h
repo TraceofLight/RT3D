@@ -17,8 +17,8 @@ public:
 
 private:
 	// main.cpp의 static 함수들을 멤버 함수로 가져옵니다.
-	void AddNewBall();
-	void RemoveRandomBall();
+	template <typename T>
+	void AddNewPrimitive();
 	//void RemoveSpecificBall(int IndexToRemove);
 	//void SetGravityCenter(int IndexToSet);
 

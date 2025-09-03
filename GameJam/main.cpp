@@ -31,8 +31,11 @@ static void HandleBallTriangleCollisions();
 static void ResolveBallTriangle(UBall* Ball, const UTriangle* Triangle);
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
-static void AddNewBall();
+static void AddNewBall(FVector3 location = FVector3(), float radius = -1.0f);
+static void AddNewRectangle(FVector3 location, float rotation, float width, float height);
+static void AddNewTriangle(FVector3 location, float rotation, float base, float height);
 static void RemoveRandomBall();
+static void InitSceneTemp();
 
 // Static
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
@@ -87,20 +90,20 @@ static void MainLoop(URenderer& InRenderer)
 
 		// === 게임 로직 업데이트 ===
 		// 시간 기반 공 생성 제어 (프레임 기반에서 시간 기반으로 변경)
-		if (TimeManager->GetGameTime())
-		{
-			// 공 개수 자동 조절
-			if (TotalPrimitives < UBall::TotalNumBalls)
-			{
-				AddNewBall();
-				OutputDebugStringA("[MAINLOOP] Ball added\n");
-			}
-			else if (TotalPrimitives > UBall::TotalNumBalls)
-			{
-				RemoveRandomBall();
-				OutputDebugStringA("[MAINLOOP] Ball removed\n");
-			}
-		}
+		// if (TimeManager->GetGameTime())
+		// {
+		// 	// 공 개수 자동 조절
+		// 	if (TotalPrimitives < UBall::TotalNumBalls)
+		// 	{
+		// 		AddNewBall();
+		// 		OutputDebugStringA("[MAINLOOP] Ball added\n");
+		// 	}
+		// 	else if (TotalPrimitives > UBall::TotalNumBalls)
+		// 	{
+		// 		RemoveRandomBall();
+		// 		OutputDebugStringA("[MAINLOOP] Ball removed\n");
+		// 	}
+		// }
 
 		// Triangle 회전 업데이트
 		GTriangle.UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
@@ -108,17 +111,19 @@ static void MainLoop(URenderer& InRenderer)
 		// 공들의 물리 시뮬레이션 업데이트
 		for (int i = 0; i < TotalPrimitives; ++i)
 		{
-			UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-			Ball->Move(); // 이 함수 내부에서 DT 매크로 사용 가능
+			if (UBall* Ball = dynamic_cast<UBall*>(PrimitiveList[i]))
+				Ball->Move(); // 이 함수 내부에서 DT 매크로 사용 가능
 		}
 
 		// 사각형 물리 업데이트
 		GRectangle.Move(); // 이 함수 내부에서도 DT 매크로 사용 가능
 
 		// === 충돌 처리 ===
-		HandleCollisions();
-		HandleBallRectangleCollisions();
-		HandleBallTriangleCollisions();
+		// HandleCollisions();
+		// HandleBallRectangleCollisions();
+		// HandleBallTriangleCollisions();
+
+		InitSceneTemp();
 
 		// Rendering
 		RenderProcess(InRenderer);
@@ -131,11 +136,36 @@ void RenderProcess(const URenderer& InRenderer)
 	InRenderer.PrepareShader();
 
 	// 공들 렌더링
+	// for (int i = 0; i < TotalPrimitives; ++i)
+	// {
+	// 	UBall* Ball = dynamic_cast<UBall*>(PrimitiveList[i]);
+	// 	InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
+	// 	InRenderer.RenderPrimitive();
+	// }
+
 	for (int i = 0; i < TotalPrimitives; ++i)
 	{
-		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-		InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
-		InRenderer.RenderPrimitive();
+		UPrimitive* Primitive = PrimitiveList[i];
+
+		if (UBall* Ball = dynamic_cast<UBall*>(Primitive))
+		{
+			InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
+			InRenderer.RenderPrimitive();
+			std::cout << "rendering ball" << std::endl;
+		}
+		else if (URectangle* Rectangle = dynamic_cast<URectangle*>(Primitive))
+		{
+			InRenderer.UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height);
+			InRenderer.RenderRectangle();
+			std::cout << "rendering rectangle" << std::endl;
+		}
+		else if (UTriangle* Triangle = dynamic_cast<UTriangle*>(Primitive))
+		{
+			InRenderer.UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height, Triangle->Rotation,
+										 Triangle->Radius);
+			InRenderer.RenderTriangle();
+			std::cout << "rendering triangle" << std::endl;
+		}
 	}
 
 	// 사각형 렌더링
@@ -221,15 +251,18 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	FInputManager::GetInstance();
 	UIManager::GetInstance();
 
-	SceneManager::GetInstance().RegisterScene("LOBBY", new LobbyScene());
+	SceneManager::GetInstance().RegisterScene("GAME SCENE", new GameScene());
 }
 
 static void InitSceneTemp()
 {
-	// step 1. spawn a rectangle
-	// URectangle* Rectangle = new URectangle();
-	// Rectangle->Location = FVector3(1.0f, 1.0f, 1.0f);
-	// PrimitiveList[0] = Rectangle;
+	FVector3 randomLocation = FVector3(-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f,
+		-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f, 1.0f);
+
+	AddNewTriangle(randomLocation, 0.0f, 0.3f, 0.9f);
+	// AddNewRectangle(randomLocation, 1.0f, 0.1f, 0.1f);
+	// AddNewRectangle(FVector3(), 1.0f, 1.0f, 1.0f);
+	// AddNewBall();
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -260,6 +293,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Make Renderer
 
 	InitEngine(WindowHandle, *(URenderer::GetInstance()));
+
+	InitSceneTemp();
+	//SceneManager::GetInstance().LoadScene("GAME SCENE");
+
 	MainLoop(*URenderer::GetInstance());
 
 	// Release Balls
@@ -333,7 +370,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 /**
  * @brief 새로운 공을 추가하는 함수
  */
-void AddNewBall()
+void AddNewBall(FVector3 location, float radius)
 {
 	// Make New List
 	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
@@ -345,7 +382,82 @@ void AddNewBall()
 	}
 
 	// Add New Ball
-	NewList[TotalPrimitives] = new UBall();
+	UBall* NewBall = new UBall();
+	if (location != FVector3())
+		NewBall->Location = location;
+	if (radius >= 0.0f)
+		NewBall->Radius = radius;
+	if (location != FVector3() && radius >= 0.0f)
+	{
+		NewBall->Mass = radius * radius;
+		NewBall->Velocity = FVector3(0.0f, 0.0f, 0.0f);
+	}
+	NewList[TotalPrimitives] = NewBall;
+
+	// Release
+	if (PrimitiveList != nullptr)
+	{
+		delete[] PrimitiveList;
+	}
+
+	// Swap List
+	PrimitiveList = NewList;
+
+	++TotalPrimitives;
+}
+
+void AddNewRectangle(FVector3 location, float rotation, float width, float height)
+{
+	// Make New List
+	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
+
+	// Copy
+	for (int i = 0; i < TotalPrimitives; ++i)
+	{
+		NewList[i] = PrimitiveList[i];
+	}
+
+	// Add New Rectangle
+	URectangle* NewRectangle = new URectangle();
+	NewRectangle->Location = location;
+	NewRectangle->Rotation = rotation;
+	NewRectangle->Width = width;
+	NewRectangle->Height = height;
+	NewRectangle->Mass = width * height;
+	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
+	NewList[TotalPrimitives] = NewRectangle;
+
+	// Release
+	if (PrimitiveList != nullptr)
+	{
+		delete[] PrimitiveList;
+	}
+
+	// Swap List
+	PrimitiveList = NewList;
+
+	++TotalPrimitives;
+}
+
+void AddNewTriangle(FVector3 location, float rotation, float base, float height)
+{
+	// Make New List
+	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
+
+	// Copy
+	for (int i = 0; i < TotalPrimitives; ++i)
+	{
+		NewList[i] = PrimitiveList[i];
+	}
+
+	// Add New Rectangle
+	UTriangle* NewTriangle = new UTriangle();
+	NewTriangle->Location = location;
+	NewTriangle->Rotation = rotation;
+	NewTriangle->Base = base;
+	NewTriangle->Height = height;
+	NewTriangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
+	NewList[TotalPrimitives] = NewTriangle;
 
 	// Release
 	if (PrimitiveList != nullptr)
@@ -418,8 +530,9 @@ void HandleCollisions()
 	{
 		for (int j = i + 1; j < TotalPrimitives; ++j)
 		{
-			UBall* Ball1 = static_cast<UBall*>(PrimitiveList[i]);
-			UBall* Ball2 = static_cast<UBall*>(PrimitiveList[j]);
+			UBall* Ball1 = dynamic_cast<UBall*>(PrimitiveList[i]);
+			UBall* Ball2 = dynamic_cast<UBall*>(PrimitiveList[j]);
+			if (!Ball1 || !Ball2) continue;
 
 			FVector3 Delta = Ball1->Location - Ball2->Location;
 			float DistanceSq = Delta.LengthSquare();
@@ -534,8 +647,8 @@ void HandleBallTriangleCollisions()
 {
 	for (int i = 0; i < TotalPrimitives; ++i)
 	{
-		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-		ResolveBallTriangle(Ball, &GTriangle);
+		if (UBall* Ball = dynamic_cast<UBall*>(PrimitiveList[i]))
+			ResolveBallTriangle(Ball, &GTriangle);
 	}
 }
 
@@ -645,8 +758,8 @@ void HandleBallRectangleCollisions()
 {
 	for (int i = 0; i < TotalPrimitives; ++i)
 	{
-		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-		ResolveBallRectangle(Ball, &GRectangle);
+		if (UBall* Ball = dynamic_cast<UBall*>(PrimitiveList[i]))
+			ResolveBallRectangle(Ball, &GRectangle);
 	}
 }
 

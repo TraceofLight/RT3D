@@ -25,6 +25,35 @@ void GameScene::Init()
 	// 예를 들어, 처음에 공을 몇 개 생성하고 싶다면 여기서 AddNewBall() 호출
 }
 
+template <typename T>
+void GameScene::AddNewPrimitive()
+{
+	static_assert(std::is_base_of<UPrimitive, T>::value);
+
+	// Make New List
+	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
+
+	// Copy
+	for (int i = 0; i < TotalPrimitives; ++i)
+	{
+		NewList[i] = PrimitiveList[i];
+	}
+
+	// Add New Ball
+	NewList[TotalPrimitives] = new T();
+
+	// Release
+	if (PrimitiveList != nullptr)
+	{
+		delete[] PrimitiveList;
+	}
+
+	// Swap List
+	PrimitiveList = NewList;
+
+	++TotalPrimitives;
+}
+
 void GameScene::Cleanup()
 {
 	// 씬이 끝날 때 모든 공 객체 삭제
@@ -47,30 +76,6 @@ void GameScene::Update(float deltaTime)
 	// ================== MainLoop에서 가져온 게임 로직 ==================
 	FTimeManager* TimeManager = FTimeManager::GetInstance();
 	FInputManager* KeyManager = FInputManager::GetInstance();
-
-	// === 입력 처리 ===
-	// Space키로 공 추가
-	if (KeyManager->IsKeyPressed(EKeyInput::Space))
-	{
-		AddNewBall();
-	}
-
-	// Delete키로 공 제거
-	if (KeyManager->IsKeyPressed(EKeyInput::Delete))
-	{
-		RemoveRandomBall();
-	}
-
-	// === 게임 로직 업데이트 ===
-	// 공 개수 자동 조절
-	if (TotalPrimitives < UBall::TotalNumBalls)
-	{
-		AddNewBall();
-	}
-	else if (TotalPrimitives > UBall::TotalNumBalls)
-	{
-		RemoveRandomBall();
-	}
 
 	// 공들의 물리 시뮬레이션 업데이트
 	for (int i = 0; i < TotalPrimitives; ++i)
@@ -106,82 +111,6 @@ void GameScene::Render()
 	// 사각형 렌더링
 	InRenderer->UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
 	InRenderer->RenderRectangle();
-}
-
-void GameScene::AddNewBall()
-{
-	// Make New List
-	UPrimitive** NewList = new UPrimitive * [TotalPrimitives + 1];
-
-	// Copy
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		NewList[i] = PrimitiveList[i];
-	}
-
-	// Add New Ball
-	NewList[TotalPrimitives] = new UBall();
-
-	// Release
-	if (PrimitiveList != nullptr)
-	{
-		delete[] PrimitiveList;
-	}
-
-	// Swap List
-	PrimitiveList = NewList;
-
-	++TotalPrimitives;
-}
-
-/**
- * @brief 임의의 공을 제거하는 함수
- */
-void GameScene::RemoveRandomBall()
-{
-	if (TotalPrimitives <= 0)
-	{
-		return;
-	}
-
-	// Select Index
-	int IndexToRemove = rand() % TotalPrimitives;
-
-	// If Gravity Center, Make Null First
-	if (PrimitiveList[IndexToRemove] == GravityCenterBall)
-	{
-		GravityCenterBall = nullptr;
-	}
-
-	// Remove Object
-	delete PrimitiveList[IndexToRemove];
-
-	// Make New List
-	UPrimitive** NewList = nullptr;
-	if (TotalPrimitives - 1 > 0)
-	{
-		NewList = new UPrimitive * [TotalPrimitives - 1];
-	}
-
-	// Copy
-	int NewIndex = 0;
-	for (int i = 0; i < TotalPrimitives; ++i)
-	{
-		if (i == IndexToRemove)
-		{
-			continue;
-		}
-		NewList[NewIndex] = PrimitiveList[i];
-		NewIndex++;
-	}
-
-	// Release
-	delete[] PrimitiveList;
-
-	// Swap List
-	PrimitiveList = NewList;
-
-	--TotalPrimitives;
 }
 
 /**
