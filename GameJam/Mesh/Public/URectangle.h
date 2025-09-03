@@ -18,5 +18,3 @@ public:
 	float GetWidth() const { return Width; }
 	float GetHeight() const { return Height; }
 };
-
-extern URectangle GRectangle;

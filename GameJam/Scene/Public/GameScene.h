@@ -6,6 +6,7 @@ class UPinBall;
 class URectangle;
 class UTriangle;
 class UPrimitive;
+class UPadPair;
 
 class GameScene : public Scene
 {
@@ -22,7 +23,7 @@ private:
 	void InputProcess();
 	void RenderProcess();
 
-	void HandleBallRectangleCollisions();
+	// void HandleBallRectangleCollisions();
 	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 	void HandleBallPadPairCollisions();
@@ -30,8 +31,7 @@ private:
 private:
 	int m_TotalPrimitives = 0;
 	vector<UPrimitive*> m_PrimitiveList;
-	URectangle* m_Rectangle = nullptr;
 	UPinBall* m_GravityCenterBall = nullptr;
-
+	UPadPair* m_PadPair = nullptr;
 	UShooter* Shooter;
 };

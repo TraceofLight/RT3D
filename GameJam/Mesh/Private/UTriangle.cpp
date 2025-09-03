@@ -2,9 +2,6 @@
 #include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/InputManager.h"
 
-// 임시 테스트용 삼각형
-UTriangle GTriangle = UTriangle();
-
 UTriangle::UTriangle()
 {
 	Location = { 0.f, 0.f, 0.f };

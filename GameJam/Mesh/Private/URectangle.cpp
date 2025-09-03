@@ -44,5 +44,3 @@ void URectangle::Move()
 		if (Location.y < -1.0f + Height / 2) Location.y = -1.0f + Height / 2;
 	}
 }
-
-URectangle GRectangle = URectangle();

@@ -48,5 +48,3 @@ private:
 	static float DegToRad(float d) { return d * 3.14159265358979323846f / 180.0f; }
 	static void  RecalcIsoscelesInRadius(UTriangle* T);
 };
-
-extern UPadPair GPadPair;
