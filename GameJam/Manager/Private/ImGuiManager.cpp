@@ -6,10 +6,9 @@
 #include "imGui/imgui_impl_win32.h"
 
 #include "Actor/Public/UBall.h"
-#include "Manager/Public/KeyManager.h"
+#include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Render/Public/Renderer.h"
-#include "Global/Macro.h"
 
 /**
  * @brief ImGui Initializer
@@ -69,7 +68,7 @@ void FImGuiManager::RenderImGui()
 	ImGui::Begin("Key Input Status");
 
 	// KeyManager에서 현재 눌린 키들 가져오기
-	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 	if (KeyManager)
 	{
 		vector<EKeyInput> PressedKeys = KeyManager->GetPressedKeys();
@@ -85,12 +84,18 @@ void FImGuiManager::RenderImGui()
 		{
 			for (const EKeyInput& Key : PressedKeys)
 			{
-				const char* KeyString = FKeyManager::KeyInputToString(Key);
+				const char* KeyString = FInputManager::KeyInputToString(Key);
 				ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "- %s", KeyString);
 			}
 		}
 
 		ImGui::Separator();
+		ImGui::Separator();
+
+		// 마우스 위치 표시
+		FVector2 MousePos = KeyManager->GetMousePosition();
+		ImGui::Text("Mouse Position: (%.1f, %.1f)", MousePos.x, MousePos.y);
+
 		ImGui::Text("Total %d Key Typing Now", static_cast<int>(PressedKeys.size()));
 
 		ImGui::Spacing();
