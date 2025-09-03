@@ -24,14 +24,13 @@ private:
 
 	void HandleBallRectangleCollisions();
 	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
-	void HandleBallTriangleCollisions();
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
+	void HandleBallPadPairCollisions();
 
 private:
 	int m_TotalPrimitives = 0;
 	vector<UPrimitive*> m_PrimitiveList;
 	URectangle* m_Rectangle = nullptr;
-	UTriangle* m_Triangle = nullptr;
 	UPinBall* m_GravityCenterBall = nullptr;
 
 	UShooter* Shooter;
