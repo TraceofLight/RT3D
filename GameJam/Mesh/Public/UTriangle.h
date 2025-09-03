@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/Public/Primitive.h"
 
+class FInputManager;
+
 class UTriangle
 	: public UPrimitive
 {
@@ -11,8 +13,11 @@ public:
 	float Height; // 높이 (h)
 	float Radius; // 내접원 반지름 (r) = (b*h) / (b+h+sqrt(b^2+h^2))
 	float Rotation; // 라디안 (Incenter 기준 회전)
+	float RotationSpeed; // 초당 회전 속도 (라디안)
 
 	UTriangle();
+
+	void UpdateRotation(FInputManager* InInput, float InDeltaTime);
 };
 
 extern UTriangle GTriangle;
