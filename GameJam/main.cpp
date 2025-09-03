@@ -23,6 +23,13 @@
 #include "Actor/Public/Shooter.h"
 #include "Mesh/Public/UBall.h"
 
+// 외부 터미널 출력 전역 변수
+bool bShowExternalTerminal = true;
+
+// 외부 터미널 초기화 함수
+static bool bExternalTerminalInitialized = false;
+static void InitializeExternalTerminal();
+
 static void HandleCollisions();
 static void HandleBallRectangleCollisions();
 static void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
@@ -40,6 +47,45 @@ static std::vector<UPinBall*> PinBalls;
 
 void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter = nullptr);
 void InputProcess(bool& InExitFlag);
+
+/**
+ * @brief 외부 터미널을 초기화하는 함수
+ * @details bShowExternalTerminal이 true이면 새로운 콘솔 창을 할당하고 출력을 리다이렉트합니다.
+ */
+static void InitializeExternalTerminal()
+{
+	if (bShowExternalTerminal && !bExternalTerminalInitialized)
+	{
+		// 새로운 콘솔 창 할당
+		if (AllocConsole())
+		{
+			// 콘솔 창 제목 설정
+			SetConsoleTitle(L"Game Debug Console");
+
+			// 표준 입출력을 콘솔로 리다이렉트
+			FILE* pCout;
+			FILE* pCin;
+			FILE* pCerr;
+
+			// stdout, stdin, stderr를 콘솔로 리다이렉트
+			(void)freopen_s(&pCout, "CONOUT$", "w", stdout);
+			(void)freopen_s(&pCin, "CONIN$", "r", stdin);
+			(void)freopen_s(&pCerr, "CONOUT$", "w", stderr);
+
+			// iostream 동기화
+			std::ios::sync_with_stdio(true);
+
+			bExternalTerminalInitialized = true;
+
+			// 초기화 메시지 출력
+			printf("[CONSOLE] External Terminal initialized successfully.\n");
+		}
+		else
+		{
+			OutputDebugStringA("[ERROR] Failed to allocate console.\n");
+		}
+	}
+}
 
 /**
  * @brief 매 프레임 반복되는 Logic을 처리하는 함수
@@ -87,13 +133,13 @@ static void MainLoop(URenderer& InRenderer)
 		if (KeyManager->IsKeyDown(EKeyInput::Space))
 		{
 			Shooter.Charging();
-			OutputDebugStringA("[MAINLOOP] Shooter Charging...\n");
+			DEBUG_PRINT("[MAINLOOP] Shooter Charging...\n");
 		}
 		// Shoot
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
 		{
 			Shooter.Shoot();
-			OutputDebugStringA("[MAINLOOP] Shooter Fire!\n");
+			DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
 		}
 
 		// SceneManager에서 현재 씬의 Primitives 가져오기
@@ -233,6 +279,9 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
+	// 외부 터미널 초기화
+	InitializeExternalTerminal();
+
 	// 난수 시드 초기화
 	srand(static_cast<unsigned int>(GetTickCount()));
 
