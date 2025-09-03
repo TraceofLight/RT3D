@@ -53,6 +53,9 @@ public:
 	ID3D11Buffer* indexBufferRectangle = nullptr;
 	UINT numIndicesRectangle = 0;
 
+	// Triangle용 버퍼
+	ID3D11Buffer* vertexBufferTriangle = nullptr;
+
 public:
     void Create(HWND InWindowHandle);
     void CreateDeviceAndSwapChain(HWND InWindowHandle);
@@ -73,6 +76,7 @@ public:
     void PrepareShader() const;
     void RenderPrimitive() const;
 	void RenderRectangle() const;
+	void RenderTriangle() const;
 
     ID3D11Buffer* CreateVertexBuffer(FVertexSimple* InVertices, UINT InByteWidth) const;
 	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, UINT InByteWidth) const;
@@ -81,6 +85,7 @@ public:
     void ReleaseConstantBuffer();
     void UpdateConstant(FVector3 InOffset, float InScale) const;
 	void UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY) const;
+	void UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation, float InRadius) const;
 
     void TotalInit(HWND InWindowHandle);
     void TotalShutDown();
