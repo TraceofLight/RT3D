@@ -128,6 +128,16 @@ struct FVector3
         return FVector3(x / InScalar, y / InScalar, z / InScalar);
     }
 
+	bool operator==(const FVector3& InOther) const
+    {
+    	return x == InOther.x && y == InOther.y && z == InOther.z;
+    }
+
+	bool operator!=(const FVector3& InOther) const
+    {
+    	return !(*this == InOther);
+    }
+
     float LengthSquare() const { return x * x + y * y + z * z; }
     float Length() const { return std::sqrtf(LengthSquare()); }
 
