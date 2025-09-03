@@ -39,3 +39,10 @@ static inline float Clamp(float InValue, float InMin, float InMax)
 	}
 	return InValue;
 }
+
+template<typename T>
+static void SafeDelete(T& InDynamicObject)
+{
+	delete InDynamicObject;
+	InDynamicObject = nullptr;
+}
