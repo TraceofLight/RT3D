@@ -20,6 +20,7 @@
 #include "Manager/Public/SceneManager.h"
 #include "Scene/Public/GameScene.h"
 #include "Scene/Public/LobbyScene.h"
+#include "Actor/Public/Shooter.h"
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
 static void RemoveSpecificBall(int IndexToRemove);
@@ -44,7 +45,7 @@ UPrimitive** PrimitiveList = nullptr;
 static int frameCount = 0;
 static const int minFramesBeforeFirstBall = 5;
 
-void RenderProcess(const URenderer& InRenderer);
+void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter = nullptr);
 void InputProcess(bool& InExitFlag);
 
 /**
@@ -55,6 +56,9 @@ static void MainLoop(URenderer& InRenderer)
 	FTimeManager* TimeManager = FTimeManager::GetInstance();
 	FInputManager* KeyManager = FInputManager::GetInstance();
 	FScoreManager* ScoreManager = FScoreManager::GetInstance();
+
+	UShooter Shooter;
+	Shooter.SetLocation({0.3f, -0.8f, 0.0f});
 
 	bool bIsExit = false;
 	while (!bIsExit)
@@ -86,6 +90,19 @@ static void MainLoop(URenderer& InRenderer)
 		InputProcess(bIsExit);
 
 		// === 게임 로직 업데이트 ===
+		// Charge
+		if (KeyManager->IsKeyDown(EKeyInput::Space))
+		{
+			Shooter.Charging();
+			OutputDebugStringA("[MAINLOOP] Shooter Charging...\n");
+		}
+		// Shoot
+		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
+		{
+			Shooter.Shoot();
+			OutputDebugStringA("[MAINLOOP] Shooter Fire!\n");
+		}
+
 		// 시간 기반 공 생성 제어 (프레임 기반에서 시간 기반으로 변경)
 		if (TimeManager->GetGameTime())
 		{
@@ -121,11 +138,11 @@ static void MainLoop(URenderer& InRenderer)
 		HandleBallTriangleCollisions();
 
 		// Rendering
-		RenderProcess(InRenderer);
+		RenderProcess(InRenderer, &Shooter);
 	}
 }
 
-void RenderProcess(const URenderer& InRenderer)
+void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 {
 	InRenderer.Prepare();
 	InRenderer.PrepareShader();
@@ -147,6 +164,16 @@ void RenderProcess(const URenderer& InRenderer)
 	                                     GTriangle.Radius);
 	InRenderer.RenderTriangle();
 
+	// Shooter 렌더링 (사각형으로 표시)
+	if (Shooter)
+	{
+		// Shooter를 작은 사각형으로 렌더링
+		float ShooterWidth = 0.05f;
+		float ShooterHeight = 0.2f;
+		InRenderer.UpdateConstantForRectangle(Shooter->GetLocation(), ShooterWidth, ShooterHeight);
+		InRenderer.RenderRectangle();
+	}
+
 	// ImGui 렌더링 (TimeManager 정보 표시 가능)
 	FImGuiManager::RenderImGui();
 
@@ -164,12 +191,6 @@ void InputProcess(bool& InExitFlag)
 		PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
 		InExitFlag = true;
 		return;
-	}
-
-	// Space키로 공 추가
-	if (KeyManager->IsKeyPressed(EKeyInput::Space))
-	{
-		AddNewBall();
 	}
 
 	// Delete키로 공 제거
@@ -222,9 +243,6 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	UIManager::GetInstance();
 
 	SceneManager::GetInstance().RegisterScene("LOBBY", new LobbyScene());
-
-
-	
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)

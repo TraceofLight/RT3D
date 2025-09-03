@@ -8,8 +8,8 @@ private:
 	UBall* Shape;
 
 public:
-	void Init() override;
-	void Destroy() override;
+	void Init();
+	void Destroy();
 
 	// Special Member Function
 	UPinBall();

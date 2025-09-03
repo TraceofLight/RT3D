@@ -33,5 +33,6 @@ using std::vector;
 using std::string;
 using std::clamp;
 using std::unordered_map;
+using std::to_string;
 
 #include "Manager/Public/TimeManager.h"
