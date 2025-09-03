@@ -1,33 +1,33 @@
 #include "pch.h"
 #include "Actor/Public/Shooter.h"
 
-FShooter::FShooter()
+UShooter::UShooter()
 {
 	Init();
 }
 
-FShooter::~FShooter()
+UShooter::~UShooter()
 {
 	Destroy();
 }
 
-void FShooter::Init()
+void UShooter::Init()
 {
 	ChargingTime = 0.0f;
 	Shape = new URectangle();
 }
 
-void FShooter::Destroy()
+void UShooter::Destroy()
 {
 	SafeDelete(Shape);
 }
 
-void FShooter::Charging()
+void UShooter::Charging()
 {
 	// SpaceBar로 누르는 시간만큼 Charging
 }
 
-void FShooter::Shoot()
+void UShooter::Shoot()
 {
 	// 생성되는 볼에 속도를 전달해야 함
 }

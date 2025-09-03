@@ -1,8 +1,7 @@
 #include "pch.h"
 #include "Core/Public/Primitive.h"
 
-// Global variable definition
-UINT PrimitiveNumber = 0;
+static UINT PrimitiveNumber = 0;
 
 UPrimitive::UPrimitive()
 {
@@ -13,4 +12,3 @@ UPrimitive::UPrimitive()
 UPrimitive::~UPrimitive()
 {
 }
-

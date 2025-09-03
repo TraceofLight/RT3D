@@ -1,18 +1,19 @@
 #pragma once
 #include "Mesh/Public/URectangle.h"
 
-class FShooter
+class UShooter :
+	public UPrimitive
 {
 private:
 	URectangle* Shape;
 	float ChargingTime;
 
 public:
-	void Init();
-	void Destroy();
+	void Init() override;
+	void Destroy() override;
 	void Charging();
 	void Shoot();
 
-	FShooter();
-	~FShooter();
+	UShooter();
+	~UShooter() override;
 };
