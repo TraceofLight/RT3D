@@ -186,7 +186,6 @@
     <ClInclude Include="Manager\Public\ImGuiManager.h" />
     <ClInclude Include="Manager\Public\ScoreManager.h" />
     <ClInclude Include="Manager\Public\TimeManager.h" />
-    <ClInclude Include="Mesh\Public\UBall.h" />
     <ClInclude Include="Mesh\Public\URectangle.h" />
     <ClInclude Include="pch.h"/>
     <ClInclude Include="Render\Public\Renderer.h"/>
