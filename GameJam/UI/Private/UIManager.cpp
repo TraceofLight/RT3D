@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "UIManager.h"
+#include "UI/Public/UIManager.h"
 
 UIManager& UIManager::GetInstance()
 {
@@ -36,11 +36,11 @@ void UIManager::Render()
 
 void UIManager::OnMouseClick(float x, float y)
 {
-	for (auto it = UIelements.rbegin() ; it != UIelements.rend();it++)
+	for (auto it = UIelements.rbegin(); it != UIelements.rend(); it++)
 	{
 		UIElement* elem = *it;
 
-		if (elem!=nullptr)
+		if (elem != nullptr)
 		{
 			bool handled = elem->OnMouseClick(FVector3(x, y));
 			if (handled) break;

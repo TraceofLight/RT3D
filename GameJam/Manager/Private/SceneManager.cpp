@@ -1,6 +1,8 @@
 #include "pch.h"
-#include "SceneManager.h"
-#include <iostream>
+#include "Manager/Public/SceneManager.h"
+
+#include "Scene/Public/Scene.h"
+
 SceneManager& SceneManager::GetInstance()
 {
 	static SceneManager instance;
@@ -43,7 +45,7 @@ void SceneManager::Update(float deltaTime)
 
 void SceneManager::Render(ID3D11DeviceContext* context)
 {
-	
+
 }
 
 

@@ -1,9 +1,7 @@
 #pragma once
-#include <functional>
+
 #include "UIElement.h"
 #include "Text.h"
-
-class ID3D11ShaderResourceView;
 
 class Button : public UIElement {
 private:

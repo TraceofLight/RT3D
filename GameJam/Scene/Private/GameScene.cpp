@@ -1,5 +1,3 @@
-// GameScene.cpp
-
 #include "pch.h"
 #include "GameScene.h"
 #include "Manager/Public/InputManager.h"
@@ -101,13 +99,13 @@ void GameScene::Render()
 	for (int i = 0; i < TotalPrimitives; ++i)
 	{
 		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-		InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
-		InRenderer.RenderPrimitive();
+		InRenderer->UpdateConstant(Ball->Location, Ball->Radius);
+		InRenderer->RenderPrimitive();
 	}
 
 	// 사각형 렌더링
-	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-	InRenderer.RenderRectangle();
+	InRenderer->UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
+	InRenderer->RenderRectangle();
 }
 
 void GameScene::AddNewBall()

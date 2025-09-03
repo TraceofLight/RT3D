@@ -19,6 +19,9 @@
 #include <string>
 #include <chrono>
 #include <algorithm>
+#include <iostream>
+#include <unordered_map>
+#include <functional>
 
 #include "Global/Struct.h"
 #include "Global/Function.h"
@@ -29,5 +32,6 @@ using std::map;
 using std::vector;
 using std::string;
 using std::clamp;
+using std::unordered_map;
 
 #include "Manager/Public/TimeManager.h"
