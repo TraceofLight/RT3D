@@ -1,12 +1,9 @@
-// GameScene.cpp
-
 #include "pch.h"
-#include "GameScene.h"
-#include "Manager/Public/KeyManager.h"
-#include "Manager/Public/TimeManager.h"
-#include "Render/Public/Renderer.h" // Renderer를 사용하기 위해 포함
-#include "Actor/Public/UBall.h"
-#include <cassert> // assert 사용
+#include "Scene/Public/GameScene.h"
+
+#include "Mesh/Public/UBall.h"
+#include "Manager/Public/InputManager.h"
+#include "Render/Public/Renderer.h"
 
 // 생성자: 멤버 변수 초기화
 GameScene::GameScene()
@@ -48,7 +45,7 @@ void GameScene::Update(float deltaTime)
 {
 	// ================== MainLoop에서 가져온 게임 로직 ==================
 	FTimeManager* TimeManager = FTimeManager::GetInstance();
-	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 
 	// === 입력 처리 ===
 	// Space키로 공 추가
@@ -94,20 +91,20 @@ void GameScene::Update(float deltaTime)
 
 void GameScene::Render()
 {
-	URenderer& InRenderer = URenderer::GetInstance(); // 렌더러 인스턴스 가져오기
+	URenderer* InRenderer = URenderer::GetInstance(); // 렌더러 인스턴스 가져오기
 
 	// ================== RenderProcess에서 가져온 렌더링 로직 ==================
 	// 공들 렌더링
 	for (int i = 0; i < TotalPrimitives; ++i)
 	{
 		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-		InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
-		InRenderer.RenderPrimitive();
+		InRenderer->UpdateConstant(Ball->Location, Ball->Radius);
+		InRenderer->RenderPrimitive();
 	}
 
 	// 사각형 렌더링
-	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-	InRenderer.RenderRectangle();
+	InRenderer->UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
+	InRenderer->RenderRectangle();
 }
 
 // HandleMouseClick 구현 (main.cpp에서 그대로 가져옴)

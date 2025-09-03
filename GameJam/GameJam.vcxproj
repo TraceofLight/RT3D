@@ -25,7 +25,7 @@
     <RootNamespace>Week0</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -52,24 +52,24 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros"/>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <PublicIncludeDirectories>
     </PublicIncludeDirectories>
@@ -143,39 +143,47 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Actor\Private\PinBall.cpp" />
-    <ClCompile Include="Actor\Private\Shooter.cpp" />
-    <ClCompile Include="Mesh\Private\UBall.cpp" />
-    <ClCompile Include="Mesh\Private\URectangle.cpp" />
-    <ClCompile Include="Mesh\Private\UTriangle.cpp" />
-    <ClCompile Include="Core\Private\Primitive.cpp" />
-    <ClCompile Include="ImGui\imgui.cpp" />
-    <ClCompile Include="ImGui\imgui_demo.cpp" />
-    <ClCompile Include="ImGui\imgui_draw.cpp" />
-    <ClCompile Include="ImGui\imgui_impl_dx11.cpp" />
-    <ClCompile Include="ImGui\imgui_impl_win32.cpp" />
-    <ClCompile Include="ImGui\imgui_tables.cpp" />
-    <ClCompile Include="ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Manager\Private\ImGuiManager.cpp" />
-    <ClCompile Include="Manager\Private\ScoreManager.cpp" />
-    <ClCompile Include="Manager\Private\InputManager.cpp" />
-    <ClCompile Include="Manager\Private\TimeManager.cpp" />
+    <ClCompile Include="Actor\Private\PinBall.cpp"/>
+    <ClCompile Include="Actor\Private\Shooter.cpp"/>
+    <ClCompile Include="Manager\Private\SceneManager.cpp"/>
+    <ClCompile Include="Mesh\Private\UBall.cpp"/>
+    <ClCompile Include="Mesh\Private\URectangle.cpp"/>
+    <ClCompile Include="Mesh\Private\UTriangle.cpp"/>
+    <ClCompile Include="Core\Private\Primitive.cpp"/>
+    <ClCompile Include="ImGui\imgui.cpp"/>
+    <ClCompile Include="ImGui\imgui_demo.cpp"/>
+    <ClCompile Include="ImGui\imgui_draw.cpp"/>
+    <ClCompile Include="ImGui\imgui_impl_dx11.cpp"/>
+    <ClCompile Include="ImGui\imgui_impl_win32.cpp"/>
+    <ClCompile Include="ImGui\imgui_tables.cpp"/>
+    <ClCompile Include="ImGui\imgui_widgets.cpp"/>
+    <ClCompile Include="main.cpp"/>
+    <ClCompile Include="Manager\Private\ImGuiManager.cpp"/>
+    <ClCompile Include="Manager\Private\ScoreManager.cpp"/>
+    <ClCompile Include="Manager\Private\InputManager.cpp"/>
+    <ClCompile Include="Manager\Private\TimeManager.cpp"/>
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="Render\Private\Renderer.cpp" />
+    <ClCompile Include="Render\Private\Renderer.cpp"/>
+    <ClCompile Include="Scene\Private\GameScene.cpp"/>
+    <ClCompile Include="Scene\Private\LobbyScene.cpp"/>
+    <ClCompile Include="Scene\Private\Scene.cpp"/>
+    <ClCompile Include="UI\Private\Button.cpp"/>
+    <ClCompile Include="UI\Private\Text.cpp"/>
+    <ClCompile Include="UI\Private\UIElement.cpp"/>
+    <ClCompile Include="UI\Private\UIManager.cpp"/>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Actor\Public\PinBall.h" />
-    <ClInclude Include="Actor\Public\Shooter.h" />
-    <ClInclude Include="Asset\Triangle.h" />
-    <ClInclude Include="Asset\Rectangle.h" />
-    <ClInclude Include="Asset\Sphere.h" />
+    <ClInclude Include="Actor\Public\PinBall.h"/>
+    <ClInclude Include="Actor\Public\Shooter.h"/>
+    <ClInclude Include="Asset\Triangle.h"/>
+    <ClInclude Include="Asset\Rectangle.h"/>
+    <ClInclude Include="Asset\Sphere.h"/>
     <ClInclude Include="Core\Public\Primitive.h"/>
-    <ClInclude Include="Global\Enum.h" />
+    <ClInclude Include="Global\Enum.h"/>
     <ClInclude Include="Global\Function.h"/>
-    <ClInclude Include="Global\Macro.h" />
+    <ClInclude Include="Global\Macro.h"/>
     <ClInclude Include="Global\Struct.h"/>
     <ClInclude Include="ImGui\imconfig.h"/>
     <ClInclude Include="ImGui\imgui.h"/>
@@ -185,18 +193,26 @@
     <ClInclude Include="ImGui\imstb_rectpack.h"/>
     <ClInclude Include="ImGui\imstb_textedit.h"/>
     <ClInclude Include="ImGui\imstb_truetype.h"/>
-    <ClInclude Include="Manager\Public\InputManager.h" />
-    <ClInclude Include="Manager\Public\ImGuiManager.h" />
-    <ClInclude Include="Manager\Public\ScoreManager.h" />
-    <ClInclude Include="Manager\Public\TimeManager.h" />
-    <ClInclude Include="Mesh\Public\UBall.h" />
-    <ClInclude Include="Mesh\Public\URectangle.h" />
-    <ClInclude Include="Mesh\Public\UTriangle.h" />
+    <ClInclude Include="Manager\Public\InputManager.h"/>
+    <ClInclude Include="Manager\Public\ImGuiManager.h"/>
+    <ClInclude Include="Manager\Public\SceneManager.h"/>
+    <ClInclude Include="Manager\Public\ScoreManager.h"/>
+    <ClInclude Include="Manager\Public\TimeManager.h"/>
+    <ClInclude Include="Mesh\Public\UBall.h"/>
+    <ClInclude Include="Mesh\Public\URectangle.h"/>
+    <ClInclude Include="Mesh\Public\UTriangle.h"/>
     <ClInclude Include="pch.h"/>
     <ClInclude Include="Render\Public\Renderer.h"/>
+    <ClInclude Include="Scene\Public\GameScene.h"/>
+    <ClInclude Include="Scene\Public\LobbyScene.h"/>
+    <ClInclude Include="Scene\Public\Scene.h"/>
+    <ClInclude Include="UI\Public\Button.h"/>
+    <ClInclude Include="UI\Public\Text.h"/>
+    <ClInclude Include="UI\Public\UIElement.h"/>
+    <ClInclude Include="UI\Public\UIManager.h"/>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Manager\Public\ImGuiManager.h" />
+    <Content Include="Manager\Public\ImGuiManager.h"/>
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Shader\ShaderW0.hlsl">
@@ -204,7 +220,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>

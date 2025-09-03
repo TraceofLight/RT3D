@@ -1,15 +1,12 @@
 #pragma once
-#include "pch.h"
-#include <string>
 
-class ID3D11DeviceContext;
-
-class UIElement {
+class UIElement
+{
 protected:
-		std::string name;
-		FVector3 position;
-		FVector3 size;
-		FVector3 color;
+	std::string name;
+	FVector3 position;
+	FVector3 size;
+	FVector3 color;
 
 public:
 	virtual ~UIElement() = default;
@@ -21,7 +18,7 @@ public:
 	virtual bool OnMouseClick(FVector3 pos) { return false; }
 
 	void SetPosition(FVector3 pos) { position = pos; }
-	void SetSize(FVector3 size) {this->size = size;}
+	void SetSize(FVector3 size) { this->size = size; }
 	void SetColor(FVector3 col) { color = col; }
 
 	FVector3 GetPosition() const { return position; }
@@ -34,8 +31,8 @@ public:
 
 		float left = position.x - halfWidth;
 		float right = position.x + halfWidth;
-		float top = position.y - halfHeight;   
-		float bottom = position.y + halfHeight; 
+		float top = position.y - halfHeight;
+		float bottom = position.y + halfHeight;
 
 		return pos.x >= left && pos.x <= right && pos.y >= top && pos.y <= bottom;
 	}
