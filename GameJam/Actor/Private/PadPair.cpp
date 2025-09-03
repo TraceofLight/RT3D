@@ -50,21 +50,25 @@ void UPadPair::Init(const FPadPairConfig& InConfig)
 	// Left (음수 영역)
 	float leftMin = -(midRad + sweepRad);
 	float leftMax = -(midRad - sweepRad);
-	float leftInit = leftMin; // 아래(휴식) 상태
+	float leftInit = leftMin;
 
 	// Right (양수 영역)
 	float rightMin = (midRad - sweepRad);
 	float rightMax = (midRad + sweepRad);
-	float rightInit = rightMax; // 아래(휴식) 상태(키 누르면 감소)
+	float rightInit = rightMax;
+
+	const float leftX = Config.CenterX - Config.XOffset;
+	const float rightX = Config.CenterX + Config.XOffset;
+	const float bothY = Config.CenterY + Config.YOffset;
 
 	ApplyConfigToPad(LeftPad, UPad::ESide::Left,
 		leftMin, leftMax, leftInit,
-		-Config.XOffset, Config.YOffset,
+		leftX, bothY,
 		Config.KeyLeft, speedRad);
 
 	ApplyConfigToPad(RightPad, UPad::ESide::Right,
 		rightMin, rightMax, rightInit,
-		Config.XOffset, Config.YOffset,
+		rightX, bothY,
 		Config.KeyRight, speedRad);
 }
 
