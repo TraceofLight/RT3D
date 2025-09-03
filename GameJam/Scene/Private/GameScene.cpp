@@ -29,6 +29,24 @@ void GameScene::Init()
 
 	Shooter = new UShooter();
 	Shooter->SetLocation({0.3f, -0.8f, 0.0f});
+
+	FSceneManager& SceneMgr = FSceneManager::GetInstance();
+	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
+	// TESTING
+	FVector3 randomLocation = FVector3(-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f,
+	-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f, 1.0f);
+
+	float randomRotation = -0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f;
+
+	// AddNewTriangle(randomLocation, randomRotation, 0.3f, 0.9f);
+	AddNewRectangle(randomLocation, randomRotation, 0.1f, 0.1f);
+	// AddNewRectangle(FVector3(), 1.0f, 1.0f, 1.0f);
+	// AddNewBall();
+
+	// right wall
+	AddNewRectangle(FVector3(0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
+	// left wall
+	AddNewRectangle(FVector3(-0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
 }
 
 void GameScene::Update(float deltaTime)
@@ -44,16 +62,16 @@ void GameScene::Update(float deltaTime)
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
 		return;
 
-	m_TotalPrimitives = static_cast<int>(m_PrimitiveList.size());
+	m_TotalPrimitives = static_cast<int>(m_PrimitiveList->size());
 
     // 모든 볼 객체의 움직임 업데이트
     for (int i = 0; i < m_TotalPrimitives; ++i)
     {
-        UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-        Ball->Move();
+    	if (UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]))
+			Ball->Move();
     }
 
-    m_Rectangle->Move();
+    // m_Rectangle->Move();
 
 	GPadPair.Update(KeyManager, TimeManager->GetDeltaTime());
 
@@ -71,9 +89,9 @@ void GameScene::Cleanup()
 {
     for (int i = 0; i < m_TotalPrimitives; ++i)
     {
-        delete m_PrimitiveList[i];
+        delete (*m_PrimitiveList)[i];
     }
-
+	m_PrimitiveList->clear();
     if(m_Rectangle)
     {
         delete m_Rectangle;
@@ -119,22 +137,38 @@ void GameScene::RenderProcess()
     //Renderer->Prepare();
     //Renderer->PrepareShader();
 
-    for (int i = 0; i < m_TotalPrimitives; ++i)
-    {
-        UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-        Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
-        Renderer->RenderPrimitive();
-    }
+	std::cout << "primitives: " << m_TotalPrimitives << std::endl;
+	for (int i = 0; i < m_TotalPrimitives; ++i)
+	{
+		UPrimitive* Primitive = (*m_PrimitiveList)[i];
+		std::cout << "current: " << Primitive << std::endl;
 
-    Renderer->UpdateConstantForRectangle(m_Rectangle->Location, m_Rectangle->Width, m_Rectangle->Height);
-    Renderer->RenderRectangle();
+		if (UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]))
+		{
+			Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
+			Renderer->RenderPrimitive();
+		}
+		else if (URectangle* Rectangle = dynamic_cast<URectangle*>(Primitive))
+		{
+			Renderer->UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height, Rectangle->Rotation);
+			Renderer->RenderRectangle();
+			std::cout << "rendering rectangle" << std::endl;
+		}
+		else if (UTriangle* Triangle = dynamic_cast<UTriangle*>(Primitive))
+		{
+			Renderer->UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height, Triangle->Rotation,
+										 Triangle->Radius);
+			Renderer->RenderTriangle();
+			std::cout << "rendering triangle" << std::endl;
+		}
+	}
 
     // Shooter 렌더링 추가
     if (Shooter && Shooter->GetShape())
     {
-        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(), 
-                                           Shooter->GetShape()->GetWidth(), 
-                                           Shooter->GetShape()->GetHeight());
+        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
+                                           Shooter->GetShape()->GetWidth(),
+                                           Shooter->GetShape()->GetHeight(), 0.0f);
         Renderer->RenderRectangle();
     }
 
@@ -300,17 +334,63 @@ void GameScene::HandleBallPadPairCollisions()
 {
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-		ResolveBallTriangle(Ball, GPadPair.Left().GetShape());
-		ResolveBallTriangle(Ball, GPadPair.Right().GetShape());
+		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
+		if (Ball!=nullptr)
+		{
+			ResolveBallTriangle(Ball, GPadPair.Left().GetShape());
+			ResolveBallTriangle(Ball, GPadPair.Right().GetShape());
+		}
 	}
 }
 
 void GameScene::HandleBallRectangleCollisions()
 {
-	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-		ResolveBallRectangle(Ball, &GRectangle);
+		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
+		if (Ball !=nullptr)
+		{
+			for (int j=0; j < static_cast<int>(m_PrimitiveList->size()); ++j)
+			{
+				URectangle* rect = dynamic_cast<URectangle*>((*m_PrimitiveList)[j]);
+				if (rect!=nullptr)
+				{
+					ResolveBallRectangle(Ball, rect);
+				}
+			}
+		}
 	}
+}
+
+void GameScene::AddNewBall()
+{
+
+}
+
+void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height)
+{
+	std::cout << "adding new rectangle!" << std::endl;
+	// Create the rectangle
+	URectangle* NewRectangle = new URectangle();
+	NewRectangle->Location = location;
+	NewRectangle->Rotation = rotation;
+	NewRectangle->Width = width;
+	NewRectangle->Height = height;
+	NewRectangle->Mass = width * height;
+	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
+
+
+	FSceneManager& FCM = FSceneManager::GetInstance();
+	Scene* currentScene = FCM.GetCurrentScene();
+	// Add to the vector
+	currentScene->GetScenePrimitives()->push_back(NewRectangle);
+	std::cout << "list: " << m_PrimitiveList->size() << std::endl;
+
+	// Update total count
+	++m_TotalPrimitives;
+}
+
+void GameScene::AddNewTriangle()
+{
+
 }

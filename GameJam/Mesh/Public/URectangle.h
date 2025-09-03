@@ -10,6 +10,7 @@ public:
 	float Width;
 	float Height;
 	float Mass;
+	float Rotation;
 
 	URectangle();
 	void Move();

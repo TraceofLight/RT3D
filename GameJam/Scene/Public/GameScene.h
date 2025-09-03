@@ -27,9 +27,13 @@ private:
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 	void HandleBallPadPairCollisions();
 
+	void AddNewBall();
+	void AddNewRectangle(FVector3 location, float rotation, float width, float height);
+	void AddNewTriangle();
+
 private:
 	int m_TotalPrimitives = 0;
-	vector<UPrimitive*> m_PrimitiveList;
+	vector<UPrimitive*>* m_PrimitiveList;
 	URectangle* m_Rectangle = nullptr;
 	UPinBall* m_GravityCenterBall = nullptr;
 
