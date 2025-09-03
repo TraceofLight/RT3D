@@ -36,6 +36,7 @@ static int frameCount = 0;
 static const int minFramesBeforeFirstBall = 5;
 
 void RenderProcess(const URenderer& InRenderer);
+void InputProcess(bool& InExitFlag);
 
 /**
  * @brief 매 프레임 반복되는 Logic을 처리하는 함수
@@ -72,27 +73,7 @@ static void MainLoop(URenderer& InRenderer)
 
 		// KeyManager 업데이트
 		KeyManager->Update();
-
-		// === 입력 처리 ===
-		// ESC키로 종료
-		if (KeyManager->IsKeyPressed(EKeyInput::Esc))
-		{
-			PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
-			bIsExit = true;
-			continue;
-		}
-
-		// Space키로 공 추가
-		if (KeyManager->IsKeyPressed(EKeyInput::Space))
-		{
-			AddNewBall();
-		}
-
-		// Delete키로 공 제거
-		if (KeyManager->IsKeyPressed(EKeyInput::Delete))
-		{
-			RemoveRandomBall();
-		}
+		InputProcess(bIsExit);
 
 		// === 게임 로직 업데이트 ===
 		// 시간 기반 공 생성 제어 (프레임 기반에서 시간 기반으로 변경)
@@ -154,6 +135,46 @@ void RenderProcess(const URenderer& InRenderer)
 	InRenderer.SwapBuffer();
 }
 
+void InputProcess(bool& InExitFlag)
+{
+	FInputManager* KeyManager = FInputManager::GetInstance();
+
+	// ESC키로 종료
+	if (KeyManager->IsKeyPressed(EKeyInput::Esc))
+	{
+		PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
+		InExitFlag = true;
+		return;
+	}
+
+	// Space키로 공 추가
+	if (KeyManager->IsKeyPressed(EKeyInput::Space))
+	{
+		AddNewBall();
+	}
+
+	// Delete키로 공 제거
+	if (KeyManager->IsKeyPressed(EKeyInput::Delete))
+	{
+		RemoveRandomBall();
+	}
+
+	// 마우스 클릭 처리
+	if (KeyManager->IsKeyDown(EKeyInput::MouseLeft))
+	{
+		// 마우스 위치 가져오기
+		FVector2 MousePosition = KeyManager->GetMousePosition();
+		HandleMouseClick(static_cast<int>(MousePosition.x), static_cast<int>(MousePosition.y), true);
+	}
+
+	if (KeyManager->IsKeyDown(EKeyInput::MouseRight))
+	{
+		// 마우스 위치 가져오기
+		FVector2 MousePosition = KeyManager->GetMousePosition();
+		HandleMouseClick(static_cast<int>(MousePosition.x), static_cast<int>(MousePosition.y), false);
+	}
+}
+
 static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 {
 	// Renderer Initialize
@@ -189,16 +210,16 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	WCHAR Title[] = L"Game Tech Lab";
 
 	// 각종 메시지를 처리할 함수인 WndProc의 함수 포인터를 WindowClass 구조체에 넣는다.
-	WNDCLASSW wndclass = { 0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass };
+	WNDCLASSW wndclass = {0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass};
 
 	// 윈도우 클래스 등록
 	RegisterClassW(&wndclass);
 
 	// 1024 x 1024 크기에 윈도우 생성
 	HWND WindowHandle = CreateWindowExW(0, WindowClass, Title,
-		WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
-		CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
-		nullptr, nullptr, hInstance, nullptr);
+	                                    WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
+	                                    CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
+	                                    nullptr, nullptr, hInstance, nullptr);
 
 	// Make Window Handle Global
 	GlobalWindowHandle = WindowHandle;
@@ -238,9 +259,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	return 0;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
+/*************************/
+/** 이하 Common Function **/
+/*************************/
 
-// 각종 메시지를 처리할 함수
+/**
+ * @brief 각종 입력을 처리하는 함수
+ */
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
@@ -252,27 +277,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 	}
 
-	// KeyManager에 메시지 전달 (옵션)
 	FInputManager* KeyManager = FInputManager::GetInstance();
 	if (KeyManager)
 	{
 		KeyManager->ProcessKeyMessage(message, wParam, lParam);
 	}
 
+	// Destroy 제외한 나머지 입력은 InputManager에서 처리
 	switch (message)
 	{
-		// 마우스 왼쪽 버튼 클릭
-	case WM_LBUTTONDOWN:
-	{
-		HandleMouseClick(LOWORD(lParam), HIWORD(lParam), true);
-		return 0;
-	}
-	// 마우스 오른쪽 버튼 클릭
-	case WM_RBUTTONDOWN:
-	{
-		HandleMouseClick(LOWORD(lParam), HIWORD(lParam), false);
-		return 0;
-	}
 	case WM_DESTROY:
 		// Signal that the app should quit
 		PostQuitMessage(0);
@@ -290,7 +303,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 void AddNewBall()
 {
 	// Make New List
-	UPrimitive** NewList = new UPrimitive * [TotalPrimitives + 1];
+	UPrimitive** NewList = new UPrimitive*[TotalPrimitives + 1];
 
 	// Copy
 	for (int i = 0; i < TotalPrimitives; ++i)
@@ -339,7 +352,7 @@ void RemoveRandomBall()
 	UPrimitive** NewList = nullptr;
 	if (TotalPrimitives - 1 > 0)
 	{
-		NewList = new UPrimitive * [TotalPrimitives - 1];
+		NewList = new UPrimitive*[TotalPrimitives - 1];
 	}
 
 	// Copy
@@ -428,8 +441,8 @@ void ResolveBallRectangle(UBall* Ball, const URectangle* Rect)
 
 	// 월드 좌표의 가장 가까운 점
 	FVector3 Closest(Rect->Location.x + ClampedX,
-		Rect->Location.y + ClampedY,
-		Rect->Location.z);
+	                 Rect->Location.y + ClampedY,
+	                 Rect->Location.z);
 
 	FVector3 Diff = Ball->Location - Closest;
 	float DistSq = Diff.LengthSquare();
@@ -520,7 +533,7 @@ void RemoveSpecificBall(int IndexToRemove)
 	UPrimitive** NewList = nullptr;
 	if (TotalPrimitives - 1 > 0)
 	{
-		NewList = new UPrimitive * [TotalPrimitives - 1];
+		NewList = new UPrimitive*[TotalPrimitives - 1];
 	}
 
 	// Copy
@@ -590,12 +603,12 @@ void HandleMouseClick(int InX, int InY, bool InIsLeftClick)
 	// Get Window Size
 	RECT ClientRect;
 	GetClientRect(GlobalWindowHandle, &ClientRect);
-	float clientWidth = static_cast<float>(ClientRect.right - ClientRect.left);
-	float clientHeight = static_cast<float>(ClientRect.bottom - ClientRect.top);
+	float ClientWidth = ClientRect.right - ClientRect.left;
+	float ClientHeight = ClientRect.bottom - ClientRect.top;
 
 	// NDC Convert
-	float ndc_x = (static_cast<float>(InX) / clientWidth) * 2.0f - 1.0f;
-	float ndc_y = -((static_cast<float>(InY) / clientHeight) * 2.0f - 1.0f); // Y축은 방향이 반대
+	float ndc_x = (static_cast<float>(InX) / ClientWidth) * 2.0f - 1.0f;
+	float ndc_y = -((static_cast<float>(InY) / ClientHeight) * 2.0f - 1.0f); // Y축은 방향이 반대
 
 	FVector3 ClickPosition(ndc_x, ndc_y, 0.0f);
 

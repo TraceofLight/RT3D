@@ -161,8 +161,6 @@ bool FInputManager::IsKeyReleased(EKeyInput InKey) const
 
 void FInputManager::ProcessKeyMessage(UINT InMessage, WPARAM WParam, LPARAM LParam)
 {
-	// Windows 메시지 기반 키 처리 (옵션)
-	// 현재는 GetAsyncKeyState를 주로 사용하므로 필요시 구현
 	switch (InMessage)
 	{
 	case WM_KEYDOWN:
