@@ -102,6 +102,9 @@ static void MainLoop(URenderer& InRenderer)
 			}
 		}
 
+		// Triangle 회전 업데이트
+		GTriangle.UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
+
 		// 공들의 물리 시뮬레이션 업데이트
 		for (int i = 0; i < TotalPrimitives; ++i)
 		{
