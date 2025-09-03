@@ -5,7 +5,7 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Actor/Public/UBall.h"
+#include "Mesh/Public/UBall.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Render/Public/Renderer.h"
@@ -93,8 +93,8 @@ void FImGuiManager::RenderImGui()
 		ImGui::Separator();
 
 		// 마우스 위치 표시
-		FVector2 MousePos = KeyManager->GetMousePosition();
-		ImGui::Text("Mouse Position: (%.1f, %.1f)", MousePos.x, MousePos.y);
+		FVector2 MousePosition = KeyManager->GetMousePosition();
+		ImGui::Text("Mouse Position: (%.0f, %.0f)", MousePosition.x, MousePosition.y);
 
 		ImGui::Text("Total %d Key Typing Now", static_cast<int>(PressedKeys.size()));
 

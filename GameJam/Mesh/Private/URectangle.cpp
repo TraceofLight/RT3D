@@ -1,6 +1,5 @@
 #include "pch.h"
-#include "Actor/Public/URectangle.h"
-#include "Global/Macro.h"
+#include "Mesh/Public/URectangle.h"
 
 URectangle::URectangle()
 {
