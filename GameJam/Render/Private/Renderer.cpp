@@ -3,6 +3,12 @@
 
 #include "Manager/Public/ImGuiManager.h"
 
+URenderer* URenderer::instance = nullptr;
+
+URenderer::URenderer()
+{
+
+}
 /**
  * @brief Renderer Initializer
  * @param InWindowHandle Window Handle

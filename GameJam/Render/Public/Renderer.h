@@ -84,4 +84,14 @@ public:
 
     void TotalInit(HWND InWindowHandle);
     void TotalShutDown();
+
+	static URenderer* GetInstance()
+	{
+		if (instance == nullptr) instance = new URenderer();
+		return instance;
+	}
+
+private:
+	static URenderer* instance;
+	URenderer();
 };

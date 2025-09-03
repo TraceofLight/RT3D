@@ -164,31 +164,47 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Render\Private\Renderer.cpp" />
+    <ClCompile Include="Scenes\GameScene.cpp" />
+    <ClCompile Include="Scenes\LobbyScene.cpp" />
+    <ClCompile Include="Scenes\Scene.cpp" />
+    <ClCompile Include="Scenes\SceneManager.cpp" />
+    <ClCompile Include="UI\Button.cpp" />
+    <ClCompile Include="UI\Text.cpp" />
+    <ClCompile Include="UI\UIElement.cpp" />
+    <ClCompile Include="UI\UIManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor\Public\PinBall.h" />
     <ClInclude Include="Actor\Public\Shooter.h" />
     <ClInclude Include="Asset\Sphere.h" />
-    <ClInclude Include="Core\Public\Primitive.h"/>
+    <ClInclude Include="Core\Public\Primitive.h" />
     <ClInclude Include="Global\Enum.h" />
-    <ClInclude Include="Global\Function.h"/>
+    <ClInclude Include="Global\Function.h" />
     <ClInclude Include="Global\Macro.h" />
-    <ClInclude Include="Global\Struct.h"/>
-    <ClInclude Include="ImGui\imconfig.h"/>
-    <ClInclude Include="ImGui\imgui.h"/>
-    <ClInclude Include="ImGui\imgui_impl_dx11.h"/>
-    <ClInclude Include="ImGui\imgui_impl_win32.h"/>
-    <ClInclude Include="ImGui\imgui_internal.h"/>
-    <ClInclude Include="ImGui\imstb_rectpack.h"/>
-    <ClInclude Include="ImGui\imstb_textedit.h"/>
-    <ClInclude Include="ImGui\imstb_truetype.h"/>
+    <ClInclude Include="Global\Struct.h" />
+    <ClInclude Include="ImGui\imconfig.h" />
+    <ClInclude Include="ImGui\imgui.h" />
+    <ClInclude Include="ImGui\imgui_impl_dx11.h" />
+    <ClInclude Include="ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="ImGui\imgui_internal.h" />
+    <ClInclude Include="ImGui\imstb_rectpack.h" />
+    <ClInclude Include="ImGui\imstb_textedit.h" />
+    <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="Manager\Public\InputManager.h" />
     <ClInclude Include="Manager\Public\ImGuiManager.h" />
     <ClInclude Include="Manager\Public\ScoreManager.h" />
     <ClInclude Include="Manager\Public\TimeManager.h" />
     <ClInclude Include="Mesh\Public\URectangle.h" />
-    <ClInclude Include="pch.h"/>
-    <ClInclude Include="Render\Public\Renderer.h"/>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Render\Public\Renderer.h" />
+    <ClInclude Include="Scenes\GameScene.h" />
+    <ClInclude Include="Scenes\LobbyScene.h" />
+    <ClInclude Include="Scenes\Scene.h" />
+    <ClInclude Include="Scenes\SceneManager.h" />
+    <ClInclude Include="UI\Button.h" />
+    <ClInclude Include="UI\Text.h" />
+    <ClInclude Include="UI\UIElement.h" />
+    <ClInclude Include="UI\UIManager.h" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Manager\Public\ImGuiManager.h" />

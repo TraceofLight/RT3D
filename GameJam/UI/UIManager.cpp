@@ -12,6 +12,11 @@ void UIManager::AddElement(UIElement* element)
 	UIelements.push_back(element);
 }
 
+void UIManager::Cleanup()
+{
+	UIelements.clear();
+}
+
 void UIManager::Update(float deltaTime)
 {
 	for (auto& element : UIelements)
@@ -27,6 +32,7 @@ void UIManager::Render()
 		elem->Render();
 	}
 }
+
 
 void UIManager::OnMouseClick(float x, float y)
 {

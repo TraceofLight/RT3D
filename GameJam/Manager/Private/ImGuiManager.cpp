@@ -10,6 +10,7 @@
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
+#include "UI/UIManager.h"
 
 /**
  * @brief ImGui Initializer
@@ -166,6 +167,12 @@ void FImGuiManager::RenderImGui()
 		ImGui::Text("Current Score: %d", ScoreManager->GetCurrentScore());
 	}
 	
+	ImGui::End();
+
+	ImGui::Begin("Game UI");
+
+	UIManager::GetInstance().Render();
+
 	ImGui::End();
 
 	// Render ImGui

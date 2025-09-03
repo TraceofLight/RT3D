@@ -21,6 +21,7 @@ public:
 	static UIManager& GetInstance();
 
 	void AddElement(UIElement* element);
+	void Cleanup();
 	void Update(float deltaTime);
 	void Render();
 	void OnMouseClick(float x, float y);
