@@ -153,8 +153,12 @@ void GameScene::InputProcess()
 		{
 			if (!m_Shooted)
 			{
-				m_Shooted = true;
+				
 				m_ActorBall = Shooter->Shoot();
+				if (m_ActorBall != nullptr)
+				{
+					m_Shooted = true;
+				}
 				DEBUG_PRINT("[Shooter] Shooter Fire!\n");
 			}
 		}
@@ -205,7 +209,8 @@ void GameScene::CheckBallTriggers()
 					m_BallsToDelete.push_back(PinBall);
 					DEBUG_PRINT("[Ball Trigger] Ball marked for deletion\n");
 				}
-			// 스페이스바를 뗐을 때 발사
+				// 스페이스바를 뗐을 때 발사
+			}
 		}
 	}
 }

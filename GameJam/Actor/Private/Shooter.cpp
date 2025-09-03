@@ -44,7 +44,7 @@ UPinBall* UShooter::Shoot()
 	if (!bHasBallLoaded)
 	{
 		DEBUG_PRINT("[SHOOTER] Cannot shoot - no ball loaded!\n");
-		return;
+		return nullptr;
 	}
 
 	// 생성되는 볼에 속도를 전달해야 함
