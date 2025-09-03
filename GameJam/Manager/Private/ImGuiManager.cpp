@@ -6,6 +6,7 @@
 #include "imGui/imgui_impl_win32.h"
 
 #include "Mesh/Public/UBall.h"
+#include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/ScoreManager.h"
@@ -40,6 +41,8 @@ void FImGuiManager::RenderImGui()
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
 
+	static bool bShowCredits = false;
+
 	ImGui::Begin("Jungle Property Window");
 
 	/** 여기서부터 ImGui에 필요한 UI 작성 **/
@@ -61,6 +64,29 @@ void FImGuiManager::RenderImGui()
 	{
 		ImGui::Text("Right-Click A Ball To Set Gravity Center.");
 	}
+
+	// ----- Triangle UI 추가 시작 -----
+	ImGui::Separator();
+	ImGui::TextColored(ImVec4(0.9f, 0.7f, 0.2f, 1.0f), "Triangle (Incenter Based)");
+
+	// 라디안 -> 도 단위 변환
+	float rotationDeg = GTriangle.Rotation * 180.0f / 3.14159265358979323846f;
+	if (ImGui::SliderFloat("Rotation (deg)", &rotationDeg, 0.0f, 360.0f, "%.1f"))
+	{
+		// 도 -> 라디안
+		GTriangle.Rotation = rotationDeg * (3.14159265358979323846f / 180.0f);
+		// 0~2π 정규화 (선택)
+		const float TwoPi = 6.2831853071795864769f;
+		if (GTriangle.Rotation >= TwoPi || GTriangle.Rotation < 0.0f)
+		{
+			GTriangle.Rotation = fmodf(GTriangle.Rotation, TwoPi);
+			if (GTriangle.Rotation < 0.0f) GTriangle.Rotation += TwoPi;
+		}
+	}
+
+	// (선택 표시) 현재 라디안 값
+	ImGui::Text("Rotation(rad): %.4f", GTriangle.Rotation);
+	// ----- Triangle UI 추가 끝 -----
 
 	/** 여기까지 ImGui에 필요한 UI 작성 **/
 
@@ -166,7 +192,13 @@ void FImGuiManager::RenderImGui()
 	{
 		ImGui::Text("Current Score: %d", ScoreManager->GetCurrentScore());
 	}
-	
+
+	ImGui::End();
+
+	ImGui::SetNextWindowPos(ImVec2(0, 0));
+	ImGui::Begin("Options");
+	if (ImGui::Button("Credits"))
+		bShowCredits = true;
 	ImGui::End();
 
 	ImGui::Begin("Game UI");
@@ -174,6 +206,16 @@ void FImGuiManager::RenderImGui()
 	UIManager::GetInstance().Render();
 
 	ImGui::End();
+
+	if (bShowCredits)
+	{
+		ImGui::Begin("Credits");
+		ImGui::Text("Team 5");
+		ImGui::Text("Kim HeeJun, Lee HoJin,");
+		ImGui::Text("Jung SeYeon, Heo Jun");
+		ImGui::End();
+	}
+
 
 	// Render ImGui
 	ImGui::Render();

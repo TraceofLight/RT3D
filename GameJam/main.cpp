@@ -8,8 +8,10 @@
 #include "Core/Public/Primitive.h"
 #include "Asset/Sphere.h"
 #include "Asset/Rectangle.h"
+#include "Asset/Triangle.h"
 #include "Mesh/Public/UBall.h"
 #include "Mesh/Public/URectangle.h"
+#include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/ImGuiManager.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
@@ -25,6 +27,8 @@ static void SetGravityCenter(int IndexToSet);
 static void HandleCollisions();
 static void HandleBallRectangleCollisions();
 static void ResolveBallRectangle(UBall* Ball, const URectangle* Rect);
+static void HandleBallTriangleCollisions();
+static void ResolveBallTriangle(UBall* Ball, const UTriangle* Triangle);
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 static void AddNewBall();
@@ -111,6 +115,7 @@ static void MainLoop(URenderer& InRenderer)
 		// === 충돌 처리 ===
 		HandleCollisions();
 		HandleBallRectangleCollisions();
+		HandleBallTriangleCollisions();
 
 		// Rendering
 		RenderProcess(InRenderer);
@@ -133,6 +138,10 @@ void RenderProcess(const URenderer& InRenderer)
 	// 사각형 렌더링
 	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
 	InRenderer.RenderRectangle();
+
+	// Triangle Render
+	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation, GTriangle.Radius);
+	InRenderer.RenderTriangle();
 
 	// ImGui 렌더링 (TimeManager 정보 표시 가능)
 	FImGuiManager::RenderImGui();
@@ -198,6 +207,10 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	InRenderer.indexBufferRectangle = InRenderer.CreateIndexBuffer(
 		rectangle_indices, sizeof(rectangle_indices));
 	InRenderer.numIndicesRectangle = _countof(rectangle_indices);
+
+	// Triangle 버텍스 버퍼
+	InRenderer.vertexBufferTriangle = InRenderer.CreateVertexBuffer(
+		triangle_vertices, sizeof(triangle_vertices));
 
 	// Initialize Managers
 	FTimeManager::GetInstance();
@@ -505,6 +518,114 @@ void ResolveBallRectangle(UBall* Ball, const URectangle* Rect)
 	{
 		float Restitution = 1.0f; // 필요시 조정
 		Ball->Velocity -= Normal * (1.f + Restitution) * Vn;
+	}
+}
+
+void HandleBallTriangleCollisions()
+{
+	for (int i = 0; i < TotalPrimitives; ++i)
+	{
+		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
+		ResolveBallTriangle(Ball, &GTriangle);
+	}
+}
+
+void ResolveBallTriangle(UBall* Ball, const UTriangle* Triangle)
+{
+	if (!Ball || !Triangle)
+		return;
+
+	// 삼각형(직각, Incenter 기준 회전) 로컬 꼭짓점 구성
+	const float a = Triangle->Base;    // X방향 직각변
+	const float b = Triangle->Height;  // Y방향 직각변
+	const float r = Triangle->Radius;  // Inradius (이미 UTriangle 내부에서 계산됨)
+
+	// 로컬(Incenter = 원점) 좌표: (0,0)-(0,b)-(a,0)에서 (r,r)만큼 이동 제거
+	FVector3 v0(-r, -r, 0.0f);      // 직각 꼭짓점
+	FVector3 v1(-r, b - r, 0.0f);      // +Y
+	FVector3 v2(a - r, -r, 0.0f);      // +X
+
+	// 회전
+	const float c = std::cos(Triangle->Rotation);
+	const float s = std::sin(Triangle->Rotation);
+
+	auto Rotate = [&](const FVector3& L) -> FVector3
+		{
+			return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
+		};
+
+	// 월드 변환 (Incenter = Triangle->Location)
+	FVector3 w0 = Rotate(v0) + Triangle->Location;
+	FVector3 w1 = Rotate(v1) + Triangle->Location;
+	FVector3 w2 = Rotate(v2) + Triangle->Location;
+
+	// 가장 가까운 점 찾기 (원-삼각형 최소 거리)
+	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
+		{
+			FVector3 AB = B - A;
+			float abLenSq = AB.LengthSquare();
+			if (abLenSq <= 1e-12f) return A;
+			float t = Dot(P - A, AB) / abLenSq;
+			if (t < 0.0f) t = 0.0f;
+			else if (t > 1.0f) t = 1.0f;
+			return A + AB * t;
+		};
+
+	const FVector3 C = Ball->Location;
+
+	FVector3 candidates[3];
+	candidates[0] = ClosestPointOnSegment(w0, w1, C);
+	candidates[1] = ClosestPointOnSegment(w1, w2, C);
+	candidates[2] = ClosestPointOnSegment(w2, w0, C);
+
+	// 가장 가까운 점 선택
+	float bestDistSq = FLT_MAX;
+	FVector3 closest;
+	for (int i = 0; i < 3; ++i)
+	{
+		FVector3 d = C - candidates[i];
+		float dsq = d.LengthSquare();
+		if (dsq < bestDistSq)
+		{
+			bestDistSq = dsq;
+			closest = candidates[i];
+		}
+	}
+
+	float dist = std::sqrtf(bestDistSq);
+	// 충돌 검사 (원-삼각형)
+	if (dist > Ball->Radius)
+		return; // 충돌 없음
+
+	// 법선 계산
+	FVector3 normal;
+	if (dist > 1e-6f)
+	{
+		normal = (C - closest) / dist;
+	}
+	else
+	{
+		// 중심이 거의 겹친 경우: 삼각형 인센터 방향 사용
+		normal = (C - Triangle->Location);
+		if (normal.LengthSquare() < 1e-8f)
+			normal = FVector3(1.f, 0.f, 0.f);
+		else
+			normal.Normalize();
+	}
+
+	// 침투 보정
+	float penetration = Ball->Radius - dist;
+	if (penetration > 0.f)
+	{
+		Ball->Location += normal * penetration;
+	}
+
+	// 속도 반사 (삼각형은 정적)
+	float vn = Dot(Ball->Velocity, normal);
+	if (vn < 0.f)
+	{
+		const float Restitution = 1.0f; // 필요 시 조정
+		Ball->Velocity -= normal * (1.f + Restitution) * vn;
 	}
 }
 
