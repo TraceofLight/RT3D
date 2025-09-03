@@ -23,4 +23,5 @@ private:
 	FSceneManager() : m_currentScene(nullptr) {}
 	unordered_map<string, Scene*> m_scenes;
 	Scene* m_currentScene;
+	bool dirtyflag = false;
 };

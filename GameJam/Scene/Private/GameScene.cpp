@@ -9,6 +9,7 @@
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
 
+
 GameScene::GameScene() : Scene("GAME")
 {
 	Init();
@@ -35,6 +36,9 @@ void GameScene::Update(float deltaTime)
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
     InputProcess();
+
+	if (SceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
+		return;
 
     m_Triangle->UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
 
@@ -86,14 +90,9 @@ void GameScene::Cleanup()
 
 void GameScene::InputProcess()
 {
-    FInputManager* KeyManager = FInputManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 
-    if (KeyManager->IsKeyPressed(EKeyInput::Delete))
-    {
-        RemoveRandomBall();
-    }
-
-	if (KeyManager->IsKeyPressed(EKeyInput::End))
+	if (KeyManager->IsKeyPressed(EKeyInput::Esc))
 	{
 		SceneManager::GetInstance().LoadScene("LOBBY");
 	}

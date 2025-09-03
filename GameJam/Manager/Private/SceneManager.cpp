@@ -36,6 +36,7 @@ void FSceneManager::LoadScene(const std::string& name)
 	m_currentScene = m_scenes[name];
 	m_currentScene->Init();
 	m_currentScene->SetActive(true);
+	dirtyflag = true;
 }
 
 

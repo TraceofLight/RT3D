@@ -55,16 +55,19 @@ void FImGuiManager::RenderImGui()
 
 		UIManager::GetInstance().Render();
 
-		ImGui::End();
 
-		if (bShowCredits)
+		
+		if (ImGui::Button("Credits"))
 		{
-			ImGui::Begin("Credits");
+			bShowCredits = !bShowCredits;
+		}
+		if(bShowCredits)
+		{
 			ImGui::Text("Team 5");
 			ImGui::Text("Kim HeeJun, Lee HoJin,");
 			ImGui::Text("Jung SeYeon, Heo Jun");
-			ImGui::End();
 		}
+		ImGui::End();
 	}
 
 

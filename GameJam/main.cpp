@@ -1,19 +1,11 @@
 #include "pch.h"
 
+#include "Actor/Public/Shooter.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_internal.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Core/Public/Primitive.h"
-#include "Asset/Sphere.h"
-#include "Asset/Rectangle.h"
-#include "Asset/Triangle.h"
-#include "Actor/Public/PinBall.h"
-#include "Actor/Public/Shooter.h"
-#include "Actor/Public/Pad.h"
-#include "Mesh/Public/URectangle.h"
-#include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/ImGuiManager.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
@@ -37,6 +29,8 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 
 // Static
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+void RenderProcess(const URenderer& InRenderer);
+static HWND GlobalWindowHandle = nullptr;
 static HWND GlobalWindowHandle = nullptr;
 
 // Global variables definition
@@ -166,6 +160,12 @@ static void MainLoop(URenderer& InRenderer)
 				Ball->Move(); // PinBall의 물리 업데이트 처리
 			}
 		}
+        //if (KeyManager->IsKeyPressed(EKeyInput::Esc))
+        //{
+        //    PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
+        //    bIsExit = true;
+        //    continue;
+        //}
 
 		// 사각형 물리 업데이트
 		GRectangle.Move(); // 이 함수 내부에서도 DT 매크로 사용 가능
@@ -184,10 +184,20 @@ void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 		InRenderer.Prepare();
 		InRenderer.PrepareShader();
         Scene* CurrentScene = FSceneManager->GetCurrentScene();
+        Scene* CurrentScene = SceneManager->GetCurrentScene();
+		Scene* PrevScene = nullptr;
         if (CurrentScene)
         {
             CurrentScene->Update(FTimeManager->GetDeltaTime());
             CurrentScene->Render();
+			PrevScene = CurrentScene;
+            CurrentScene->Update(TimeManager->GetDeltaTime());
+			if (PrevScene == SceneManager->GetCurrentScene())
+			{
+				CurrentScene->Render();
+			}
+
+
         }
 		//RenderProcess(*URenderer::GetInstance());
 
