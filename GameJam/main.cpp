@@ -1,18 +1,12 @@
 #include "pch.h"
 
+#include "Actor/Public/Pad.h"
+#include "Actor/Public/Shooter.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_internal.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Core/Public/Primitive.h"
-#include "Asset/Sphere.h"
-#include "Asset/Rectangle.h"
-#include "Asset/Triangle.h"
-#include "Actor/Public/PinBall.h"
-#include "Actor/Public/Pad.h"
-#include "Mesh/Public/URectangle.h"
-#include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/ImGuiManager.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
@@ -21,8 +15,11 @@
 #include "Manager/Public/SceneManager.h"
 #include "Scene/Public/GameScene.h"
 #include "Scene/Public/LobbyScene.h"
-#include "Actor/Public/Shooter.h"
+#include "Asset/Sphere.h"
+#include "Asset/Rectangle.h"
+#include "Asset/Triangle.h"
 #include "Mesh/Public/UBall.h"
+#include "Mesh/Public/UTriangle.h"
 
 // 외부 터미널 출력 전역 변수
 bool bShowExternalTerminal = true;
@@ -31,20 +28,12 @@ bool bShowExternalTerminal = true;
 static bool bExternalTerminalInitialized = false;
 static void InitializeExternalTerminal();
 
-static void HandleCollisions();
-static void HandleBallRectangleCollisions();
-static void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
-static void HandleBallTriangleCollisions();
-static void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
-
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
 // Static
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
+void RenderProcess(const URenderer& InRenderer);
 static HWND GlobalWindowHandle = nullptr;
-
-// Global variables definition
-static std::vector<UPinBall*> PinBalls;
 
 void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter = nullptr);
 void InputProcess(bool& InExitFlag);
@@ -95,7 +84,7 @@ static void MainLoop(URenderer& InRenderer)
 {
 	FTimeManager* TimeManager = FTimeManager::GetInstance();
 	FInputManager* KeyManager = FInputManager::GetInstance();
-	FScoreManager* ScoreManager = FScoreManager::GetInstance();
+	FSceneManager* SceneManager = &FSceneManager::GetInstance();
 
 	UShooter Shooter;
 	Shooter.SetLocation({0.3f, -0.8f, 0.0f});
@@ -110,7 +99,6 @@ static void MainLoop(URenderer& InRenderer)
 		// Update TimeManager
 		TimeManager->Update();
 
-		// 윈도우 메시지 처리
 		MSG Message;
 		while (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -129,6 +117,13 @@ static void MainLoop(URenderer& InRenderer)
 			break;
 		}
 
+		KeyManager->Update();
+		if (KeyManager->IsKeyPressed(EKeyInput::Esc))
+		{
+			PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
+			bIsExit = true;
+			continue;
+		}
 		// KeyManager 업데이트
 		KeyManager->Update();
 		InputProcess(bIsExit);
@@ -168,11 +163,6 @@ static void MainLoop(URenderer& InRenderer)
 		// 사각형 물리 업데이트
 		GRectangle.Move(); // 이 함수 내부에서도 DT 매크로 사용 가능
 
-		// === 충돌 처리 ===
-		HandleCollisions();
-		HandleBallRectangleCollisions();
-		HandleBallTriangleCollisions();
-
 		// Rendering
 		RenderProcess(InRenderer, &Shooter);
 	}
@@ -182,21 +172,19 @@ void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 {
 	InRenderer.Prepare();
 	InRenderer.PrepareShader();
-
-	// SceneManager에서 공들 가져와서 렌더링
-	FSceneManager& SceneManager = FSceneManager::GetInstance();
-	vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
-
-	for (UPrimitive* Primitive : ScenePrimitives)
+	Scene* CurrentScene = FSceneManager::GetInstance().GetCurrentScene();
+	Scene* PrevScene = nullptr;
+	if (CurrentScene)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(Primitive);
-		if (Ball)
+		PrevScene = CurrentScene;
+		CurrentScene->Update(FTimeManager::GetInstance()->GetDeltaTime());
+		if (PrevScene == FSceneManager::GetInstance().GetCurrentScene())
 		{
-			// PinBall 렌더링
-			InRenderer.UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
-			InRenderer.RenderPrimitive();
+			CurrentScene->Render();
 		}
 	}
+
+	//RenderProcess(*URenderer::GetInstance());
 
 	// 사각형 렌더링
 	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
@@ -225,25 +213,7 @@ void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 
 void InputProcess(bool& InExitFlag)
 {
-	FInputManager* KeyManager = FInputManager::GetInstance();
-
-	// ESC키로 종료
-	if (KeyManager->IsKeyPressed(EKeyInput::Esc))
-	{
-		PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
-		InExitFlag = true;
-		return;
-	}
-
-	if (KeyManager->IsKeyPressed(EKeyInput::Delete))
-	{
-		if (!PinBalls.empty())
-		{
-			int indexToRemove = rand() % PinBalls.size();
-			delete PinBalls[indexToRemove];
-			PinBalls.erase(PinBalls.begin() + indexToRemove);
-		}
-	}
+	// Deprecated
 }
 
 static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
@@ -290,37 +260,19 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// 난수 시드 초기화
 	srand(static_cast<unsigned int>(GetTickCount()));
 
-	// 윈도우 클래스 이름
 	WCHAR WindowClass[] = L"JungleWindowClass";
-
-	// 윈도우 타이틀바에 표시될 이름
 	WCHAR Title[] = L"Game Tech Lab";
 
-	// 각종 메시지를 처리할 함수인 WndProc의 함수 포인터를 WindowClass 구조체에 넣는다.
 	WNDCLASSW wndclass = {0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass};
-
-	// 윈도우 클래스 등록
 	RegisterClassW(&wndclass);
 
-	// 1024 x 1024 크기에 윈도우 생성
 	HWND WindowHandle = CreateWindowExW(0, WindowClass, Title,
 	                                    WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
 	                                    CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
 	                                    nullptr, nullptr, hInstance, nullptr);
-
-	// Make Window Handle Global
 	GlobalWindowHandle = WindowHandle;
-	// Make Renderer
-
 	InitEngine(WindowHandle, *(URenderer::GetInstance()));
 	MainLoop(*URenderer::GetInstance());
-
-	// Release PinBalls
-	for (UPinBall* Ball : PinBalls)
-	{
-		delete Ball;
-	}
-	PinBalls.clear();
 
 	FInputManager* KeyManager = FInputManager::GetInstance();
 	if (KeyManager)
@@ -350,7 +302,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
 	{
-		// ImGui가 마우스 이벤트를 사용했다면, 게임 로직에서는 처리하지 않아야 한다.
 		if (ImGui::GetIO().WantCaptureMouse)
 		{
 			return true;
@@ -363,11 +314,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		KeyManager->ProcessKeyMessage(message, wParam, lParam);
 	}
 
-	// Destroy 제외한 나머지 입력은 InputManager에서 처리
 	switch (message)
 	{
 	case WM_DESTROY:
-		// Signal that the app should quit
 		PostQuitMessage(0);
 		break;
 	default:
@@ -377,221 +326,15 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	return 0;
 }
 
-/**
- * @brief 공들 간의 충돌을 감지하고 처리하는 함수
- */
-void HandleCollisions()
+void RenderProcess(const URenderer& InRenderer)
 {
-	// TODO(KHJ): PinBall의 충돌 처리 로직 구현, 여기가 아닌 매니저 측에서의 관리 필요
-}
+	InRenderer.Prepare();
+	InRenderer.PrepareShader();
 
-/**
- * @brief 공과 사각형 간의 충돌을 감지하고 처리하는 함수
- * @param Ball 충돌을 검사할 공 객체
- * @param Rect 충돌을 검사할 사각형 객체
- */
-void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect)
-{
-	float HalfW = Rect->Width * 0.5f;
-	float HalfH = Rect->Height * 0.5f;
 
-	// 볼 중심에서 사각형 중심으로의 벡터 (사각형 로컬 좌표)
-	FVector3 Delta = Ball->GetLocation() - Rect->Location;
+	// ImGui 렌더링 (TimeManager 정보 표시 가능)
+	FImGuiManager::RenderImGui();
 
-	// 사각형 안에서 가장 가까운 점 (로컬)
-	float ClampedX = Clamp(Delta.x, -HalfW, HalfW);
-	float ClampedY = Clamp(Delta.y, -HalfH, HalfH);
-
-	// 월드 좌표의 가장 가까운 점
-	FVector3 Closest(Rect->Location.x + ClampedX,
-	                 Rect->Location.y + ClampedY,
-	                 Rect->Location.z);
-
-	FVector3 Diff = Ball->GetLocation() - Closest;
-	float DistSq = Diff.LengthSquare();
-	float Radius = Ball->GetShape()->GetRadius();
-
-	if (DistSq > Radius * Radius)
-	{
-		return; // 충돌 없음
-	}
-
-	FVector3 Normal;
-	float Dist = sqrtf(DistSq);
-
-	if (Dist > 0.00001f)
-	{
-		Normal = Diff / Dist;
-	}
-	else
-	{
-		// 중심선과 겹쳤을 때(볼 중심이 사각형 내부 깊숙하거나 정확히 중심)
-		float PenX = HalfW - fabsf(Delta.x);
-		float PenY = HalfH - fabsf(Delta.y);
-
-		if (PenX < PenY)
-		{
-			Normal = FVector3((Delta.x >= 0.f) ? 1.f : -1.f, 0.f, 0.f);
-			Dist = Radius - PenX;
-		}
-		else
-		{
-			Normal = FVector3(0.f, (Delta.y >= 0.f) ? 1.f : -1.f, 0.f);
-			Dist = Radius - PenY;
-		}
-	}
-
-	// 침투 깊이
-	float Penetration = Radius - Dist;
-	if (Penetration < 0.f)
-	{
-		return;
-	}
-
-	// 위치 보정 (사각형은 정적취급)
-	Ball->GetLocation() += Normal * Penetration;
-
-	// 속도 반사
-	float Vn = Dot(Ball->GetVelocity(), Normal);
-	if (Vn < 0.f)
-	{
-		float Restitution = 1.0f; // 필요시 조정
-		Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
-	}
-}
-
-void HandleBallTriangleCollisions()
-{
-	// SceneManager에서 공들 가져와서 삼각형 충돌 처리
-	FSceneManager& SceneManager = FSceneManager::GetInstance();
-	vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
-
-	for (UPrimitive* Primitive : ScenePrimitives)
-	{
-		UPinBall* Ball = static_cast<UPinBall*>(Primitive);
-		if (Ball)
-		{
-			ResolveBallTriangle(Ball, GLeftPad.GetShape());
-			ResolveBallTriangle(Ball, GRightPad.GetShape());
-		}
-	}
-}
-
-void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
-{
-	if (!Ball || !Triangle)
-		return;
-
-	const float B = Triangle->Base;
-	const float H = Triangle->Height;
-	const float r = Triangle->Radius;
-	const float ballR = Ball->GetShape()->GetRadius();
-
-	// (인센터 = (0,0)) 기준 이등변 로컬 정점 (CCW)
-	FVector3 v0(-B * 0.5f, -r, 0.0f); // Left base
-	FVector3 v1(B * 0.5f, -r, 0.0f); // Right base
-	FVector3 v2(0.0f, H - r, 0.0f); // Apex
-
-	// 회전
-	const float c = std::cos(Triangle->Rotation);
-	const float s = std::sin(Triangle->Rotation);
-	auto Rotate = [&](const FVector3& L) -> FVector3
-		{
-			return FVector3(L.x * c - L.y * s,
-				L.x * s + L.y * c,
-				0.0f);
-		};
-
-	// 월드 변환 (인센터 = Triangle->Location)
-	const FVector3 center = Triangle->Location;
-	FVector3 w0 = Rotate(v0) + center;
-	FVector3 w1 = Rotate(v1) + center;
-	FVector3 w2 = Rotate(v2) + center;
-
-	// 공 중심
-	const FVector3 C = Ball->GetLocation();
-
-	// 에지 최근접점 계산 유틸
-	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
-		{
-			FVector3 AB = B - A;
-			float lenSq = AB.LengthSquare();
-			if (lenSq <= 1e-12f) return A;
-			float t = Dot(P - A, AB) / lenSq;
-			t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
-			return A + AB * t;
-		};
-
-	// 세 에지 후보
-	FVector3 candidates[3];
-	candidates[0] = ClosestPointOnSegment(w0, w1, C);
-	candidates[1] = ClosestPointOnSegment(w1, w2, C);
-	candidates[2] = ClosestPointOnSegment(w2, w0, C);
-
-	// 가장 가까운 점 선택
-	float bestDistSq = FLT_MAX;
-	FVector3 closest;
-	for (int i = 0; i < 3; ++i)
-	{
-		float dsq = (C - candidates[i]).LengthSquare();
-		if (dsq < bestDistSq)
-		{
-			bestDistSq = dsq;
-			closest = candidates[i];
-		}
-	}
-
-	float dist = std::sqrtf(bestDistSq);
-	if (dist > ballR)
-		return; // 충돌 없음
-
-	// 법선
-	FVector3 normal;
-	if (dist > 1e-6f)
-	{
-		normal = (C - closest) / dist;
-	}
-	else
-	{
-		// 거의 동일한 지점: 인센터 기준 방향
-		normal = (C - center);
-		if (normal.LengthSquare() < 1e-8f)
-			normal = FVector3(1.f, 0.f, 0.f);
-		else
-			normal.Normalize();
-	}
-
-	// 침투 해소
-	float penetration = ballR - dist;
-	if (penetration > 0.f)
-	{
-		Ball->GetLocation() += normal * penetration;
-	}
-
-	// 속도 반사 (삼각형은 정적 가정)
-	float vn = Dot(Ball->GetVelocity(), normal);
-	if (vn < 0.f)
-	{
-		const float Restitution = 1.0f; // 탄성 계수 필요시 조정
-		Ball->GetVelocity() -= normal * (1.f + Restitution) * vn;
-	}
-}
-
-/**
- * @brief 공과 사각형 간의 충돌을 감지하고 처리하는 함수
- */
-void HandleBallRectangleCollisions()
-{
-	// SceneManager에서 공들 가져와서 사각형 충돌 처리
-	FSceneManager& SceneManager = FSceneManager::GetInstance();
-	vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
-
-	for (UPrimitive* Primitive : ScenePrimitives)
-	{
-		UPinBall* Ball = static_cast<UPinBall*>(Primitive);
-		if (Ball)
-		{
-			ResolveBallRectangle(Ball, &GRectangle);
-		}
-	}
+	// 백버퍼 스왑
+	InRenderer.SwapBuffer();
 }

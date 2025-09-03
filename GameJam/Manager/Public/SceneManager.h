@@ -1,6 +1,8 @@
 #pragma once
-#include "Core/Public/Primitive.h"
+#include "Actor/Public/PinBall.h"
 #include "Scene/Public/Scene.h"
+
+class Scene;
 
 class FSceneManager
 {
@@ -12,15 +14,12 @@ public:
 	void Render(ID3D11DeviceContext* context);
 
 	Scene* GetCurrentScene() const { return m_currentScene; }
-	// TODO(KHJ): 구현 필요
-	vector<UPrimitive*> GetAllScenePrimivites() { 
-		if (m_currentScene) return m_currentScene->GetScenePrimitives(); 
-		return vector<UPrimitive*>(); 
-	}
-	void AddPrimitiveToScene(UPrimitive* InPrimitive);
+	vector<UPrimitive*> GetAllScenePrimivites() const { return m_currentScene->GetScenePrimitives(); }
+	void AddPrimitiveToScene(UPrimitive* InPrimitive) { m_currentScene->AddPrimitive(InPrimitive); }
 
 private:
-	FSceneManager() : m_currentScene(nullptr) {}
+	FSceneManager() = default;
 	unordered_map<string, Scene*> m_scenes;
 	Scene* m_currentScene;
+	bool dirtyflag = false;
 };

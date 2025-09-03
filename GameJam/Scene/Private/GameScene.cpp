@@ -5,11 +5,13 @@
 #include "Manager/Public/SceneManager.h"
 #include "Render/Public/Renderer.h"
 #include "Actor/Public/PinBall.h"
+#include "Actor/Public/Shooter.h"
 #include "Mesh/Public/UBall.h"
+#include "Mesh/Public/URectangle.h"
+#include "Mesh/Public/UTriangle.h"
 
-// 생성자: 멤버 변수 초기화
-GameScene::GameScene()
-	: Scene("GAME SCENE")
+
+GameScene::GameScene() : Scene("GAME")
 {
 	Init();
 }
@@ -22,107 +24,127 @@ GameScene::~GameScene()
 
 void GameScene::Init()
 {
-	// 씬이 시작될 때 필요한 초기화 로직
-	// 예를 들어, 처음에 공을 몇 개 생성하고 싶다면 여기서 AddNewBall() 호출
-}
+    m_Rectangle = new URectangle();
+    m_Triangle = new UTriangle();
 
-void GameScene::Cleanup()
-{
-	for (UPinBall* Ball : PinBalls)
-	{
-		delete Ball;
-	}
-
-	PinBalls.clear();
+	Shooter = new UShooter();
+	Shooter->SetLocation({0.3f, -0.8f, 0.0f});
 }
 
 void GameScene::Update(float deltaTime)
 {
-	// ================== MainLoop에서 가져온 게임 로직 ==================
-	FTimeManager* TimeManager = FTimeManager::GetInstance();
-	FInputManager* KeyManager = FInputManager::GetInstance();
-	FSceneManager& SceneManager = FSceneManager::GetInstance();
+    FTimeManager* TimeManager = FTimeManager::GetInstance();
+    FInputManager* KeyManager = FInputManager::GetInstance();
+	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 
-	ScenePrimitives = SceneManager.GetAllScenePrimivites();
+	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
-	// 공들의 물리 시뮬레이션 업데이트
-	for (UPinBall* Ball : PinBalls)
-	{
-	// 	// PinBall의 물리 업데이트 처리
-	// 	Ball->Update();
-	}
+    InputProcess();
 
-	// 사각형 물리 업데이트
-	GRectangle.Move();
+	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
+		return;
 
-	// === 충돌 처리 ===
-	// HandleCollisions(); 공이 1개인 것을 전제로 한다
-	HandleBallRectangleCollisions();
+    m_Triangle->UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
+
+	m_TotalPrimitives = static_cast<int>(m_PrimitiveList.size());
+
+    // 모든 볼 객체의 움직임 업데이트
+    for (int i = 0; i < m_TotalPrimitives; ++i)
+    {
+        UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+        Ball->Move();
+    }
+
+    m_Rectangle->Move();
+
+    // HandleCollisions();
+    HandleBallRectangleCollisions();
+    HandleBallTriangleCollisions();
 }
-
 
 void GameScene::Render()
 {
-	URenderer* InRenderer = URenderer::GetInstance(); // 렌더러 인스턴스 가져오기
-
-	// ================== RenderProcess에서 가져온 렌더링 로직 ==================
-	// 공들 렌더링
-	for (UPinBall* Ball : PinBalls)
-	{
-		InRenderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
-		InRenderer->RenderPrimitive();
-	}
-
-	// 사각형 렌더링
-	InRenderer->UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-	InRenderer->RenderRectangle();
+    RenderProcess();
 }
 
-/**
- * @brief 공들 간의 충돌을 감지하고 처리하는 함수
- */
-[[deprecated]]
-void GameScene::HandleCollisions()
+void GameScene::Cleanup()
 {
-	// for (int i = 0; i < ScenePrimitives.size(); ++i)
-	// {
-	// 	for (int j = i + 1; j < ScenePrimitives.size(); ++j)
-	// 	{
-	// 		UBall* Ball1 = static_cast<UBall*>(ScenePrimitives[i]);
-	// 		UBall* Ball2 = static_cast<UBall*>(ScenePrimitives[j]);
-	//
-	// 		FVector3 Delta = Ball1->Location - Ball2->Location;
-	// 		float DistanceSq = Delta.LengthSquare();
-	// 		float CombinedRadius = Ball1->Radius + Ball2->Radius;
-	//
-	// 		if (DistanceSq < CombinedRadius * CombinedRadius && DistanceSq > 0.0f)
-	// 		{
-	// 			// 충돌 발생
-	// 			float Distance = sqrtf(DistanceSq);
-	// 			FVector3 Normal = Delta / Distance;
-	//
-	// 			// 겹침 해결
-	// 			float Overlap = 0.5f * (CombinedRadius - Distance);
-	// 			Ball1->Location += Normal * Overlap;
-	// 			Ball2->Location -= Normal * Overlap;
-	//
-	// 			// 탄성 충돌 계산
-	// 			FVector3 relativeVelocity = Ball1->Velocity - Ball2->Velocity;
-	// 			float VelocityAlongNormal = Dot(relativeVelocity, Normal);
-	//
-	// 			if (VelocityAlongNormal < 0)
-	// 			{
-	// 				float Restitution = 1.0f; // 완전 탄성 충돌
-	// 				float ImpulseScalar = -(1.0f + Restitution) * VelocityAlongNormal;
-	// 				ImpulseScalar /= (1.0f / Ball1->Mass) + (1.0f / Ball2->Mass);
-	//
-	// 				FVector3 impulse = Normal * ImpulseScalar;
-	// 				Ball1->Velocity += impulse * (1.0f / Ball1->Mass);
-	// 				Ball2->Velocity -= impulse * (1.0f / Ball2->Mass);
-	// 			}
-	// 		}
-	// 	}
-	// }
+    for (int i = 0; i < m_TotalPrimitives; ++i)
+    {
+        delete m_PrimitiveList[i];
+    }
+
+    if(m_Rectangle)
+    {
+        delete m_Rectangle;
+        m_Rectangle = nullptr;
+    }
+
+    if(m_Triangle)
+    {
+        delete m_Triangle;
+        m_Triangle = nullptr;
+    }
+
+	delete Shooter;
+
+    m_TotalPrimitives = 0;
+}
+
+void GameScene::InputProcess()
+{
+	FInputManager* KeyManager = FInputManager::GetInstance();
+
+	if (KeyManager->IsKeyPressed(EKeyInput::Esc))
+	{
+		FSceneManager::GetInstance().LoadScene("LOBBY");
+	}
+
+	// 스페이스바 처리 - 차징 및 발사
+	if (Shooter)
+	{
+		if (KeyManager->IsKeyDown(EKeyInput::Space))
+		{
+			// 스페이스바를 누르고 있는 동안 차징
+			Shooter->Charging();
+		}
+		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
+		{
+			// 스페이스바를 뗐을 때 발사
+			Shooter->Shoot();
+		}
+	}
+}
+
+void GameScene::RenderProcess()
+{
+    URenderer* Renderer = URenderer::GetInstance();
+    //Renderer->Prepare();
+    //Renderer->PrepareShader();
+
+    for (int i = 0; i < m_TotalPrimitives; ++i)
+    {
+        UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+        Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
+        Renderer->RenderPrimitive();
+    }
+
+    Renderer->UpdateConstantForRectangle(m_Rectangle->Location, m_Rectangle->Width, m_Rectangle->Height);
+    Renderer->RenderRectangle();
+
+    Renderer->UpdateConstantForTriangle(m_Triangle->Location, m_Triangle->Base, m_Triangle->Height, m_Triangle->Rotation, m_Triangle->Radius);
+    Renderer->RenderTriangle();
+
+    // Shooter 렌더링 추가
+    if (Shooter && Shooter->GetShape())
+    {
+        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(), 
+                                           Shooter->GetShape()->GetWidth(), 
+                                           Shooter->GetShape()->GetHeight());
+        Renderer->RenderRectangle();
+    }
+
+    //FImGuiManager::RenderImGui();
 }
 
 /**
@@ -132,82 +154,167 @@ void GameScene::HandleCollisions()
  */
 void GameScene::ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect)
 {
-	float HalfW = Rect->Width * 0.5f;
-	float HalfH = Rect->Height * 0.5f;
+    float HalfW = Rect->Width * 0.5f;
+    float HalfH = Rect->Height * 0.5f;
 
-	// 볼 중심에서 사각형 중심으로의 벡터 (사각형 로컬 좌표)
-	FVector3 Delta = Ball->GetLocation() - Rect->Location;
+    FVector3 Delta = Ball->GetLocation() - Rect->Location;
 
-	// 사각형 안에서 가장 가까운 점 (로컬)
-	float ClampedX = Clamp(Delta.x, -HalfW, HalfW);
-	float ClampedY = Clamp(Delta.y, -HalfH, HalfH);
+    float ClampedX = Clamp(Delta.x, -HalfW, HalfW);
+    float ClampedY = Clamp(Delta.y, -HalfH, HalfH);
 
-	// 월드 좌표의 가장 가까운 점
-	FVector3 Closest(Rect->Location.x + ClampedX,
-	                 Rect->Location.y + ClampedY,
-	                 Rect->Location.z);
+    FVector3 Closest(Rect->Location.x + ClampedX, Rect->Location.y + ClampedY, Rect->Location.z);
 
-	FVector3 Diff = Ball->GetLocation() - Closest;
-	float DistSq = Diff.LengthSquare();
-	float Radius = Ball->GetShape()->GetRadius();
+    FVector3 Diff = Ball->GetLocation() - Closest;
+    float DistSq = Diff.LengthSquare();
+    float Radius = Ball->GetShape()->GetRadius();
 
-	if (DistSq > Radius * Radius)
-	{
-		return; // 충돌 없음
-	}
+    if (DistSq > Radius * Radius)
+    {
+        return;
+    }
 
-	FVector3 Normal;
-	float Dist = sqrtf(DistSq);
+    FVector3 Normal;
+    float Dist = sqrtf(DistSq);
 
-	if (Dist > 0.00001f)
-	{
-		Normal = Diff / Dist;
-	}
-	else
-	{
-		// 중심선과 겹쳤을 때(볼 중심이 사각형 내부 깊숙하거나 정확히 중심)
-		float PenX = HalfW - fabsf(Delta.x);
-		float PenY = HalfH - fabsf(Delta.y);
+    if (Dist > 0.00001f)
+    {
+        Normal = Diff / Dist;
+    }
+    else
+    {
+        float PenX = HalfW - fabsf(Delta.x);
+        float PenY = HalfH - fabsf(Delta.y);
 
-		if (PenX < PenY)
-		{
-			Normal = FVector3((Delta.x >= 0.f) ? 1.f : -1.f, 0.f, 0.f);
-			Dist = Radius - PenX;
-		}
-		else
-		{
-			Normal = FVector3(0.f, (Delta.y >= 0.f) ? 1.f : -1.f, 0.f);
-			Dist = Radius - PenY;
-		}
-	}
+        if (PenX < PenY)
+        {
+            Normal = FVector3((Delta.x >= 0.f) ? 1.f : -1.f, 0.f, 0.f);
+            Dist = Radius - PenX;
+        }
+        else
+        {
+            Normal = FVector3(0.f, (Delta.y >= 0.f) ? 1.f : -1.f, 0.f);
+            Dist = Radius - PenY;
+        }
+    }
 
-	// 침투 깊이
-	float Penetration = Radius - Dist;
-	if (Penetration < 0.f)
-	{
-		return;
-	}
+    float Penetration = Radius - Dist;
+    if (Penetration < 0.f)
+    {
+        return;
+    }
 
-	// 위치 보정 (사각형은 정적취급)
-	Ball->GetLocation() += Normal * Penetration;
+    Ball->GetLocation() += Normal * Penetration;
 
-	// 속도 반사
-	float Vn = Dot(Ball->GetVelocity(), Normal);
-	if (Vn < 0.f)
-	{
-		float Restitution = 1.0f; // 필요시 조정
-		Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
-	}
+    float Vn = Dot(Ball->GetVelocity(), Normal);
+    if (Vn < 0.f)
+    {
+        float Restitution = 1.0f;
+        Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
+    }
 }
 
-/**
- * @brief 공과 사각형 간의 충돌을 감지하고 처리하는 함수
- */
+void GameScene::HandleBallTriangleCollisions()
+{
+    for (int i = 0; i < m_TotalPrimitives; ++i)
+    {
+        UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+        ResolveBallTriangle(Ball, m_Triangle);
+    }
+}
+
+void GameScene::ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
+{
+    if (!Ball || !Triangle)
+        return;
+
+    const float a = Triangle->Base;
+    const float b = Triangle->Height;
+    const float r = Triangle->Radius;
+
+    FVector3 v0(-r, -r, 0.0f);
+    FVector3 v1(-r, b - r, 0.0f);
+    FVector3 v2(a - r, -r, 0.0f);
+
+    const float c = std::cos(Triangle->Rotation);
+    const float s = std::sin(Triangle->Rotation);
+
+    auto Rotate = [&](const FVector3& L) -> FVector3
+    {
+        return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
+    };
+
+    FVector3 w0 = Rotate(v0) + Triangle->Location;
+    FVector3 w1 = Rotate(v1) + Triangle->Location;
+    FVector3 w2 = Rotate(v2) + Triangle->Location;
+
+    auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
+    {
+        FVector3 AB = B - A;
+        float abLenSq = AB.LengthSquare();
+        if (abLenSq <= 1e-12f) return A;
+        float t = Dot(P - A, AB) / abLenSq;
+        if (t < 0.0f) t = 0.0f;
+        else if (t > 1.0f) t = 1.0f;
+        return A + AB * t;
+    };
+
+    const FVector3 C = Ball->GetLocation();
+
+    FVector3 candidates[3];
+    candidates[0] = ClosestPointOnSegment(w0, w1, C);
+    candidates[1] = ClosestPointOnSegment(w1, w2, C);
+    candidates[2] = ClosestPointOnSegment(w2, w0, C);
+
+    float bestDistSq = FLT_MAX;
+    FVector3 closest;
+    for (int i = 0; i < 3; ++i)
+    {
+        FVector3 d = C - candidates[i];
+        float dsq = d.LengthSquare();
+        if (dsq < bestDistSq)
+        {
+            bestDistSq = dsq;
+            closest = candidates[i];
+        }
+    }
+
+    float dist = std::sqrtf(bestDistSq);
+    if (dist > Ball->GetShape()->GetRadius())
+        return;
+
+    FVector3 normal;
+    if (dist > 1e-6f)
+    {
+        normal = (C - closest) / dist;
+    }
+    else
+    {
+        normal = (C - Triangle->Location);
+        if (normal.LengthSquare() < 1e-8f)
+            normal = FVector3(1.f, 0.f, 0.f);
+        else
+            normal.Normalize();
+    }
+
+    float penetration = Ball->GetShape()->GetRadius() - dist;
+    if (penetration > 0.f)
+    {
+        Ball->GetLocation() += normal * penetration;
+    }
+
+    float vn = Dot(Ball->GetVelocity(), normal);
+    if (vn < 0.f)
+    {
+        const float Restitution = 1.0f;
+        Ball->GetVelocity() -= normal * (1.f + Restitution) * vn;
+    }
+}
+
 void GameScene::HandleBallRectangleCollisions()
 {
-	for (int i = 0; i < static_cast<int>(ScenePrimitives.size()); ++i)
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(ScenePrimitives[i]);
+		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
 		ResolveBallRectangle(Ball, &GRectangle);
 	}
 }

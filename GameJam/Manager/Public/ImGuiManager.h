@@ -8,4 +8,5 @@ public:
 	static void InitializeImGui(HWND InWindowHandle, const URenderer& InRenderer);
 	static void ReleaseImGui();
 	static void RenderImGui();
+	static void RenderGameGui();
 };
