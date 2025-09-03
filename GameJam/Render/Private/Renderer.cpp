@@ -174,7 +174,7 @@ void URenderer::Release()
  */
 void URenderer::SwapBuffer() const
 {
-	SwapChain->Present(1, 0); // 1: VSync 활성화
+	SwapChain->Present(0, 0); // 1: VSync 활성화
 }
 
 /**

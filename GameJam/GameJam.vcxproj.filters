@@ -23,15 +23,23 @@
     <ClCompile Include="Manager\Private\TimeManager.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="Render\Private\Renderer.cpp" />
-    <ClCompile Include="Manager\Private\SceneManager.cpp" />
     <ClCompile Include="Mesh\Private\UTriangle.cpp" />
-    <ClCompile Include="Scene\Private\GameScene.cpp" />
-    <ClCompile Include="Scene\Private\LobbyScene.cpp" />
     <ClCompile Include="Scene\Private\Scene.cpp" />
     <ClCompile Include="UI\Private\Button.cpp" />
     <ClCompile Include="UI\Private\Text.cpp" />
     <ClCompile Include="UI\Private\UIElement.cpp" />
-    <ClCompile Include="Manager\Private\UIManager.cpp" />
+    <ClCompile Include="Scene\Private\LobbyScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Scene\Private\GameScene.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\Private\UIManager.cpp">
+      <Filter>UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\Private\SceneManager.cpp">
+      <Filter>Scene</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor\Public\PinBall.h" />
@@ -59,16 +67,24 @@
     <ClInclude Include="Render\Public\Renderer.h" />
     <ClInclude Include="Asset\Triangle.h" />
     <ClInclude Include="Asset\Rectangle.h" />
-    <ClInclude Include="Manager\Public\SceneManager.h" />
     <ClInclude Include="Mesh\Public\UBall.h" />
     <ClInclude Include="Mesh\Public\UTriangle.h" />
-    <ClInclude Include="Scene\Public\GameScene.h" />
-    <ClInclude Include="Scene\Public\LobbyScene.h" />
     <ClInclude Include="Scene\Public\Scene.h" />
     <ClInclude Include="UI\Public\Button.h" />
     <ClInclude Include="UI\Public\Text.h" />
     <ClInclude Include="UI\Public\UIElement.h" />
-    <ClInclude Include="Manager\Public\UIManager.h" />
+    <ClInclude Include="Scene\Public\LobbyScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Scene\Public\GameScene.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\Public\UIManager.h">
+      <Filter>UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\Public\SceneManager.h">
+      <Filter>Scene</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="UI">

@@ -1,35 +1,38 @@
-#include "Scene.h"
-#include "Mesh/Public/URectangle.h"
+#pragma once
+#include "Scene/Public/Scene.h"
+
+class UShooter;
+class UPinBall;
+class URectangle;
+class UTriangle;
+class UPrimitive;
+
 class GameScene : public Scene
 {
 public:
 	GameScene();
-	virtual ~GameScene();
+	~GameScene() override;
 
-	// IScene 인터페이스 함수들
-	virtual void Init() override;
-	virtual void Update(float deltaTime) override;
-	virtual void Render() override; // Renderer를 파라미터로 받도록 수정
-	virtual void Cleanup() override;
-
-	// 마우스 입력을 처리할 함수
-	//void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
+	void Init() override;
+	void Update(float deltaTime) override;
+	void Render() override;
+	void Cleanup() override;
 
 private:
-	// main.cpp의 static 함수들을 멤버 함수로 가져옵니다.
-	template <typename T>
-	void AddNewPrimitive();
-	//void RemoveSpecificBall(int IndexToRemove);
-	//void SetGravityCenter(int IndexToSet);
+	void InputProcess();
+	void RenderProcess();
 
-	void HandleCollisions();
 	void HandleBallRectangleCollisions();
-	void ResolveBallRectangle(UBall* Ball, const URectangle* Rect);
+	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
+	void HandleBallTriangleCollisions();
+	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 
 private:
-	// main.cpp의 전역 변수들을 멤버 변수로 가져옵니다.
-	int TotalPrimitives = 0;
-	UPrimitive** PrimitiveList = nullptr;
-	URectangle GRectangle; // 사각형 객체
-	UBall* GravityCenterBall = nullptr; // 중력 중심 공
+	int m_TotalPrimitives = 0;
+	vector<UPrimitive*> m_PrimitiveList;
+	URectangle* m_Rectangle = nullptr;
+	UTriangle* m_Triangle = nullptr;
+	UPinBall* m_GravityCenterBall = nullptr;
+
+	UShooter* Shooter;
 };

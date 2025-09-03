@@ -27,8 +27,9 @@ PS_INPUT mainVS(VS_INPUT input)
     // 1) 스케일 (a=ScaleX, b=ScaleY)
     float2 scaled = float2(input.position.x * ScaleX, input.position.y * ScaleY);
 
-    // 2) 삼각형이면 InRadius>0. (0,0)-(0,b)-(a,0) 기준 인센터 (r,r)를 원점으로 옮기기 위해 (r,r) 빼기
-    scaled -= Radius.xx;
+    // 2) 이등변 삼각형 인센터: Base(0)에서 위로 Radius 만큼
+    // (다른 Primitive는 Radius=0으로 전달된다고 가정)
+    scaled.y -= Radius;
     
     // 3) 회전
     float c = cos(Rotation);

@@ -1,3 +1,5 @@
+#pragma once
+
 /**
  * @brief 전역 struct 모음 File
  */

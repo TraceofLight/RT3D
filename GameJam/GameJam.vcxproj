@@ -143,6 +143,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor\Private\Pad.cpp" />
     <ClCompile Include="Actor\Private\PinBall.cpp" />
     <ClCompile Include="Actor\Private\Shooter.cpp" />
     <ClCompile Include="Manager\Private\SceneManager.cpp" />
@@ -175,6 +176,7 @@
     <ClCompile Include="UI\Private\UIElement.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor\Public\Pad.h" />
     <ClInclude Include="Actor\Public\PinBall.h" />
     <ClInclude Include="Actor\Public\Shooter.h" />
     <ClInclude Include="Asset\Triangle.h" />

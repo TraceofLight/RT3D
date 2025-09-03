@@ -12,7 +12,8 @@
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
 #include "Manager/Public/UIManager.h"
-
+#include "Manager/Public/SceneManager.h"
+#include "Scene/Public/Scene.h"
 /**
  * @brief ImGui Initializer
  */
@@ -39,31 +40,48 @@ void FImGuiManager::RenderImGui()
 	// Get New Frame
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
+	static bool bShowCredits = false;
 	ImGui::NewFrame();
 
-	static bool bShowCredits = false;
 
-	ImGui::Begin("Jungle Property Window");
+	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
+	{
+		RenderGameGui();
+	}
+
+	else
+	{
+		ImGui::Begin("Game UI");
+
+		UIManager::GetInstance().Render();
+
+
+
+		if (ImGui::Button("Credits"))
+		{
+			bShowCredits = !bShowCredits;
+		}
+		if(bShowCredits)
+		{
+			ImGui::Text("Team 5");
+			ImGui::Text("Kim HeeJun, Lee HoJin,");
+			ImGui::Text("Jung SeYeon, Heo Jun");
+		}
+		ImGui::End();
+	}
+
+
+	// Render ImGui
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void FImGuiManager::RenderGameGui()
+{
 
 	/** 여기서부터 ImGui에 필요한 UI 작성 **/
 
-	ImGui::Text("Hello Jungle World!");
-
-	ImGui::Checkbox("Gravity", &bPinballGravity);
-
-	if (ImGui::InputInt("Number of Balls", &UBall::TotalNumBalls, 1))
-	{
-		UBall::TotalNumBalls = max(0, UBall::TotalNumBalls);
-	}
-
-	if (GravityCenterBall)
-	{
-		ImGui::Text("Gravity Center Is Active.");
-	}
-	else
-	{
-		ImGui::Text("Right-Click A Ball To Set Gravity Center.");
-	}
+	ImGui::Begin("properties");
 
 	// ----- Triangle UI 추가 시작 -----
 	ImGui::Separator();
@@ -129,11 +147,9 @@ void FImGuiManager::RenderImGui()
 		ImGui::Spacing();
 		ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "Manual: ");
 		ImGui::Text("ESC: Exit");
-		ImGui::Text("Space: Add Ball");
+		ImGui::Text("Space: Charge Shooter (Hold / Release)");
 		ImGui::Text("Delete: Remove Ball");
-		ImGui::Text("Left Click: Remove Target Ball");
-		ImGui::Text("Right Click: Set Gravity Ball / Release");
-}
+	}
 
 	ImGui::End();
 
@@ -193,31 +209,6 @@ void FImGuiManager::RenderImGui()
 		ImGui::Text("Current Score: %d", ScoreManager->GetCurrentScore());
 	}
 
-	ImGui::End();
-
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::Begin("Options");
-	if (ImGui::Button("Credits"))
-		bShowCredits = true;
 	ImGui::End();
-
-	ImGui::Begin("Game UI");
-
-	UIManager::GetInstance().Render();
-
-	ImGui::End();
-
-	if (bShowCredits)
-	{
-		ImGui::Begin("Credits", &bShowCredits, ImGuiWindowFlags_NoCollapse);
-		ImGui::Text("Team 5");
-		ImGui::Text("Kim HeeJun, Lee HoJin,");
-		ImGui::Text("Jung SeYeon, Heo Jun");
-		ImGui::End();
-	}
-
-
-	// Render ImGui
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }

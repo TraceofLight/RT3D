@@ -7,7 +7,7 @@ class LobbyScene
 private:
 
 public:
-	LobbyScene() : Scene("MainMenu") { Init(); }
+	LobbyScene() : Scene("LOBBY") {}
 	void Init() override;
 	void Update(float deltaTime) override;
 	void Render() override;

@@ -3,13 +3,13 @@
 
 #include "Scene/Public/Scene.h"
 
-SceneManager& SceneManager::GetInstance()
+FSceneManager& FSceneManager::GetInstance()
 {
-	static SceneManager instance;
+	static FSceneManager instance;
 	return instance;
 }
 
-void SceneManager::RegisterScene(const std::string& name, Scene* scene)
+void FSceneManager::RegisterScene(const std::string& name, Scene* scene)
 {
 	std::cout << "RegisterScene : " << name;
 	if (scene) std::cout << "[success!]\n";
@@ -21,7 +21,7 @@ void SceneManager::RegisterScene(const std::string& name, Scene* scene)
 	}
 }
 
-void SceneManager::LoadScene(const std::string& name)
+void FSceneManager::LoadScene(const std::string& name)
 {
 	if (m_scenes.find(name) == m_scenes.end())
 	{
@@ -35,15 +35,16 @@ void SceneManager::LoadScene(const std::string& name)
 	m_currentScene = m_scenes[name];
 	m_currentScene->Init();
 	m_currentScene->SetActive(true);
+	dirtyflag = true;
 }
 
 
 
-void SceneManager::Update(float deltaTime)
+void FSceneManager::Update(float deltaTime)
 {
 }
 
-void SceneManager::Render(ID3D11DeviceContext* context)
+void FSceneManager::Render(ID3D11DeviceContext* context)
 {
 
 }

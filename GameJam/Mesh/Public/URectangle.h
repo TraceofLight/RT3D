@@ -13,8 +13,11 @@ public:
 	float Mass;
 
 	URectangle();
-
 	void Move();
+
+	// TODO(KHJ): 멤버 은닉
+	float GetWidth() const { return Width; }
+	float GetHeight() const { return Height; }
 };
 
 extern URectangle GRectangle;
