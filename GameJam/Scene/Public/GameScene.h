@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene/Public/Scene.h"
 
+class UShooter;
 class UPinBall;
 class URectangle;
 class UTriangle;
@@ -10,15 +11,15 @@ class GameScene : public Scene
 {
 public:
 	GameScene();
-	virtual ~GameScene() override;
+	~GameScene() override;
 
-	virtual void Init() override;
-	virtual void Update(float deltaTime) override;
-	virtual void Render() override;
-	virtual void Cleanup() override;
+	void Init() override;
+	void Update(float deltaTime) override;
+	void Render() override;
+	void Cleanup() override;
 
 private:
-    void InputProcess();
+	void InputProcess();
 	void RenderProcess();
 
 	void HandleBallRectangleCollisions();
@@ -32,4 +33,6 @@ private:
 	URectangle* m_Rectangle = nullptr;
 	UTriangle* m_Triangle = nullptr;
 	UPinBall* m_GravityCenterBall = nullptr;
+
+	UShooter* Shooter;
 };

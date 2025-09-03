@@ -11,7 +11,7 @@ void LobbyScene::Init()
 	Button* startButton = new Button("GAME START", []() {
 		std::cout << "Game Start Button Pressed!";
 		UIManager::GetInstance().Cleanup();
-		SceneManager::GetInstance().LoadScene("GAME");});
+		FSceneManager::GetInstance().LoadScene("GAME");});
 
 	startButton->SetPosition(FVector3(0.0f, -0.2f, 0.0f));
 	startButton->SetSize(FVector3(0.2f, 0.2f, 0.0f));

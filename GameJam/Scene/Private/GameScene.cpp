@@ -5,6 +5,7 @@
 #include "Manager/Public/SceneManager.h"
 #include "Render/Public/Renderer.h"
 #include "Actor/Public/PinBall.h"
+#include "Actor/Public/Shooter.h"
 #include "Mesh/Public/UBall.h"
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
@@ -25,23 +26,29 @@ void GameScene::Init()
 {
     m_Rectangle = new URectangle();
     m_Triangle = new UTriangle();
+
+	Shooter = new UShooter();
+	Shooter->SetLocation({0.3f, -0.8f, 0.0f});
 }
 
 void GameScene::Update(float deltaTime)
 {
     FTimeManager* TimeManager = FTimeManager::GetInstance();
     FInputManager* KeyManager = FInputManager::GetInstance();
-	SceneManager& SceneMgr = SceneManager::GetInstance();
+	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
     InputProcess();
 
-	if (SceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
+	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
 		return;
 
     m_Triangle->UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
 
+	m_TotalPrimitives = static_cast<int>(m_PrimitiveList.size());
+
+    // 모든 볼 객체의 움직임 업데이트
     for (int i = 0; i < m_TotalPrimitives; ++i)
     {
         UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
@@ -67,12 +74,6 @@ void GameScene::Cleanup()
         delete m_PrimitiveList[i];
     }
 
-    if (m_PrimitiveList)
-    {
-        delete[] m_PrimitiveList;
-        m_PrimitiveList = nullptr;
-    }
-
     if(m_Rectangle)
     {
         delete m_Rectangle;
@@ -85,6 +86,8 @@ void GameScene::Cleanup()
         m_Triangle = nullptr;
     }
 
+	delete Shooter;
+
     m_TotalPrimitives = 0;
 }
 
@@ -94,7 +97,22 @@ void GameScene::InputProcess()
 
 	if (KeyManager->IsKeyPressed(EKeyInput::Esc))
 	{
-		SceneManager::GetInstance().LoadScene("LOBBY");
+		FSceneManager::GetInstance().LoadScene("LOBBY");
+	}
+
+	// 스페이스바 처리 - 차징 및 발사
+	if (Shooter)
+	{
+		if (KeyManager->IsKeyDown(EKeyInput::Space))
+		{
+			// 스페이스바를 누르고 있는 동안 차징
+			Shooter->Charging();
+		}
+		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
+		{
+			// 스페이스바를 뗐을 때 발사
+			Shooter->Shoot();
+		}
 	}
 }
 
@@ -116,6 +134,15 @@ void GameScene::RenderProcess()
 
     Renderer->UpdateConstantForTriangle(m_Triangle->Location, m_Triangle->Base, m_Triangle->Height, m_Triangle->Rotation, m_Triangle->Radius);
     Renderer->RenderTriangle();
+
+    // Shooter 렌더링 추가
+    if (Shooter && Shooter->GetShape())
+    {
+        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(), 
+                                           Shooter->GetShape()->GetWidth(), 
+                                           Shooter->GetShape()->GetHeight());
+        Renderer->RenderRectangle();
+    }
 
     //FImGuiManager::RenderImGui();
 }
@@ -285,9 +312,9 @@ void GameScene::ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
 
 void GameScene::HandleBallRectangleCollisions()
 {
-	for (int i = 0; i < static_cast<int>(m_TotalPrimitives.size()); ++i)
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_TotalPrimitives[i]);
+		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
 		ResolveBallRectangle(Ball, &GRectangle);
 	}
 }

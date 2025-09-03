@@ -17,6 +17,7 @@ public:
 
 	FVector3 GetLocation() const { return Location; }
 	void SetLocation(const FVector3& InLocation) { Location = InLocation; }
+	URectangle* GetShape() const { return Shape; }
 
 	UShooter();
 	~UShooter() override;

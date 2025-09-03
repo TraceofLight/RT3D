@@ -44,7 +44,7 @@ void FImGuiManager::RenderImGui()
 	ImGui::NewFrame();
 
 
-	if (SceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
+	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
 	{
 		RenderGameGui();
 	}
@@ -56,7 +56,7 @@ void FImGuiManager::RenderImGui()
 		UIManager::GetInstance().Render();
 
 
-		
+
 		if (ImGui::Button("Credits"))
 		{
 			bShowCredits = !bShowCredits;

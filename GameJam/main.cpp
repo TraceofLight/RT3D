@@ -31,10 +31,6 @@ static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM l
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 void RenderProcess(const URenderer& InRenderer);
 static HWND GlobalWindowHandle = nullptr;
-static HWND GlobalWindowHandle = nullptr;
-
-// Global variables definition
-static std::vector<UPinBall*> PinBalls;
 
 void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter = nullptr);
 void InputProcess(bool& InExitFlag);
@@ -83,9 +79,9 @@ static void InitializeExternalTerminal()
  */
 static void MainLoop(URenderer& InRenderer)
 {
-	FTimeManager* TimeManager = FTimeManager::GetInstance();
-	FInputManager* KeyManager = FInputManager::GetInstance();
-	FScoreManager* ScoreManager = FScoreManager::GetInstance();
+    FTimeManager* TimeManager = FTimeManager::GetInstance();
+    FInputManager* KeyManager = FInputManager::GetInstance();
+    FSceneManager* SceneManager = &FSceneManager::GetInstance();
 
 	UShooter Shooter;
 	Shooter.SetLocation({0.3f, -0.8f, 0.0f});
@@ -160,12 +156,6 @@ static void MainLoop(URenderer& InRenderer)
 				Ball->Move(); // PinBall의 물리 업데이트 처리
 			}
 		}
-        //if (KeyManager->IsKeyPressed(EKeyInput::Esc))
-        //{
-        //    PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
-        //    bIsExit = true;
-        //    continue;
-        //}
 
 		// 사각형 물리 업데이트
 		GRectangle.Move(); // 이 함수 내부에서도 DT 매크로 사용 가능
@@ -184,21 +174,17 @@ void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 		InRenderer.Prepare();
 		InRenderer.PrepareShader();
         Scene* CurrentScene = FSceneManager->GetCurrentScene();
-        Scene* CurrentScene = SceneManager->GetCurrentScene();
 		Scene* PrevScene = nullptr;
         if (CurrentScene)
         {
-            CurrentScene->Update(FTimeManager->GetDeltaTime());
-            CurrentScene->Render();
 			PrevScene = CurrentScene;
             CurrentScene->Update(TimeManager->GetDeltaTime());
 			if (PrevScene == SceneManager->GetCurrentScene())
 			{
 				CurrentScene->Render();
 			}
-
-
         }
+
 		//RenderProcess(*URenderer::GetInstance());
 
 	// 사각형 렌더링
@@ -247,7 +233,7 @@ void InputProcess(bool& InExitFlag)
 			PinBalls.erase(PinBalls.begin() + indexToRemove);
 		}
 	}
-}
+    }
 
 static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 {
