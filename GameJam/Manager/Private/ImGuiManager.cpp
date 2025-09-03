@@ -5,7 +5,7 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Actor/Public/UBall.h"
+#include "Mesh/Public/UBall.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Render/Public/Renderer.h"
