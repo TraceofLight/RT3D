@@ -38,13 +38,13 @@ void UShooter::Charging()
 	DEBUG_PRINT_FORMAT("[SHOOTER] Charging Time: %.2f\n", ChargingTime);
 }
 
-void UShooter::Shoot()
+UPinBall* UShooter::Shoot()
 {
 	// 발사 가능성 검사
 	if (!bHasBallLoaded)
 	{
 		DEBUG_PRINT("[SHOOTER] Cannot shoot - no ball loaded!\n");
-		return;
+		return nullptr;
 	}
 
 	// 생성되는 볼에 속도를 전달해야 함
@@ -75,6 +75,8 @@ void UShooter::Shoot()
 
 	FSceneManager& SceneManager = FSceneManager::GetInstance();
 	SceneManager.AddPrimitiveToScene(NewBall);
+
+	return NewBall;
 }
 
 void UShooter::LoadBall()

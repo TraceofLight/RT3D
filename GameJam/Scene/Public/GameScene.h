@@ -47,6 +47,8 @@ private:
 	bool IsMarkedForDeletion(UPinBall* InBall) const;
 
 	UPadPair* m_PadPair = nullptr;
+	UPinBall* m_ActorBall = nullptr;
+	bool m_Shooted = false;
 	UShooter* Shooter;
 
 	bool bIsBallSpawned = false;

@@ -26,7 +26,8 @@ void GameScene::Init()
 {
 	pause = false;
     m_Rectangle = new URectangle();
-
+	m_Shooted = false;
+	m_ActorBall = nullptr;
 	Shooter = new UShooter();
 	Shooter->SetLocation({0.4f, -0.8f, 0.0f});
 
@@ -42,8 +43,6 @@ void GameScene::Init()
 	FPadPairConfig PadCfg;
 	PadCfg.Base = 0.05f;
 	PadCfg.Height = 0.3f;
-	PadCfg.CenterX = -0.4f;
-	PadCfg.CenterY = 0.0f;
 	PadCfg.XOffset = 0.30f;
 	PadCfg.YOffset = -0.65f;
 	PadCfg.MidAngleDeg = 90.f;
@@ -150,8 +149,16 @@ void GameScene::InputProcess()
 		}
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
 		{
-			Shooter->Shoot();
-			DEBUG_PRINT("[Shooter] Shooter Fire!\n");
+			if (!m_Shooted)
+			{
+				
+				m_ActorBall = Shooter->Shoot();
+				if (m_ActorBall != nullptr)
+				{
+					m_Shooted = true;
+				}
+				DEBUG_PRINT("[Shooter] Shooter Fire!\n");
+			}
 		}
 	}
 	else if (Shooter && !Shooter->CanShoot())
@@ -200,6 +207,7 @@ void GameScene::CheckBallTriggers()
 					m_BallsToDelete.push_back(PinBall);
 					DEBUG_PRINT("[Ball Trigger] Ball marked for deletion\n");
 				}
+				// 스페이스바를 뗐을 때 발사
 			}
 		}
 	}
@@ -241,7 +249,7 @@ void GameScene::RenderProcess()
     {
         Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
                                            Shooter->GetShape()->GetWidth(),
-                                           Shooter->GetShape()->GetHeight(), 0.0f);
+                                           Shooter->GetShape()->GetHeight(),0.0f);
         Renderer->RenderRectangle();
     }
 
@@ -446,7 +454,7 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	// Create the rectangle
 	URectangle* NewRectangle = new URectangle();
 	NewRectangle->Location = location;
-	NewRectangle->Rotation = rotation;
+	//NewRectangle->Rotation = rotation;
 	NewRectangle->Width = width;
 	NewRectangle->Height = height;
 	NewRectangle->Mass = width * height;
@@ -480,14 +488,16 @@ void GameScene::AddNewTriangle(FVector3 location, float rotation, float base, fl
 
 bool GameScene::isGameOver()
 {
-	if (m_TotalPrimitives > 0)
+	UPinBall* Ball = m_ActorBall;
+	if (Ball != nullptr)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[0]);
+
 		if (Ball->GetLocation().y < -1.0f)
 		{
 			return true;
 		}
 	}
+
 	return false;
 }
 
