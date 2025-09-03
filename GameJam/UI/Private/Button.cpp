@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "Button.h"
-#include "UIManager.h"
-#include "../Render/Public/Renderer.h"
+#include "UI/Public/Button.h"
+
+#include "Render/Public/Renderer.h"
 
 Button::Button(const std::string& buttonText, std::function<void()> callback)
 {
@@ -20,8 +20,8 @@ void Button::Render()
 	fc.Offset = position;
 	fc.ScaleX = size.x;
 	fc.ScaleY = size.y;
-	URenderer::GetInstance().UpdateConstant(position, size.x);
-	URenderer::GetInstance().RenderRectangle();
+	URenderer::GetInstance()->UpdateConstant(position, size.x);
+	URenderer::GetInstance()->RenderRectangle();
 }
 
 bool Button::OnMouseClick(FVector3 pos)

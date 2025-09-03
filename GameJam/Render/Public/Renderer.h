@@ -1,4 +1,5 @@
 #pragma once
+#include "Manager/Public/ScoreManager.h"
 
 /**
  * @brief Rendering Pipeline 전반을 처리하는 클래스
@@ -27,26 +28,29 @@
  */
 class URenderer
 {
+private:
+	static URenderer* Instance;
+
 public:
-    ID3D11Device* Device = nullptr;
-    ID3D11DeviceContext* DeviceContext = nullptr;
-    IDXGISwapChain* SwapChain = nullptr;
+	ID3D11Device* Device = nullptr;
+	ID3D11DeviceContext* DeviceContext = nullptr;
+	IDXGISwapChain* SwapChain = nullptr;
 
-    ID3D11Texture2D* FrameBuffer = nullptr;
-    ID3D11RenderTargetView* FrameBufferRTV = nullptr;
-    ID3D11RasterizerState* RasterizerState = nullptr;
-    ID3D11Buffer* ConstantBuffer = nullptr;
+	ID3D11Texture2D* FrameBuffer = nullptr;
+	ID3D11RenderTargetView* FrameBufferRTV = nullptr;
+	ID3D11RasterizerState* RasterizerState = nullptr;
+	ID3D11Buffer* ConstantBuffer = nullptr;
 
-    FLOAT ClearColor[4] = {0.025f, 0.025f, 0.025f, 1.0f};
-    D3D11_VIEWPORT ViewportInfo;
+	FLOAT ClearColor[4] = {0.025f, 0.025f, 0.025f, 1.0f};
+	D3D11_VIEWPORT ViewportInfo;
 
-    ID3D11VertexShader* SimpleVertexShader;
-    ID3D11PixelShader* SimplePixelShader;
-    ID3D11InputLayout* SimpleInputLayout;
-    unsigned int Stride;
+	ID3D11VertexShader* SimpleVertexShader;
+	ID3D11PixelShader* SimplePixelShader;
+	ID3D11InputLayout* SimpleInputLayout;
+	unsigned int Stride;
 
-    ID3D11Buffer* vertexBufferSphere;
-    UINT numVerticesSphere;
+	ID3D11Buffer* vertexBufferSphere;
+	UINT numVerticesSphere;
 
 	// Rectangle용 버퍼
 	ID3D11Buffer* vertexBufferRectangle = nullptr;
@@ -57,36 +61,39 @@ public:
 	ID3D11Buffer* vertexBufferTriangle = nullptr;
 
 public:
-    void Create(HWND InWindowHandle);
-    void CreateDeviceAndSwapChain(HWND InWindowHandle);
-    void ReleaseDeviceAndSwapChain();
-    void CreateFrameBuffer();
-    void ReleaseFrameBuffer();
-    void CreateRasterizerState();
-    void ReleaseRasterizerState();
+	static URenderer* GetInstance();
 
-    void Release();
+	void Create(HWND InWindowHandle);
+	void CreateDeviceAndSwapChain(HWND InWindowHandle);
+	void ReleaseDeviceAndSwapChain();
+	void CreateFrameBuffer();
+	void ReleaseFrameBuffer();
+	void CreateRasterizerState();
+	void ReleaseRasterizerState();
 
-    // 스왑 체인의 백 버퍼와 프론트 버퍼를 교체하여 화면에 출력
-    void SwapBuffer() const;
+	void Release();
 
-    void CreateShader();
-    void ReleaseShader();
-    void Prepare() const;
-    void PrepareShader() const;
-    void RenderPrimitive() const;
+	// 스왑 체인의 백 버퍼와 프론트 버퍼를 교체하여 화면에 출력
+	void SwapBuffer() const;
+
+	void CreateShader();
+	void ReleaseShader();
+	void Prepare() const;
+	void PrepareShader() const;
+	void RenderPrimitive() const;
 	void RenderRectangle() const;
 	void RenderTriangle() const;
 
-    ID3D11Buffer* CreateVertexBuffer(FVertexSimple* InVertices, UINT InByteWidth) const;
+	ID3D11Buffer* CreateVertexBuffer(FVertexSimple* InVertices, UINT InByteWidth) const;
 	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, UINT InByteWidth) const;
-    static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
-    void CreateConstantBuffer();
-    void ReleaseConstantBuffer();
-    void UpdateConstant(FVector3 InOffset, float InScale) const;
+	static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
+	void CreateConstantBuffer();
+	void ReleaseConstantBuffer();
+	void UpdateConstant(FVector3 InOffset, float InScale) const;
 	void UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY) const;
-	void UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation, float InRadius) const;
+	void UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation,
+	                               float InRadius) const;
 
-    void TotalInit(HWND InWindowHandle);
-    void TotalShutDown();
+	void TotalInit(HWND InWindowHandle);
+	void TotalShutDown();
 };
