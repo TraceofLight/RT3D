@@ -25,5 +25,3 @@ public:
 	void SetRotationLimit(float InMinRadians, float InMaxRadians);
 	void ClearRotationLimit();
 };
-
-extern UTriangle GTriangle;

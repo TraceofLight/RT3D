@@ -11,7 +11,6 @@
 #include "Mesh/Public/UTriangle.h"
 #include "Actor/Public/PadPair.h"
 
-
 GameScene::GameScene() : Scene("GAME")
 {
 	Init();
@@ -25,10 +24,23 @@ GameScene::~GameScene()
 
 void GameScene::Init()
 {
-    m_Rectangle = new URectangle();
-
 	Shooter = new UShooter();
 	Shooter->SetLocation({0.3f, -0.8f, 0.0f});
+
+	// PadPair 설정
+	FPadPairConfig PadCfg;
+	PadCfg.Base = 0.05f;
+	PadCfg.Height = 0.3f;
+	PadCfg.XOffset = 0.30f;
+	PadCfg.YOffset = -0.65f;
+	PadCfg.MidAngleDeg = 90.f;
+	PadCfg.SweepHalfDeg = 30.f;
+	PadCfg.RotationSpeedDeg = 360.f;
+	PadCfg.KeyLeft = EKeyInput::A;
+	PadCfg.KeyRight = EKeyInput::D;
+
+	m_PadPair = new UPadPair();
+	m_PadPair->Init(PadCfg);
 }
 
 void GameScene::Update(float deltaTime)
@@ -53,12 +65,10 @@ void GameScene::Update(float deltaTime)
         Ball->Move();
     }
 
-    m_Rectangle->Move();
-
-	GPadPair.Update(KeyManager, TimeManager->GetDeltaTime());
+	m_PadPair->Update(KeyManager, TimeManager->GetDeltaTime());
 
     // HandleCollisions();
-    HandleBallRectangleCollisions();
+    // HandleBallRectangleCollisions();
 	HandleBallPadPairCollisions();
 }
 
@@ -74,13 +84,8 @@ void GameScene::Cleanup()
         delete m_PrimitiveList[i];
     }
 
-    if(m_Rectangle)
-    {
-        delete m_Rectangle;
-        m_Rectangle = nullptr;
-    }
-
 	delete Shooter;
+	delete m_PadPair;
 
     m_TotalPrimitives = 0;
 }
@@ -126,9 +131,6 @@ void GameScene::RenderProcess()
         Renderer->RenderPrimitive();
     }
 
-    Renderer->UpdateConstantForRectangle(m_Rectangle->Location, m_Rectangle->Width, m_Rectangle->Height);
-    Renderer->RenderRectangle();
-
     // Shooter 렌더링 추가
     if (Shooter && Shooter->GetShape())
     {
@@ -139,7 +141,7 @@ void GameScene::RenderProcess()
     }
 
 	// PadPair 렌더링
-	GPadPair.Render(*Renderer);
+	m_PadPair->Render(*Renderer);
 }
 
 /**
@@ -301,16 +303,16 @@ void GameScene::HandleBallPadPairCollisions()
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
 		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-		ResolveBallTriangle(Ball, GPadPair.Left().GetShape());
-		ResolveBallTriangle(Ball, GPadPair.Right().GetShape());
+		ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
+		ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
 	}
 }
-
-void GameScene::HandleBallRectangleCollisions()
-{
-	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
-	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-		ResolveBallRectangle(Ball, &GRectangle);
-	}
-}
+//
+//void GameScene::HandleBallRectangleCollisions()
+//{
+//	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
+//	{
+//		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+//		ResolveBallRectangle(Ball, m_Rectangle);
+//	}
+//}
