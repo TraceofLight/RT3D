@@ -11,7 +11,7 @@
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
-#include "UI/UIManager.h"
+#include "Manager/Public/UIManager.h"
 
 /**
  * @brief ImGui Initializer

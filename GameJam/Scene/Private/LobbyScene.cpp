@@ -3,7 +3,7 @@
 
 #include "Manager/Public/SceneManager.h"
 #include "UI/Public/Button.h"
-#include "UI/Public/UIManager.h"
+#include "Manager/Public/UIManager.h"
 
 void LobbyScene::Init()//UI생성 및 추가
 {

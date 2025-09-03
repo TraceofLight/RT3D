@@ -16,10 +16,10 @@
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
-#include "Scenes/SceneManager.h"
-#include "UI/UIManager.h"
-#include "Scenes/LobbyScene.h"
-#include "Scenes/GameScene.h"
+#include "Manager/Public/UIManager.h"
+#include "Manager/Public/SceneManager.h"
+#include "Scene/Public/GameScene.h"
+#include "Scene/Public/LobbyScene.h"
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
 static void RemoveSpecificBall(int IndexToRemove);

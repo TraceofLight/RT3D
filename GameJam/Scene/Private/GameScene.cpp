@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "GameScene.h"
+#include "Scene/Public/GameScene.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Render/Public/Renderer.h" // Renderer를 사용하기 위해 포함
@@ -92,7 +92,7 @@ void GameScene::Update(float deltaTime)
 
 void GameScene::Render()
 {
-	URenderer& InRenderer = *URenderer::GetInstance(); // 렌더러 인스턴스 가져오기
+	URenderer* InRenderer = URenderer::GetInstance(); // 렌더러 인스턴스 가져오기
 
 	// ================== RenderProcess에서 가져온 렌더링 로직 ==================
 	// 공들 렌더링
