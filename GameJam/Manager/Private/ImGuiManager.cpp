@@ -5,8 +5,6 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Mesh/Public/UBall.h"
-#include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/ScoreManager.h"
@@ -14,6 +12,7 @@
 #include "Manager/Public/UIManager.h"
 #include "Manager/Public/SceneManager.h"
 #include "Scene/Public/Scene.h"
+
 /**
  * @brief ImGui Initializer
  */
@@ -40,9 +39,12 @@ void FImGuiManager::RenderImGui()
 	// Get New Frame
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
-	static bool bShowCredits = false;
 	ImGui::NewFrame();
 
+	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() == "LOBBY")
+	{
+		RenderLobbyGui();
+	}
 
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
 	{
@@ -94,31 +96,104 @@ void FImGuiManager::RenderImGui()
 		}
 	}
 
-	else
-	{
-		ImGui::Begin("Game UI");
-
-		UIManager::GetInstance().Render();
-
-
-
-		if (ImGui::Button("Credits"))
-		{
-			bShowCredits = !bShowCredits;
-		}
-		if(bShowCredits)
-		{
-			ImGui::Text("Team 5");
-			ImGui::Text("Kim HeeJun, Lee HoJin,");
-			ImGui::Text("Jung SeYeon, Heo Jun");
-		}
-		ImGui::End();
-	}
-
-
 	// Render ImGui
 	ImGui::Render();
 	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void FImGuiManager::RenderLobbyGui()
+{
+	static bool bShowCredits = false;
+
+	// 화면 크기 정보 가져오기
+	ImGuiIO& io = ImGui::GetIO();
+	float screenWidth = io.DisplaySize.x;
+	float screenHeight = io.DisplaySize.y;
+
+	// 메인 메뉴 위도우 크기 및 위치 설정 (높이 줄이고 중앙 배치)
+	float windowWidth = 300.0f;
+	float windowHeight = 280.f;
+	float windowX = (screenWidth - windowWidth) * 0.5f;
+	float windowY = (screenHeight - windowHeight) * 0.5f;
+
+	ImGui::SetNextWindowPos(ImVec2(windowX, windowY));
+	ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+	ImGui::Begin("PinBall Game", nullptr,
+	             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
+
+	// 제목 위 패딩
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	// 제목 텍스트 중앙 정렬 (더 크게 만들기)
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 15)); // 여백 조정
+
+	// 제목 스타일
+	ImGuiStyle& style = ImGui::GetStyle();
+	float originalFontSize = ImGui::GetFont()->Scale;
+	ImGui::SetWindowFontScale(2.0f); // 폰트 크기 2배
+
+	const char* title = "PinBall";
+	float titleWidth = ImGui::CalcTextSize(title).x;
+	ImGui::SetCursorPosX((windowWidth - titleWidth) * 0.5f);
+	ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "%s", title); // 금색 텍스트
+
+	ImGui::SetWindowFontScale(1.0f); // 폰트 사이즈 리셋
+	ImGui::PopStyleVar();
+
+	// 제목과 구분선 사이 패딩
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	// Game Start Button
+	UIManager::GetInstance().Render();
+
+	// 버튼과 구분선 사이 패딩
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Separator();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+	ImGui::Spacing();
+
+	// Credits 버튼 중앙 정렬
+	float buttonWidth = 120.0f;
+	ImGui::SetCursorPosX((windowWidth - buttonWidth) * 0.5f);
+	if (ImGui::Button("Credits", ImVec2(buttonWidth, 0)))
+	{
+		bShowCredits = !bShowCredits;
+	}
+
+	ImGui::Spacing();
+
+	// Credits 정보 표시
+	if (bShowCredits)
+	{
+		ImGui::Spacing();
+
+		// 팀 정보 중앙 정렬
+		ImGui::SetCursorPosX((windowWidth - ImGui::CalcTextSize("Team 5").x) * 0.5f);
+		ImGui::TextColored(ImVec4(0.8f, 0.8f, 1.0f, 1.0f), "Team 5");
+
+		ImGui::SetCursorPosX((windowWidth - ImGui::CalcTextSize("Kim HeeJun, Lee HoJin,").x) * 0.5f);
+		ImGui::Text("Kim HeeJun, Lee HoJin,");
+
+		ImGui::SetCursorPosX((windowWidth - ImGui::CalcTextSize("Jung SeYeon, Heo Jun").x) * 0.5f);
+		ImGui::Text("Jung SeYeon, Heo Jun");
+	}
+
+	ImGui::End();
 }
 
 void FImGuiManager::RenderGameGui()

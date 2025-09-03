@@ -34,5 +34,6 @@ using std::string;
 using std::clamp;
 using std::unordered_map;
 using std::to_string;
+using std::function;
 
 #include "Manager/Public/TimeManager.h"
