@@ -1,13 +1,15 @@
 #include "pch.h"
-#include <iostream>
-#include "LobbyScene.h"
-#include "UI/Button.h"
-#include "SceneManager.h"
-#include "UI/UIManager.h"
+#include "Scene/Public/LobbyScene.h"
+
+#include "Manager/Public/SceneManager.h"
+#include "UI/Public/Button.h"
+#include "Manager/Public/UIManager.h"
+
 void LobbyScene::Init()//UI생성 및 추가
 {
 	Button* startButton = new Button("GAME START", []() {
 		std::cout << "Game Start Button Pressed!";
+		UIManager::GetInstance().Cleanup();
 		SceneManager::GetInstance().LoadScene("GAME START");});
 
 	startButton->SetPosition(FVector3(0.0f, -0.2f, 0.0f));
@@ -35,6 +37,6 @@ void LobbyScene::Render()
 
 void LobbyScene::Cleanup()
 {
-
+	UIManager::GetInstance();
 }
 

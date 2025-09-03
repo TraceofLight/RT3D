@@ -145,6 +145,8 @@
   <ItemGroup>
     <ClCompile Include="Actor\Private\PinBall.cpp" />
     <ClCompile Include="Actor\Private\Shooter.cpp" />
+    <ClCompile Include="Manager\Private\SceneManager.cpp" />
+    <ClCompile Include="Manager\Private\UIManager.cpp" />
     <ClCompile Include="Mesh\Private\UBall.cpp" />
     <ClCompile Include="Mesh\Private\URectangle.cpp" />
     <ClCompile Include="Mesh\Private\UTriangle.cpp" />
@@ -165,6 +167,12 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="Render\Private\Renderer.cpp" />
+    <ClCompile Include="Scene\Private\GameScene.cpp" />
+    <ClCompile Include="Scene\Private\LobbyScene.cpp" />
+    <ClCompile Include="Scene\Private\Scene.cpp" />
+    <ClCompile Include="UI\Private\Button.cpp" />
+    <ClCompile Include="UI\Private\Text.cpp" />
+    <ClCompile Include="UI\Private\UIElement.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor\Public\PinBall.h" />
@@ -172,27 +180,36 @@
     <ClInclude Include="Asset\Triangle.h" />
     <ClInclude Include="Asset\Rectangle.h" />
     <ClInclude Include="Asset\Sphere.h" />
-    <ClInclude Include="Core\Public\Primitive.h"/>
+    <ClInclude Include="Core\Public\Primitive.h" />
     <ClInclude Include="Global\Enum.h" />
-    <ClInclude Include="Global\Function.h"/>
+    <ClInclude Include="Global\Function.h" />
     <ClInclude Include="Global\Macro.h" />
-    <ClInclude Include="Global\Struct.h"/>
-    <ClInclude Include="ImGui\imconfig.h"/>
-    <ClInclude Include="ImGui\imgui.h"/>
-    <ClInclude Include="ImGui\imgui_impl_dx11.h"/>
-    <ClInclude Include="ImGui\imgui_impl_win32.h"/>
-    <ClInclude Include="ImGui\imgui_internal.h"/>
-    <ClInclude Include="ImGui\imstb_rectpack.h"/>
-    <ClInclude Include="ImGui\imstb_textedit.h"/>
-    <ClInclude Include="ImGui\imstb_truetype.h"/>
+    <ClInclude Include="Global\Struct.h" />
+    <ClInclude Include="ImGui\imconfig.h" />
+    <ClInclude Include="ImGui\imgui.h" />
+    <ClInclude Include="ImGui\imgui_impl_dx11.h" />
+    <ClInclude Include="ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="ImGui\imgui_internal.h" />
+    <ClInclude Include="ImGui\imstb_rectpack.h" />
+    <ClInclude Include="ImGui\imstb_textedit.h" />
+    <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="Manager\Public\InputManager.h" />
     <ClInclude Include="Manager\Public\ImGuiManager.h" />
+    <ClInclude Include="Manager\Public\SceneManager.h" />
     <ClInclude Include="Manager\Public\ScoreManager.h" />
     <ClInclude Include="Manager\Public\TimeManager.h" />
+    <ClInclude Include="Manager\Public\UIManager.h" />
+    <ClInclude Include="Mesh\Public\UBall.h" />
     <ClInclude Include="Mesh\Public\URectangle.h" />
     <ClInclude Include="Mesh\Public\UTriangle.h" />
-    <ClInclude Include="pch.h"/>
-    <ClInclude Include="Render\Public\Renderer.h"/>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="Render\Public\Renderer.h" />
+    <ClInclude Include="Scene\Public\GameScene.h" />
+    <ClInclude Include="Scene\Public\LobbyScene.h" />
+    <ClInclude Include="Scene\Public\Scene.h" />
+    <ClInclude Include="UI\Public\Button.h" />
+    <ClInclude Include="UI\Public\Text.h" />
+    <ClInclude Include="UI\Public\UIElement.h" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Manager\Public\ImGuiManager.h" />

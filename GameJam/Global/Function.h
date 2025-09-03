@@ -46,3 +46,13 @@ static void SafeDelete(T& InDynamicObject)
 	delete InDynamicObject;
 	InDynamicObject = nullptr;
 }
+
+/** ==============
+ *  각도 변환 헬퍼
+ *  ============== */
+static constexpr float PI_F = 3.14159265358979323846f;
+static constexpr float DEG_TO_RAD = PI_F / 180.0f;
+static constexpr float RAD_TO_DEG = 180.0f / PI_F;
+
+static inline float DegToRad(float InDegrees) { return InDegrees * DEG_TO_RAD; }
+static inline float RadToDeg(float InRadians) { return InRadians * RAD_TO_DEG; }

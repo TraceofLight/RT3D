@@ -11,6 +11,7 @@
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
+#include "Manager/Public/UIManager.h"
 
 /**
  * @brief ImGui Initializer
@@ -198,6 +199,12 @@ void FImGuiManager::RenderImGui()
 	ImGui::Begin("Options");
 	if (ImGui::Button("Credits"))
 		bShowCredits = true;
+	ImGui::End();
+
+	ImGui::Begin("Game UI");
+
+	UIManager::GetInstance().Render();
+
 	ImGui::End();
 
 	if (bShowCredits)

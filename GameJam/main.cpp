@@ -16,8 +16,10 @@
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
-#include "Scenes/SceneManager.h"
-#include "Scenes/GameScene.h"
+#include "Manager/Public/UIManager.h"
+#include "Manager/Public/SceneManager.h"
+#include "Scene/Public/GameScene.h"
+#include "Scene/Public/LobbyScene.h"
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
 static void RemoveSpecificBall(int IndexToRemove);
@@ -100,6 +102,9 @@ static void MainLoop(URenderer& InRenderer)
 			}
 		}
 
+		// Triangle 회전 업데이트
+		GTriangle.UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
+
 		// 공들의 물리 시뮬레이션 업데이트
 		for (int i = 0; i < TotalPrimitives; ++i)
 		{
@@ -138,7 +143,8 @@ void RenderProcess(const URenderer& InRenderer)
 	InRenderer.RenderRectangle();
 
 	// Triangle Render
-	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation, GTriangle.Radius);
+	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation,
+	                                     GTriangle.Radius);
 	InRenderer.RenderTriangle();
 
 	// ImGui 렌더링 (TimeManager 정보 표시 가능)
@@ -213,6 +219,9 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	// Initialize Managers
 	FTimeManager::GetInstance();
 	FInputManager::GetInstance();
+	UIManager::GetInstance();
+
+	SceneManager::GetInstance().RegisterScene("LOBBY", new LobbyScene());
 }
 
 static void InitSceneTemp()
@@ -249,16 +258,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Make Window Handle Global
 	GlobalWindowHandle = WindowHandle;
 	// Make Renderer
-	URenderer Renderer;
 
-	InitEngine(WindowHandle, Renderer);
-
-	// Scene* gameScene = new GameScene();
-	// SceneManager::GetInstance().RegisterScene("GAME SCENE", gameScene);
-	// SceneManager::GetInstance().LoadScene("GAME SCENE");
-	// InitSceneTemp();
-
-	MainLoop(Renderer);
+	InitEngine(WindowHandle, *(URenderer::GetInstance()));
+	MainLoop(*URenderer::GetInstance());
 
 	// Release Balls
 	for (int i = 0; i < TotalPrimitives; ++i)
@@ -285,7 +287,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		delete TimeManager;
 	}
 
-	Renderer.TotalShutDown();
+	URenderer::GetInstance()->TotalShutDown();
 
 	return 0;
 }
@@ -543,23 +545,23 @@ void ResolveBallTriangle(UBall* Ball, const UTriangle* Triangle)
 		return;
 
 	// 삼각형(직각, Incenter 기준 회전) 로컬 꼭짓점 구성
-	const float a = Triangle->Base;    // X방향 직각변
-	const float b = Triangle->Height;  // Y방향 직각변
-	const float r = Triangle->Radius;  // Inradius (이미 UTriangle 내부에서 계산됨)
+	const float a = Triangle->Base; // X방향 직각변
+	const float b = Triangle->Height; // Y방향 직각변
+	const float r = Triangle->Radius; // Inradius (이미 UTriangle 내부에서 계산됨)
 
 	// 로컬(Incenter = 원점) 좌표: (0,0)-(0,b)-(a,0)에서 (r,r)만큼 이동 제거
-	FVector3 v0(-r, -r, 0.0f);      // 직각 꼭짓점
-	FVector3 v1(-r, b - r, 0.0f);      // +Y
-	FVector3 v2(a - r, -r, 0.0f);      // +X
+	FVector3 v0(-r, -r, 0.0f); // 직각 꼭짓점
+	FVector3 v1(-r, b - r, 0.0f); // +Y
+	FVector3 v2(a - r, -r, 0.0f); // +X
 
 	// 회전
 	const float c = std::cos(Triangle->Rotation);
 	const float s = std::sin(Triangle->Rotation);
 
 	auto Rotate = [&](const FVector3& L) -> FVector3
-		{
-			return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
-		};
+	{
+		return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
+	};
 
 	// 월드 변환 (Incenter = Triangle->Location)
 	FVector3 w0 = Rotate(v0) + Triangle->Location;
@@ -568,15 +570,15 @@ void ResolveBallTriangle(UBall* Ball, const UTriangle* Triangle)
 
 	// 가장 가까운 점 찾기 (원-삼각형 최소 거리)
 	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
-		{
-			FVector3 AB = B - A;
-			float abLenSq = AB.LengthSquare();
-			if (abLenSq <= 1e-12f) return A;
-			float t = Dot(P - A, AB) / abLenSq;
-			if (t < 0.0f) t = 0.0f;
-			else if (t > 1.0f) t = 1.0f;
-			return A + AB * t;
-		};
+	{
+		FVector3 AB = B - A;
+		float abLenSq = AB.LengthSquare();
+		if (abLenSq <= 1e-12f) return A;
+		float t = Dot(P - A, AB) / abLenSq;
+		if (t < 0.0f) t = 0.0f;
+		else if (t > 1.0f) t = 1.0f;
+		return A + AB * t;
+	};
 
 	const FVector3 C = Ball->Location;
 
@@ -742,8 +744,8 @@ void HandleMouseClick(int InX, int InY, bool InIsLeftClick)
 	// Get Window Size
 	RECT ClientRect;
 	GetClientRect(GlobalWindowHandle, &ClientRect);
-	float ClientWidth = ClientRect.right - ClientRect.left;
-	float ClientHeight = ClientRect.bottom - ClientRect.top;
+	float ClientWidth = static_cast<float>(ClientRect.right - ClientRect.left);
+	float ClientHeight = static_cast<float>(ClientRect.bottom - ClientRect.top);
 
 	// NDC Convert
 	float ndc_x = (static_cast<float>(InX) / ClientWidth) * 2.0f - 1.0f;

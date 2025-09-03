@@ -1,18 +1,10 @@
 #pragma once
 
 #include <vector>
-#include <memory>
-#include <string>
-#include "UIElement.h"
-class UIElement;
-class ID3D11DeviceContext;
-class InputState;
-class ID3D11Buffer;
-class ID3D11VertexShader;
-class ID3D11PixelShader;
-class ID3D11InputLayout;
+#include "UI/Public/UIElement.h"
 
-class UIManager {
+class UIManager
+{
 private:
 	UIManager() = default;
 	std::vector<UIElement*> UIelements;
@@ -21,6 +13,7 @@ public:
 	static UIManager& GetInstance();
 
 	void AddElement(UIElement* element);
+	void Cleanup();
 	void Update(float deltaTime);
 	void Render();
 	void OnMouseClick(float x, float y);
