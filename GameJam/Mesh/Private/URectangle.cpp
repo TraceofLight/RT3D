@@ -16,6 +16,8 @@ URectangle::URectangle()
 	Height = 0.1f + (rand() / (float)RAND_MAX) * 0.1f;
 	// Mass Setting
 	Mass = Width * Height;
+	// Rotation Setting
+	Rotation = 0.0f;
 }
 
 void URectangle::Move()

@@ -11,6 +11,7 @@
 #include "Mesh/Public/UTriangle.h"
 #include "Actor/Public/PadPair.h"
 
+
 GameScene::GameScene() : Scene("GAME")
 {
 	Init();
@@ -28,7 +29,15 @@ void GameScene::Init()
     m_Rectangle = new URectangle();
 
 	Shooter = new UShooter();
-	Shooter->SetLocation({0.3f, -0.8f, 0.0f});
+	Shooter->SetLocation({0.4f, -0.8f, 0.0f});
+
+	FSceneManager& SceneMgr = FSceneManager::GetInstance();
+	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
+
+	// right wall
+	AddNewRectangle(FVector3(0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
+	// left wall
+	AddNewRectangle(FVector3(-0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
 
 	// PadPair 설정
 	FPadPairConfig PadCfg;
@@ -69,23 +78,23 @@ void GameScene::Update(float deltaTime)
 	{
 		auto PrimitiveList = *m_PrimitiveList;
 		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
-		if (!IsMarkedForDeletion(Ball))
+		if (Ball && !IsMarkedForDeletion(Ball))
 		{
 			Ball->Move();
 		}
 	}
 
-	m_Rectangle->Move();
+    // m_Rectangle->Move();
 
 	//m_PadPair.Update(KeyManager, TimeManager->GetDeltaTime());
-	if (IsGameOver())
+	if (isGameOver())
 	{
 		pause = true;
 	}
 	m_PadPair->Update(KeyManager, TimeManager->GetDeltaTime());
 
     // HandleCollisions();
-    // HandleBallRectangleCollisions();
+    HandleBallRectangleCollisions();
 	HandleBallPadPairCollisions();
 
 	// 공 트리거 체크 (공이 화면 하단에 도달하거나 범위를 벗어난 경우)
@@ -201,22 +210,37 @@ void GameScene::RenderProcess()
     //Renderer->Prepare();
     //Renderer->PrepareShader();
 
-    for (int i = 0; i < m_TotalPrimitives; ++i)
-    {
-        UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
-    	if (!IsMarkedForDeletion(Ball))
-    	{
-    		Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
-    		Renderer->RenderPrimitive();
-    	}
-    }
+	for (int i = 0; i < m_TotalPrimitives; ++i)
+	{
+		UPrimitive* Primitive = (*m_PrimitiveList)[i];
+
+		if (UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]))
+		{
+			if (!IsMarkedForDeletion(Ball))
+			{
+				Renderer->UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
+				Renderer->RenderPrimitive();
+			}
+		}
+		else if (URectangle* Rectangle = dynamic_cast<URectangle*>(Primitive))
+		{
+			Renderer->UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height, Rectangle->Rotation);
+			Renderer->RenderRectangle();
+		}
+		else if (UTriangle* Triangle = dynamic_cast<UTriangle*>(Primitive))
+		{
+			Renderer->UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height, Triangle->Rotation,
+										 Triangle->Radius);
+			Renderer->RenderTriangle();
+		}
+	}
 
     // Shooter 렌더링 추가
     if (Shooter && Shooter->GetShape())
     {
         Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
                                            Shooter->GetShape()->GetWidth(),
-                                           Shooter->GetShape()->GetHeight());
+                                           Shooter->GetShape()->GetHeight(), 0.0f);
         Renderer->RenderRectangle();
     }
 
@@ -384,7 +408,7 @@ void GameScene::HandleBallPadPairCollisions()
 	{
 		auto PrimitiveList = *m_PrimitiveList;
 		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
-		if (!IsMarkedForDeletion(Ball))
+		if (!IsMarkedForDeletion(Ball) && Ball!=nullptr)
 		{
 			ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
 			ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
@@ -392,19 +416,68 @@ void GameScene::HandleBallPadPairCollisions()
 	}
 }
 
-// void GameScene::HandleBallRectangleCollisions()
-// {
-// 	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
-// 	{
-// 		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-// 		if (!IsMarkedForDeletion(Ball))
-// 		{
-// 			ResolveBallRectangle(Ball, &GRectangle);
-// 		}
-// 	}
-// }
+void GameScene::HandleBallRectangleCollisions()
+{
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
+	{
+		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
+		if (Ball !=nullptr)
+		{
+			for (int j=0; j < static_cast<int>(m_PrimitiveList->size()); ++j)
+			{
+				URectangle* rect = dynamic_cast<URectangle*>((*m_PrimitiveList)[j]);
+				if (rect!=nullptr)
+				{
+					ResolveBallRectangle(Ball, rect);
+				}
+			}
+		}
+	}
+}
 
-bool GameScene::IsGameOver()
+void GameScene::AddNewBall()
+{
+
+}
+
+void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height)
+{
+	// Create the rectangle
+	URectangle* NewRectangle = new URectangle();
+	NewRectangle->Location = location;
+	NewRectangle->Rotation = rotation;
+	NewRectangle->Width = width;
+	NewRectangle->Height = height;
+	NewRectangle->Mass = width * height;
+	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
+
+	FSceneManager& FCM = FSceneManager::GetInstance();
+	Scene* currentScene = FCM.GetCurrentScene();
+	// Add to the vector
+	currentScene->GetScenePrimitives()->push_back(NewRectangle);
+
+	// Update total count
+	++m_TotalPrimitives;
+}
+
+void GameScene::AddNewTriangle(FVector3 location, float rotation, float base, float height)
+{
+	UTriangle* NewTriangle = new UTriangle();
+	NewTriangle->Location = location;
+	NewTriangle->Rotation = rotation;
+	NewTriangle->Base = base;
+	NewTriangle->Height = height;
+
+	FSceneManager& FCM = FSceneManager::GetInstance();
+	Scene* currentScene = FCM.GetCurrentScene();
+	// Add to the vector
+	currentScene->GetScenePrimitives()->push_back(NewTriangle);
+
+	// Update total count
+	++m_TotalPrimitives;
+}
+
+bool GameScene::isGameOver()
 {
 	if (m_TotalPrimitives > 0)
 	{

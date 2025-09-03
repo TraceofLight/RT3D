@@ -27,8 +27,13 @@ private:
 	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 	void HandleBallPadPairCollisions();
-	bool IsGameOver();
+	void HandleBallRectangleCollisions();
+	bool isGameOver();
 	void CheckBallTriggers();
+
+	void AddNewBall();
+	void AddNewRectangle(FVector3 location, float rotation, float width, float height);
+	void AddNewTriangle(FVector3 location, float rotation, float base, float height);
 
 private:
 	int m_TotalPrimitives = 0;
@@ -43,4 +48,6 @@ private:
 
 	UPadPair* m_PadPair = nullptr;
 	UShooter* Shooter;
+
+	bool bIsBallSpawned = false;
 };
