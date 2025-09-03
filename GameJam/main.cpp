@@ -10,6 +10,7 @@
 #include "Asset/Rectangle.h"
 #include "Asset/Triangle.h"
 #include "Actor/Public/PinBall.h"
+#include "Actor/Public/Shooter.h"
 #include "Actor/Public/Pad.h"
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
@@ -21,8 +22,9 @@
 #include "Manager/Public/SceneManager.h"
 #include "Scene/Public/GameScene.h"
 #include "Scene/Public/LobbyScene.h"
-#include "Actor/Public/Shooter.h"
-#include "Mesh/Public/UBall.h"
+#include "Asset/Sphere.h"
+#include "Asset/Rectangle.h"
+#include "Asset/Triangle.h"
 
 // 외부 터미널 출력 전역 변수
 bool bShowExternalTerminal = true;
@@ -30,12 +32,6 @@ bool bShowExternalTerminal = true;
 // 외부 터미널 초기화 함수
 static bool bExternalTerminalInitialized = false;
 static void InitializeExternalTerminal();
-
-static void HandleCollisions();
-static void HandleBallRectangleCollisions();
-static void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
-static void HandleBallTriangleCollisions();
-static void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 
 static LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam);
 
@@ -110,25 +106,31 @@ static void MainLoop(URenderer& InRenderer)
 		// Update TimeManager
 		TimeManager->Update();
 
-		// 윈도우 메시지 처리
-		MSG Message;
-		while (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&Message);
-			DispatchMessage(&Message);
+        MSG Message;
+        while (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
+        {
+            TranslateMessage(&Message);
+            DispatchMessage(&Message);
 
-			if (Message.message == WM_QUIT)
-			{
-				bIsExit = true;
-				break;
-			}
-		}
+            if (Message.message == WM_QUIT)
+            {
+                bIsExit = true;
+                break;
+            }
+        }
 
-		if (bIsExit)
-		{
-			break;
-		}
+        if (bIsExit)
+        {
+            break;
+        }
 
+        KeyManager->Update();
+        if (KeyManager->IsKeyPressed(EKeyInput::Esc))
+        {
+            PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
+            bIsExit = true;
+            continue;
+        }
 		// KeyManager 업데이트
 		KeyManager->Update();
 		InputProcess(bIsExit);
@@ -177,26 +179,17 @@ static void MainLoop(URenderer& InRenderer)
 		RenderProcess(InRenderer, &Shooter);
 	}
 }
-
 void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 {
-	InRenderer.Prepare();
-	InRenderer.PrepareShader();
-
-	// SceneManager에서 공들 가져와서 렌더링
-	FSceneManager& SceneManager = FSceneManager::GetInstance();
-	vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
-
-	for (UPrimitive* Primitive : ScenePrimitives)
-	{
-		UPinBall* Ball = static_cast<UPinBall*>(Primitive);
-		if (Ball)
-		{
-			// PinBall 렌더링
-			InRenderer.UpdateConstant(Ball->GetLocation(), Ball->GetShape()->GetRadius());
-			InRenderer.RenderPrimitive();
-		}
-	}
+		InRenderer.Prepare();
+		InRenderer.PrepareShader();
+        Scene* CurrentScene = FSceneManager->GetCurrentScene();
+        if (CurrentScene)
+        {
+            CurrentScene->Update(FTimeManager->GetDeltaTime());
+            CurrentScene->Render();
+        }
+		//RenderProcess(*URenderer::GetInstance());
 
 	// 사각형 렌더링
 	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
@@ -290,53 +283,35 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// 난수 시드 초기화
 	srand(static_cast<unsigned int>(GetTickCount()));
 
-	// 윈도우 클래스 이름
-	WCHAR WindowClass[] = L"JungleWindowClass";
+    WCHAR WindowClass[] = L"JungleWindowClass";
+    WCHAR Title[] = L"Game Tech Lab";
 
-	// 윈도우 타이틀바에 표시될 이름
-	WCHAR Title[] = L"Game Tech Lab";
+    WNDCLASSW wndclass = {0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass};
+    RegisterClassW(&wndclass);
 
-	// 각종 메시지를 처리할 함수인 WndProc의 함수 포인터를 WindowClass 구조체에 넣는다.
-	WNDCLASSW wndclass = {0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass};
-
-	// 윈도우 클래스 등록
-	RegisterClassW(&wndclass);
-
-	// 1024 x 1024 크기에 윈도우 생성
-	HWND WindowHandle = CreateWindowExW(0, WindowClass, Title,
-	                                    WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
-	                                    CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
-	                                    nullptr, nullptr, hInstance, nullptr);
-
-	// Make Window Handle Global
+    HWND WindowHandle = CreateWindowExW(0, WindowClass, Title,
+                                        WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
+                                        CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
+                                        nullptr, nullptr, hInstance, nullptr);
 	GlobalWindowHandle = WindowHandle;
-	// Make Renderer
+    InitEngine(WindowHandle, *(URenderer::GetInstance()));
+    MainLoop(*URenderer::GetInstance());
 
-	InitEngine(WindowHandle, *(URenderer::GetInstance()));
-	MainLoop(*URenderer::GetInstance());
+    FInputManager* KeyManager = FInputManager::GetInstance();
+    if (KeyManager)
+    {
+        delete KeyManager;
+    }
 
-	// Release PinBalls
-	for (UPinBall* Ball : PinBalls)
-	{
-		delete Ball;
-	}
-	PinBalls.clear();
+    FTimeManager* TimeManager = FTimeManager::GetInstance();
+    if (TimeManager)
+    {
+        delete TimeManager;
+    }
 
-	FInputManager* KeyManager = FInputManager::GetInstance();
-	if (KeyManager)
-	{
-		delete KeyManager;
-	}
+    URenderer::GetInstance()->TotalShutDown();
 
-	FTimeManager* TimeManager = FTimeManager::GetInstance();
-	if (TimeManager)
-	{
-		delete TimeManager;
-	}
-
-	URenderer::GetInstance()->TotalShutDown();
-
-	return 0;
+    return 0;
 }
 
 /*************************/
@@ -348,33 +323,43 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
  */
 LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
-	if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
-	{
-		// ImGui가 마우스 이벤트를 사용했다면, 게임 로직에서는 처리하지 않아야 한다.
-		if (ImGui::GetIO().WantCaptureMouse)
-		{
-			return true;
-		}
-	}
+    if (ImGui_ImplWin32_WndProcHandler(hWnd, message, wParam, lParam))
+    {
+        if (ImGui::GetIO().WantCaptureMouse)
+        {
+            return true;
+        }
+    }
 
-	FInputManager* KeyManager = FInputManager::GetInstance();
-	if (KeyManager)
-	{
-		KeyManager->ProcessKeyMessage(message, wParam, lParam);
-	}
+    FInputManager* KeyManager = FInputManager::GetInstance();
+    if (KeyManager)
+    {
+        KeyManager->ProcessKeyMessage(message, wParam, lParam);
+    }
 
-	// Destroy 제외한 나머지 입력은 InputManager에서 처리
-	switch (message)
-	{
-	case WM_DESTROY:
-		// Signal that the app should quit
-		PostQuitMessage(0);
-		break;
-	default:
-		return DefWindowProc(hWnd, message, wParam, lParam);
-	}
+    switch (message)
+    {
+    case WM_DESTROY:
+        PostQuitMessage(0);
+        break;
+    default:
+        return DefWindowProc(hWnd, message, wParam, lParam);
+    }
 
-	return 0;
+    return 0;
+}
+
+void RenderProcess(const URenderer& InRenderer)
+{
+	InRenderer.Prepare();
+	InRenderer.PrepareShader();
+
+
+	// ImGui 렌더링 (TimeManager 정보 표시 가능)
+	FImGuiManager::RenderImGui();
+
+	// 백버퍼 스왑
+	InRenderer.SwapBuffer();
 }
 
 /**

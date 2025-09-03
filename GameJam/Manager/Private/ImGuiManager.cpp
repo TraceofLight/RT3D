@@ -5,13 +5,15 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
+#include "Mesh/Public/UBall.h"
 #include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
 #include "Manager/Public/UIManager.h"
-
+#include "Manager/Public/SceneManager.h"
+#include "Scene/Public/Scene.h"
 /**
  * @brief ImGui Initializer
  */
@@ -38,15 +40,45 @@ void FImGuiManager::RenderImGui()
 	// Get New Frame
 	ImGui_ImplDX11_NewFrame();
 	ImGui_ImplWin32_NewFrame();
+	static bool bShowCredits = false;
 	ImGui::NewFrame();
 
-	static bool bShowCredits = false;
 
-	ImGui::Begin("Jungle Property Window");
+	if (SceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
+	{
+		RenderGameGui();
+	}
+
+	else
+	{
+		ImGui::Begin("Game UI");
+
+		UIManager::GetInstance().Render();
+
+		ImGui::End();
+
+		if (bShowCredits)
+		{
+			ImGui::Begin("Credits");
+			ImGui::Text("Team 5");
+			ImGui::Text("Kim HeeJun, Lee HoJin,");
+			ImGui::Text("Jung SeYeon, Heo Jun");
+			ImGui::End();
+		}
+	}
+
+
+	// Render ImGui
+	ImGui::Render();
+	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+}
+
+void FImGuiManager::RenderGameGui()
+{
 
 	/** 여기서부터 ImGui에 필요한 UI 작성 **/
 
-	ImGui::Text("Hello Jungle World!");
+	ImGui::Begin("properties");
 
 	// ----- Triangle UI 추가 시작 -----
 	ImGui::Separator();
@@ -174,31 +206,6 @@ void FImGuiManager::RenderImGui()
 		ImGui::Text("Current Score: %d", ScoreManager->GetCurrentScore());
 	}
 
-	ImGui::End();
-
 	ImGui::SetNextWindowPos(ImVec2(0, 0));
-	ImGui::Begin("Options");
-	if (ImGui::Button("Credits"))
-		bShowCredits = true;
 	ImGui::End();
-
-	ImGui::Begin("Game UI");
-
-	UIManager::GetInstance().Render();
-
-	ImGui::End();
-
-	if (bShowCredits)
-	{
-		ImGui::Begin("Credits");
-		ImGui::Text("Team 5");
-		ImGui::Text("Kim HeeJun, Lee HoJin,");
-		ImGui::Text("Jung SeYeon, Heo Jun");
-		ImGui::End();
-	}
-
-
-	// Render ImGui
-	ImGui::Render();
-	ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
