@@ -61,9 +61,15 @@ void URenderer::CreateDeviceAndSwapChain(HWND InWindowHandle)
 	// 생성된 스왑 체인의 정보 가져오기
 	SwapChain->GetDesc(&swapchaindesc);
 
-	// 뷰포트 정보 설정
+	float GameAreaWidth = (float)swapchaindesc.BufferDesc.Width * 0.7f;
 	ViewportInfo = {
-		0.0f, 0.0f, (float)swapchaindesc.BufferDesc.Width,
+		0.0f, 0.0f, GameAreaWidth,
+		(float)swapchaindesc.BufferDesc.Height, 0.0f, 1.0f
+	};
+
+	// UI 영역을 위한 뷰포트 정보도 저장
+	UIViewportInfo = {
+		GameAreaWidth, 0.0f, (float)swapchaindesc.BufferDesc.Width - GameAreaWidth,
 		(float)swapchaindesc.BufferDesc.Height, 0.0f, 1.0f
 	};
 }

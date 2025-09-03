@@ -3,6 +3,7 @@
 
 FScoreManager* FScoreManager::Instance = nullptr;
 int FScoreManager::CurrentScore = 0;
+vector<FScoreEntry> FScoreManager::Leaderboard;
 
 FScoreManager::FScoreManager()
 {
@@ -26,6 +27,7 @@ FScoreManager* FScoreManager::GetInstance()
 void FScoreManager::Initialize()
 {
 	TimeSinceLastScore = 0.0f;
+	LoadLeaderboard();
 }
 
 void FScoreManager::Update()
@@ -43,4 +45,51 @@ void FScoreManager::AddScore(int InScore)
 int FScoreManager::GetCurrentScore()
 {
 	return CurrentScore;
+}
+
+void FScoreManager::ResetCurrentScore()
+{
+	CurrentScore = 0;
+}
+
+void FScoreManager::SubmitScore(const string& playerName)
+{
+	Leaderboard.emplace_back(CurrentScore, playerName);
+	
+	// 점수 기준 내림차순 정렬
+	sort(Leaderboard.begin(), Leaderboard.end(), [](const FScoreEntry& a, const FScoreEntry& b) {
+		return a.Score > b.Score;
+	});
+	
+	// 상위 10개만 유지
+	if (Leaderboard.size() > MaxLeaderboardEntries)
+	{
+		Leaderboard.resize(MaxLeaderboardEntries);
+	}
+	
+	SaveLeaderboard();
+}
+
+const vector<FScoreEntry>& FScoreManager::GetLeaderboard() const
+{
+	return Leaderboard;
+}
+
+void FScoreManager::LoadLeaderboard()
+{
+	// 실제 파일에서 로드하는 대신 샘플 데이터로 초기화
+	if (Leaderboard.empty())
+	{
+		Leaderboard.push_back(FScoreEntry(10000, "Player1"));
+		Leaderboard.push_back(FScoreEntry(8500, "Player2"));
+		Leaderboard.push_back(FScoreEntry(7200, "Player3"));
+		Leaderboard.push_back(FScoreEntry(6800, "Player4"));
+		Leaderboard.push_back(FScoreEntry(5400, "Player5"));
+	}
+}
+
+void FScoreManager::SaveLeaderboard()
+{
+	// TODO: 실제 파일 저장 구현
+	// 현재는 메모리에만 보관
 }

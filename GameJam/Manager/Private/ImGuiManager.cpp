@@ -198,8 +198,131 @@ void FImGuiManager::RenderLobbyGui()
 
 void FImGuiManager::RenderGameGui()
 {
-	// 키 입력 상태를 표시하는 창 추가
-	ImGui::Begin("Key Input Status");
+	// Get Screen Info
+	ImGuiIO& IO = ImGui::GetIO();
+	float ScreenWidth = IO.DisplaySize.x;
+	float ScreenHeight = IO.DisplaySize.y;
+
+	// Panel Setting
+	float RightPanelWidth = 300.0f;
+	float CurrentY = 10.0f;
+	float WindowPadding = 10.0f;
+	float RightPanelX = ScreenWidth - RightPanelWidth - WindowPadding;
+
+	// Pinball Title
+	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
+	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, 70.0f));
+	ImGui::Begin("Pinball", nullptr,
+	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+	ImGui::SetWindowFontScale(2.0f);
+	const char* Title = "Pinball";
+	float TitleWidth = ImGui::CalcTextSize(Title).x;
+	ImGui::SetCursorPosX((RightPanelWidth - TitleWidth) * 0.5f);
+	ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "%s", Title);
+
+	// Reset Font Size
+	ImGui::SetWindowFontScale(1.0f);
+
+	ImGui::End();
+	CurrentY += 80.0f;
+
+	// Current Score
+	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
+	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, 90.0f));
+	ImGui::Begin("Current Score", nullptr,
+	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+	FScoreManager* ScoreManager = FScoreManager::GetInstance();
+	if (ScoreManager)
+	{
+		ImGui::SetWindowFontScale(1.5f);
+		ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Score: %d", ScoreManager->GetCurrentScore());
+		ImGui::SetWindowFontScale(1.0f);
+	}
+
+	ImGui::End();
+	CurrentY += 100.0f;
+
+	// Leaderboard
+	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
+	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, 200.0f));
+	ImGui::Begin("Leaderboard", nullptr,
+	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+	if (ScoreManager)
+	{
+		const vector<FScoreEntry>& leaderboard = ScoreManager->GetLeaderboard();
+		ImGui::Text("Top 10 Scores:");
+		ImGui::Separator();
+
+		for (size_t i = 0; i < leaderboard.size(); ++i)
+		{
+			ImVec4 textColor = (i < 3) ? ImVec4(1.0f, 0.8f, 0.2f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+			ImGui::TextColored(textColor, "%d. %s - %d",
+			                   static_cast<int>(i + 1),
+			                   leaderboard[i].PlayerName.c_str(),
+			                   leaderboard[i].Score);
+		}
+	}
+
+	ImGui::End();
+	CurrentY += 210.0f;
+
+	// Frame Performance Info
+	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
+	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, 120.0f));
+	ImGui::Begin("Frame Performance Info", nullptr,
+	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
+
+	FTimeManager* TimeManager = FTimeManager::GetInstance();
+	if (TimeManager)
+	{
+		float CurrentFPS = TimeManager->GetFPS();
+		ImVec4 FPSColor;
+
+		if (CurrentFPS >= 60.0f)
+		{
+			FPSColor = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 녹색 (우수)
+		}
+		else if (CurrentFPS >= 30.0f)
+		{
+			FPSColor = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 (보통)
+		}
+		else
+		{
+			FPSColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 빨간색 (주의)
+		}
+
+		ImGui::TextColored(FPSColor, "FPS: %.1f", CurrentFPS);
+		ImGui::Text("Delta Time: %.2f ms", TimeManager->GetDeltaTime() * 1000.0f);
+		ImGui::Text("Game Time: %.1f s", TimeManager->GetGameTime());
+
+		ImGui::Separator();
+
+		if (TimeManager->IsPaused())
+		{
+			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "Game Paused");
+		}
+		else
+		{
+			ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Game Resumed");
+		}
+	}
+	else
+	{
+		ImGui::Text("TimeManager를 찾을 수 없습니다.");
+	}
+
+	ImGui::End();
+	CurrentY += 130.0f;
+
+	// Key Input Status
+	float keyInputHeight = ScreenHeight - CurrentY - WindowPadding;
+	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
+	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, keyInputHeight));
+	ImGui::Begin("Key Input Status", nullptr,
+	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
 	// KeyManager에서 현재 눌린 키들 가져오기
 	FInputManager* KeyManager = FInputManager::GetInstance();
@@ -207,7 +330,7 @@ void FImGuiManager::RenderGameGui()
 	{
 		vector<EKeyInput> PressedKeys = KeyManager->GetPressedKeys();
 
-		ImGui::Text("Pressed Keys: ");
+		ImGui::Text("Pressed Keys:");
 		ImGui::Separator();
 
 		if (PressedKeys.empty())
@@ -227,75 +350,15 @@ void FImGuiManager::RenderGameGui()
 
 		// 마우스 위치 표시
 		FVector2 MousePosition = KeyManager->GetMousePosition();
-		ImGui::Text("Mouse Position: (%.0f, %.0f)", MousePosition.x, MousePosition.y);
+		ImGui::Text("Mouse: (%.0f, %.0f)", MousePosition.x, MousePosition.y);
+		ImGui::Text("Total Keys: %d", static_cast<int>(PressedKeys.size()));
 
-		ImGui::Text("Total %d Key Typing Now", static_cast<int>(PressedKeys.size()));
-
-		ImGui::Spacing();
-		ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "Manual: ");
+		ImGui::Separator();
+		ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "Controls:");
 		ImGui::Text("ESC: Exit");
-		ImGui::Text("Space: Charge Shooter (Hold / Release)");
+		ImGui::Text("Space: Shooter (Hold/Release)");
 		ImGui::Text("Delete: Remove Ball");
 	}
 
-	ImGui::End();
-
-	ImGui::Begin("Frame Performance Info");
-
-	FTimeManager* TimeManager = FTimeManager::GetInstance();
-
-	if (TimeManager)
-	{
-		ImGui::Text("Current FPS: %.1f", TimeManager->GetFPS());
-		ImGui::Text("Delta Time: %.4f ms", TimeManager->GetDeltaTime() * 1000.0f);
-		ImGui::Text("Game Time: %.2f s", TimeManager->GetGameTime());
-
-		ImGui::Separator();
-
-		if (TimeManager->IsPaused())
-		{
-			ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "Game Paused");
-		}
-		else
-		{
-			ImGui::TextColored(ImVec4(0.5f, 1.0f, 0.5f, 1.0f), "Game Resumed");
-		}
-
-		ImGui::Separator();
-
-		float CurrentFPS = TimeManager->GetFPS();
-		ImVec4 FPSColor;
-
-		if (CurrentFPS >= 60.0f)
-		{
-			FPSColor = ImVec4(0.0f, 1.0f, 0.0f, 1.0f); // 녹색 (우수)
-		}
-		else if (CurrentFPS >= 30.0f)
-		{
-			FPSColor = ImVec4(1.0f, 1.0f, 0.0f, 1.0f); // 노란색 (보통)
-		}
-		else
-		{
-			FPSColor = ImVec4(1.0f, 0.0f, 0.0f, 1.0f); // 빨간색 (주의)
-		}
-
-		ImGui::TextColored(FPSColor, "Current FPS: %.1f", CurrentFPS);
-	}
-	else
-	{
-		ImGui::Text("TimeManager를 찾을 수 없습니다.");
-	}
-
-	ImGui::End();
-
-	ImGui::Begin("Current Score");
-
-	FScoreManager* ScoreManager = FScoreManager::GetInstance();
-	if (ScoreManager)
-	{
-		ImGui::Text("Current Score: %d", ScoreManager->GetCurrentScore());
-	}
-
-	ImGui::SetNextWindowPos(ImVec2(0, 0));
 	ImGui::End();
 }
