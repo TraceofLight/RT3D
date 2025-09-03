@@ -282,6 +282,21 @@ void URenderer::RenderRectangle() const
 }
 
 /**
+ * @brief Triangle 그리는 함수
+ */
+void URenderer::RenderTriangle() const
+{
+	if (!vertexBufferTriangle)
+	{
+		return;
+	}
+
+	UINT Offset = 0;
+	DeviceContext->IASetVertexBuffers(0, 1, &vertexBufferTriangle, &Stride, &Offset);
+	DeviceContext->Draw(3, 0);
+}
+
+/**
  * @brief 정점 Buffer 생성 함수
  * @param InVertices
  * @param InByteWidth
@@ -379,6 +394,8 @@ void URenderer::UpdateConstant(FVector3 InOffset, float InScale) const
 			constants->Offset = InOffset;
 			constants->ScaleX = InScale;
 			constants->ScaleY = InScale;
+			constants->Rotation = 0.0f;
+			constants->Radius = 0.0f;
         }
         DeviceContext->Unmap(ConstantBuffer, 0);
     }
@@ -402,7 +419,25 @@ void URenderer::UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, fl
 			constants->Offset = InOffset;
 			constants->ScaleX = InScaleX * 0.5f;
 			constants->ScaleY = InScaleY * 0.5f;
+			constants->Rotation = 0.0f;
+			constants->Radius = 0.0f;
 		}
+		DeviceContext->Unmap(ConstantBuffer, 0);
+	}
+}
+
+void URenderer::UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation, float InRadius) const
+{
+	if (ConstantBuffer)
+	{
+		D3D11_MAPPED_SUBRESOURCE msr;
+		DeviceContext->Map(ConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		FConstants* c = (FConstants*)msr.pData;
+		c->Offset = InOffset;
+		c->ScaleX = InBase;
+		c->ScaleY = InHeight;
+		c->Rotation = InRotation;
+		c->Radius = InRadius;
 		DeviceContext->Unmap(ConstantBuffer, 0);
 	}
 }

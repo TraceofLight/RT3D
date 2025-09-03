@@ -147,6 +147,7 @@
     <ClCompile Include="Actor\Private\Shooter.cpp" />
     <ClCompile Include="Mesh\Private\UBall.cpp" />
     <ClCompile Include="Mesh\Private\URectangle.cpp" />
+    <ClCompile Include="Mesh\Private\UTriangle.cpp" />
     <ClCompile Include="Core\Private\Primitive.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
@@ -168,6 +169,8 @@
   <ItemGroup>
     <ClInclude Include="Actor\Public\PinBall.h" />
     <ClInclude Include="Actor\Public\Shooter.h" />
+    <ClInclude Include="Asset\Triangle.h" />
+    <ClInclude Include="Asset\Rectangle.h" />
     <ClInclude Include="Asset\Sphere.h" />
     <ClInclude Include="Core\Public\Primitive.h"/>
     <ClInclude Include="Global\Enum.h" />
@@ -186,8 +189,8 @@
     <ClInclude Include="Manager\Public\ImGuiManager.h" />
     <ClInclude Include="Manager\Public\ScoreManager.h" />
     <ClInclude Include="Manager\Public\TimeManager.h" />
-    <ClInclude Include="Mesh\Public\UBall.h" />
     <ClInclude Include="Mesh\Public\URectangle.h" />
+    <ClInclude Include="Mesh\Public\UTriangle.h" />
     <ClInclude Include="pch.h"/>
     <ClInclude Include="Render\Public\Renderer.h"/>
   </ItemGroup>
