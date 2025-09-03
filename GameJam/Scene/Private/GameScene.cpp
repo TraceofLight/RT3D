@@ -11,7 +11,6 @@
 #include "Mesh/Public/UTriangle.h"
 #include "Actor/Public/PadPair.h"
 
-
 GameScene::GameScene() : Scene("GAME")
 {
 	Init();

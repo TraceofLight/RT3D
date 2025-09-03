@@ -43,6 +43,7 @@ public:
 
 	FLOAT ClearColor[4] = {0.025f, 0.025f, 0.025f, 1.0f};
 	D3D11_VIEWPORT ViewportInfo;
+	D3D11_VIEWPORT UIViewportInfo;
 
 	ID3D11VertexShader* SimpleVertexShader;
 	ID3D11PixelShader* SimplePixelShader;
