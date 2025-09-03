@@ -31,14 +31,14 @@ void UShooter::Charging()
 	ChargingTime += DT;
 
 	ChargingTime = min(ChargingTime, 3.0f);
-	OutputDebugStringA(("[SHOOTER] Charging Time: " + to_string(ChargingTime) + "\n").c_str());
+	DEBUG_PRINT_FORMAT("[SHOOTER] Charging Time: %.2f\n", ChargingTime);
 }
 
 void UShooter::Shoot()
 {
 	// 생성되는 볼에 속도를 전달해야 함
 	float ShotPower = ChargingTime * 2.0f; // 차징 시간에 비례한 파워
-	OutputDebugStringA(("[SHOOTER] Shot Power: " + to_string(ShotPower) + "\n").c_str());
+	DEBUG_PRINT_FORMAT("[SHOOTER] Shot Power: %.2f\n", ShotPower);
 
 	// UBall 대신 PinBall 사용
 	UPinBall* NewBall = new UPinBall();
@@ -49,12 +49,11 @@ void UShooter::Shoot()
 	float LaunchSpeed = ShotPower * 5.0f;
 	NewBall->GetVelocity() = FVector3(0.0f, LaunchSpeed, 0.0f);
 
-	OutputDebugStringA(
-		("[SHOOTER] Ball created at (" + to_string(NewBall->GetLocation().x) + ", " +
-			to_string(NewBall->GetLocation().y) + ") with velocity (" + to_string(NewBall->GetVelocity().x) + ", " +
-			to_string(NewBall->GetVelocity().y) + ")\n").c_str());
+	DEBUG_PRINT_FORMAT("[SHOOTER] Ball created at (%.2f, %.2f) with velocity (%.2f, %.2f)\n",
+		NewBall->GetLocation().x, NewBall->GetLocation().y,
+		NewBall->GetVelocity().x, NewBall->GetVelocity().y);
 
-	OutputDebugStringA("[SHOOTER] Ball creation attempted\n");
+	DEBUG_PRINT("[SHOOTER] Ball creation attempted\n");
 
 	// 차징 시간 초기화
 	ChargingTime = 0.0f;
