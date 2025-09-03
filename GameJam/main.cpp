@@ -86,22 +86,6 @@ static void MainLoop(URenderer& InRenderer)
 	FInputManager* KeyManager = FInputManager::GetInstance();
 	FSceneManager* SceneManager = &FSceneManager::GetInstance();
 
-	// UShooter Shooter;
-	// Shooter.SetLocation({0.3f, -0.8f, 0.0f});
-	// PadPair 설정
-	FPadPairConfig PadCfg;
-	PadCfg.Base = 0.05f;
-	PadCfg.Height = 0.3f;
-	PadCfg.XOffset = 0.30f;
-	PadCfg.YOffset = -0.65f;
-	PadCfg.MidAngleDeg = 90.f;
-	PadCfg.SweepHalfDeg = 30.f;
-	PadCfg.RotationSpeedDeg = 360.f;
-	PadCfg.KeyLeft = EKeyInput::A;
-	PadCfg.KeyRight = EKeyInput::D;
-
-	GPadPair.Init(PadCfg);
-
 	bool bIsExit = false;
 	while (!bIsExit)
 	{
@@ -134,10 +118,13 @@ static void MainLoop(URenderer& InRenderer)
 		Scene* CurrentScene = SceneManager->GetCurrentScene();
 		if (CurrentScene)
 		{
-			CurrentScene->Update(TimeManager->GetDeltaTime());
-			if (CurrentScene == SceneManager->GetCurrentScene())
+			if (!CurrentScene->GetPause())
 			{
-				CurrentScene->Render();
+				CurrentScene->Update(TimeManager->GetDeltaTime());
+				if (CurrentScene == SceneManager->GetCurrentScene())
+				{
+					CurrentScene->Render();
+				}
 			}
 		}
 

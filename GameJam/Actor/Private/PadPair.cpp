@@ -79,5 +79,3 @@ void UPadPair::Render(const URenderer& Renderer)
 	LeftPad.Render(Renderer);
 	RightPad.Render(Renderer);
 }
-
-UPadPair GPadPair = UPadPair();

@@ -47,6 +47,51 @@ void FImGuiManager::RenderImGui()
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
 	{
 		RenderGameGui();
+		if (FSceneManager::GetInstance().GetCurrentScene()->GetPause())
+		{
+			// 화면 중앙 좌표 가져오기
+			const ImGuiViewport* viewport = ImGui::GetMainViewport();
+			ImVec2 center = viewport->GetCenter();
+
+			// 창 위치와 크기 설정
+			ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+			ImGui::SetNextWindowSize(ImVec2(400, 250), ImGuiCond_Always);
+
+			// 창 스타일 플래그 설정
+			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+
+			// "GameOver!" 창 그리기 시작
+			ImGui::Begin("GameOver!", nullptr, window_flags);
+
+			// GameOver 텍스트를 크게 중앙에 표시
+			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("GAME OVER").x) * 0.5f);
+			ImGui::Text("GAME OVER");
+
+			ImGui::Spacing(); // 약간의 간격 추가
+			ImGui::Separator(); // 구분선 추가
+			ImGui::Spacing();
+			ImGui::Spacing();
+
+			// RESTART 버튼 중앙 정렬 및 그리기
+			float restartButtonWidth = 150; // 버튼 크기를 고정하거나 계산
+			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - restartButtonWidth) * 0.5f);
+			if (ImGui::Button("RESTART", ImVec2(restartButtonWidth, 40)))
+			{
+				FSceneManager::GetInstance().LoadScene("GAME");
+			}
+
+			ImGui::Spacing();
+
+			// EXIT TO LOBBY 버튼 중앙 정렬 및 그리기
+			float exitButtonWidth = 150;
+			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - exitButtonWidth) * 0.5f);
+			if (ImGui::Button("EXIT TO LOBBY", ImVec2(exitButtonWidth, 40)))
+			{
+				FSceneManager::GetInstance().LoadScene("LOBBY");
+			}
+
+			ImGui::End();
+		}
 	}
 
 	else

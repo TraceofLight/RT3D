@@ -25,6 +25,7 @@ GameScene::~GameScene()
 
 void GameScene::Init()
 {
+	pause = false;
     m_Rectangle = new URectangle();
 
 	Shooter = new UShooter();
@@ -32,21 +33,26 @@ void GameScene::Init()
 
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
-	// TESTING
-	FVector3 randomLocation = FVector3(-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f,
-	-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f, 1.0f);
-
-	float randomRotation = -0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f;
-
-	// AddNewTriangle(randomLocation, randomRotation, 0.3f, 0.9f);
-	AddNewRectangle(randomLocation, randomRotation, 0.1f, 0.1f);
-	// AddNewRectangle(FVector3(), 1.0f, 1.0f, 1.0f);
-	// AddNewBall();
 
 	// right wall
 	AddNewRectangle(FVector3(0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
 	// left wall
 	AddNewRectangle(FVector3(-0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
+
+	// PadPair 설정
+	FPadPairConfig PadCfg;
+	PadCfg.Base = 0.05f;
+	PadCfg.Height = 0.3f;
+	PadCfg.XOffset = 0.30f;
+	PadCfg.YOffset = -0.65f;
+	PadCfg.MidAngleDeg = 90.f;
+	PadCfg.SweepHalfDeg = 30.f;
+	PadCfg.RotationSpeedDeg = 360.f;
+	PadCfg.KeyLeft = EKeyInput::A;
+	PadCfg.KeyRight = EKeyInput::D;
+
+	m_PadPair = new UPadPair();
+	m_PadPair->Init(PadCfg);
 }
 
 void GameScene::Update(float deltaTime)
@@ -73,7 +79,12 @@ void GameScene::Update(float deltaTime)
 
     // m_Rectangle->Move();
 
-	GPadPair.Update(KeyManager, TimeManager->GetDeltaTime());
+	//m_PadPair.Update(KeyManager, TimeManager->GetDeltaTime());
+	if (isGameOver())
+	{
+		pause = true;
+	}
+	m_PadPair->Update(KeyManager, TimeManager->GetDeltaTime());
 
     // HandleCollisions();
     HandleBallRectangleCollisions();
@@ -99,6 +110,7 @@ void GameScene::Cleanup()
     }
 
 	delete Shooter;
+	delete m_PadPair;
 
     m_TotalPrimitives = 0;
 }
@@ -125,8 +137,12 @@ void GameScene::InputProcess()
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
 		{
 			// 스페이스바를 뗐을 때 발사
-  			Shooter->Shoot();
-			DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
+			if (!bIsBallSpawned)
+			{
+				Shooter->Shoot();
+				bIsBallSpawned = true;
+				DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
+			}
 		}
 	}
 }
@@ -173,7 +189,7 @@ void GameScene::RenderProcess()
     }
 
 	// PadPair 렌더링
-	GPadPair.Render(*Renderer);
+	m_PadPair->Render(*Renderer);
 }
 
 /**
@@ -337,8 +353,8 @@ void GameScene::HandleBallPadPairCollisions()
 		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
 		if (Ball!=nullptr)
 		{
-			ResolveBallTriangle(Ball, GPadPair.Left().GetShape());
-			ResolveBallTriangle(Ball, GPadPair.Right().GetShape());
+			ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
+			ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
 		}
 	}
 }
@@ -369,7 +385,6 @@ void GameScene::AddNewBall()
 
 void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height)
 {
-	std::cout << "adding new rectangle!" << std::endl;
 	// Create the rectangle
 	URectangle* NewRectangle = new URectangle();
 	NewRectangle->Location = location;
@@ -379,18 +394,41 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	NewRectangle->Mass = width * height;
 	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
 
-
 	FSceneManager& FCM = FSceneManager::GetInstance();
 	Scene* currentScene = FCM.GetCurrentScene();
 	// Add to the vector
 	currentScene->GetScenePrimitives()->push_back(NewRectangle);
-	std::cout << "list: " << m_PrimitiveList->size() << std::endl;
 
 	// Update total count
 	++m_TotalPrimitives;
 }
 
-void GameScene::AddNewTriangle()
+void GameScene::AddNewTriangle(FVector3 location, float rotation, float base, float height)
 {
+	UTriangle* NewTriangle = new UTriangle();
+	NewTriangle->Location = location;
+	NewTriangle->Rotation = rotation;
+	NewTriangle->Base = base;
+	NewTriangle->Height = height;
 
+	FSceneManager& FCM = FSceneManager::GetInstance();
+	Scene* currentScene = FCM.GetCurrentScene();
+	// Add to the vector
+	currentScene->GetScenePrimitives()->push_back(NewTriangle);
+
+	// Update total count
+	++m_TotalPrimitives;
+}
+
+bool GameScene::isGameOver()
+{
+	if (m_TotalPrimitives > 0)
+	{
+		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[0]);
+		if (Ball->GetLocation().y < -1.0f)
+		{
+			return true;
+		}
+	}
+	return false;
 }
