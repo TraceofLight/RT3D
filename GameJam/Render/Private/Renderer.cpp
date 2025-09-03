@@ -419,7 +419,7 @@ void URenderer::UpdateConstant(FVector3 InOffset, float InScale) const
  * @param InScaleX Rectangle Width
  * @param InScaleY Rectangle Height
  */
-void URenderer::UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY, float InRotation) const
+void URenderer::UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY) const
 {
 	if (ConstantBuffer)
 	{
@@ -431,7 +431,7 @@ void URenderer::UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, fl
 			constants->Offset = InOffset;
 			constants->ScaleX = InScaleX * 0.5f;
 			constants->ScaleY = InScaleY * 0.5f;
-			constants->Rotation = InRotation;
+			constants->Rotation = 0.0f;
 			constants->Radius = 0.0f;
 		}
 		DeviceContext->Unmap(ConstantBuffer, 0);
