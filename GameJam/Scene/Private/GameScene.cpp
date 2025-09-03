@@ -26,7 +26,8 @@ void GameScene::Init()
 {
 	pause = false;
     m_Rectangle = new URectangle();
-
+	m_Shooted = false;
+	m_ActorBall = nullptr;
 	Shooter = new UShooter();
 	Shooter->SetLocation({0.4f, -0.8f, 0.0f});
 
@@ -150,8 +151,12 @@ void GameScene::InputProcess()
 		}
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
 		{
-			Shooter->Shoot();
-			DEBUG_PRINT("[Shooter] Shooter Fire!\n");
+			if (!m_Shooted)
+			{
+				m_Shooted = true;
+				m_ActorBall = Shooter->Shoot();
+				DEBUG_PRINT("[Shooter] Shooter Fire!\n");
+			}
 		}
 	}
 	else if (Shooter && !Shooter->CanShoot())
@@ -200,7 +205,7 @@ void GameScene::CheckBallTriggers()
 					m_BallsToDelete.push_back(PinBall);
 					DEBUG_PRINT("[Ball Trigger] Ball marked for deletion\n");
 				}
-			}
+			// 스페이스바를 뗐을 때 발사
 		}
 	}
 }
@@ -480,14 +485,16 @@ void GameScene::AddNewTriangle(FVector3 location, float rotation, float base, fl
 
 bool GameScene::isGameOver()
 {
-	if (m_TotalPrimitives > 0)
+	UPinBall* Ball = m_ActorBall;
+	if (Ball != nullptr)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[0]);
+
 		if (Ball->GetLocation().y < -1.0f)
 		{
 			return true;
 		}
 	}
+
 	return false;
 }
 

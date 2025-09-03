@@ -38,7 +38,7 @@ void UShooter::Charging()
 	DEBUG_PRINT_FORMAT("[SHOOTER] Charging Time: %.2f\n", ChargingTime);
 }
 
-void UShooter::Shoot()
+UPinBall* UShooter::Shoot()
 {
 	// 발사 가능성 검사
 	if (!bHasBallLoaded)
@@ -75,6 +75,8 @@ void UShooter::Shoot()
 
 	FSceneManager& SceneManager = FSceneManager::GetInstance();
 	SceneManager.AddPrimitiveToScene(NewBall);
+
+	return NewBall;
 }
 
 void UShooter::LoadBall()

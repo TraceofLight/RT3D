@@ -1,6 +1,6 @@
 #pragma once
 #include "Mesh/Public/URectangle.h"
-
+#include "Actor/Public/PinBall.h"
 class UShooter :
 	public UPrimitive
 {
@@ -15,7 +15,7 @@ public:
 	void Init();
 	void Destroy();
 	void Charging();
-	void Shoot();
+	UPinBall* Shoot();
 	void LoadBall();
 	void OnBallTrigger();
 
