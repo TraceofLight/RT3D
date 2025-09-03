@@ -1,29 +1,29 @@
 #include "pch.h"
-#include "Manager/Public/KeyManager.h"
+#include "Manager/Public/InputManager.h"
 #include <magic_enum/magic_enum.hpp>
 
-FKeyManager* FKeyManager::Instance = nullptr;
+FInputManager* FInputManager::Instance = nullptr;
 
-FKeyManager::FKeyManager()
+FInputManager::FInputManager()
 {
 	InitializeKeyMapping();
 }
 
-FKeyManager::~FKeyManager()
+FInputManager::~FInputManager()
 {
 	Instance = nullptr;
 }
 
-FKeyManager* FKeyManager::GetInstance()
+FInputManager* FInputManager::GetInstance()
 {
 	if (!Instance)
 	{
-		Instance = new FKeyManager();
+		Instance = new FInputManager();
 	}
 	return Instance;
 }
 
-void FKeyManager::InitializeKeyMapping()
+void FInputManager::InitializeKeyMapping()
 {
 	// 알파벳 키 매핑
 	VirtualKeyMap['W'] = EKeyInput::W;
@@ -80,10 +80,13 @@ void FKeyManager::InitializeKeyMapping()
 	}
 }
 
-void FKeyManager::Update()
+void FInputManager::Update()
 {
 	// 이전 프레임 상태를 현재 프레임 상태로 복사
 	PreviousKeyState = CurrentKeyState;
+
+	// 마우스 위치 업데이트
+	UpdateMousePosition();
 
 	// GetAsyncKeyState를 사용하여 현재 키 상태를 업데이트
 	for (auto& Pair : VirtualKeyMap)
@@ -104,7 +107,22 @@ void FKeyManager::Update()
 	}
 }
 
-bool FKeyManager::IsKeyDown(EKeyInput InKey) const
+void FInputManager::UpdateMousePosition()
+{
+	PreviousMousePosition = CurrentMousePosition;
+
+	POINT MousePoint;
+	if (GetCursorPos(&MousePoint))
+	{
+		ScreenToClient(GetActiveWindow(), &MousePoint);
+		CurrentMousePosition.x = static_cast<float>(MousePoint.x);
+		CurrentMousePosition.y = static_cast<float>(MousePoint.y);
+	}
+
+	MouseDelta = CurrentMousePosition - PreviousMousePosition;
+}
+
+bool FInputManager::IsKeyDown(EKeyInput InKey) const
 {
 	auto Iter = CurrentKeyState.find(InKey);
 	if (Iter != CurrentKeyState.end())
@@ -114,7 +132,7 @@ bool FKeyManager::IsKeyDown(EKeyInput InKey) const
 	return false;
 }
 
-bool FKeyManager::IsKeyPressed(EKeyInput InKey) const
+bool FInputManager::IsKeyPressed(EKeyInput InKey) const
 {
 	auto CurrentIter = CurrentKeyState.find(InKey);
 	auto PrevIter = PreviousKeyState.find(InKey);
@@ -128,7 +146,7 @@ bool FKeyManager::IsKeyPressed(EKeyInput InKey) const
 	return false;
 }
 
-bool FKeyManager::IsKeyReleased(EKeyInput InKey) const
+bool FInputManager::IsKeyReleased(EKeyInput InKey) const
 {
 	auto CurrentIter = CurrentKeyState.find(InKey);
 	auto PrevIter = PreviousKeyState.find(InKey);
@@ -141,7 +159,7 @@ bool FKeyManager::IsKeyReleased(EKeyInput InKey) const
 	return false;
 }
 
-void FKeyManager::ProcessKeyMessage(UINT InMessage, WPARAM WParam, LPARAM LParam)
+void FInputManager::ProcessKeyMessage(UINT InMessage, WPARAM WParam, LPARAM LParam)
 {
 	// Windows 메시지 기반 키 처리 (옵션)
 	// 현재는 GetAsyncKeyState를 주로 사용하므로 필요시 구현
@@ -198,7 +216,7 @@ void FKeyManager::ProcessKeyMessage(UINT InMessage, WPARAM WParam, LPARAM LParam
 	}
 }
 
-vector<EKeyInput> FKeyManager::GetKeysByStatus(EKeyStatus InStatus) const
+vector<EKeyInput> FInputManager::GetKeysByStatus(EKeyStatus InStatus) const
 {
 	vector<EKeyInput> Keys;
 
@@ -214,7 +232,7 @@ vector<EKeyInput> FKeyManager::GetKeysByStatus(EKeyStatus InStatus) const
 	return Keys;
 }
 
-EKeyStatus FKeyManager::GetKeyStatus(EKeyInput InKey) const
+EKeyStatus FInputManager::GetKeyStatus(EKeyInput InKey) const
 {
 	auto CurrentIter = CurrentKeyState.find(InKey);
 	auto PrevIter = PreviousKeyState.find(InKey);
@@ -240,24 +258,24 @@ EKeyStatus FKeyManager::GetKeyStatus(EKeyInput InKey) const
 	return EKeyStatus::Up;
 }
 
-vector<EKeyInput> FKeyManager::GetPressedKeys() const
+vector<EKeyInput> FInputManager::GetPressedKeys() const
 {
 	return GetKeysByStatus(EKeyStatus::Down);
 }
 
-vector<EKeyInput> FKeyManager::GetNewlyPressedKeys() const
+vector<EKeyInput> FInputManager::GetNewlyPressedKeys() const
 {
 	// Pressed 상태의 키들을 반환
 	return GetKeysByStatus(EKeyStatus::Pressed);
 }
 
-vector<EKeyInput> FKeyManager::GetReleasedKeys() const
+vector<EKeyInput> FInputManager::GetReleasedKeys() const
 {
 	// Released 상태의 키들을 반환
 	return GetKeysByStatus(EKeyStatus::Released);
 }
 
-const char* FKeyManager::KeyInputToString(EKeyInput InKey)
+const char* FInputManager::KeyInputToString(EKeyInput InKey)
 {
 	static string KeyString;
 	KeyString = string(magic_enum::enum_name<EKeyInput>(InKey));

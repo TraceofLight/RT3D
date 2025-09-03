@@ -11,7 +11,7 @@
 #include "Actor/Public/UBall.h"
 #include "Actor/Public/URectangle.h"
 #include "Manager/Public/ImGuiManager.h"
-#include "Manager/Public/KeyManager.h"
+#include "Manager/Public/InputManager.h"
 #include "Render/Public/Renderer.h"
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
@@ -43,7 +43,7 @@ void RenderProcess(const URenderer& InRenderer);
 static void MainLoop(URenderer& InRenderer)
 {
 	FTimeManager* TimeManager = FTimeManager::GetInstance();
-	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 
 	bool bIsExit = false;
 	while (!bIsExit)
@@ -174,7 +174,7 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 
 	// Initialize Managers
 	FTimeManager::GetInstance();
-	FKeyManager::GetInstance();
+	FInputManager::GetInstance();
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -221,7 +221,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		PrimitiveList = nullptr;
 	}
 
-	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 	if (KeyManager)
 	{
 		delete KeyManager;
@@ -253,7 +253,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	}
 
 	// KeyManager에 메시지 전달 (옵션)
-	FKeyManager* KeyManager = FKeyManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 	if (KeyManager)
 	{
 		KeyManager->ProcessKeyMessage(message, wParam, lParam);

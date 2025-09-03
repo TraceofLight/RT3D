@@ -8,6 +8,71 @@ struct FVertexSimple
     float r, g, b, a; // Color
 };
 
+struct FVector2
+{
+    float x, y;
+
+    FVector2(float InX = 0, float InY = 0) : x(InX), y(InY)
+    {
+    }
+
+    // Vector operations
+    FVector2 operator+(const FVector2& InOther) const
+    {
+        return FVector2(x + InOther.x, y + InOther.y);
+    }
+
+    FVector2& operator+=(const FVector2& InOther)
+    {
+        x += InOther.x;
+        y += InOther.y;
+        return *this;
+    }
+
+    FVector2 operator-(const FVector2& InOther) const
+    {
+        return FVector2(x - InOther.x, y - InOther.y);
+    }
+
+    FVector2& operator-=(const FVector2& InOther)
+    {
+        x -= InOther.x;
+        y -= InOther.y;
+        return *this;
+    }
+
+    FVector2 operator*(float InScalar) const
+    {
+        return FVector2(x * InScalar, y * InScalar);
+    }
+
+    FVector2& operator*=(float InScalar)
+    {
+        x *= InScalar;
+        y *= InScalar;
+        return *this;
+    }
+
+    FVector2 operator/(float InScalar) const
+    {
+        return FVector2(x / InScalar, y / InScalar);
+    }
+
+    float LengthSquare() const { return x * x + y * y; }
+    float Length() const { return std::sqrtf(LengthSquare()); }
+
+    FVector2& Normalize()
+    {
+        float len = Length();
+        if (len > 0.0f)
+        {
+            x /= len;
+            y /= len;
+        }
+        return *this;
+    }
+};
+
 struct FVector3
 {
     float x, y, z;
