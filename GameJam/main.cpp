@@ -10,6 +10,7 @@
 #include "Asset/Rectangle.h"
 #include "Asset/Triangle.h"
 #include "Actor/Public/PinBall.h"
+#include "Actor/Public/Pad.h"
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/ImGuiManager.h"
@@ -99,6 +100,9 @@ static void MainLoop(URenderer& InRenderer)
 	UShooter Shooter;
 	Shooter.SetLocation({0.3f, -0.8f, 0.0f});
 
+	// Pad 키 설정
+	GLeftPad.SetRotationKey(EKeyInput::A);
+
 	bool bIsExit = false;
 	while (!bIsExit)
 	{
@@ -146,8 +150,8 @@ static void MainLoop(URenderer& InRenderer)
 		FSceneManager& SceneManager = FSceneManager::GetInstance();
 		vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
 
-		// Triangle 회전 업데이트
-		GTriangle.UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
+		// Pad 회전 업데이트
+		GLeftPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
 
 		// 공들의 물리 시뮬레이션 업데이트 (SceneManager에서 가져온 ball들)
 		for (UPrimitive* Primitive : ScenePrimitives)
@@ -196,10 +200,8 @@ void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
 	InRenderer.RenderRectangle();
 
-	// Triangle Render
-	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation,
-	                                     GTriangle.Radius);
-	InRenderer.RenderTriangle();
+	// Pad Render
+	GLeftPad.Render(InRenderer);
 
 	// Shooter 렌더링 (사각형으로 표시)
 	if (Shooter)

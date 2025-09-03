@@ -17,6 +17,7 @@ UPad::~UPad()
 void UPad::Init()
 {
 	Shape = new UTriangle();
+	Shape->Rotation = MinRotation; // 초기 위치를 최소 회전 각도로 설정
 }
 
 void UPad::Destroy()
@@ -50,12 +51,12 @@ void UPad::HandleInput(FInputManager* InInput, float InDeltaTime)
 		return;
 	}
 
-	float NewRotation = Shape->Rotation + Direction * Shape->RotationSpeed * InDeltaTime;
+	float NewRotation = Shape->Rotation + Direction * RotationSpeed * InDeltaTime;
 
 	if (bUseRotationLimit)
 	{
 		// 제한 모드: Clamp
-		Shape->Rotation = std::clamp(NewRotation, Shape->MinRotation, Shape->MaxRotation);
+		Shape->Rotation = std::clamp(NewRotation, MinRotation, MaxRotation);
 	}
 	else
 	{
@@ -69,3 +70,15 @@ void UPad::HandleInput(FInputManager* InInput, float InDeltaTime)
 		Shape->Rotation = NewRotation;
 	}
 }
+
+void UPad::SetRotationKey(EKeyInput InKey)
+{
+	RotationKey = InKey;
+}
+
+UTriangle* UPad::GetShape() const
+{
+	return Shape;
+}
+
+UPad GLeftPad = UPad();

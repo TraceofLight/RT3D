@@ -11,10 +11,6 @@ UTriangle::UTriangle()
 	Location.x = 0.0f;
 	Location.y = 0.0f;
 	Location.z = 0.0f;
-	// Velocity Setting
-	Velocity.x = 0.0f;
-	Velocity.y = 0.0f;
-	Velocity.z = 0.0f;
 	// Size Setting
 	Base = 0.1f;
 	Height = 1.0f;
