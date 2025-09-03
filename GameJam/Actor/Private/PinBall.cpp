@@ -78,8 +78,8 @@ void UPinBall::Move()
 	}
 
 	// Y축 벽 충돌
-	if ((Location.y > 1.0f - Shape->GetRadius() && Velocity.y > 0) || (Location.y < -1.0f + Shape->GetRadius() &&
-		Velocity.y < 0))
+	if ((Location.y > 1.0f - Shape->GetRadius() && Velocity.y > 0) /* || (Location.y < -1.0f + Shape->GetRadius() &&
+		Velocity.y < 0*/)
 	{
 		Velocity.y *= -1.0f; // 반사
 
