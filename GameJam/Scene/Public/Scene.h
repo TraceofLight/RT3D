@@ -1,7 +1,12 @@
 #pragma once
 
+class UPrimitive;
+
 class Scene
 {
+private:
+	vector<UPrimitive*> ScenePrimivites;
+
 public:
 	Scene(const string& name) : m_name(name), m_isActive(false)
 	{
@@ -17,6 +22,8 @@ public:
 	const string& GetName() const { return m_name; }
 	bool IsActive() const { return m_isActive; }
 	void SetActive(bool active) { m_isActive = active; }
+	void AddPrimitive(UPrimitive* InPrimitive) { ScenePrimivites.push_back(InPrimitive); }
+	vector<UPrimitive*> GetScenePrimitives() const { return ScenePrimivites; }
 
 protected:
 	std::string m_name;

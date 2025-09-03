@@ -2,17 +2,16 @@
 #include "Core/Public/Primitive.h"
 
 class UBall :
-    public UPrimitive
+	public UPrimitive
 {
+private:
+	float Radius;
+	float Mass;
+
 public:
-    FVector3 Location; // [Fixed]
-    FVector3 Velocity; // [Fixed]
-    float Radius; // [Fixed]
-    float Mass; // [Fixed]
-    static int TotalNumBalls; // [Fixed]
+	float GetRadius() const { return Radius; }
+	float GetMass() const { return Mass; }
 
 	UBall();
-
-	// TODO(KHJ): DT
-	void Move();
+	~UBall() override;
 };

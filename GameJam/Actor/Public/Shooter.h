@@ -7,12 +7,16 @@ class UShooter :
 private:
 	URectangle* Shape;
 	float ChargingTime;
+	FVector3 Location;
 
 public:
-	void Init() override;
-	void Destroy() override;
+	void Init();
+	void Destroy();
 	void Charging();
 	void Shoot();
+
+	FVector3 GetLocation() const { return Location; }
+	void SetLocation(const FVector3& InLocation) { Location = InLocation; }
 
 	UShooter();
 	~UShooter() override;
