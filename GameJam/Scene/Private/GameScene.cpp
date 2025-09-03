@@ -43,8 +43,6 @@ void GameScene::Init()
 	FPadPairConfig PadCfg;
 	PadCfg.Base = 0.05f;
 	PadCfg.Height = 0.3f;
-	PadCfg.CenterX = -0.4f;
-	PadCfg.CenterY = 0.0f;
 	PadCfg.XOffset = 0.30f;
 	PadCfg.YOffset = -0.65f;
 	PadCfg.MidAngleDeg = 90.f;
@@ -251,7 +249,7 @@ void GameScene::RenderProcess()
     {
         Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
                                            Shooter->GetShape()->GetWidth(),
-                                           Shooter->GetShape()->GetHeight(), 0.0f);
+                                           Shooter->GetShape()->GetHeight(),0.0f);
         Renderer->RenderRectangle();
     }
 
@@ -456,7 +454,7 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	// Create the rectangle
 	URectangle* NewRectangle = new URectangle();
 	NewRectangle->Location = location;
-	NewRectangle->Rotation = rotation;
+	//NewRectangle->Rotation = rotation;
 	NewRectangle->Width = width;
 	NewRectangle->Height = height;
 	NewRectangle->Mass = width * height;
