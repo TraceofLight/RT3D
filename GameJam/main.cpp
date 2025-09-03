@@ -133,7 +133,7 @@ void RenderProcess(const URenderer& InRenderer)
 	InRenderer.RenderRectangle();
 
 	// Triangle Render
-	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation);
+	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation, GTriangle.Radius);
 	InRenderer.RenderTriangle();
 
 	// ImGui 렌더링 (TimeManager 정보 표시 가능)
