@@ -35,7 +35,7 @@ extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam
 void RenderProcess(const URenderer& InRenderer);
 static HWND GlobalWindowHandle = nullptr;
 
-void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter = nullptr);
+//void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter = nullptr);
 void InputProcess(bool& InExitFlag);
 
 /**
@@ -86,8 +86,8 @@ static void MainLoop(URenderer& InRenderer)
 	FInputManager* KeyManager = FInputManager::GetInstance();
 	FSceneManager* SceneManager = &FSceneManager::GetInstance();
 
-	UShooter Shooter;
-	Shooter.SetLocation({0.3f, -0.8f, 0.0f});
+	//UShooter Shooter;
+	//Shooter.SetLocation({0.3f, -0.8f, 0.0f});
 
 	// Pad 설정
 	GLeftPad.ConfigueLeftPad();
@@ -97,7 +97,6 @@ static void MainLoop(URenderer& InRenderer)
 	while (!bIsExit)
 	{
 		// Update TimeManager
-		TimeManager->Update();
 
 		MSG Message;
 		while (PeekMessage(&Message, nullptr, 0, 0, PM_REMOVE))
@@ -116,99 +115,26 @@ static void MainLoop(URenderer& InRenderer)
 		{
 			break;
 		}
+		TimeManager->Update();
 
-		KeyManager->Update();
-		if (KeyManager->IsKeyPressed(EKeyInput::Esc))
-		{
-			PostMessage(GlobalWindowHandle, WM_CLOSE, 0, 0);
-			bIsExit = true;
-			continue;
-		}
-		// KeyManager 업데이트
 		KeyManager->Update();
 		InputProcess(bIsExit);
 
-		// === 게임 로직 업데이트 ===
-		// Charge
-		if (KeyManager->IsKeyDown(EKeyInput::Space))
-		{
-			Shooter.Charging();
-			DEBUG_PRINT("[MAINLOOP] Shooter Charging...\n");
-		}
-		// Shoot
-		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
-		{
-			Shooter.Shoot();
-			DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
-		}
+		RenderProcess(InRenderer);
 
-		// SceneManager에서 현재 씬의 Primitives 가져오기
-		FSceneManager& SceneManager = FSceneManager::GetInstance();
-		vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
-
-		// Pad 회전 업데이트
-		GLeftPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
-		GRightPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
-
-		// 공들의 물리 시뮬레이션 업데이트 (SceneManager에서 가져온 ball들)
-		for (UPrimitive* Primitive : ScenePrimitives)
+		Scene* CurrentScene = SceneManager->GetCurrentScene();
+		if (CurrentScene)
 		{
-			UPinBall* Ball = static_cast<UPinBall*>(Primitive);
-			if (Ball)
+			CurrentScene->Update(TimeManager->GetDeltaTime());
+			if (CurrentScene == SceneManager->GetCurrentScene())
 			{
-				Ball->Move(); // PinBall의 물리 업데이트 처리
+				CurrentScene->Render();
 			}
 		}
 
-		// 사각형 물리 업데이트
-		GRectangle.Move(); // 이 함수 내부에서도 DT 매크로 사용 가능
-
 		// Rendering
-		RenderProcess(InRenderer, &Shooter);
+		InRenderer.SwapBuffer();
 	}
-}
-
-void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
-{
-	InRenderer.Prepare();
-	InRenderer.PrepareShader();
-	Scene* CurrentScene = FSceneManager::GetInstance().GetCurrentScene();
-	Scene* PrevScene = nullptr;
-	if (CurrentScene)
-	{
-		PrevScene = CurrentScene;
-		CurrentScene->Update(FTimeManager::GetInstance()->GetDeltaTime());
-		if (PrevScene == FSceneManager::GetInstance().GetCurrentScene())
-		{
-			CurrentScene->Render();
-		}
-	}
-
-	//RenderProcess(*URenderer::GetInstance());
-
-	// 사각형 렌더링
-	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-	InRenderer.RenderRectangle();
-
-	// Pad Render
-	GLeftPad.Render(InRenderer);
-	GRightPad.Render(InRenderer);
-
-	// Shooter 렌더링 (사각형으로 표시)
-	if (Shooter)
-	{
-		// Shooter를 작은 사각형으로 렌더링
-		float ShooterWidth = 0.05f;
-		float ShooterHeight = 0.2f;
-		InRenderer.UpdateConstantForRectangle(Shooter->GetLocation(), ShooterWidth, ShooterHeight);
-		InRenderer.RenderRectangle();
-	}
-
-	// ImGui 렌더링 (TimeManager 정보 표시 가능)
-	FImGuiManager::RenderImGui();
-
-	// 백버퍼 스왑
-	InRenderer.SwapBuffer();
 }
 
 void InputProcess(bool& InExitFlag)
@@ -249,7 +175,7 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	SceneManager.RegisterScene("GAME", new GameScene());
 
 	// 게임 씨너를 기본으로 로드
-	SceneManager.LoadScene("GAME");
+	SceneManager.LoadScene("LOBBY");
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -331,10 +257,8 @@ void RenderProcess(const URenderer& InRenderer)
 	InRenderer.Prepare();
 	InRenderer.PrepareShader();
 
-
 	// ImGui 렌더링 (TimeManager 정보 표시 가능)
 	FImGuiManager::RenderImGui();
 
 	// 백버퍼 스왑
-	InRenderer.SwapBuffer();
 }
