@@ -109,8 +109,8 @@ void GameScene::Render()
 	}
 
 	// 사각형 렌더링
-	InRenderer->UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-	InRenderer->RenderRectangle();
+	// InRenderer->UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
+	// InRenderer->RenderRectangle();
 }
 
 /**

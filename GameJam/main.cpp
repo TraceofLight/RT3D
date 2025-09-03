@@ -119,11 +119,9 @@ static void MainLoop(URenderer& InRenderer)
 		GRectangle.Move(); // 이 함수 내부에서도 DT 매크로 사용 가능
 
 		// === 충돌 처리 ===
-		// HandleCollisions();
-		// HandleBallRectangleCollisions();
-		// HandleBallTriangleCollisions();
-
-		InitSceneTemp();
+		HandleCollisions();
+		HandleBallRectangleCollisions();
+		HandleBallTriangleCollisions();
 
 		// Rendering
 		RenderProcess(InRenderer);
@@ -135,14 +133,6 @@ void RenderProcess(const URenderer& InRenderer)
 	InRenderer.Prepare();
 	InRenderer.PrepareShader();
 
-	// 공들 렌더링
-	// for (int i = 0; i < TotalPrimitives; ++i)
-	// {
-	// 	UBall* Ball = dynamic_cast<UBall*>(PrimitiveList[i]);
-	// 	InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
-	// 	InRenderer.RenderPrimitive();
-	// }
-
 	for (int i = 0; i < TotalPrimitives; ++i)
 	{
 		UPrimitive* Primitive = PrimitiveList[i];
@@ -151,26 +141,23 @@ void RenderProcess(const URenderer& InRenderer)
 		{
 			InRenderer.UpdateConstant(Ball->Location, Ball->Radius);
 			InRenderer.RenderPrimitive();
-			std::cout << "rendering ball" << std::endl;
 		}
 		else if (URectangle* Rectangle = dynamic_cast<URectangle*>(Primitive))
 		{
-			InRenderer.UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height);
+			InRenderer.UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height, Rectangle->Rotation);
 			InRenderer.RenderRectangle();
-			std::cout << "rendering rectangle" << std::endl;
 		}
 		else if (UTriangle* Triangle = dynamic_cast<UTriangle*>(Primitive))
 		{
 			InRenderer.UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height, Triangle->Rotation,
 										 Triangle->Radius);
 			InRenderer.RenderTriangle();
-			std::cout << "rendering triangle" << std::endl;
 		}
 	}
 
 	// 사각형 렌더링
-	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
-	InRenderer.RenderRectangle();
+	// InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
+	// InRenderer.RenderRectangle();
 
 	// Triangle Render
 	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation,
@@ -259,10 +246,17 @@ static void InitSceneTemp()
 	FVector3 randomLocation = FVector3(-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f,
 		-0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f, 1.0f);
 
-	AddNewTriangle(randomLocation, 0.0f, 0.3f, 0.9f);
-	// AddNewRectangle(randomLocation, 1.0f, 0.1f, 0.1f);
+	float randomRotation = -0.8f + (rand() / static_cast<float>(RAND_MAX)) * 1.6f;
+
+	// AddNewTriangle(randomLocation, randomRotation, 0.3f, 0.9f);
+	AddNewRectangle(randomLocation, randomRotation, 0.1f, 0.1f);
 	// AddNewRectangle(FVector3(), 1.0f, 1.0f, 1.0f);
 	// AddNewBall();
+
+	// right wall
+	AddNewRectangle(FVector3(0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
+	// left wall
+	AddNewRectangle(FVector3(-0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
