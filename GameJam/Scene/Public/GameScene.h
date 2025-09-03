@@ -28,6 +28,7 @@ private:
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 	void HandleBallPadPairCollisions();
 	bool isGameOver();
+	void CheckBallTriggers();
 
 private:
 	int m_TotalPrimitives = 0;

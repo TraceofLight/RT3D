@@ -190,7 +190,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
 	HWND WindowHandle = CreateWindowExW(0, WindowClass, Title,
 	                                    WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
-	                                    CW_USEDEFAULT, CW_USEDEFAULT, 1024, 1024,
+	                                    CW_USEDEFAULT, CW_USEDEFAULT, SCREEN_WIDTH, SCREEN_HEIGHT,
 	                                    nullptr, nullptr, hInstance, nullptr);
 	GlobalWindowHandle = WindowHandle;
 	InitEngine(WindowHandle, *(URenderer::GetInstance()));

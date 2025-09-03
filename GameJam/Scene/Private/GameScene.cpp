@@ -68,7 +68,7 @@ void GameScene::Update(float deltaTime)
         Ball->Move();
     }
 
-    m_Rectangle->Move();
+	m_Rectangle->Move();
 
 	//m_PadPair.Update(KeyManager, TimeManager->GetDeltaTime());
 	if (isGameOver())
@@ -80,6 +80,9 @@ void GameScene::Update(float deltaTime)
     // HandleCollisions();
     // HandleBallRectangleCollisions();
 	HandleBallPadPairCollisions();
+
+	// 공 트리거 체크 (공이 화면 하단에 도달하거나 범위를 벗어난 경우)
+	CheckBallTriggers();
 }
 
 void GameScene::Render()
@@ -100,7 +103,6 @@ void GameScene::Cleanup()
         m_Rectangle = nullptr;
     }
 
-
 	delete Shooter;
 	delete m_PadPair;
 
@@ -117,13 +119,13 @@ void GameScene::InputProcess()
 		return;
 	}
 
-	// 스페이스바 처리 - 차징 및 발사
-	if (Shooter)
+	// Charging & Shoot
+	if (Shooter && Shooter->CanShoot())
 	{
 		if (KeyManager->IsKeyDown(EKeyInput::Space))
 		{
-			// 스페이스바를 누르고 있는 동안 차징
-			DEBUG_PRINT("[MAINLOOP] Shooter Charging...\n");
+			// 스페이스바를 누르고 있는 동안 차징 (발사 가능할 때만)
+			DEBUG_PRINT("[Shooter] Shooter Charging...\n");
 			Shooter->Charging();
 		}
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
@@ -154,8 +156,8 @@ void GameScene::RenderProcess()
     // Shooter 렌더링 추가
     if (Shooter && Shooter->GetShape())
     {
-        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(), 
-                                           Shooter->GetShape()->GetWidth(), 
+        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
+                                           Shooter->GetShape()->GetWidth(),
                                            Shooter->GetShape()->GetHeight());
         Renderer->RenderRectangle();
     }
@@ -328,15 +330,15 @@ void GameScene::HandleBallPadPairCollisions()
 	}
 }
 
+// void GameScene::HandleBallRectangleCollisions()
+// {
+// 	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
+// 	{
+// 		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
+// 		ResolveBallRectangle(Ball, &GRectangle);
+// 	}
+// }
 
-/*void GameScene::HandleBallRectangleCollisions()
-{
-	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
-	{
-		UPinBall* Ball = static_cast<UPinBall*>((*m_PrimitiveList)[i]);
-		ResolveBallRectangle(Ball, &GRectangle);
-	}
-}*/
 bool GameScene::isGameOver()
 {
 	if (m_TotalPrimitives > 0)

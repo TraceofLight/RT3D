@@ -185,6 +185,7 @@
     <ClInclude Include="Asset\Rectangle.h" />
     <ClInclude Include="Asset\Sphere.h" />
     <ClInclude Include="Core\Public\Primitive.h" />
+    <ClInclude Include="Global\Constant.h" />
     <ClInclude Include="Global\Enum.h" />
     <ClInclude Include="Global\Function.h" />
     <ClInclude Include="Global\Macro.h" />

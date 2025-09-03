@@ -224,7 +224,6 @@ void FImGuiManager::RenderGameGui()
 		}
 
 		ImGui::Separator();
-		ImGui::Separator();
 
 		// 마우스 위치 표시
 		FVector2 MousePosition = KeyManager->GetMousePosition();

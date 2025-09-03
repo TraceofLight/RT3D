@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <functional>
 
+#include "Global/Constant.h"
 #include "Global/Struct.h"
 #include "Global/Function.h"
 #include "Global/Enum.h"
