@@ -16,6 +16,8 @@
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
+#include "Scenes/SceneManager.h"
+#include "Scenes/GameScene.h"
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
 static void RemoveSpecificBall(int IndexToRemove);
@@ -213,6 +215,14 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	FInputManager::GetInstance();
 }
 
+static void InitSceneTemp()
+{
+	// step 1. spawn a rectangle
+	// URectangle* Rectangle = new URectangle();
+	// Rectangle->Location = FVector3(1.0f, 1.0f, 1.0f);
+	// PrimitiveList[0] = Rectangle;
+}
+
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
 {
 	// 난수 시드 초기화
@@ -242,6 +252,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	URenderer Renderer;
 
 	InitEngine(WindowHandle, Renderer);
+
+	// Scene* gameScene = new GameScene();
+	// SceneManager::GetInstance().RegisterScene("GAME SCENE", gameScene);
+	// SceneManager::GetInstance().LoadScene("GAME SCENE");
+	// InitSceneTemp();
+
 	MainLoop(Renderer);
 
 	// Release Balls

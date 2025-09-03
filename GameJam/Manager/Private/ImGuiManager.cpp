@@ -202,7 +202,7 @@ void FImGuiManager::RenderImGui()
 
 	if (bShowCredits)
 	{
-		ImGui::Begin("Credits");
+		ImGui::Begin("Credits", &bShowCredits, ImGuiWindowFlags_NoCollapse);
 		ImGui::Text("Team 5");
 		ImGui::Text("Kim HeeJun, Lee HoJin,");
 		ImGui::Text("Jung SeYeon, Heo Jun");
