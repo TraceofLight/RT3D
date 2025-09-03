@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "UI/Public/UIManager.h"
+#include "Manager/Public/UIManager.h"
 
 UIManager& UIManager::GetInstance()
 {
@@ -10,6 +10,11 @@ UIManager& UIManager::GetInstance()
 void UIManager::AddElement(UIElement* element)
 {
 	UIelements.push_back(element);
+}
+
+void UIManager::Cleanup()
+{
+	UIelements.clear();
 }
 
 void UIManager::Update(float deltaTime)
@@ -27,6 +32,7 @@ void UIManager::Render()
 		elem->Render();
 	}
 }
+
 
 void UIManager::OnMouseClick(float x, float y)
 {

@@ -1,8 +1,6 @@
 #include "Scene.h"
 #include "Mesh/Public/URectangle.h"
-
-class GameScene
-	: public Scene
+class GameScene : public Scene
 {
 public:
 	GameScene();

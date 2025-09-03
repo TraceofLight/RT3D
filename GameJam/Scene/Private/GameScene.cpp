@@ -1,9 +1,10 @@
 #include "pch.h"
 #include "Scene/Public/GameScene.h"
-
-#include "Mesh/Public/UBall.h"
 #include "Manager/Public/InputManager.h"
-#include "Render/Public/Renderer.h"
+#include "Manager/Public/TimeManager.h"
+#include "Render/Public/Renderer.h" // Renderer를 사용하기 위해 포함
+#include "Mesh/Public/UBall.h"
+#include <cassert> // assert 사용
 
 // 생성자: 멤버 변수 초기화
 GameScene::GameScene()
@@ -106,55 +107,6 @@ void GameScene::Render()
 	InRenderer->UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
 	InRenderer->RenderRectangle();
 }
-
-// HandleMouseClick 구현 (main.cpp에서 그대로 가져옴)
-//void GameScene::HandleMouseClick(int InX, int InY, bool InIsLeftClick)
-//{
-//	HWND GlobalWindowHandle = URenderer::GetInstance().GetWindowHandle(); // 렌더러에서 핸들 가져오기
-//	if (!GlobalWindowHandle) return;
-//
-//	RECT ClientRect;
-//	GetClientRect(GlobalWindowHandle, &ClientRect);
-//	float clientWidth = static_cast<float>(ClientRect.right - ClientRect.left);
-//	float clientHeight = static_cast<float>(ClientRect.bottom - ClientRect.top);
-//
-//	float ndc_x = (static_cast<float>(InX) / clientWidth) * 2.0f - 1.0f;
-//	float ndc_y = -((static_cast<float>(InY) / clientHeight) * 2.0f - 1.0f);
-//
-//	FVector3 ClickPosition(ndc_x, ndc_y, 0.0f);
-//
-//	int clickedBallIndex = -1;
-//	for (int i = TotalPrimitives - 1; i >= 0; --i)
-//	{
-//		UBall* Ball = static_cast<UBall*>(PrimitiveList[i]);
-//		FVector3 Delta = ClickPosition - Ball->Location;
-//		Delta.z = 0;
-//
-//		if (Delta.LengthSquare() < Ball->Radius * Ball->Radius)
-//		{
-//			clickedBallIndex = i;
-//			break;
-//		}
-//	}
-//
-//	if (clickedBallIndex != -1)
-//	{
-//		if (InIsLeftClick)
-//		{
-//			RemoveSpecificBall(clickedBallIndex);
-//		}
-//		else
-//		{
-//			SetGravityCenter(clickedBallIndex);
-//		}
-//	}
-//}
-
-
-// ================== main.cpp의 static 함수들을 멤버 함수로 구현 ==================
-// AddNewBall, RemoveRandomBall, HandleCollisions 등 모든 관련 함수를
-// 여기에 그대로 복사-붙여넣기 하시면 됩니다.
-// static 키워드만 제거하고, 클래스 스코프(GameScene::)를 붙여주세요.
 
 void GameScene::AddNewBall()
 {
@@ -364,6 +316,3 @@ void GameScene::HandleBallRectangleCollisions()
 		ResolveBallRectangle(Ball, &GRectangle);
 	}
 }
-
-// ... (RemoveRandomBall, HandleCollisions 등 나머지 함수들도 모두 여기에 붙여넣기) ...
-// (혜지공주님의 코드에서 모든 로직 함수들을 여기에 그대로 옮기시면 돼요!)

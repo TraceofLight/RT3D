@@ -16,6 +16,10 @@
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
+#include "Manager/Public/UIManager.h"
+#include "Manager/Public/SceneManager.h"
+#include "Scene/Public/GameScene.h"
+#include "Scene/Public/LobbyScene.h"
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
 static void RemoveSpecificBall(int IndexToRemove);
@@ -215,6 +219,12 @@ static void InitEngine(HWND InWindowHandle, URenderer& InRenderer)
 	// Initialize Managers
 	FTimeManager::GetInstance();
 	FInputManager::GetInstance();
+	UIManager::GetInstance();
+
+	SceneManager::GetInstance().RegisterScene("LOBBY", new LobbyScene());
+
+
+	
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd)
@@ -243,10 +253,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	// Make Window Handle Global
 	GlobalWindowHandle = WindowHandle;
 	// Make Renderer
-	URenderer Renderer;
 
-	InitEngine(WindowHandle, Renderer);
-	MainLoop(Renderer);
+	InitEngine(WindowHandle, *(URenderer::GetInstance()));
+	MainLoop(*URenderer::GetInstance());
 
 	// Release Balls
 	for (int i = 0; i < TotalPrimitives; ++i)
@@ -273,7 +282,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 		delete TimeManager;
 	}
 
-	Renderer.TotalShutDown();
+	URenderer::GetInstance()->TotalShutDown();
 
 	return 0;
 }
