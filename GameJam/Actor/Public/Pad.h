@@ -5,26 +5,23 @@ class UTriangle;
 class URenderer;
 class FInputManager;
 
-class UPad
-	: public UPrimitive
+class UPad : public UPrimitive
 {
 public:
-	enum class ESide
-	{
-		Left,
-		Right
-	};
+	enum class ESide { Left, Right };
 
 private:
 	UTriangle* Shape;
-	EKeyInput RotationKey;
-	float RotationSpeed;
-	bool bUseRotationLimit;
-	float MinRotation;
-	float MaxRotation;
-	ESide Side;
+	EKeyInput RotationKey = EKeyInput::End;
+	float RotationSpeed = 0.f;
+	bool  bUseRotationLimit = false;
+	float MinRotation = 0.f;
+	float MaxRotation = 0.f;
+	ESide Side = ESide::Left;
 
 public:
+	friend class UPadPair; // PadPair가 대칭 설정을 직접 주입할 수 있게 함
+
 	void Init();
 	void Destroy();
 
@@ -40,6 +37,3 @@ public:
 	void ConfigueLeftPad();
 	void ConfigueRightPad();
 };
-
-extern UPad GLeftPad;
-extern UPad GRightPad;
