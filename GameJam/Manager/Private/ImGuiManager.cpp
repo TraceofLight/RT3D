@@ -8,6 +8,7 @@
 #include "Mesh/Public/UBall.h"
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
+#include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
 
 /**
@@ -155,6 +156,16 @@ void FImGuiManager::RenderImGui()
 		ImGui::Text("TimeManager를 찾을 수 없습니다.");
 	}
 
+	ImGui::End();
+
+	ImGui::Begin("Current Score");
+
+	FScoreManager* ScoreManager = FScoreManager::GetInstance();
+	if (ScoreManager)
+	{
+		ImGui::Text("Current Score: %d", ScoreManager->GetCurrentScore());
+	}
+	
 	ImGui::End();
 
 	// Render ImGui

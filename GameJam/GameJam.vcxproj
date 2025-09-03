@@ -157,6 +157,7 @@
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager\Private\ImGuiManager.cpp" />
+    <ClCompile Include="Manager\Private\ScoreManager.cpp" />
     <ClCompile Include="Manager\Private\InputManager.cpp" />
     <ClCompile Include="Manager\Private\TimeManager.cpp" />
     <ClCompile Include="pch.cpp">
@@ -167,8 +168,6 @@
   <ItemGroup>
     <ClInclude Include="Actor\Public\PinBall.h" />
     <ClInclude Include="Actor\Public\Shooter.h" />
-    <ClInclude Include="Mesh\Public\UBall.h" />
-    <ClInclude Include="Asset\Rectangle.h" />
     <ClInclude Include="Asset\Sphere.h" />
     <ClInclude Include="Core\Public\Primitive.h"/>
     <ClInclude Include="Global\Enum.h" />
@@ -185,6 +184,7 @@
     <ClInclude Include="ImGui\imstb_truetype.h"/>
     <ClInclude Include="Manager\Public\InputManager.h" />
     <ClInclude Include="Manager\Public\ImGuiManager.h" />
+    <ClInclude Include="Manager\Public\ScoreManager.h" />
     <ClInclude Include="Manager\Public\TimeManager.h" />
     <ClInclude Include="Mesh\Public\UBall.h" />
     <ClInclude Include="Mesh\Public\URectangle.h" />
