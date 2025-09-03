@@ -85,7 +85,7 @@ public:
     void ReleaseConstantBuffer();
     void UpdateConstant(FVector3 InOffset, float InScale) const;
 	void UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY) const;
-	void UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation) const;
+	void UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation, float InRadius) const;
 
     void TotalInit(HWND InWindowHandle);
     void TotalShutDown();

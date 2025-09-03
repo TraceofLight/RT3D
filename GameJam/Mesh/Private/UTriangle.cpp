@@ -17,6 +17,7 @@ UTriangle::UTriangle()
 	// Size Setting
 	Base = 0.1f;
 	Height = 1.0f;
+	Radius = (Base * Height) / (Base + Height + sqrtf(Base * Base + Height * Height));
 	// Rotation Setting
 	Rotation = 0;
 }

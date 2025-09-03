@@ -4,6 +4,7 @@ cbuffer constants : register(b0)
     float ScaleX;
     float ScaleY;
     float Rotation;
+    float Radius;
 }
 
 // ShaderW0.hlsl
@@ -23,16 +24,19 @@ PS_INPUT mainVS(VS_INPUT input)
 {
     PS_INPUT output;
     
-    // 비등방 스케일
+    // 1) 스케일 (a=ScaleX, b=ScaleY)
     float2 scaled = float2(input.position.x * ScaleX, input.position.y * ScaleY);
 
-    // 회전
+    // 2) 삼각형이면 InRadius>0. (0,0)-(0,b)-(a,0) 기준 인센터 (r,r)를 원점으로 옮기기 위해 (r,r) 빼기
+    scaled -= Radius.xx;
+    
+    // 3) 회전
     float c = cos(Rotation);
     float s = sin(Rotation);
     float2 rotated = float2(scaled.x * c - scaled.y * s,
                             scaled.x * s + scaled.y * c);
 
-    // Offset (이미 NDC 공간을 직접 사용하므로 단순 더하기)
+    // 4) Offset 적용
     float2 world = rotated + Offset.xy;
     
     output.position = float4(world.xy, input.position.z + Offset.z, 1.0f);

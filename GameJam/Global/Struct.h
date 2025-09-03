@@ -148,5 +148,6 @@ struct FConstants
 	float ScaleX;
 	float ScaleY;
 	float Rotation;
-	float Pad[2];
+	float Radius; // Triangle일 때 내접원 반지름, 다른 도형은 0
+	float Pad[5]; // 16바이트 정렬(총 48바이트)
 };

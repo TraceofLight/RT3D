@@ -395,6 +395,7 @@ void URenderer::UpdateConstant(FVector3 InOffset, float InScale) const
 			constants->ScaleX = InScale;
 			constants->ScaleY = InScale;
 			constants->Rotation = 0.0f;
+			constants->Radius = 0.0f;
         }
         DeviceContext->Unmap(ConstantBuffer, 0);
     }
@@ -419,12 +420,13 @@ void URenderer::UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, fl
 			constants->ScaleX = InScaleX * 0.5f;
 			constants->ScaleY = InScaleY * 0.5f;
 			constants->Rotation = 0.0f;
+			constants->Radius = 0.0f;
 		}
 		DeviceContext->Unmap(ConstantBuffer, 0);
 	}
 }
 
-void URenderer::UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation) const
+void URenderer::UpdateConstantForTriangle(FVector3 InOffset, float InBase, float InHeight, float InRotation, float InRadius) const
 {
 	if (ConstantBuffer)
 	{
@@ -435,6 +437,7 @@ void URenderer::UpdateConstantForTriangle(FVector3 InOffset, float InBase, float
 		c->ScaleX = InBase;
 		c->ScaleY = InHeight;
 		c->Rotation = InRotation;
+		c->Radius = InRadius;
 		DeviceContext->Unmap(ConstantBuffer, 0);
 	}
 }
