@@ -10,6 +10,7 @@
 #include "Asset/Rectangle.h"
 #include "Asset/Triangle.h"
 #include "Actor/Public/PinBall.h"
+#include "Actor/Public/Pad.h"
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
 #include "Manager/Public/ImGuiManager.h"
@@ -99,6 +100,10 @@ static void MainLoop(URenderer& InRenderer)
 	UShooter Shooter;
 	Shooter.SetLocation({0.3f, -0.8f, 0.0f});
 
+	// Pad 설정
+	GLeftPad.ConfigueLeftPad();
+	GRightPad.ConfigueRightPad();
+
 	bool bIsExit = false;
 	while (!bIsExit)
 	{
@@ -146,8 +151,9 @@ static void MainLoop(URenderer& InRenderer)
 		FSceneManager& SceneManager = FSceneManager::GetInstance();
 		vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
 
-		// Triangle 회전 업데이트
-		GTriangle.UpdateRotation(KeyManager, TimeManager->GetDeltaTime());
+		// Pad 회전 업데이트
+		GLeftPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
+		GRightPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
 
 		// 공들의 물리 시뮬레이션 업데이트 (SceneManager에서 가져온 ball들)
 		for (UPrimitive* Primitive : ScenePrimitives)
@@ -196,10 +202,9 @@ void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 	InRenderer.UpdateConstantForRectangle(GRectangle.Location, GRectangle.Width, GRectangle.Height);
 	InRenderer.RenderRectangle();
 
-	// Triangle Render
-	InRenderer.UpdateConstantForTriangle(GTriangle.Location, GTriangle.Base, GTriangle.Height, GTriangle.Rotation,
-	                                     GTriangle.Radius);
-	InRenderer.RenderTriangle();
+	// Pad Render
+	GLeftPad.Render(InRenderer);
+	GRightPad.Render(InRenderer);
 
 	// Shooter 렌더링 (사각형으로 표시)
 	if (Shooter)
@@ -457,8 +462,19 @@ void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect)
 
 void HandleBallTriangleCollisions()
 {
-	// PinBall vector 사용하여 삼각형 충돌 처리
-	// TODO: PinBall의 삼각형 충돌 처리 로직 구현
+	// SceneManager에서 공들 가져와서 삼각형 충돌 처리
+	FSceneManager& SceneManager = FSceneManager::GetInstance();
+	vector<UPrimitive*> ScenePrimitives = SceneManager.GetAllScenePrimivites();
+
+	for (UPrimitive* Primitive : ScenePrimitives)
+	{
+		UPinBall* Ball = static_cast<UPinBall*>(Primitive);
+		if (Ball)
+		{
+			ResolveBallTriangle(Ball, GLeftPad.GetShape());
+			ResolveBallTriangle(Ball, GRightPad.GetShape());
+		}
+	}
 }
 
 void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
@@ -466,44 +482,47 @@ void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
 	if (!Ball || !Triangle)
 		return;
 
-	// 삼각형(직각, Incenter 기준 회전) 로컬 꼭짓점 구성
-	const float a = Triangle->Base; // X방향 직각변
-	const float b = Triangle->Height; // Y방향 직각변
-	const float r = Triangle->Radius; // Inradius (이미 UTriangle 내부에서 계산됨)
+	const float B = Triangle->Base;
+	const float H = Triangle->Height;
+	const float r = Triangle->Radius;
+	const float ballR = Ball->GetShape()->GetRadius();
 
-	// 로컬(Incenter = 원점) 좌표: (0,0)-(0,b)-(a,0)에서 (r,r)만큼 이동 제거
-	FVector3 v0(-r, -r, 0.0f); // 직각 꼭짓점
-	FVector3 v1(-r, b - r, 0.0f); // +Y
-	FVector3 v2(a - r, -r, 0.0f); // +X
+	// (인센터 = (0,0)) 기준 이등변 로컬 정점 (CCW)
+	FVector3 v0(-B * 0.5f, -r, 0.0f); // Left base
+	FVector3 v1(B * 0.5f, -r, 0.0f); // Right base
+	FVector3 v2(0.0f, H - r, 0.0f); // Apex
 
 	// 회전
 	const float c = std::cos(Triangle->Rotation);
 	const float s = std::sin(Triangle->Rotation);
-
 	auto Rotate = [&](const FVector3& L) -> FVector3
-	{
-		return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
-	};
+		{
+			return FVector3(L.x * c - L.y * s,
+				L.x * s + L.y * c,
+				0.0f);
+		};
 
-	// 월드 변환 (Incenter = Triangle->Location)
-	FVector3 w0 = Rotate(v0) + Triangle->Location;
-	FVector3 w1 = Rotate(v1) + Triangle->Location;
-	FVector3 w2 = Rotate(v2) + Triangle->Location;
+	// 월드 변환 (인센터 = Triangle->Location)
+	const FVector3 center = Triangle->Location;
+	FVector3 w0 = Rotate(v0) + center;
+	FVector3 w1 = Rotate(v1) + center;
+	FVector3 w2 = Rotate(v2) + center;
 
-	// 가장 가까운 점 찾기 (원-삼각형 최소 거리)
-	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
-	{
-		FVector3 AB = B - A;
-		float abLenSq = AB.LengthSquare();
-		if (abLenSq <= 1e-12f) return A;
-		float t = Dot(P - A, AB) / abLenSq;
-		if (t < 0.0f) t = 0.0f;
-		else if (t > 1.0f) t = 1.0f;
-		return A + AB * t;
-	};
-
+	// 공 중심
 	const FVector3 C = Ball->GetLocation();
 
+	// 에지 최근접점 계산 유틸
+	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
+		{
+			FVector3 AB = B - A;
+			float lenSq = AB.LengthSquare();
+			if (lenSq <= 1e-12f) return A;
+			float t = Dot(P - A, AB) / lenSq;
+			t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
+			return A + AB * t;
+		};
+
+	// 세 에지 후보
 	FVector3 candidates[3];
 	candidates[0] = ClosestPointOnSegment(w0, w1, C);
 	candidates[1] = ClosestPointOnSegment(w1, w2, C);
@@ -514,8 +533,7 @@ void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
 	FVector3 closest;
 	for (int i = 0; i < 3; ++i)
 	{
-		FVector3 d = C - candidates[i];
-		float dsq = d.LengthSquare();
+		float dsq = (C - candidates[i]).LengthSquare();
 		if (dsq < bestDistSq)
 		{
 			bestDistSq = dsq;
@@ -524,11 +542,10 @@ void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
 	}
 
 	float dist = std::sqrtf(bestDistSq);
-	// 충돌 검사 (원-삼각형)
-	if (dist > Ball->GetShape()->GetRadius())
+	if (dist > ballR)
 		return; // 충돌 없음
 
-	// 법선 계산
+	// 법선
 	FVector3 normal;
 	if (dist > 1e-6f)
 	{
@@ -536,26 +553,26 @@ void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
 	}
 	else
 	{
-		// 중심이 거의 겹친 경우: 삼각형 인센터 방향 사용
-		normal = (C - Triangle->Location);
+		// 거의 동일한 지점: 인센터 기준 방향
+		normal = (C - center);
 		if (normal.LengthSquare() < 1e-8f)
 			normal = FVector3(1.f, 0.f, 0.f);
 		else
 			normal.Normalize();
 	}
 
-	// 침투 보정
-	float penetration = Ball->GetShape()->GetRadius() - dist;
+	// 침투 해소
+	float penetration = ballR - dist;
 	if (penetration > 0.f)
 	{
 		Ball->GetLocation() += normal * penetration;
 	}
 
-	// 속도 반사 (삼각형은 정적)
+	// 속도 반사 (삼각형은 정적 가정)
 	float vn = Dot(Ball->GetVelocity(), normal);
 	if (vn < 0.f)
 	{
-		const float Restitution = 1.0f; // 필요 시 조정
+		const float Restitution = 1.0f; // 탄성 계수 필요시 조정
 		Ball->GetVelocity() -= normal * (1.f + Restitution) * vn;
 	}
 }

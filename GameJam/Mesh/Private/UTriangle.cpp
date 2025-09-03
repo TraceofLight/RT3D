@@ -7,22 +7,18 @@ UTriangle GTriangle = UTriangle();
 
 UTriangle::UTriangle()
 {
-	// Position Setting
-	Location.x = 0.0f;
-	Location.y = 0.0f;
-	Location.z = 0.0f;
-	// Velocity Setting
-	Velocity.x = 0.0f;
-	Velocity.y = 0.0f;
-	Velocity.z = 0.0f;
-	// Size Setting
+	Location = { 0.f, 0.f, 0.f };
 	Base = 0.1f;
 	Height = 1.0f;
-	Radius = (Base * Height) / (Base + Height + sqrtf(Base * Base + Height * Height));
-	// Rotation Setting
+
+	// 이등변 삼각형 Inradius
+	float halfB = Base * 0.5f;
+	float side = sqrtf(halfB * halfB + Height * Height);
+	Radius = (Base * Height) / (Base + 2.0f * side);
+
 	Rotation = DegToRad(-120.0f);
-	RotationSpeed = 3.14159265f; // 180 deg/sec
-	// 회전 제한 초기 상태
+	RotationSpeed = 3.14159265f;
+
 	bUseRotationLimit = true;
 	MinRotation = DegToRad(-120.0f);
 	MaxRotation = DegToRad(-60.0f);
