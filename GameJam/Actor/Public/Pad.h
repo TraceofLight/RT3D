@@ -11,7 +11,7 @@ class UPad
 private:
 	UTriangle* Shape = nullptr;
 	EKeyInput RotationKey = EKeyInput::End;
-	float RotationSpeed = DegToRad(180.0f);
+	float RotationSpeed = DegToRad(360.0f);
 	bool bUseRotationLimit = true;
 	float MinRotation = DegToRad(-120.0f);
 	float MaxRotation = DegToRad(-60.0f);

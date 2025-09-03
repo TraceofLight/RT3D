@@ -33,42 +33,33 @@ void UPad::Render(const URenderer& InRenderer)
 
 void UPad::HandleInput(FInputManager* InInput, float InDeltaTime)
 {
-	if (!InInput || InDeltaTime <= 0.0f)
+	if (!Shape || !InInput || InDeltaTime <= 0.f)
 	{
 		return;
 	}
 
-	float Direction = 0.0f;
+	float Current = Shape->Rotation;
 
-	// 반시계 방향
-	if (InInput->IsKeyDown(RotationKey))
+	// 키 누르는 동안 위로(=MaxRotation 방향) 회전
+	if (RotationKey != EKeyInput::End && InInput->IsKeyDown(RotationKey))
 	{
-		Direction += 1.0f;
-	}
-
-	if (Direction == 0.0f)
-	{
-		return;
-	}
-
-	float NewRotation = Shape->Rotation + Direction * RotationSpeed * InDeltaTime;
-
-	if (bUseRotationLimit)
-	{
-		// 제한 모드: Clamp
-		Shape->Rotation = std::clamp(NewRotation, MinRotation, MaxRotation);
+		Current += RotationSpeed * InDeltaTime;
+		if (bUseRotationLimit && Current > MaxRotation)
+		{
+			Current = MaxRotation;
+		}
 	}
 	else
 	{
-		// 무제한 모드: 0~2π 래핑
-		const float TwoPi = 6.28318530717958647692f;
-		NewRotation = std::fmod(NewRotation, TwoPi);
-		if (NewRotation < 0.0f)
+		// 키를 안 누르면 아래(MinRotation)로 복귀
+		Current -= RotationSpeed * InDeltaTime; // ReturnSpeed 사용 시 교체
+		if (bUseRotationLimit && Current < MinRotation)
 		{
-			NewRotation += TwoPi;
+			Current = MinRotation;
 		}
-		Shape->Rotation = NewRotation;
 	}
+
+	Shape->Rotation = Current;
 }
 
 void UPad::SetRotationKey(EKeyInput InKey)
