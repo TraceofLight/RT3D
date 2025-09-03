@@ -8,13 +8,21 @@ class FInputManager;
 class UPad
 	: public UPrimitive
 {
+public:
+	enum class ESide
+	{
+		Left,
+		Right
+	};
+
 private:
-	UTriangle* Shape = nullptr;
-	EKeyInput RotationKey = EKeyInput::End;
-	float RotationSpeed = DegToRad(360.0f);
-	bool bUseRotationLimit = true;
-	float MinRotation = DegToRad(-120.0f);
-	float MaxRotation = DegToRad(-60.0f);
+	UTriangle* Shape;
+	EKeyInput RotationKey;
+	float RotationSpeed;
+	bool bUseRotationLimit;
+	float MinRotation;
+	float MaxRotation;
+	ESide Side;
 
 public:
 	void Init();
@@ -28,6 +36,10 @@ public:
 
 	void SetRotationKey(EKeyInput InKey);
 	UTriangle* GetShape() const;
+
+	void ConfigueLeftPad();
+	void ConfigueRightPad();
 };
 
 extern UPad GLeftPad;
+extern UPad GRightPad;

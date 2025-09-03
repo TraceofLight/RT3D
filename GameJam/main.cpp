@@ -100,8 +100,9 @@ static void MainLoop(URenderer& InRenderer)
 	UShooter Shooter;
 	Shooter.SetLocation({0.3f, -0.8f, 0.0f});
 
-	// Pad 키 설정
-	GLeftPad.SetRotationKey(EKeyInput::A);
+	// Pad 설정
+	GLeftPad.ConfigueLeftPad();
+	GRightPad.ConfigueRightPad();
 
 	bool bIsExit = false;
 	while (!bIsExit)
@@ -152,6 +153,7 @@ static void MainLoop(URenderer& InRenderer)
 
 		// Pad 회전 업데이트
 		GLeftPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
+		GRightPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
 
 		// 공들의 물리 시뮬레이션 업데이트 (SceneManager에서 가져온 ball들)
 		for (UPrimitive* Primitive : ScenePrimitives)
@@ -202,6 +204,7 @@ void RenderProcess(const URenderer& InRenderer, const UShooter* Shooter)
 
 	// Pad Render
 	GLeftPad.Render(InRenderer);
+	GRightPad.Render(InRenderer);
 
 	// Shooter 렌더링 (사각형으로 표시)
 	if (Shooter)
@@ -469,6 +472,7 @@ void HandleBallTriangleCollisions()
 		if (Ball)
 		{
 			ResolveBallTriangle(Ball, GLeftPad.GetShape());
+			ResolveBallTriangle(Ball, GRightPad.GetShape());
 		}
 	}
 }
