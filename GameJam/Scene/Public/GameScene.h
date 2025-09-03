@@ -27,7 +27,7 @@ private:
 	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 	void HandleBallPadPairCollisions();
-	bool isGameOver();
+	bool IsGameOver();
 	void CheckBallTriggers();
 
 private:

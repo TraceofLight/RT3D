@@ -67,7 +67,8 @@ void GameScene::Update(float deltaTime)
 	// 삭제 예정인 볼을 제외한 모든 볼 객체의 움직임 업데이트
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+		auto PrimitiveList = *m_PrimitiveList;
+		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
 		if (!IsMarkedForDeletion(Ball))
 		{
 			Ball->Move();
@@ -77,7 +78,7 @@ void GameScene::Update(float deltaTime)
 	m_Rectangle->Move();
 
 	//m_PadPair.Update(KeyManager, TimeManager->GetDeltaTime());
-	if (isGameOver())
+	if (IsGameOver())
 	{
 		pause = true;
 	}
@@ -154,7 +155,7 @@ void GameScene::InputProcess()
 
 void GameScene::CheckBallTriggers()
 {
-	for (auto* Ball : m_PrimitiveList)
+	for (UPrimitive* Ball : *m_PrimitiveList)
 	{
 		UPinBall* PinBall = dynamic_cast<UPinBall*>(Ball);
 		if (PinBall && PinBall != m_GravityCenterBall)
@@ -381,7 +382,8 @@ void GameScene::HandleBallPadPairCollisions()
 {
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+		auto PrimitiveList = *m_PrimitiveList;
+		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
 		if (!IsMarkedForDeletion(Ball))
 		{
 			ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
@@ -390,19 +392,19 @@ void GameScene::HandleBallPadPairCollisions()
 	}
 }
 
-void GameScene::HandleBallRectangleCollisions()
-{
-	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
-	{
-		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
-		if (!IsMarkedForDeletion(Ball))
-		{
-			ResolveBallRectangle(Ball, &GRectangle);
-		}
-	}
-}
+// void GameScene::HandleBallRectangleCollisions()
+// {
+// 	for (int i = 0; i < static_cast<int>(m_PrimitiveList.size()); ++i)
+// 	{
+// 		UPinBall* Ball = static_cast<UPinBall*>(m_PrimitiveList[i]);
+// 		if (!IsMarkedForDeletion(Ball))
+// 		{
+// 			ResolveBallRectangle(Ball, &GRectangle);
+// 		}
+// 	}
+// }
 
-bool GameScene::isGameOver()
+bool GameScene::IsGameOver()
 {
 	if (m_TotalPrimitives > 0)
 	{
