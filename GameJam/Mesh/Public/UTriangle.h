@@ -15,9 +15,16 @@ public:
 	float Rotation; // 라디안 (Incenter 기준 회전)
 	float RotationSpeed; // 초당 회전 속도 (라디안)
 
+	// 회전 제한 관련
+	bool  bUseRotationLimit;
+	float MinRotation;
+	float MaxRotation;
+
 	UTriangle();
 
 	void UpdateRotation(FInputManager* InInput, float InDeltaTime);
+	void SetRotationLimit(float InMinRadians, float InMaxRadians);
+	void ClearRotationLimit();
 };
 
 extern UTriangle GTriangle;
