@@ -12,6 +12,7 @@
 #include "Mesh/Public/URectangle.h"
 #include "Manager/Public/ImGuiManager.h"
 #include "Manager/Public/InputManager.h"
+#include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
 
 static void HandleMouseClick(int InX, int InY, bool InIsLeftClick);
@@ -45,6 +46,7 @@ static void MainLoop(URenderer& InRenderer)
 {
 	FTimeManager* TimeManager = FTimeManager::GetInstance();
 	FInputManager* KeyManager = FInputManager::GetInstance();
+	FScoreManager* ScoreManager = FScoreManager::GetInstance();
 
 	bool bIsExit = false;
 	while (!bIsExit)

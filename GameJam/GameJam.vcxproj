@@ -143,10 +143,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Actor\Private\PinBall.cpp" />
-    <ClCompile Include="Actor\Private\Shooter.cpp" />
-    <ClCompile Include="Mesh\Private\UBall.cpp" />
-    <ClCompile Include="Mesh\Private\URectangle.cpp" />
+    <ClCompile Include="Actor\Private\UBall.cpp" />
+    <ClCompile Include="Actor\Private\URectangle.cpp" />
     <ClCompile Include="Core\Private\Primitive.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
@@ -157,6 +155,7 @@
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Manager\Private\ImGuiManager.cpp" />
+    <ClCompile Include="Manager\Private\ScoreManager.cpp" />
     <ClCompile Include="Manager\Private\InputManager.cpp" />
     <ClCompile Include="Manager\Private\TimeManager.cpp" />
     <ClCompile Include="pch.cpp">
@@ -185,6 +184,7 @@
     <ClInclude Include="ImGui\imstb_truetype.h"/>
     <ClInclude Include="Manager\Public\InputManager.h" />
     <ClInclude Include="Manager\Public\ImGuiManager.h" />
+    <ClInclude Include="Manager\Public\ScoreManager.h" />
     <ClInclude Include="Manager\Public\TimeManager.h" />
     <ClInclude Include="Mesh\Public\UBall.h" />
     <ClInclude Include="Mesh\Public\URectangle.h" />
