@@ -163,27 +163,27 @@ void FInputManager::ProcessKeyMessage(UINT InMessage, WPARAM WParam, LPARAM LPar
 {
 	switch (InMessage)
 	{
-	case WM_KEYDOWN:
-	case WM_SYSKEYDOWN:
-		{
-			auto it = VirtualKeyMap.find(static_cast<int>(WParam));
-			if (it != VirtualKeyMap.end())
-			{
-				CurrentKeyState[it->second] = true;
-			}
-		}
-		break;
+	//case WM_KEYDOWN:
+	//case WM_SYSKEYDOWN:
+	//	{
+	//		auto it = VirtualKeyMap.find(static_cast<int>(WParam));
+	//		if (it != VirtualKeyMap.end())
+	//		{
+	//			CurrentKeyState[it->second] = true;
+	//		}
+	//	}
+	//	break;
 
-	case WM_KEYUP:
-	case WM_SYSKEYUP:
-		{
-			auto it = VirtualKeyMap.find(static_cast<int>(WParam));
-			if (it != VirtualKeyMap.end())
-			{
-				CurrentKeyState[it->second] = false;
-			}
-		}
-		break;
+	//case WM_KEYUP:
+	//case WM_SYSKEYUP:
+	//	{
+	//		auto it = VirtualKeyMap.find(static_cast<int>(WParam));
+	//		if (it != VirtualKeyMap.end())
+	//		{
+	//			CurrentKeyState[it->second] = false;
+	//		}
+	//	}
+	//	break;
 
 	case WM_LBUTTONDOWN:
 		CurrentKeyState[EKeyInput::MouseLeft] = true;

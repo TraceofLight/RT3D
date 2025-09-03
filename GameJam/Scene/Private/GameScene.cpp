@@ -9,6 +9,7 @@
 #include "Mesh/Public/UBall.h"
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
+#include "Actor/Public/Pad.h"
 
 
 GameScene::GameScene() : Scene("GAME")
@@ -57,6 +58,10 @@ void GameScene::Update(float deltaTime)
 
     m_Rectangle->Move();
 
+
+	GLeftPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
+	GRightPad.HandleInput(KeyManager, TimeManager->GetDeltaTime());
+
     // HandleCollisions();
     HandleBallRectangleCollisions();
     HandleBallTriangleCollisions();
@@ -98,6 +103,7 @@ void GameScene::InputProcess()
 	if (KeyManager->IsKeyPressed(EKeyInput::Esc))
 	{
 		FSceneManager::GetInstance().LoadScene("LOBBY");
+		return;
 	}
 
 	// 스페이스바 처리 - 차징 및 발사
@@ -106,12 +112,14 @@ void GameScene::InputProcess()
 		if (KeyManager->IsKeyDown(EKeyInput::Space))
 		{
 			// 스페이스바를 누르고 있는 동안 차징
+			DEBUG_PRINT("[MAINLOOP] Shooter Charging...\n");
 			Shooter->Charging();
 		}
 		else if (KeyManager->IsKeyReleased(EKeyInput::Space))
 		{
 			// 스페이스바를 뗐을 때 발사
-			Shooter->Shoot();
+  			Shooter->Shoot();
+			DEBUG_PRINT("[MAINLOOP] Shooter Fire!\n");
 		}
 	}
 }
@@ -143,8 +151,6 @@ void GameScene::RenderProcess()
                                            Shooter->GetShape()->GetHeight());
         Renderer->RenderRectangle();
     }
-
-    //FImGuiManager::RenderImGui();
 }
 
 /**
