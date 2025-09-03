@@ -7,4 +7,10 @@ UBall::UBall()
 	Mass = Radius * Radius;
 }
 
+UBall::UBall(float InRadius)
+	: Radius(InRadius)
+{
+	Mass = Radius * Radius;
+}
+
 UBall::~UBall() = default;

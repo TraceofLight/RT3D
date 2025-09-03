@@ -7,6 +7,7 @@ class FImGuiManager
 public:
 	static void InitializeImGui(HWND InWindowHandle, const URenderer& InRenderer);
 	static void ReleaseImGui();
+	static void RenderLobbyGui();
 	static void RenderImGui();
 	static void RenderGameGui();
 };

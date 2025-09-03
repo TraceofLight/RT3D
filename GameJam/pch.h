@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <functional>
 
+#include "Global/Constant.h"
 #include "Global/Struct.h"
 #include "Global/Function.h"
 #include "Global/Enum.h"
@@ -34,5 +35,6 @@ using std::string;
 using std::clamp;
 using std::unordered_map;
 using std::to_string;
+using std::function;
 
 #include "Manager/Public/TimeManager.h"

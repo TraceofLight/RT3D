@@ -29,6 +29,7 @@ private:
 	void HandleBallPadPairCollisions();
 	void HandleBallRectangleCollisions();
 	bool isGameOver();
+	void CheckBallTriggers();
 
 	void AddNewBall();
 	void AddNewRectangle(FVector3 location, float rotation, float width, float height);
@@ -39,6 +40,12 @@ private:
 	vector<UPrimitive*>* m_PrimitiveList;
 	URectangle* m_Rectangle = nullptr;
 	UPinBall* m_GravityCenterBall = nullptr;
+
+	// Delayed Deletion System
+	vector<UPinBall*> m_BallsToDelete;
+	void ProcessDelayedDeletions();
+	bool IsMarkedForDeletion(UPinBall* InBall) const;
+
 	UPadPair* m_PadPair = nullptr;
 	UShooter* Shooter;
 
