@@ -23,7 +23,6 @@ private:
 	void InputProcess();
 	void RenderProcess();
 
-	// void HandleBallRectangleCollisions();
 	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
 	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
 	void HandleBallPadPairCollisions();

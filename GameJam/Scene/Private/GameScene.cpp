@@ -43,6 +43,8 @@ void GameScene::Init()
 	FPadPairConfig PadCfg;
 	PadCfg.Base = 0.05f;
 	PadCfg.Height = 0.3f;
+	PadCfg.CenterX = 0.3f;
+	PadCfg.CenterY = 0.0f;
 	PadCfg.XOffset = 0.30f;
 	PadCfg.YOffset = -0.65f;
 	PadCfg.MidAngleDeg = 90.f;
@@ -427,19 +429,18 @@ void GameScene::HandleBallPadPairCollisions()
 
 void GameScene::HandleBallRectangleCollisions()
 {
+	if (m_ActorBall == nullptr || pause)
+	{
+		return;
+	}
+
+	// ActorBall과 다른 모든 Rectangle 간의 충돌 처리
 	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
 	{
-		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
-		if (Ball !=nullptr)
+		URectangle* rect = dynamic_cast<URectangle*>((*m_PrimitiveList)[i]);
+		if (rect != nullptr)
 		{
-			for (int j=0; j < static_cast<int>(m_PrimitiveList->size()); ++j)
-			{
-				URectangle* rect = dynamic_cast<URectangle*>((*m_PrimitiveList)[j]);
-				if (rect!=nullptr)
-				{
-					ResolveBallRectangle(Ball, rect);
-				}
-			}
+			ResolveBallRectangle(m_ActorBall, rect);
 		}
 	}
 }
