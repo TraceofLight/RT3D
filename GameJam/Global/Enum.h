@@ -61,3 +61,10 @@ enum class EKeyStatus : UINT8
 
 	End
 };
+
+enum class RectRotType : UINT8
+{
+	CLOCK,
+	REVCLOCK,
+	RAND
+};

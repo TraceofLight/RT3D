@@ -2,6 +2,7 @@
 #include "Mesh/Public/URectangle.h"
 #include "Manager/Public/TimeManager.h"
 #include <math.h>
+#include <random>
 
 
 URectangle::URectangle()
@@ -15,11 +16,19 @@ URectangle::URectangle()
 	Velocity.y = (-0.2f + (rand() / (float)RAND_MAX) * 0.4f);
 	Velocity.z = 0.0f;
 	// Size Setting
-	AutoRotRate = 0.1f + (rand() / (float)2.0f);
+	AutoRotRate = 0.2f + (rand() / (float)2.0f);
 	Width = 0.2f;
 	Height = 0.5f;
 	// Mass Setting
 	Mass = Width * Height;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dis(0, 1);
+
+	clockwise = dis(gen); 
+
+	// Rotation Setting
 	// Rotation Setting
 	Rotation = 0.0f;
 }
@@ -55,7 +64,14 @@ void URectangle::Update()
 {
 	if (AutoRotation)
 	{
-		Rotation += AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+		if (!clockwise)
+		{
+			Rotation += AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+		}
+		else
+		{
+			Rotation += -AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+		}
 		float angle = fmodf(Rotation, 360.f);
 		if (angle < 0.0f)
 		{
