@@ -30,6 +30,20 @@
 | `D` | 우측 플리퍼 작동 |
 | `ESC` | 게임 → 로비 이동 |
 
+## 🎬 플레이 화면
+
+### 메인 로비
+![Main Lobby](./Document/lobby.png)
+
+*Game Start Button으로 플레이, Credits Button으로 제작자들 리스트 Toggle*
+
+### 게임 플레이 세션
+![Game Play](./Document/game_play.png)
+
+*실제 핀볼을 플레이하는 화면의 UI, Score 및 Leader Board가 존재*
+
+*우측 빈 Line에서 Shooting 된 Ball이 오래 버틸수록 고득점한다*
+
 ## 📁 프로젝트 구조
 
 ```
