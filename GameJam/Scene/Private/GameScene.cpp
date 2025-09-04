@@ -57,16 +57,16 @@ void GameScene::Init()
 void GameScene::GenerateObstacles()
 {
 	// right outer wall
-	AddNewRectangle(FVector3(0.92f, -0.2f, 0.0f), 0.0f, 0.08f, 1.6f);
+	AddNewRectangle(FVector3(0.92f, -0.3f, 0.0f), 0.0f, 0.08f, 1.6f);
 	// right inner wall
-	AddNewRectangle(FVector3(0.7f, -0.2f, 0.0f), 0.0f, 0.12f, 1.6f);
+	AddNewRectangle(FVector3(0.7f, -0.3f, 0.0f), 0.0f, 0.12f, 1.6f);
 	// left wall
-	AddNewRectangle(FVector3(-0.88f, -0.2f, 0.0f), 0.0f, 0.35f, 1.6f);
+	AddNewRectangle(FVector3(-0.88f, -0.3f, 0.0f), 0.0f, 0.35f, 1.6f);
 
 	// left floor
 	AddNewRectangle(FVector3(-0.728f, -0.65f, 0.0f), -0.6f, 0.95f, 0.2f);
 	// right floor
-	AddNewRectangle(FVector3(0.529f, -0.789f, 0.0f), 0.6f, 0.45f, 0.2f);
+	AddNewRectangle(FVector3(0.526f, -0.792f, 0.0f), 0.6f, 0.45f, 0.2f);
 
 	// bottom left triangle
 	AddNewTriangle(FVector3(-0.4f, -0.47f, 0.0f), 2.0f, 0.4f, 0.15f);
@@ -83,8 +83,10 @@ void GameScene::GenerateObstacles()
 
 	// rectangle obstacle 1
 	AddNewRectangle(FVector3(-0.3f, 0.3f, 0.0f), -0.4f, 0.35f, 0.1f);
-	// rectangle obstacle 2
 
+	// bottom fillings
+	AddNewRectangle(FVector3(0.53f, -0.9f, 0.0f), -0.0f, 0.26f, 0.2f);
+	AddNewRectangle(FVector3(-0.58f, -0.9f, 0.0f), -0.0f, 0.36f, 0.28f);
 
 	// temp shooter top
 	AddNewRectangle(FVector3(0.9f, 0.9f, 0.0f), -0.6f, 0.2f, 0.2f);
