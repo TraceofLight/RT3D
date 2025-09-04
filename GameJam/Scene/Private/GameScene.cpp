@@ -43,7 +43,7 @@ void GameScene::Init()
 	FPadPairConfig PadCfg;
 	PadCfg.Base = 0.05f;
 	PadCfg.Height = 0.3f;
-	PadCfg.CenterX = 0.3f;
+	PadCfg.CenterX = 0.0f;
 	PadCfg.CenterY = 0.0f;
 	PadCfg.XOffset = 0.30f;
 	PadCfg.YOffset = -0.65f;
