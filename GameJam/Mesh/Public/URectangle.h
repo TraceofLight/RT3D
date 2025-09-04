@@ -13,6 +13,7 @@ public:
 	float Rotation;
 	bool AutoRotation = false;
 	float AutoRotRate;
+	bool clockwise = false;
 
 	URectangle();
 	void Move();

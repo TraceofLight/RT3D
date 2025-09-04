@@ -42,7 +42,7 @@ void GameScene::Init()
 	GenerateObstacles();
 
 	//Above Shooter
-	AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f,true);
+	AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f,true,RectRotType::CLOCK);
 
 	//Center
 	AddNewRectangle(FVector3(0.0f, 0.0f, 0.0f), 0.3f, 0.1f, 0.4f, true);
@@ -568,7 +568,7 @@ void GameScene::AddNewBall()
 
 }
 
-void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height,bool autoRotation)
+void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height,bool autoRotation, RectRotType type)
 {
 	// Create the rectangle
 	URectangle* NewRectangle = new URectangle();
@@ -580,6 +580,18 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	NewRectangle->Mass = width * height;
 	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
 	NewRectangle->AutoRotation = autoRotation;
+
+	switch (type)
+	{
+	case RectRotType::CLOCK :
+		NewRectangle->clockwise = true;
+		break;
+	case RectRotType::REVCLOCK :
+		NewRectangle->clockwise = false;
+		break;
+	default :
+		break;
+	}
 
 	FSceneManager& FCM = FSceneManager::GetInstance();
 	Scene* currentScene = FCM.GetCurrentScene();
