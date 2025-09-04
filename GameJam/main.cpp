@@ -115,15 +115,19 @@ static void MainLoop(URenderer& InRenderer)
 
 		RenderProcess(InRenderer);
 
-		Scene* CurrentScene = SceneManager->GetCurrentScene();
-		if (CurrentScene)
+		// 창이 포커스된 상태에서만 게임 로직 업데이트
+		if (KeyManager->IsWindowFocused())
 		{
-			if (!CurrentScene->GetPause())
+			Scene* CurrentScene = SceneManager->GetCurrentScene();
+			if (CurrentScene)
 			{
-				CurrentScene->Update(TimeManager->GetDeltaTime());
-				if (CurrentScene == SceneManager->GetCurrentScene())
+				if (!CurrentScene->GetPause())
 				{
-					CurrentScene->Render();
+					CurrentScene->Update(TimeManager->GetDeltaTime());
+					if (CurrentScene == SceneManager->GetCurrentScene())
+					{
+						CurrentScene->Render();
+					}
 				}
 			}
 		}
@@ -238,9 +242,46 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 	switch (message)
 	{
+	case WM_ACTIVATE:
+		{
+			// 창 활성화 상태 처리
+			bool bIsActivated = (LOWORD(wParam) != WA_INACTIVE);
+			if (KeyManager)
+			{
+				KeyManager->SetWindowFocus(bIsActivated);
+			}
+
+			// 디버그 로그 출력
+			printf("[WINDOW] Window focus changed: %s\n", bIsActivated ? "FOCUSED" : "UNFOCUSED");
+		}
+		break;
+
+	case WM_KILLFOCUS:
+		{
+			// 창이 포커스를 잃었을 때 처리 (추가 안전 장치)
+			if (KeyManager)
+			{
+				KeyManager->SetWindowFocus(false);
+			}
+			printf("[WINDOW] Window lost focus (KILLFOCUS)\n");
+		}
+		break;
+
+	case WM_SETFOCUS:
+		{
+			// 창이 포커스를 얻었을 때 처리
+			if (KeyManager)
+			{
+				KeyManager->SetWindowFocus(true);
+			}
+			printf("[WINDOW] Window gained focus (SETFOCUS)\n");
+		}
+		break;
+
 	case WM_DESTROY:
 		PostQuitMessage(0);
 		break;
+
 	default:
 		return DefWindowProc(hWnd, message, wParam, lParam);
 	}

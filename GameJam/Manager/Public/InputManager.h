@@ -16,6 +16,9 @@ private:
 	FVector2 PreviousMousePosition;
 	FVector2 MouseDelta;
 
+	// Window Focus
+	bool bIsWindowFocused;
+
 private:
 	void InitializeKeyMapping();
 	FInputManager();
@@ -38,6 +41,10 @@ public:
 
 	// Helper Function
 	static const char* KeyInputToString(EKeyInput InKey);
+
+	// Window Focus Management
+	void SetWindowFocus(bool bInFocused);
+	bool IsWindowFocused() const { return bIsWindowFocused; }
 
 	// Getter
 	FVector2 GetMousePosition() const { return CurrentMousePosition; }

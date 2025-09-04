@@ -3,6 +3,7 @@
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/SceneManager.h"
+#include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
 #include "Actor/Public/PinBall.h"
 #include "Actor/Public/Shooter.h"
@@ -30,6 +31,10 @@ void GameScene::Init()
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
 	Shooter->SetLocation({0.82f, -0.9f, 0.0f});
+
+	// ScoreManager 초기화
+	m_ScoreManager = FScoreManager::GetInstance();
+	m_ScoreManager->ResetCurrentScore();
 
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
@@ -106,6 +111,13 @@ void GameScene::Update(float deltaTime)
 
 	// 지연 삭제 처리 (프레임 시작 시)
 	ProcessDelayedDeletions();
+
+	// ScoreManager 업데이트 (시간 기반 점수 처리)
+	// 공이 발사된 후에만 시간 기반 점수 가산
+	if (m_ScoreManager && !pause && m_Shooted)
+	{
+		m_ScoreManager->Update();
+	}
 
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
@@ -400,94 +412,121 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 	{
 		const float restitution = 1.0f; // 필요에 맞게 조정
 		PinBall->GetVelocity() -= normalWorld * (1.f + restitution) * vn;
+
+		// 충돌 시 점수 추가
+		if (m_ScoreManager)
+		{
+			m_ScoreManager->AddCollisionScore();
+		}
 	}
 }
 
 void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Triangle)
 {
-    if (!PinBall || !Triangle)
-        return;
+	if (!PinBall || !Triangle)
+	{
+		return;
+	}
 
-    const float a = Triangle->Base;
-    const float b = Triangle->Height;
-    const float r = Triangle->Radius;
+	const float B = Triangle->Base;
+	const float H = Triangle->Height;
+	const float r = Triangle->Radius;
+	const float ballR = PinBall->GetShape()->GetRadius();
 
-    FVector3 v0(-r, -r, 0.0f);
-    FVector3 v1(-r, b - r, 0.0f);
-    FVector3 v2(a - r, -r, 0.0f);
+	// 이등변 삼각형 로컬(인센터 = (0,0)) 정점 (CCW)
+	// 밑변: y = -r, 꼭짓점: y = H - r
+	FVector3 v0(-B * 0.5f, -r, 0.0f); // Left base
+	FVector3 v1(B * 0.5f, -r, 0.0f); // Right base
+	FVector3 v2(0.0f, H - r, 0.0f); // Apex
 
-    const float c = std::cos(Triangle->Rotation);
-    const float s = std::sin(Triangle->Rotation);
+	// 인센터 기준 회전
+	const float c = std::cos(Triangle->Rotation);
+	const float s = std::sin(Triangle->Rotation);
+	auto Rotate = [&](const FVector3& L) -> FVector3
+		{
+			return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
+		};
 
-    auto Rotate = [&](const FVector3& L) -> FVector3
-    {
-        return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
-    };
+	const FVector3 center = Triangle->Location;
+	FVector3 w0 = Rotate(v0) + center;
+	FVector3 w1 = Rotate(v1) + center;
+	FVector3 w2 = Rotate(v2) + center;
 
-    FVector3 w0 = Rotate(v0) + Triangle->Location;
-    FVector3 w1 = Rotate(v1) + Triangle->Location;
-    FVector3 w2 = Rotate(v2) + Triangle->Location;
+	// 점-선분 최근접점
+	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
+		{
+			FVector3 AB = B - A;
+			float lenSq = AB.LengthSquare();
+			if (lenSq <= 1e-12f)
+			{
+				return A;
+			}
 
-    auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
-    {
-        FVector3 AB = B - A;
-        float abLenSq = AB.LengthSquare();
-        if (abLenSq <= 1e-12f) return A;
-        float t = Dot(P - A, AB) / abLenSq;
-        if (t < 0.0f) t = 0.0f;
-        else if (t > 1.0f) t = 1.0f;
-        return A + AB * t;
-    };
+			float t = Dot(P - A, AB) / lenSq;
+			t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
 
-    const FVector3 C = PinBall->GetLocation();
+			return A + AB * t;
+		};
 
-    FVector3 candidates[3];
-    candidates[0] = ClosestPointOnSegment(w0, w1, C);
-    candidates[1] = ClosestPointOnSegment(w1, w2, C);
-    candidates[2] = ClosestPointOnSegment(w2, w0, C);
+	const FVector3 C = PinBall->GetLocation();
 
-    float bestDistSq = FLT_MAX;
-    FVector3 closest;
-    for (int i = 0; i < 3; ++i)
-    {
-        FVector3 d = C - candidates[i];
-        float dsq = d.LengthSquare();
-        if (dsq < bestDistSq)
-        {
-            bestDistSq = dsq;
-            closest = candidates[i];
-        }
-    }
+	FVector3 candidates[3];
+	candidates[0] = ClosestPointOnSegment(w0, w1, C);
+	candidates[1] = ClosestPointOnSegment(w1, w2, C);
+	candidates[2] = ClosestPointOnSegment(w2, w0, C);
 
-    float dist = std::sqrtf(bestDistSq);
-    if (dist > PinBall->GetShape()->GetRadius())
-        return;
+	// 최소 거리 후보 선택
+	float bestDistSq = FLT_MAX;
+	FVector3 closest;
+	for (int i = 0; i < 3; ++i)
+	{
+		float dsq = (C - candidates[i]).LengthSquare();
+		if (dsq < bestDistSq)
+		{
+			bestDistSq = dsq;
+			closest = candidates[i];
+		}
+	}
 
-    FVector3 normal;
-    if (dist > 1e-6f)
-    {
-        normal = (C - closest) / dist;
-    }
-    else
-    {
-        normal = (C - Triangle->Location);
-        if (normal.LengthSquare() < 1e-8f)
-            normal = FVector3(1.f, 0.f, 0.f);
-        else
-            normal.Normalize();
-    }
+	float dist = std::sqrtf(bestDistSq);
+	if (dist > ballR)
+		return; // 충돌 없음
 
-    float penetration = PinBall->GetShape()->GetRadius() - dist;
-    if (penetration > 0.f)
-    {
+	// 법선
+	FVector3 normal;
+	if (dist > 1e-6f)
+	{
+		normal = (C - closest) / dist;
+	}
+	else
+	{
+		// 극도로 가까움: 인센터 방향 사용
+		normal = (C - center);
+		if (normal.LengthSquare() < 1e-8f)
+			normal = FVector3(1.f, 0.f, 0.f);
+		else
+			normal.Normalize();
+	}
+
+	// 침투 보정
+	float penetration = ballR - dist;
+	if (penetration > 0.f)
+	{
 		PinBall->GetLocation() += normal * penetration;
-    }
+	}
 
-    float vn = Dot(PinBall->GetVelocity(), normal);
-    if (vn < 0.f)
-    {
-        const float Restitution = 1.0f;
+	// 속도 반사 (삼각형 정적)
+	float vn = Dot(PinBall->GetVelocity(), normal);
+	if (vn < 0.f)
+	{
+		const float Restitution = 1.0f;
 		PinBall->GetVelocity() -= normal * (1.f + Restitution) * vn;
+
+        // 충돌 시 점수 추가
+        if (m_ScoreManager)
+        {
+            m_ScoreManager->AddCollisionScore();
+        }
     }
 }
 
