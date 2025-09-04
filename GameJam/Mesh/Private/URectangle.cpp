@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/URectangle.h"
+#include "Manager/Public/TimeManager.h"
+#include <math.h>
+
 
 URectangle::URectangle()
 {
@@ -12,8 +15,7 @@ URectangle::URectangle()
 	Velocity.y = (-0.2f + (rand() / (float)RAND_MAX) * 0.4f);
 	Velocity.z = 0.0f;
 	// Size Setting
-	// Width = 0.1f + (rand() / (float)RAND_MAX) * 0.1f;
-	// Height = 0.1f + (rand() / (float)RAND_MAX) * 0.1f;
+	AutoRotRate = 0.1f + (rand() / (float)2.0f);
 	Width = 0.2f;
 	Height = 0.5f;
 	// Mass Setting
@@ -46,5 +48,18 @@ void URectangle::Move()
 		// 벽 안쪽으로 위치 보정
 		if (Location.y > 1.0f - Height / 2) Location.y = 1.0f - Height / 2;
 		if (Location.y < -1.0f + Height / 2) Location.y = -1.0f + Height / 2;
+	}
+}
+
+void URectangle::Update()
+{
+	if (AutoRotation)
+	{
+		Rotation += AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+		float angle = fmodf(Rotation, 360.f);
+		if (angle < 0.0f)
+		{
+			angle += 360.0f;
+		}
 	}
 }

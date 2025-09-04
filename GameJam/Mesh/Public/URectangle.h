@@ -11,9 +11,12 @@ public:
 	float Height;
 	float Mass;
 	float Rotation;
+	bool AutoRotation = false;
+	float AutoRotRate;
 
 	URectangle();
 	void Move();
+	void Update();
 
 	// TODO(KHJ): 멤버 은닉
 	float GetWidth() const { return Width; }

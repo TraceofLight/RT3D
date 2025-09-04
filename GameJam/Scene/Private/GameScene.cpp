@@ -29,12 +29,18 @@ void GameScene::Init()
 	m_Shooted = false;
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
-	Shooter->SetLocation({0.82f, -0.8f, 0.0f});
+	Shooter->SetLocation({0.9f, -0.9f, 0.0f});
 
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
 	GenerateObstacles();
+
+	//Above Shooter
+	AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f,true);
+
+	//Center
+	AddNewRectangle(FVector3(0.0f, 0.0f, 0.0f), 0.3f, 0.1f, 0.4f, true);
 
 	// PadPair 설정
 	FPadPairConfig PadCfg;
@@ -116,6 +122,11 @@ void GameScene::Update(float deltaTime)
 		if (Ball && !IsMarkedForDeletion(Ball))
 		{
 			Ball->Move();
+		}
+		URectangle* rect = dynamic_cast<URectangle*>(PrimitiveList[i]);
+		if (rect != nullptr)
+		{
+			rect->Update();
 		}
 	}
 
@@ -307,63 +318,87 @@ void GameScene::CollisionProcess()
  */
 void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Rect)
 {
-    float HalfW = Rect->Width * 0.5f;
-    float HalfH = Rect->Height * 0.5f;
+	const float HalfW = Rect->Width * 0.5f;
+	const float HalfH = Rect->Height * 0.5f;
 
-    FVector3 Delta = PinBall->GetLocation() - Rect->Location;
+	// 1) 월드 좌표에서 공-사각형 중심까지 벡터
+	const FVector3 ballPos = PinBall->GetLocation();
+	const FVector3 rectPos = Rect->Location;
+	const FVector3 deltaWorld = ballPos - rectPos; // z는 무시 (2D)
 
-    float ClampedX = Clamp(Delta.x, -HalfW, HalfW);
-    float ClampedY = Clamp(Delta.y, -HalfH, HalfH);
+	// 2) 직사각형의 회전 축(월드 기준 로컬 축) 구성
+	//    로컬 x축: (cosθ, sinθ), 로컬 y축: (-sinθ, cosθ)  (CCW 기준)
+	const float c = cosf(Rect->Rotation);
+	const float s = sinf(Rect->Rotation);
+	const FVector3 axisX(c, s, 0.f);   // 로컬 x축이 월드에서 가리키는 방향
+	const FVector3 axisY(-s, c, 0.f);   // 로컬 y축이 월드에서 가리키는 방향
 
-    FVector3 Closest(Rect->Location.x + ClampedX, Rect->Location.y + ClampedY, Rect->Location.z);
+	// 3) 월드→로컬 (축으로 투영)
+	//    로컬 좌표 = [dot(delta, axisX), dot(delta, axisY)]
+	const float localX = Dot(deltaWorld, axisX);
+	const float localY = Dot(deltaWorld, axisY);
 
-    FVector3 Diff = PinBall->GetLocation() - Closest;
-	float DistSq = Diff.LengthSquare();
-	float Radius = PinBall->GetShape()->GetRadius();
+	// 4) 로컬에서 AABB 최근접점 계산 (기존 로직 그대로)
+	const float clampedX = Clamp(localX, -HalfW, HalfW);
+	const float clampedY = Clamp(localY, -HalfH, HalfH);
 
-	if (DistSq > Radius * Radius)
+	// 5) 최근접점의 월드 좌표 복원: rectPos + axisX*clampedX + axisY*clampedY
+	const FVector3 closestWorld = rectPos + axisX * clampedX + axisY * clampedY;
+
+	// 6) 월드에서 거리/법선 계산
+	FVector3 diffWorld = ballPos - closestWorld;
+	float distSq = diffWorld.LengthSquare();
+	const float radius = PinBall->GetShape()->GetRadius();
+
+	if (distSq > radius * radius)
+		return; // 미충돌
+
+	FVector3 normalWorld;
+	float dist = sqrtf(distSq);
+
+	if (dist > 1e-5f)
 	{
-		return;
-	}
-
-	FVector3 Normal;
-	float Dist = sqrtf(DistSq);
-
-	if (Dist > 0.00001f)
-	{
-		Normal = Diff / Dist;
+		// 표면에서 바깥쪽을 향하는 월드 법선
+		normalWorld = diffWorld / dist;
 	}
 	else
 	{
-		float PenX = HalfW - fabsf(Delta.x);
-		float PenY = HalfH - fabsf(Delta.y);
+		// 공의 중심이 꼭짓점에 딱 붙었거나 내부에 수치적으로 들어간 경우
+		// 로컬 공간에서 더 얕은 침투 축을 찾아 축 법선을 선택
+		const float penX = HalfW - fabsf(localX);
+		const float penY = HalfH - fabsf(localY);
 
-		if (PenX < PenY)
+		if (penX < penY)
 		{
-			Normal = FVector3((Delta.x >= 0.f) ? 1.f : -1.f, 0.f, 0.f);
-			Dist = Radius - PenX;
+			// 로컬 +X 또는 -X 면에 충돌 -> 월드 법선은 axisX 방향 부호만 반영
+			const float sign = (localX >= 0.f) ? 1.f : -1.f;
+			normalWorld = axisX * sign;
+			dist = radius - penX;
 		}
 		else
 		{
-			Normal = FVector3(0.f, (Delta.y >= 0.f) ? 1.f : -1.f, 0.f);
-			Dist = Radius - PenY;
+			// 로컬 +Y 또는 -Y 면
+			const float sign = (localY >= 0.f) ? 1.f : -1.f;
+			normalWorld = axisY * sign;
+			dist = radius - penY;
 		}
+		// axisX/axisY는 이미 정규화(단위벡터)이므로 normalWorld는 단위길이
 	}
 
-	float Penetration = Radius - Dist;
-	if (Penetration < 0.f)
-	{
+	const float penetration = radius - dist;
+	if (penetration < 0.f)
 		return;
-	}
 
-	PinBall->GetLocation() += Normal * Penetration;
+	// 7) 위치 보정 (월드에서)
+	PinBall->GetLocation() += normalWorld * penetration;
 
-	float Vn = Dot(PinBall->GetVelocity(), Normal);
-	if (Vn < 0.f)
+	// 8) 속도 반사 (월드 법선 사용)
+	float vn = Dot(PinBall->GetVelocity(), normalWorld);
+	if (vn < 0.f)
 	{
-		float Restitution = 1.0f;
-		PinBall->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
-    }
+		const float restitution = 1.0f; // 필요에 맞게 조정
+		PinBall->GetVelocity() -= normalWorld * (1.f + restitution) * vn;
+	}
 }
 
 void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Triangle)
@@ -494,17 +529,18 @@ void GameScene::AddNewBall()
 
 }
 
-void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height)
+void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height,bool autoRotation)
 {
 	// Create the rectangle
 	URectangle* NewRectangle = new URectangle();
 	NewRectangle->Location = location;
-	//NewRectangle->Rotation = rotation;
+	NewRectangle->Rotation = rotation;
 	NewRectangle->Width = width;
 	NewRectangle->Height = height;
 	NewRectangle->Rotation = rotation;
 	NewRectangle->Mass = width * height;
 	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
+	NewRectangle->AutoRotation = autoRotation;
 
 	FSceneManager& FCM = FSceneManager::GetInstance();
 	Scene* currentScene = FCM.GetCurrentScene();
