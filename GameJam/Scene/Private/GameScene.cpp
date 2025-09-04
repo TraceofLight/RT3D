@@ -3,6 +3,7 @@
 #include "Manager/Public/InputManager.h"
 #include "Manager/Public/TimeManager.h"
 #include "Manager/Public/SceneManager.h"
+#include "Manager/Public/ScoreManager.h"
 #include "Render/Public/Renderer.h"
 #include "Actor/Public/PinBall.h"
 #include "Actor/Public/Shooter.h"
@@ -30,6 +31,10 @@ void GameScene::Init()
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
 	Shooter->SetLocation({0.9f, -0.9f, 0.0f});
+
+	// ScoreManager 초기화
+	m_ScoreManager = FScoreManager::GetInstance();
+	m_ScoreManager->ResetCurrentScore();
 
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
@@ -104,6 +109,13 @@ void GameScene::Update(float deltaTime)
 
 	// 지연 삭제 처리 (프레임 시작 시)
 	ProcessDelayedDeletions();
+
+	// ScoreManager 업데이트 (시간 기반 점수 처리)
+	// 공이 발사된 후에만 시간 기반 점수 가산
+	if (m_ScoreManager && !pause && m_Shooted)
+	{
+		m_ScoreManager->Update();
+	}
 
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
@@ -398,6 +410,12 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 	{
 		const float restitution = 1.0f; // 필요에 맞게 조정
 		PinBall->GetVelocity() -= normalWorld * (1.f + restitution) * vn;
+
+		// 충돌 시 점수 추가
+		if (m_ScoreManager)
+		{
+			m_ScoreManager->AddCollisionScore();
+		}
 	}
 }
 
@@ -486,6 +504,12 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
     {
         const float Restitution = 1.0f;
 		PinBall->GetVelocity() -= normal * (1.f + Restitution) * vn;
+
+        // 충돌 시 점수 추가
+        if (m_ScoreManager)
+        {
+            m_ScoreManager->AddCollisionScore();
+        }
     }
 }
 

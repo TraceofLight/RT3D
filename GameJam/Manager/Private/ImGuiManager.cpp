@@ -230,20 +230,20 @@ void FImGuiManager::RenderLobbyGui()
 	ImGui::Spacing();
 	ImGui::Spacing();
 
-	// 제목 텍스트 중앙 정렬 (더 크게 만들기)
-	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 15)); // 여백 조정
+	// 제목 텍스트 중앙 정렬
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 15));
 
 	// 제목 스타일
-	ImGuiStyle& style = ImGui::GetStyle();
-	float originalFontSize = ImGui::GetFont()->Scale;
-	ImGui::SetWindowFontScale(2.0f); // 폰트 크기 2배
+	ImGuiStyle& Style = ImGui::GetStyle();
+	float OriginalFontSize = ImGui::GetFont()->Scale;
+	ImGui::SetWindowFontScale(2.0f);
 
-	const char* title = "PinBall";
-	float titleWidth = ImGui::CalcTextSize(title).x;
-	ImGui::SetCursorPosX((windowWidth - titleWidth) * 0.5f);
-	ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "%s", title); // 금색 텍스트
+	const char* Title = "PinBall";
+	float TitleWidth = ImGui::CalcTextSize(Title).x;
+	ImGui::SetCursorPosX((windowWidth - TitleWidth) * 0.5f);
+	ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "%s", Title);
 
-	ImGui::SetWindowFontScale(1.0f); // 폰트 사이즈 리셋
+	ImGui::SetWindowFontScale(1.0f);
 	ImGui::PopStyleVar();
 
 	// 제목과 구분선 사이 패딩
@@ -315,7 +315,7 @@ void FImGuiManager::RenderGameGui()
 	// Pinball Title
 	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
 	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, 70.0f));
-	ImGui::Begin("Pinball", nullptr,
+	ImGui::Begin(" ", nullptr,
 	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
 	ImGui::SetWindowFontScale(2.0f);

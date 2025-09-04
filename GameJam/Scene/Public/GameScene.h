@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene/Public/Scene.h"
 
+class FScoreManager;
 class UShooter;
 class UPinBall;
 class URectangle;
@@ -52,6 +53,9 @@ private:
 	UPinBall* m_ActorBall = nullptr;
 	bool m_Shooted = false;
 	UShooter* Shooter;
+
+	// Score Manager
+	FScoreManager* m_ScoreManager = nullptr;
 
 	bool bIsBallSpawned = false;
 };
