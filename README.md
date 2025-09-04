@@ -8,7 +8,7 @@
 ## 🎯 핵심 특징
 
 ### 🔧 기술적 특징
-- **엔진**: DirectX11 2D API를 활용한 Custom Engine
+- **엔진**: DirectX11 API를 활용한 Custom Engine
 - **물리**: 실시간 중력 시뮬레이션 및 충돌 처리
 - **렌더링**: HLSL 셰이더 기반 렌더링 파이프라인
 - **UI**: ImGui 통합 사용자 인터페이스
