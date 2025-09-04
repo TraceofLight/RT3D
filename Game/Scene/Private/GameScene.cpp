@@ -31,7 +31,7 @@ void GameScene::Init()
 	m_Shooted = false;
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
-	Shooter->SetLocation({0.8f, -0.82f, 0.0f});
+	Shooter->SetLocation({0.85f, -0.9f, 0.0f});
 
 	// ScoreManager 초기화
 	m_ScoreManager = FScoreManager::GetInstance();
@@ -41,12 +41,6 @@ void GameScene::Init()
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
 	GenerateObstacles();
-
-	//Above Shooter
-	AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f, true, RectRotType::CLOCK);
-
-	//Center
-	AddNewRectangle(FVector3(0.0f, 0.0f, 0.0f), 0.3f, 0.1f, 0.4f, true);
 
 	// PadPair 설정
 	FPadPairConfig PadCfg;
@@ -67,50 +61,77 @@ void GameScene::Init()
 
 	// 상단 범퍼 벽
 	m_TopBumperWall = new UConcaveCircle(
-		FVector3(0.0f, 0.6f, 0.0f), // 상단 중앙
-		0.9f, // 반지름
-		0.f, // 시작 각도 (0도)
-		PI // 끝 각도 (180도)
+		FVector3(0.09f, 0.15f, 0.0f), // 상단 중앙
+		0.85f, // 반지름
+		0.35f, // 시작 각도 (0도)
+		PI-0.35f // 끝 각도 (180도)
 	);
 
 	// 중앙 범퍼
 	m_CenterBumperBall = new UBall();
-	m_CenterBumperBall->SetLocation(FVector3(0.3f, 0.2f, 0.0f));
+	m_CenterBumperBall->SetLocation(FVector3(0.0f, -0.3f, 0.0f));
 	m_CenterBumperBall->SetRadius(0.15f);
 	m_CenterBumperBall->SetVelocity(FVector3(0.0f, 0.0f, 0.0f)); // 정지 상태
+
+	// 위 범퍼
+	m_TopBumperBall1 = new UBall();
+	m_TopBumperBall1->SetLocation(FVector3(-0.2f, 0.4f, 0.0f));
+	m_TopBumperBall1->SetRadius(0.11f);
+	m_TopBumperBall1->SetVelocity(FVector3(0.0f, 0.0f, 0.0f)); // 정지 상태
+
+	m_TopBumperBall2 = new UBall();
+	m_TopBumperBall2->SetLocation(FVector3(0.25f, 0.6f, 0.0f));
+	m_TopBumperBall2->SetRadius(0.09f);
+	m_TopBumperBall2->SetVelocity(FVector3(0.0f, 0.0f, 0.0f)); // 정지 상태
+
+	m_TopBumperBall3 = new UBall();
+	m_TopBumperBall3->SetLocation(FVector3(0.2f, 0.25f, 0.0f));
+	m_TopBumperBall3->SetRadius(0.095f);
+	m_TopBumperBall3->SetVelocity(FVector3(0.0f, 0.0f, 0.0f)); // 정지 상태
 }
 
 void GameScene::GenerateObstacles()
 {
 	// right outer wall
-	AddNewRectangle(FVector3(0.92f, -0.2f, 0.0f), 0.0f, 0.08f, 1.6f);
+	AddNewRectangle(FVector3(0.92f, -0.3f, 0.0f), 0.0f, 0.08f, 1.5f);
 	// right inner wall
-	AddNewRectangle(FVector3(0.7f, -0.2f, 0.0f), 0.0f, 0.12f, 1.6f);
+	AddNewRectangle(FVector3(0.735f, -0.3f, 0.0f), 0.0f, 0.12f, 1.5f);
 	// left wall
-	AddNewRectangle(FVector3(-0.88f, -0.2f, 0.0f), 0.0f, 0.35f, 1.6f);
+	AddNewRectangle(FVector3(-0.88f, -0.3f, 0.0f), 0.0f, 0.35f, 1.5f);
 
 	// left floor
 	AddNewRectangle(FVector3(-0.728f, -0.65f, 0.0f), -0.6f, 0.95f, 0.2f);
 	// right floor
-	AddNewRectangle(FVector3(0.529f, -0.789f, 0.0f), 0.6f, 0.45f, 0.2f);
+	AddNewRectangle(FVector3(0.526f, -0.792f, 0.0f), 0.6f, 0.5f, 0.2f);
 
 	// bottom left triangle
-	AddNewTriangle(FVector3(-0.4f, -0.47f, 0.0f), 2.0f, 0.4f, 0.15f);
+	AddNewTriangle(FVector3(-0.4f, -0.52f, 0.0f), 2.0f, 0.3f, 0.1f);
 	// bottom right triangle
-	AddNewTriangle(FVector3(0.35f, -0.47f, 0.0f), -2.0f, 0.4f, 0.15f);
+	AddNewTriangle(FVector3(0.44f, -0.52f, 0.0f), -2.0f, 0.3f, 0.1f);
 
 	// triangle obstacle 1
 	// AddNewTriangle(FVector3(0.58f, 0.2f, 0.0f), -2.3f, 0.45f, 0.25f);
 
-	// left inner triangular wall
-	AddNewTriangle(FVector3(0.6f, -0.0f, 0.0f), 1.57f, 0.85f, 0.15f);
 	// right inner triangular wall
+	AddNewTriangle(FVector3(0.64f, -0.0f, 0.0f), 1.57f, 0.85f, 0.15f);
+	// left inner triangular wall
 	AddNewTriangle(FVector3(-0.68f, -0.0f, 0.0f), -1.57f, 0.85f, 0.15f);
 
 	// rectangle obstacle 1
-	AddNewRectangle(FVector3(-0.3f, 0.3f, 0.0f), -0.4f, 0.35f, 0.1f);
-	// rectangle obstacle 2
+	AddNewRectangle(FVector3(-0.32f, -0.f, 0.0f), 1.0f, 0.06f, 0.25f);
 
+	// bottom fillings
+	AddNewRectangle(FVector3(0.58f, -0.91f, 0.0f), -0.0f, 0.4f, 0.28f);
+	AddNewRectangle(FVector3(-0.58f, -0.9f, 0.0f), -0.0f, 0.36f, 0.28f);
+
+	//Above Shooter
+	// AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f,true);
+
+	// rotating rectangles
+	// AddNewRectangle(FVector3(0.1f, 0.3f, 0.0f), 0.3f, 0.05f, 0.2f, true,RectRotType::CLOCK);
+	// AddNewRectangle(FVector3(0.285f, 0.0f, 0.0f), 0.3f, 0.05f, 0.2f, true,RectRotType::REVCLOCK);
+	// AddNewRectangle(FVector3(0.285f, 0.65f, 0.0f), 0.3f, 0.07f, 0.35f, true,RectRotType::REVCLOCK);
+	AddNewRectangle(FVector3(-0.1f, 0.75f, 0.0f), 0.3f, 0.06f, 0.26f, true,RectRotType::CLOCK);
 
 	// temp shooter top
 	// AddNewRectangle(FVector3(0.9f, 0.9f, 0.0f), -0.6f, 0.2f, 0.2f);
@@ -200,6 +221,21 @@ void GameScene::Cleanup()
 	{
 		delete m_CenterBumperBall;
 		m_CenterBumperBall = nullptr;
+	}
+	if (m_TopBumperBall1)
+	{
+		delete m_TopBumperBall1;
+		m_TopBumperBall1 = nullptr;
+	}
+	if (m_TopBumperBall2)
+	{
+		delete m_TopBumperBall2;
+		m_TopBumperBall2 = nullptr;
+	}
+	if (m_TopBumperBall3)
+	{
+		delete m_TopBumperBall3;
+		m_TopBumperBall3 = nullptr;
 	}
 
 	// Clear Delayed Task Target
@@ -415,6 +451,21 @@ void GameScene::RenderProcess()
 	{
 		Renderer->UpdateConstant(m_CenterBumperBall->GetLocation(), m_CenterBumperBall->GetRadius());
 		Renderer->RenderPrimitive(); // 노랑빛 중앙 범퍼 (볼록)
+	}
+	if (m_TopBumperBall1)
+	{
+		Renderer->UpdateConstant(m_TopBumperBall1->GetLocation(), m_TopBumperBall1->GetRadius());
+		Renderer->RenderPrimitive();
+	}
+	if (m_TopBumperBall2)
+	{
+		Renderer->UpdateConstant(m_TopBumperBall2->GetLocation(), m_TopBumperBall2->GetRadius());
+		Renderer->RenderPrimitive();
+	}
+	if (m_TopBumperBall3)
+	{
+		Renderer->UpdateConstant(m_TopBumperBall3->GetLocation(), m_TopBumperBall3->GetRadius());
+		Renderer->RenderPrimitive();
 	}
 }
 
@@ -931,9 +982,9 @@ void GameScene::ResolveBallConvexCircle(UPinBall* Ball, const UBall* ConvexCircl
 	float Vn = Dot(Ball->GetVelocity(), Normal);
 	if (Vn < 0.f) // 볼록 충돌체로 향하는 속도만 반사
 	{
-		float Restitution = 1.2f; // 볼록 충돌체는 약간 더 강하게 반사
-		Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
-		DEBUG_PRINT("[ConvexCircle] Ball velocity reflected with restitution %.1f\n", Restitution);
+		// float Restitution = 1.2f; // 볼록 충돌체는 약간 더 강하게 반사
+		Ball->GetVelocity() -= Normal * (1.f + OBSTACLE_RESTITUTION) * Vn;
+		DEBUG_PRINT("[ConvexCircle] Ball velocity reflected with restitution %.1f\n", OBSTACLE_RESTITUTION);
 
 		// 충돌 시 점수 추가
 		if (m_ScoreManager)
@@ -954,6 +1005,18 @@ void GameScene::HandleConvexCircleCollisions()
 			if (m_CenterBumperBall)
 			{
 				ResolveBallConvexCircle(Ball, m_CenterBumperBall);
+			}
+			if (m_TopBumperBall1)
+			{
+				ResolveBallConvexCircle(Ball, m_TopBumperBall1);
+			}
+			if (m_TopBumperBall2)
+			{
+				ResolveBallConvexCircle(Ball, m_TopBumperBall2);
+			}
+			if (m_TopBumperBall3)
+			{
+				ResolveBallConvexCircle(Ball, m_TopBumperBall3);
 			}
 		}
 	}

@@ -74,4 +74,7 @@ private:
 	// Convex & Concave Colliders
 	UConcaveCircle* m_TopBumperWall = nullptr;
 	UBall* m_CenterBumperBall = nullptr;
+	UBall* m_TopBumperBall1 = nullptr;
+	UBall* m_TopBumperBall2 = nullptr;
+	UBall* m_TopBumperBall3 = nullptr;
 };
