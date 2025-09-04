@@ -66,11 +66,11 @@ void URectangle::Update()
 	{
 		if (!clockwise)
 		{
-			Rotation += AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+			Rotation += AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005f;
 		}
 		else
 		{
-			Rotation += -AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+			Rotation += -AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005f;
 		}
 		float angle = fmodf(Rotation, 360.f);
 		if (angle < 0.0f)
