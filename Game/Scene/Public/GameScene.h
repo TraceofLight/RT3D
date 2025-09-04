@@ -30,6 +30,7 @@ private:
 
 	void ResolveRectangleCollsion(UPinBall* Ball, const URectangle* Rect);
 	void ResolveTriangleCollision(UPinBall* Ball, const UTriangle* Triangle);
+	void ResolvePadCollision(UPinBall* InBall, const UTriangle* InFilpper, bool bInIsLeftPad);
 	void ResolveBallConcaveCircle(UPinBall* Ball, const UConcaveCircle* ConcaveCircle);
 	void ResolveBallConvexCircle(UPinBall* Ball, const UBall* ConvexCircle);
 	void HandlePadPairCollisions();

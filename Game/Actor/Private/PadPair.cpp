@@ -37,7 +37,7 @@ void UPadPair::ApplyConfigToPad(UPad& Pad,
 	Pad.RotationSpeed = RotSpeedRad;
 	Pad.bUseRotationLimit = true;
 	Pad.RotationKey = Key;
-	Pad.Shape->Restitution = PAD_RESTITUTION;
+	Pad.Shape->Restitution = PAD_REST_RESTITUTION;
 }
 
 void UPadPair::Init(const FPadPairConfig& InConfig)

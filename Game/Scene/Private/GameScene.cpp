@@ -52,7 +52,7 @@ void GameScene::Init()
 	PadCfg.YOffset = -0.85f;
 	PadCfg.MidAngleDeg = 90.f;
 	PadCfg.SweepHalfDeg = 30.f;
-	PadCfg.RotationSpeedDeg = 360.f;
+	PadCfg.RotationSpeedDeg = 270.f; // CCD 문제 방지를 위한 속도 조정
 	PadCfg.KeyLeft = EKeyInput::A;
 	PadCfg.KeyRight = EKeyInput::D;
 
@@ -64,7 +64,7 @@ void GameScene::Init()
 		FVector3(0.09f, 0.15f, 0.0f), // 상단 중앙
 		0.85f, // 반지름
 		0.35f, // 시작 각도 (0도)
-		PI-0.35f // 끝 각도 (180도)
+		PI - 0.35f // 끝 각도 (180도)
 	);
 
 	// 중앙 범퍼
@@ -131,7 +131,7 @@ void GameScene::GenerateObstacles()
 	// AddNewRectangle(FVector3(0.1f, 0.3f, 0.0f), 0.3f, 0.05f, 0.2f, true,RectRotType::CLOCK);
 	// AddNewRectangle(FVector3(0.285f, 0.0f, 0.0f), 0.3f, 0.05f, 0.2f, true,RectRotType::REVCLOCK);
 	// AddNewRectangle(FVector3(0.285f, 0.65f, 0.0f), 0.3f, 0.07f, 0.35f, true,RectRotType::REVCLOCK);
-	AddNewRectangle(FVector3(-0.1f, 0.75f, 0.0f), 0.3f, 0.06f, 0.26f, true,RectRotType::CLOCK);
+	AddNewRectangle(FVector3(-0.1f, 0.75f, 0.0f), 0.3f, 0.06f, 0.26f, true, RectRotType::CLOCK);
 
 	// temp shooter top
 	// AddNewRectangle(FVector3(0.9f, 0.9f, 0.0f), -0.6f, 0.2f, 0.2f);
@@ -686,12 +686,161 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 	}
 }
 
+/**
+ * @brief 패드 전용 충돌 처리 함수 - CCD 문제 해결을 위한 특수 처리
+ * @param InBall 충돌을 검사할 공 객체
+ * @param InFilpper 패드 삼각형 객체
+ * @param bInIsLeftPad 좌측 패드인지 여부
+ */
+void GameScene::ResolvePadCollision(UPinBall* InBall, const UTriangle* InFilpper, bool bInIsLeftPad)
+{
+	if (!InBall || !InFilpper)
+	{
+		return;
+	}
+
+	const float B = InFilpper->Base;
+	const float H = InFilpper->Height;
+	const float r = InFilpper->Radius;
+	const float ballR = InBall->GetShape()->GetRadius();
+
+	// 이등변 삼각형 로컬(인센터 = (0,0)) 정점 (CCW)
+	FVector3 v0(-B * 0.5f, -r, 0.0f); // Left base
+	FVector3 v1(B * 0.5f, -r, 0.0f); // Right base
+	FVector3 v2(0.0f, H - r, 0.0f); // Apex
+
+	// 인센터 기준 회전
+	const float c = std::cos(InFilpper->Rotation);
+	const float s = std::sin(InFilpper->Rotation);
+	auto Rotate = [&](const FVector3& L) -> FVector3
+	{
+		return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
+	};
+
+	const FVector3 Center = InFilpper->Location;
+	FVector3 w0 = Rotate(v0) + Center;
+	FVector3 w1 = Rotate(v1) + Center;
+	FVector3 w2 = Rotate(v2) + Center;
+
+	// 점-선분 최근접점
+	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
+	{
+		FVector3 AB = B - A;
+		float lenSq = AB.LengthSquare();
+		if (lenSq <= 1e-12f)
+		{
+			return A;
+		}
+
+		float t = Dot(P - A, AB) / lenSq;
+		t = std::clamp(t, 0.f, 1.f);
+
+		return A + AB * t;
+	};
+
+	const FVector3 C = InBall->GetLocation();
+
+	FVector3 Candidates[3];
+	Candidates[0] = ClosestPointOnSegment(w0, w1, C); // Base
+	Candidates[1] = ClosestPointOnSegment(w1, w2, C); // Right side
+	Candidates[2] = ClosestPointOnSegment(w2, w0, C); // Left side
+
+	// 최소 거리 후보 선택
+	float BestDistSq = FLT_MAX;
+	FVector3 Closest;
+	int ClosestSegment = 0;
+	for (int i = 0; i < 3; ++i)
+	{
+		float dsq = (C - Candidates[i]).LengthSquare();
+		if (dsq < BestDistSq)
+		{
+			BestDistSq = dsq;
+			Closest = Candidates[i];
+			ClosestSegment = i;
+		}
+	}
+
+	float Dist = std::sqrtf(BestDistSq);
+	if (Dist > ballR)
+	{
+		return; // 충돌 없음
+	}
+
+	// 법선 계산
+	FVector3 Normal;
+	if (Dist > 1e-6f)
+	{
+		Normal = (C - Closest) / Dist;
+	}
+	else
+	{
+		// 극도로 가까운 경우: 인센터 방향 사용
+		Normal = (C - Center);
+		if (Normal.LengthSquare() < 1e-8f)
+		{
+			Normal = FVector3(1.f, 0.f, 0.f);
+		}
+		else
+		{
+			Normal.Normalize();
+		}
+	}
+
+	// CCD 문제 해결을 위한 특수 처리: 패드와 충돌 시 위쪽으로 편향
+	FInputManager* KeyManager = FInputManager::GetInstance();
+	bool leftKeyPressed = KeyManager && KeyManager->IsKeyDown(EKeyInput::A);
+	bool rightKeyPressed = KeyManager && KeyManager->IsKeyDown(EKeyInput::D);
+
+	// 해당 패드의 키가 눌린 경우 강제로 위쪽 방향으로 편향
+	if ((bInIsLeftPad && leftKeyPressed) || (!bInIsLeftPad && rightKeyPressed))
+	{
+		// 패드가 활성화된 경우: 위쪽으로 강제 편향
+		if (ClosestSegment == 0) // Base 세그먼트와 충돌한 경우
+		{
+			// 강제로 위쪽 방향 추가
+			Normal.y = max(Normal.y, 0.3f); // 최소 30% 위쪽 성분 보장
+			Normal.Normalize();
+		}
+	}
+
+	// 침투 보정
+	float Penetration = ballR - Dist;
+	if (Penetration > 0.f)
+	{
+		InBall->GetLocation() += Normal * Penetration;
+	}
+
+	// 속도 반사
+	float vn = Dot(InBall->GetVelocity(), Normal);
+	if (vn < 0.f)
+	{
+		InBall->GetVelocity() -= Normal * (1.f + InFilpper->Restitution) * vn;
+
+		// 패드 키가 눌린 경우 추가 위쪽 속도 부여 (CCD 보완)
+		if ((bInIsLeftPad && leftKeyPressed) || (!bInIsLeftPad && rightKeyPressed))
+		{
+			// 위쪽 속도 성분이 부족하면 보정
+			if (InBall->GetVelocity().y < 1.0f)
+			{
+				InBall->GetVelocity().y += 0.5f; // 위쪽으로 추가 속도
+			}
+		}
+
+		// 충돌 시 점수 추가
+		if (m_ScoreManager)
+		{
+			m_ScoreManager->AddCollisionScore();
+		}
+	}
+}
+
 void GameScene::HandlePadPairCollisions()
 {
 	if (!IsMarkedForDeletion(m_ActorBall))
 	{
-		ResolveTriangleCollision(m_ActorBall, m_PadPair->Left().GetShape());
-		ResolveTriangleCollision(m_ActorBall, m_PadPair->Right().GetShape());
+		// 패드 전용 충돌 처리 사용
+		ResolvePadCollision(m_ActorBall, m_PadPair->Left().GetShape(), true);
+		ResolvePadCollision(m_ActorBall, m_PadPair->Right().GetShape(), false);
 	}
 }
 

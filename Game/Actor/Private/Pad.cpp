@@ -59,6 +59,17 @@ void UPad::HandleInput(FInputManager* InInput, float InDeltaTime)
 		current = std::clamp(current, MinRotation, MaxRotation);
 
 	Shape->Rotation = current;
+
+	if (keyDown)
+	{
+		// 키를 누르고 있을 때: 강한 탄성
+		Shape->Restitution = PAD_ACTIVE_RESTITUTION;
+	}
+	else
+	{
+		// 키를 누르지 않을 때: 기본 탄성
+		Shape->Restitution = PAD_REST_RESTITUTION;
+	}
 }
 
 void UPad::SetRotationKey(EKeyInput InKey)
@@ -100,7 +111,7 @@ void UPad::ConfigueLeftPad()
 	MinRotation = DegToRad(-120.0f);
 	MaxRotation = DegToRad(-60.0f);
 	Shape->Rotation = MinRotation;
-	
+
 	// 속도
 	RotationSpeed = DegToRad(360.0f); // 필요 시 조정 (deg/sec)
 
