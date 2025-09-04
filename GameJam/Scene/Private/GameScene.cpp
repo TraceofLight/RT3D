@@ -27,7 +27,7 @@ GameScene::~GameScene()
 void GameScene::Init()
 {
 	bIsPause = false;
-    m_Rectangle = new URectangle();
+	m_Rectangle = new URectangle();
 	m_Shooted = false;
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
@@ -43,7 +43,7 @@ void GameScene::Init()
 	GenerateObstacles();
 
 	//Above Shooter
-	AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f,true,RectRotType::CLOCK);
+	AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f, true, RectRotType::CLOCK);
 
 	//Center
 	AddNewRectangle(FVector3(0.0f, 0.0f, 0.0f), 0.3f, 0.1f, 0.4f, true);
@@ -118,8 +118,8 @@ void GameScene::GenerateObstacles()
 
 void GameScene::Update(float deltaTime)
 {
-    FTimeManager* TimeManager = FTimeManager::GetInstance();
-    FInputManager* KeyManager = FInputManager::GetInstance();
+	FTimeManager* TimeManager = FTimeManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 
 	// 지연 삭제 처리 (프레임 시작 시)
@@ -134,7 +134,7 @@ void GameScene::Update(float deltaTime)
 
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
-    InputProcess();
+	InputProcess();
 
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
 		return;
@@ -172,21 +172,21 @@ void GameScene::Update(float deltaTime)
 
 void GameScene::Render()
 {
-    RenderProcess();
+	RenderProcess();
 }
 
 void GameScene::Cleanup()
 {
-    for (int i = 0; i < m_TotalPrimitives; ++i)
-    {
-        delete (*m_PrimitiveList)[i];
-    }
+	for (int i = 0; i < m_TotalPrimitives; ++i)
+	{
+		delete (*m_PrimitiveList)[i];
+	}
 	m_PrimitiveList->clear();
-    if(m_Rectangle)
-    {
-        delete m_Rectangle;
-        m_Rectangle = nullptr;
-    }
+	if (m_Rectangle)
+	{
+		delete m_Rectangle;
+		m_Rectangle = nullptr;
+	}
 
 	delete Shooter;
 	delete m_PadPair;
@@ -231,7 +231,6 @@ void GameScene::InputProcess()
 		{
 			if (!m_Shooted)
 			{
-
 				m_ActorBall = Shooter->Shoot();
 				if (m_ActorBall != nullptr)
 				{
@@ -295,9 +294,9 @@ void GameScene::CheckBallTriggers()
 
 void GameScene::RenderProcess()
 {
-    URenderer* Renderer = URenderer::GetInstance();
-    //Renderer->Prepare();
-    //Renderer->PrepareShader();
+	URenderer* Renderer = URenderer::GetInstance();
+	//Renderer->Prepare();
+	//Renderer->PrepareShader();
 
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
@@ -313,13 +312,15 @@ void GameScene::RenderProcess()
 		}
 		else if (URectangle* Rectangle = dynamic_cast<URectangle*>(Primitive))
 		{
-			Renderer->UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height, Rectangle->Rotation);
+			Renderer->UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height,
+			                                     Rectangle->Rotation);
 			Renderer->RenderRectangle();
 		}
 		else if (UTriangle* Triangle = dynamic_cast<UTriangle*>(Primitive))
 		{
-			Renderer->UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height, Triangle->Rotation,
-										 Triangle->Radius);
+			Renderer->UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height,
+			                                    Triangle->Rotation,
+			                                    Triangle->Radius);
 			Renderer->RenderTriangle();
 		}
 		else if (UConcaveCircle* ConcaveCircle = dynamic_cast<UConcaveCircle*>(Primitive))
@@ -329,14 +330,14 @@ void GameScene::RenderProcess()
 		}
 	}
 
-    // Shooter 렌더링 추가
-    if (Shooter && Shooter->GetShape())
-    {
-        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
-                                           Shooter->GetShape()->GetWidth(),
-                                           Shooter->GetShape()->GetHeight(),0.0f);
-        Renderer->RenderRectangle();
-    }
+	// Shooter 렌더링 추가
+	if (Shooter && Shooter->GetShape())
+	{
+		Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
+		                                     Shooter->GetShape()->GetWidth(),
+		                                     Shooter->GetShape()->GetHeight(), 0.0f);
+		Renderer->RenderRectangle();
+	}
 
 	// PadPair 렌더링
 	m_PadPair->Render(*Renderer);
@@ -450,8 +451,8 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 	//    로컬 x축: (cosθ, sinθ), 로컬 y축: (-sinθ, cosθ)  (CCW 기준)
 	const float c = cosf(Rect->Rotation);
 	const float s = sinf(Rect->Rotation);
-	const FVector3 axisX(c, s, 0.f);   // 로컬 x축이 월드에서 가리키는 방향
-	const FVector3 axisY(-s, c, 0.f);   // 로컬 y축이 월드에서 가리키는 방향
+	const FVector3 axisX(c, s, 0.f); // 로컬 x축이 월드에서 가리키는 방향
+	const FVector3 axisY(-s, c, 0.f); // 로컬 y축이 월드에서 가리키는 방향
 
 	// 3) 월드→로컬 (축으로 투영)
 	//    로컬 좌표 = [dot(delta, axisX), dot(delta, axisY)]
@@ -548,9 +549,9 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 	const float c = std::cos(Triangle->Rotation);
 	const float s = std::sin(Triangle->Rotation);
 	auto Rotate = [&](const FVector3& L) -> FVector3
-		{
-			return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
-		};
+	{
+		return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
+	};
 
 	const FVector3 center = Triangle->Location;
 	FVector3 w0 = Rotate(v0) + center;
@@ -559,19 +560,19 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 
 	// 점-선분 최근접점
 	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
+	{
+		FVector3 AB = B - A;
+		float lenSq = AB.LengthSquare();
+		if (lenSq <= 1e-12f)
 		{
-			FVector3 AB = B - A;
-			float lenSq = AB.LengthSquare();
-			if (lenSq <= 1e-12f)
-			{
-				return A;
-			}
+			return A;
+		}
 
-			float t = Dot(P - A, AB) / lenSq;
-			t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
+		float t = Dot(P - A, AB) / lenSq;
+		t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
 
-			return A + AB * t;
-		};
+		return A + AB * t;
+	};
 
 	const FVector3 C = PinBall->GetLocation();
 
@@ -626,12 +627,12 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 	{
 		PinBall->GetVelocity() -= normal * (1.f + Triangle->Restitution) * vn;
 
-        // 충돌 시 점수 추가
-        if (m_ScoreManager)
-        {
-            m_ScoreManager->AddCollisionScore();
-        }
-    }
+		// 충돌 시 점수 추가
+		if (m_ScoreManager)
+		{
+			m_ScoreManager->AddCollisionScore();
+		}
+	}
 }
 
 void GameScene::HandlePadPairCollisions()
@@ -669,7 +670,8 @@ void GameScene::HandleTriangleCollisions()
 	}
 }
 
-void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height,bool autoRotation)
+void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height, bool autoRotation,
+                                RectRotType type)
 {
 	// Create the rectangle
 	URectangle* NewRectangle = new URectangle();
@@ -685,13 +687,13 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 
 	switch (type)
 	{
-	case RectRotType::CLOCK :
+	case RectRotType::CLOCK:
 		NewRectangle->clockwise = true;
 		break;
-	case RectRotType::REVCLOCK :
+	case RectRotType::REVCLOCK:
 		NewRectangle->clockwise = false;
 		break;
-	default :
+	default:
 		break;
 	}
 
@@ -699,9 +701,6 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	Scene* currentScene = FCM.GetCurrentScene();
 	// Add to the vector
 	currentScene->GetScenePrimitives()->push_back(NewRectangle);
-
-	// Update total count
-	++m_TotalPrimitives;
 }
 
 void GameScene::AddNewTriangle(FVector3 location, float rotation, float base, float height)
@@ -727,7 +726,6 @@ bool GameScene::isGameOver()
 	UPinBall* Ball = m_ActorBall;
 	if (Ball != nullptr)
 	{
-
 		if (Ball->GetLocation().y < -1.0f)
 		{
 			return true;

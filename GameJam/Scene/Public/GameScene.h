@@ -40,7 +40,9 @@ private:
 	bool isGameOver();
 	void CheckBallTriggers();
 
-	void AddNewRectangle(FVector3 location, float rotation, float width, float height, bool autoRotation);
+	void AddNewRectangle(FVector3 location, float rotation, float width, float height, bool autoRotation = false,
+	                     RectRotType type = RectRotType::RAND);
+
 	void AddNewTriangle(FVector3 location, float rotation, float base, float height);
 
 private:
