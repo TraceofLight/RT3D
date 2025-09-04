@@ -594,3 +594,6 @@ fabric.properties
 .idea/
 
 imgui.ini
+
+# Output Directory
+Output/
