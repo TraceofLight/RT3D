@@ -19,6 +19,9 @@ public:
 	float MinRotation;
 	float MaxRotation;
 
+	// 탄성 계수
+	float Restitution = 1.0f;
+
 	UTriangle();
 
 	void UpdateRotation(FInputManager* InInput, float InDeltaTime);
