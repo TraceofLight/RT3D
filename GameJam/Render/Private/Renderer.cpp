@@ -424,6 +424,7 @@ void URenderer::UpdateConstant(FVector3 InOffset, float InScale) const
  * @param InOffset
  * @param InScaleX Rectangle Width
  * @param InScaleY Rectangle Height
+ * @param InRotation Angle
  */
 void URenderer::UpdateConstantForRectangle(FVector3 InOffset, float InScaleX, float InScaleY, float InRotation) const
 {

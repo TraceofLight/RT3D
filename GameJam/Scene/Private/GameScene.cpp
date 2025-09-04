@@ -29,22 +29,19 @@ void GameScene::Init()
 	m_Shooted = false;
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
-	Shooter->SetLocation({0.4f, -0.8f, 0.0f});
+	Shooter->SetLocation({0.82f, -0.8f, 0.0f});
 
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
-	// right wall
-	AddNewRectangle(FVector3(0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
-	// left wall
-	AddNewRectangle(FVector3(-0.8f, -0.2f, 0.0f), 0.0f, 0.1f, 1.6f);
+	GenerateObstacles();
 
 	// PadPair 설정
 	FPadPairConfig PadCfg;
 	PadCfg.Base = 0.05f;
 	PadCfg.Height = 0.3f;
 	PadCfg.XOffset = 0.30f;
-	PadCfg.YOffset = -0.65f;
+	PadCfg.YOffset = -0.85f;
 	PadCfg.MidAngleDeg = 90.f;
 	PadCfg.SweepHalfDeg = 30.f;
 	PadCfg.RotationSpeedDeg = 360.f;
@@ -53,6 +50,42 @@ void GameScene::Init()
 
 	m_PadPair = new UPadPair();
 	m_PadPair->Init(PadCfg);
+}
+
+void GameScene::GenerateObstacles()
+{
+	// right outer wall
+	AddNewRectangle(FVector3(0.92f, -0.2f, 0.0f), 0.0f, 0.08f, 1.6f);
+	// right inner wall
+	AddNewRectangle(FVector3(0.7f, -0.2f, 0.0f), 0.0f, 0.12f, 1.6f);
+	// left wall
+	AddNewRectangle(FVector3(-0.88f, -0.2f, 0.0f), 0.0f, 0.35f, 1.6f);
+
+	// left floor
+	AddNewRectangle(FVector3(-0.728f, -0.65f, 0.0f), -0.6f, 0.95f, 0.2f);
+	// right floor
+	AddNewRectangle(FVector3(0.529f, -0.789f, 0.0f), 0.6f, 0.45f, 0.2f);
+
+	// bottom left triangle
+	AddNewTriangle(FVector3(-0.4f, -0.47f, 0.0f), 2.0f, 0.4f, 0.15f);
+	// bottom right triangle
+	AddNewTriangle(FVector3(0.35f, -0.47f, 0.0f), -2.0f, 0.4f, 0.15f);
+
+	// triangle obstacle 1
+	// AddNewTriangle(FVector3(0.58f, 0.2f, 0.0f), -2.3f, 0.45f, 0.25f);
+
+	// left inner triangular wall
+	AddNewTriangle(FVector3(0.6f, -0.0f, 0.0f), 1.57f, 0.85f, 0.15f);
+	// right inner triangular wall
+	AddNewTriangle(FVector3(-0.68f, -0.0f, 0.0f), -1.57f, 0.85f, 0.15f);
+
+	// rectangle obstacle 1
+	AddNewRectangle(FVector3(-0.3f, 0.3f, 0.0f), -0.4f, 0.35f, 0.1f);
+	// rectangle obstacle 2
+
+
+	// temp shooter top
+	AddNewRectangle(FVector3(0.9f, 0.9f, 0.0f), -0.6f, 0.2f, 0.2f);
 }
 
 void GameScene::Update(float deltaTime)
@@ -151,7 +184,7 @@ void GameScene::InputProcess()
 		{
 			if (!m_Shooted)
 			{
-				
+
 				m_ActorBall = Shooter->Shoot();
 				if (m_ActorBall != nullptr)
 				{
@@ -457,6 +490,7 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	//NewRectangle->Rotation = rotation;
 	NewRectangle->Width = width;
 	NewRectangle->Height = height;
+	NewRectangle->Rotation = rotation;
 	NewRectangle->Mass = width * height;
 	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
 
