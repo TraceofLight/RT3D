@@ -2,6 +2,7 @@
 #include "Mesh/Public/URectangle.h"
 #include "Manager/Public/TimeManager.h"
 #include <math.h>
+#include <random>
 
 
 URectangle::URectangle()
@@ -15,11 +16,25 @@ URectangle::URectangle()
 	Velocity.y = (-0.2f + (rand() / (float)RAND_MAX) * 0.4f);
 	Velocity.z = 0.0f;
 	// Size Setting
-	AutoRotRate = 0.1f + (rand() / (float)2.0f);
+	AutoRotRate = 0.2f + (rand() / (float)2.0f);
 	Width = 0.2f;
 	Height = 0.5f;
 	// Mass Setting
 	Mass = Width * Height;
+
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<int> dis(0, 1);
+
+	bool isClockwise = dis(gen); 
+
+	
+	if (isClockwise)
+	{
+		AutoRotRate *= -1.0f; // 기존 값에 -1을 곱합니다. (덮어쓰기가 아님!)
+	}
+
+	// Rotation Setting
 	// Rotation Setting
 	Rotation = 0.0f;
 }
