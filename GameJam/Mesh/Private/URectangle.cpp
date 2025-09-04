@@ -26,13 +26,7 @@ URectangle::URectangle()
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> dis(0, 1);
 
-	bool isClockwise = dis(gen); 
-
-	
-	if (isClockwise)
-	{
-		AutoRotRate *= -1.0f; // 기존 값에 -1을 곱합니다. (덮어쓰기가 아님!)
-	}
+	clockwise = dis(gen); 
 
 	// Rotation Setting
 	// Rotation Setting
@@ -70,7 +64,14 @@ void URectangle::Update()
 {
 	if (AutoRotation)
 	{
-		Rotation += AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+		if (!clockwise)
+		{
+			Rotation += AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+		}
+		else
+		{
+			Rotation += -AutoRotRate * FTimeManager::GetInstance()->GetDeltaTime() * 0.0005;
+		}
 		float angle = fmodf(Rotation, 360.f);
 		if (angle < 0.0f)
 		{
