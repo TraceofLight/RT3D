@@ -84,6 +84,7 @@ public:
 	void RenderPrimitive() const;
 	void RenderRectangle() const;
 	void RenderTriangle() const;
+	void RenderLines(const FVertexSimple* InVertices, UINT InCount) const;
 
 	ID3D11Buffer* CreateVertexBuffer(FVertexSimple* InVertices, UINT InByteWidth) const;
 	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, UINT InByteWidth) const;

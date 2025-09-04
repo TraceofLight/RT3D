@@ -83,6 +83,11 @@ struct FVector3
     {
     }
 
+	FVector3 operator-() const
+    {
+    	return FVector3(-x, -y, -z);
+    }
+
     // Vector operations
     FVector3 operator+(const FVector3& InOther) const
     {
