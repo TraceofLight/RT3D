@@ -322,7 +322,7 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 	const float HalfH = Rect->Height * 0.5f;
 
 	// 1) 월드 좌표에서 공-사각형 중심까지 벡터
-	const FVector3 ballPos = Ball->GetLocation();
+	const FVector3 ballPos = PinBall->GetLocation();
 	const FVector3 rectPos = Rect->Location;
 	const FVector3 deltaWorld = ballPos - rectPos; // z는 무시 (2D)
 
@@ -348,7 +348,7 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 	// 6) 월드에서 거리/법선 계산
 	FVector3 diffWorld = ballPos - closestWorld;
 	float distSq = diffWorld.LengthSquare();
-	const float radius = Ball->GetShape()->GetRadius();
+	const float radius = PinBall->GetShape()->GetRadius();
 
 	if (distSq > radius * radius)
 		return; // 미충돌
@@ -390,14 +390,14 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 		return;
 
 	// 7) 위치 보정 (월드에서)
-	Ball->GetLocation() += normalWorld * penetration;
+	PinBall->GetLocation() += normalWorld * penetration;
 
 	// 8) 속도 반사 (월드 법선 사용)
-	float vn = Dot(Ball->GetVelocity(), normalWorld);
+	float vn = Dot(PinBall->GetVelocity(), normalWorld);
 	if (vn < 0.f)
 	{
 		const float restitution = 1.0f; // 필요에 맞게 조정
-		Ball->GetVelocity() -= normalWorld * (1.f + restitution) * vn;
+		PinBall->GetVelocity() -= normalWorld * (1.f + restitution) * vn;
 	}
 }
 
