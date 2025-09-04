@@ -1,18 +1,18 @@
 #include "pch.h"
-#include "Actor/Public/PadPair.h"
+#include "Actor/Public/FlipperPair.h"
 #include "Mesh/Public/UTriangle.h"
 #include "Render/Public/Renderer.h"
 #include "Manager/Public/InputManager.h"
 
-void UPadPair::RecalcIsoscelesInRadius(UTriangle* T)
+void UFlipperPair::RecalcIsoscelesInRadius(UTriangle* T)
 {
 	float halfB = T->Base * 0.5f;
 	float side = sqrtf(halfB * halfB + T->Height * T->Height);
 	T->Radius = (T->Base * T->Height) / (T->Base + 2.f * side);
 }
 
-void UPadPair::ApplyConfigToPad(UPad& Pad,
-	UPad::ESide Side,
+void UFlipperPair::ApplyConfigToPad(UFlipper& Pad,
+	UFlipper::ESide Side,
 	float MinRot,
 	float MaxRot,
 	float InitRot,
@@ -40,7 +40,7 @@ void UPadPair::ApplyConfigToPad(UPad& Pad,
 	Pad.Shape->Restitution = PAD_REST_RESTITUTION;
 }
 
-void UPadPair::Init(const FPadPairConfig& InConfig)
+void UFlipperPair::Init(const FPadPairConfig& InConfig)
 {
 	Config = InConfig;
 
@@ -62,24 +62,24 @@ void UPadPair::Init(const FPadPairConfig& InConfig)
 	const float rightX = Config.CenterX + Config.XOffset;
 	const float bothY = Config.CenterY + Config.YOffset;
 
-	ApplyConfigToPad(LeftPad, UPad::ESide::Left,
+	ApplyConfigToPad(LeftPad, UFlipper::ESide::Left,
 		leftMin, leftMax, leftInit,
 		leftX, bothY,
 		Config.KeyLeft, speedRad);
 
-	ApplyConfigToPad(RightPad, UPad::ESide::Right,
+	ApplyConfigToPad(RightPad, UFlipper::ESide::Right,
 		rightMin, rightMax, rightInit,
 		rightX, bothY,
 		Config.KeyRight, speedRad);
 }
 
-void UPadPair::Update(FInputManager* Input, float DeltaTime)
+void UFlipperPair::Update(FInputManager* Input, float DeltaTime)
 {
 	LeftPad.HandleInput(Input, DeltaTime);
 	RightPad.HandleInput(Input, DeltaTime);
 }
 
-void UPadPair::Render(const URenderer& Renderer)
+void UFlipperPair::Render(const URenderer& Renderer)
 {
 	LeftPad.Render(Renderer);
 	RightPad.Render(Renderer);

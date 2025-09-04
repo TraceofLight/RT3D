@@ -11,7 +11,7 @@
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
 #include "Mesh/Public/UConcaveCircle.h"
-#include "Actor/Public/PadPair.h"
+#include "Actor/Public/FlipperPair.h"
 
 GameScene::GameScene() : Scene("GAME")
 {
@@ -56,7 +56,7 @@ void GameScene::Init()
 	PadCfg.KeyLeft = EKeyInput::A;
 	PadCfg.KeyRight = EKeyInput::D;
 
-	m_PadPair = new UPadPair();
+	m_PadPair = new UFlipperPair();
 	m_PadPair->Init(PadCfg);
 
 	// 상단 범퍼 벽
@@ -687,7 +687,7 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 }
 
 /**
- * @brief 패드 전용 충돌 처리 함수 - CCD 문제 해결을 위한 특수 처리
+ * @brief 패드 전용 충돌 처리 함수
  * @param InBall 충돌을 검사할 공 객체
  * @param InFilpper 패드 삼각형 객체
  * @param bInIsLeftPad 좌측 패드인지 여부

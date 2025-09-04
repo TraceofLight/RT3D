@@ -5,7 +5,7 @@ class UTriangle;
 class URenderer;
 class FInputManager;
 
-class UPad :
+class UFlipper :
 	public UPrimitive
 {
 public:
@@ -21,13 +21,13 @@ private:
 	ESide Side = ESide::Left;
 
 public:
-	friend class UPadPair; // PadPair가 대칭 설정을 직접 주입할 수 있게 함
+	friend class UFlipperPair; // PadPair가 대칭 설정을 직접 주입할 수 있게 함
 
 	void Init();
 	void Destroy();
 
-	UPad();
-	~UPad() override;
+	UFlipper();
+	~UFlipper() override;
 
 	void Render(const URenderer& InRenderer);
 	void HandleInput(FInputManager* InInput, float InDeltaTime);

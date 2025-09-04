@@ -1,5 +1,5 @@
 #pragma once
-#include "Pad.h"
+#include "Flipper.h"
 #include "Global/Enum.h"
 
 struct FPadPairConfig
@@ -26,10 +26,10 @@ struct FPadPairConfig
 	EKeyInput KeyRight = EKeyInput::D;
 };
 
-class UPadPair
+class UFlipperPair
 {
 public:
-	UPadPair() = default;
+	UFlipperPair() = default;
 
 	void Init(const FPadPairConfig& InConfig);
 	void Reconfigure(const FPadPairConfig& InConfig) { Init(InConfig); }
@@ -39,17 +39,17 @@ public:
 
 	const FPadPairConfig& GetConfig() const { return Config; }
 
-	UPad& Left() { return LeftPad; }
-	UPad& Right() { return RightPad; }
-	const UPad& Left() const { return LeftPad; }
-	const UPad& Right() const { return RightPad; }
+	UFlipper& Left() { return LeftPad; }
+	UFlipper& Right() { return RightPad; }
+	const UFlipper& Left() const { return LeftPad; }
+	const UFlipper& Right() const { return RightPad; }
 
 private:
-	UPad LeftPad;
-	UPad RightPad;
+	UFlipper LeftPad;
+	UFlipper RightPad;
 	FPadPairConfig Config;
 
-	void ApplyConfigToPad(UPad& Pad, UPad::ESide Side,
+	void ApplyConfigToPad(UFlipper& Pad, UFlipper::ESide Side,
 		float MinRot, float MaxRot, float InitRot,
 		float X, float Y, EKeyInput Key, float RotSpeedRad);
 

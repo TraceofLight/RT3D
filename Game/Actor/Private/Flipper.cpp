@@ -1,36 +1,36 @@
 #include "pch.h"
-#include "Actor/Public/Pad.h"
+#include "Actor/Public/Flipper.h"
 #include "Mesh/Public/UTriangle.h"
 #include "Render/Public/Renderer.h"
 #include "Manager/Public/InputManager.h"
 
-UPad::UPad()
+UFlipper::UFlipper()
 {
 	Init();
 }
 
-UPad::~UPad()
+UFlipper::~UFlipper()
 {
 	Destroy();
 }
 
-void UPad::Init()
+void UFlipper::Init()
 {
 	Shape = new UTriangle();
 }
 
-void UPad::Destroy()
+void UFlipper::Destroy()
 {
 	SafeDelete(Shape);
 }
 
-void UPad::Render(const URenderer& InRenderer)
+void UFlipper::Render(const URenderer& InRenderer)
 {
 	InRenderer.UpdateConstantForTriangle(Shape->Location, Shape->Base, Shape->Height, Shape->Rotation, Shape->Radius);
 	InRenderer.RenderTriangle();
 }
 
-void UPad::HandleInput(FInputManager* InInput, float InDeltaTime)
+void UFlipper::HandleInput(FInputManager* InInput, float InDeltaTime)
 {
 	if (!Shape || !InInput || InDeltaTime <= 0.f)
 		return;
@@ -72,12 +72,12 @@ void UPad::HandleInput(FInputManager* InInput, float InDeltaTime)
 	}
 }
 
-void UPad::SetRotationKey(EKeyInput InKey)
+void UFlipper::SetRotationKey(EKeyInput InKey)
 {
 	RotationKey = InKey;
 }
 
-UTriangle* UPad::GetShape() const
+UTriangle* UFlipper::GetShape() const
 {
 	return Shape;
 }
@@ -90,7 +90,7 @@ static void RecalcIsoscelesInRadius(UTriangle* InTriangle)
 	InTriangle->Radius = (InTriangle->Base * InTriangle->Height) / (InTriangle->Base + 2.f * side);
 }
 
-void UPad::ConfigueLeftPad()
+void UFlipper::ConfigueLeftPad()
 {
 	if (!Shape)
 	{
@@ -119,7 +119,7 @@ void UPad::ConfigueLeftPad()
 	RotationKey = EKeyInput::A;
 }
 
-void UPad::ConfigueRightPad()
+void UFlipper::ConfigueRightPad()
 {
 	if (!Shape)
 	{
@@ -146,5 +146,5 @@ void UPad::ConfigueRightPad()
 	RotationKey = EKeyInput::D;
 }
 
-UPad GLeftPad = UPad();
-UPad GRightPad = UPad();
+UFlipper GLeftPad = UFlipper();
+UFlipper GRightPad = UFlipper();
