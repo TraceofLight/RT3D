@@ -49,12 +49,12 @@ void FImGuiManager::RenderImGui()
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
 	{
 		// Game Over 상태일 때는 게임 UI를 렌더링하지 않음
-		if (!FSceneManager::GetInstance().GetCurrentScene()->GetPause())
+		if (!FSceneManager::GetInstance().GetCurrentScene()->IsPause())
 		{
 			RenderGameGui();
 		}
 
-		if (FSceneManager::GetInstance().GetCurrentScene()->GetPause())
+		if (FSceneManager::GetInstance().GetCurrentScene()->IsPause())
 		{
 			// 플레이어 이름 입력을 위한 정적 변수
 			static char PlayerName[32] = "Player";
@@ -352,7 +352,7 @@ void FImGuiManager::RenderGameGui()
 
 	// Leaderboard
 	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
-	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, 200.0f));
+	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, 210.0f));
 	ImGui::Begin("Leaderboard", nullptr,
 	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 
@@ -380,7 +380,7 @@ void FImGuiManager::RenderGameGui()
 	}
 
 	ImGui::End();
-	CurrentY += 210.0f;
+	CurrentY += 220.0f;
 
 	// Frame Performance Info
 	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));

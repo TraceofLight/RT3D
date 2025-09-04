@@ -26,7 +26,7 @@ URectangle::URectangle()
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<int> dis(0, 1);
 
-	clockwise = dis(gen); 
+	clockwise = dis(gen);
 
 	// Rotation Setting
 	// Rotation Setting
