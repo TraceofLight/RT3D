@@ -11,9 +11,8 @@
 #include <d3d11.h>
 #include <d3dcompiler.h>
 
+// Standard Library
 #include <cmath>
-
-// STD
 #include <map>
 #include <vector>
 #include <string>
@@ -22,6 +21,9 @@
 #include <iostream>
 #include <unordered_map>
 #include <functional>
+
+// Magic Enum
+#include <magic_enum/magic_enum.hpp>
 
 #include "Global/Constant.h"
 #include "Global/Struct.h"

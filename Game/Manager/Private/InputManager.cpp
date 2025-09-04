@@ -286,44 +286,10 @@ vector<EKeyInput> FInputManager::GetReleasedKeys() const
 
 const char* FInputManager::KeyInputToString(EKeyInput InKey)
 {
-	switch (InKey)
-	{
-	case EKeyInput::W: return "W";
-	case EKeyInput::A: return "A";
-	case EKeyInput::S: return "S";
-	case EKeyInput::D: return "D";
-	case EKeyInput::Space: return "Space";
-	case EKeyInput::Enter: return "Enter";
-	case EKeyInput::Esc: return "Esc";
-	case EKeyInput::Tab: return "Tab";
-	case EKeyInput::Shift: return "Shift";
-	case EKeyInput::Ctrl: return "Ctrl";
-	case EKeyInput::Alt: return "Alt";
-	case EKeyInput::Up: return "Up";
-	case EKeyInput::Down: return "Down";
-	case EKeyInput::Left: return "Left";
-	case EKeyInput::Right: return "Right";
-	case EKeyInput::MouseLeft: return "MouseLeft";
-	case EKeyInput::MouseRight: return "MouseRight";
-	case EKeyInput::MouseMiddle: return "MouseMiddle";
-	case EKeyInput::Num0: return "Num0";
-	case EKeyInput::Num1: return "Num1";
-	case EKeyInput::Num2: return "Num2";
-	case EKeyInput::Num3: return "Num3";
-	case EKeyInput::Num4: return "Num4";
-	case EKeyInput::Num5: return "Num5";
-	case EKeyInput::Num6: return "Num6";
-	case EKeyInput::Num7: return "Num7";
-	case EKeyInput::Num8: return "Num8";
-	case EKeyInput::Num9: return "Num9";
-	case EKeyInput::F1: return "F1";
-	case EKeyInput::F2: return "F2";
-	case EKeyInput::F3: return "F3";
-	case EKeyInput::F4: return "F4";
-	case EKeyInput::Backspace: return "Backspace";
-	case EKeyInput::Delete: return "Delete";
-	default: return "Unknown";
-	}
+	static string KeyString;
+	KeyString = string(magic_enum::enum_name<EKeyInput>(InKey));
+
+	return KeyString.c_str();
 }
 
 void FInputManager::SetWindowFocus(bool bInFocused)
