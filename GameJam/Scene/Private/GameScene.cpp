@@ -43,6 +43,8 @@ void GameScene::Init()
 	FPadPairConfig PadCfg;
 	PadCfg.Base = 0.05f;
 	PadCfg.Height = 0.3f;
+	PadCfg.CenterX = 0.0f;
+	PadCfg.CenterY = 0.0f;
 	PadCfg.XOffset = 0.30f;
 	PadCfg.YOffset = -0.65f;
 	PadCfg.MidAngleDeg = 90.f;
@@ -84,18 +86,14 @@ void GameScene::Update(float deltaTime)
 		}
 	}
 
-    // m_Rectangle->Move();
-
-	//m_PadPair.Update(KeyManager, TimeManager->GetDeltaTime());
 	if (isGameOver())
 	{
 		pause = true;
 	}
 	m_PadPair->Update(KeyManager, TimeManager->GetDeltaTime());
 
-    // HandleCollisions();
-    HandleBallRectangleCollisions();
-	HandleBallPadPairCollisions();
+	// 모든 충돌 처리
+	CollisionProcess();
 
 	// 공 트리거 체크 (공이 화면 하단에 도달하거나 범위를 벗어난 경우)
 	CheckBallTriggers();
@@ -257,75 +255,87 @@ void GameScene::RenderProcess()
 	m_PadPair->Render(*Renderer);
 }
 
+void GameScene::CollisionProcess()
+{
+	if (m_ActorBall == nullptr || pause)
+	{
+		return;
+	}
+
+	HandlePadPairCollisions();
+	HandleRectangleCollisions();
+	HandleTriangleCollisions();
+}
+
 /**
  * @brief 공과 사각형 간의 충돌을 감지하고 처리하는 함수
- * @param Ball 충돌을 검사할 공 객체
+ * @param PinBall 충돌을 검사할 핀볼 객체
  * @param Rect 충돌을 검사할 사각형 객체
  */
-void GameScene::ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect)
+void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Rect)
 {
     float HalfW = Rect->Width * 0.5f;
     float HalfH = Rect->Height * 0.5f;
 
-    FVector3 Delta = Ball->GetLocation() - Rect->Location;
+    FVector3 Delta = PinBall->GetLocation() - Rect->Location;
 
     float ClampedX = Clamp(Delta.x, -HalfW, HalfW);
     float ClampedY = Clamp(Delta.y, -HalfH, HalfH);
 
     FVector3 Closest(Rect->Location.x + ClampedX, Rect->Location.y + ClampedY, Rect->Location.z);
 
-    FVector3 Diff = Ball->GetLocation() - Closest;
-    float DistSq = Diff.LengthSquare();
-    float Radius = Ball->GetShape()->GetRadius();
+    FVector3 Diff = PinBall->GetLocation() - Closest;
+	float DistSq = Diff.LengthSquare();
+	float Radius = PinBall->GetShape()->GetRadius();
 
-    if (DistSq > Radius * Radius)
-    {
-        return;
-    }
+	if (DistSq > Radius * Radius)
+	{
+		return;
+	}
 
-    FVector3 Normal;
-    float Dist = sqrtf(DistSq);
+	FVector3 Normal;
+	float Dist = sqrtf(DistSq);
 
-    if (Dist > 0.00001f)
-    {
-        Normal = Diff / Dist;
-    }
-    else
-    {
-        float PenX = HalfW - fabsf(Delta.x);
-        float PenY = HalfH - fabsf(Delta.y);
+	if (Dist > 0.00001f)
+	{
+		Normal = Diff / Dist;
+	}
+	else
+	{
+		float PenX = HalfW - fabsf(Delta.x);
+		float PenY = HalfH - fabsf(Delta.y);
 
-        if (PenX < PenY)
-        {
-            Normal = FVector3((Delta.x >= 0.f) ? 1.f : -1.f, 0.f, 0.f);
-            Dist = Radius - PenX;
-        }
-        else
-        {
-            Normal = FVector3(0.f, (Delta.y >= 0.f) ? 1.f : -1.f, 0.f);
-            Dist = Radius - PenY;
-        }
-    }
+		if (PenX < PenY)
+		{
+			Normal = FVector3((Delta.x >= 0.f) ? 1.f : -1.f, 0.f, 0.f);
+			Dist = Radius - PenX;
+		}
+		else
+		{
+			Normal = FVector3(0.f, (Delta.y >= 0.f) ? 1.f : -1.f, 0.f);
+			Dist = Radius - PenY;
+		}
+	}
 
-    float Penetration = Radius - Dist;
-    if (Penetration < 0.f)
-    {
-        return;
-    }
+	float Penetration = Radius - Dist;
+	if (Penetration < 0.f)
+	{
+		return;
+	}
 
-    Ball->GetLocation() += Normal * Penetration;
+	PinBall->GetLocation() += Normal * Penetration;
 
-    float Vn = Dot(Ball->GetVelocity(), Normal);
-    if (Vn < 0.f)
-    {
-        float Restitution = 1.0f;
-        Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
+	float Vn = Dot(PinBall->GetVelocity(), Normal);
+	if (Vn < 0.f)
+	{
+		float Restitution = 1.0f;
+		PinBall->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
     }
 }
 
-void GameScene::ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
+void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Triangle)
 {
-    if (!Ball || !Triangle)
+    if (!PinBall || !Triangle)
         return;
 
     const float a = Triangle->Base;
@@ -359,7 +369,7 @@ void GameScene::ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
         return A + AB * t;
     };
 
-    const FVector3 C = Ball->GetLocation();
+    const FVector3 C = PinBall->GetLocation();
 
     FVector3 candidates[3];
     candidates[0] = ClosestPointOnSegment(w0, w1, C);
@@ -380,7 +390,7 @@ void GameScene::ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
     }
 
     float dist = std::sqrtf(bestDistSq);
-    if (dist > Ball->GetShape()->GetRadius())
+    if (dist > PinBall->GetShape()->GetRadius())
         return;
 
     FVector3 normal;
@@ -397,49 +407,51 @@ void GameScene::ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
             normal.Normalize();
     }
 
-    float penetration = Ball->GetShape()->GetRadius() - dist;
+    float penetration = PinBall->GetShape()->GetRadius() - dist;
     if (penetration > 0.f)
     {
-        Ball->GetLocation() += normal * penetration;
+		PinBall->GetLocation() += normal * penetration;
     }
 
-    float vn = Dot(Ball->GetVelocity(), normal);
+    float vn = Dot(PinBall->GetVelocity(), normal);
     if (vn < 0.f)
     {
         const float Restitution = 1.0f;
-        Ball->GetVelocity() -= normal * (1.f + Restitution) * vn;
+		PinBall->GetVelocity() -= normal * (1.f + Restitution) * vn;
     }
 }
 
-void GameScene::HandleBallPadPairCollisions()
+void GameScene::HandlePadPairCollisions()
 {
-	for (int i = 0; i < m_TotalPrimitives; ++i)
+	if (!IsMarkedForDeletion(m_ActorBall))
 	{
-		auto PrimitiveList = *m_PrimitiveList;
-		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
-		if (!IsMarkedForDeletion(Ball) && Ball!=nullptr)
+		ResolveTriangleCollision(m_ActorBall, m_PadPair->Left().GetShape());
+		ResolveTriangleCollision(m_ActorBall, m_PadPair->Right().GetShape());
+	}
+}
+
+void GameScene::HandleRectangleCollisions()
+{
+	// ActorBall과 다른 모든 Rectangle 간의 충돌 처리
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
+	{
+		URectangle* rect = dynamic_cast<URectangle*>((*m_PrimitiveList)[i]);
+		if (rect != nullptr)
 		{
-			ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
-			ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
+			ResolveRectangleCollsion(m_ActorBall, rect);
 		}
 	}
 }
 
-void GameScene::HandleBallRectangleCollisions()
+void GameScene::HandleTriangleCollisions()
 {
+	// ActorBall과 다른 모든 Triangle 간의 충돌 처리
 	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
 	{
-		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
-		if (Ball !=nullptr)
+		UTriangle* tri = dynamic_cast<UTriangle*>((*m_PrimitiveList)[i]);
+		if (tri != nullptr)
 		{
-			for (int j=0; j < static_cast<int>(m_PrimitiveList->size()); ++j)
-			{
-				URectangle* rect = dynamic_cast<URectangle*>((*m_PrimitiveList)[j]);
-				if (rect!=nullptr)
-				{
-					ResolveBallRectangle(Ball, rect);
-				}
-			}
+			ResolveTriangleCollision(m_ActorBall, tri);
 		}
 	}
 }
