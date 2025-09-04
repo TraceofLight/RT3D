@@ -805,11 +805,18 @@ void GameScene::ProcessDelayedDeletions()
 		// 메모리에서 삭제
 		delete BallToDelete;
 		DEBUG_PRINT("[Delayed Deletion] Ball deleted from memory\n");
+
+		// m_ActorBall이 제거된 상태일 것이므로 Dangling Pointer 제거
+		// XXX(KHJ): Shared Pointer를 사용했더라면...
+		m_ActorBall = nullptr;
 	}
 
 	// 삭제 목록 비우기
 	m_BallsToDelete.clear();
 	DEBUG_PRINT("[Delayed Deletion] Deletion process completed\n");
+
+	// 종료 조건을 만족했기 때문에 Delayed 처리 이후 Pause 추가
+	SetPause();
 }
 
 bool GameScene::IsMarkedForDeletion(UPinBall* InBall) const
