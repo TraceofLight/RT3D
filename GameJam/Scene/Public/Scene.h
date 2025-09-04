@@ -7,8 +7,13 @@ class Scene
 private:
 	vector<UPrimitive*> ScenePrimivites;
 
+protected:
+	string m_name;
+	bool m_isActive;
+	bool bIsPause;
+
 public:
-	Scene(const string& name) : m_name(name), m_isActive(false)
+	explicit Scene(const string& name) : m_name(name), m_isActive(false), bIsPause(false)
 	{
 	}
 
@@ -31,13 +36,9 @@ public:
 			ScenePrimivites.erase(iter);
 		}
 	}
-	vector<UPrimitive*> GetScenePrimitives() const { return ScenePrimivites; }
-
-	vector<UPrimitive*>* GetScenePrimitives()  { return &ScenePrimivites; }
-	bool SetPause(bool p) { pause = p; }
-	bool GetPause() { return pause; }
-protected:
-	std::string m_name;
-	bool m_isActive;
-	bool pause;
+	// vector<UPrimitive*> GetScenePrimitives() const { return ScenePrimivites; }
+	vector<UPrimitive*>* GetScenePrimitives() { return &ScenePrimivites; }
+	void SetPause() { bIsPause = true; }
+	void SetResume() { bIsPause = false; }
+	bool IsPause() const { return bIsPause; }
 };
