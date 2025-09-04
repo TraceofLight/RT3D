@@ -408,8 +408,7 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 	float vn = Dot(PinBall->GetVelocity(), normalWorld);
 	if (vn < 0.f)
 	{
-		const float restitution = 1.0f; // 필요에 맞게 조정
-		PinBall->GetVelocity() -= normalWorld * (1.f + restitution) * vn;
+		PinBall->GetVelocity() -= normalWorld * (1.f + Rect->Restitution) * vn;
 
 		// 충돌 시 점수 추가
 		if (m_ScoreManager)
@@ -517,8 +516,7 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 	float vn = Dot(PinBall->GetVelocity(), normal);
 	if (vn < 0.f)
 	{
-		const float Restitution = 1.0f;
-		PinBall->GetVelocity() -= normal * (1.f + Restitution) * vn;
+		PinBall->GetVelocity() -= normal * (1.f + Triangle->Restitution) * vn;
 
         // 충돌 시 점수 추가
         if (m_ScoreManager)
@@ -580,6 +578,7 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	NewRectangle->Mass = width * height;
 	NewRectangle->Velocity = FVector3(0.0f, 0.0f, 0.0f);
 	NewRectangle->AutoRotation = autoRotation;
+	NewRectangle->Restitution = OBSTACLE_RESTITUTION;
 
 	switch (type)
 	{
@@ -609,6 +608,7 @@ void GameScene::AddNewTriangle(FVector3 location, float rotation, float base, fl
 	NewTriangle->Rotation = rotation;
 	NewTriangle->Base = base;
 	NewTriangle->Height = height;
+	NewTriangle->Restitution = OBSTACLE_RESTITUTION;
 
 	FSceneManager& FCM = FSceneManager::GetInstance();
 	Scene* currentScene = FCM.GetCurrentScene();

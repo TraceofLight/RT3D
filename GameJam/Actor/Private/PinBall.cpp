@@ -61,8 +61,7 @@ void UPinBall::Move()
 	else if (bPinballGravity)
 	{
 		// 기본 핀볼 중력 (아래쪽으로)
-		float GravityAcceleration = 1.0f; // 초당 1.0 단위의 가속도
-		Velocity.y -= GravityAcceleration * DT; // DT 기반 중력 적용
+		Velocity.y -= GRAVITY_ACCELERATION * DT; // DT 기반 중력 적용
 	}
 
 	Location += Velocity * DT;

@@ -15,6 +15,9 @@ public:
 	float AutoRotRate;
 	bool clockwise = false;
 
+	// 탄성 계수
+	float Restitution = 1.0f;
+
 	URectangle();
 	void Move();
 	void Update();
