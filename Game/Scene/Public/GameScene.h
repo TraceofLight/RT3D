@@ -9,7 +9,7 @@ class UTriangle;
 class UConcaveCircle;
 class UBall;
 class UPrimitive;
-class UPadPair;
+class UFlipperPair;
 
 class GameScene : public Scene
 {
@@ -30,6 +30,7 @@ private:
 
 	void ResolveRectangleCollsion(UPinBall* Ball, const URectangle* Rect);
 	void ResolveTriangleCollision(UPinBall* Ball, const UTriangle* Triangle);
+	void ResolvePadCollision(UPinBall* InBall, const UTriangle* InFilpper, bool bInIsLeftPad);
 	void ResolveBallConcaveCircle(UPinBall* Ball, const UConcaveCircle* ConcaveCircle);
 	void ResolveBallConvexCircle(UPinBall* Ball, const UBall* ConvexCircle);
 	void HandlePadPairCollisions();
@@ -56,7 +57,7 @@ private:
 	void ProcessDelayedDeletions();
 	bool IsMarkedForDeletion(UPinBall* InBall) const;
 
-	UPadPair* m_PadPair = nullptr;
+	UFlipperPair* m_PadPair = nullptr;
 	UPinBall* m_ActorBall = nullptr;
 	bool m_Shooted = false;
 	UShooter* Shooter;

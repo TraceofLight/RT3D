@@ -30,6 +30,20 @@
 | `D` | 우측 플리퍼 작동 |
 | `ESC` | 게임 → 로비 이동 |
 
+## 🎬 플레이 화면
+
+### 메인 로비
+![Main Lobby](./Document/lobby.png)
+
+*Game Start Button으로 플레이, Credits Button으로 제작자들 리스트 Toggle*
+
+### 게임 플레이 세션
+![Game Play](./Document/game_play.png)
+
+*실제 핀볼을 플레이하는 화면의 UI, Score 및 Leader Board가 존재*
+
+*우측 빈 Line에서 Shooting 된 Ball이 오래 버틸수록 고득점한다*
+
 ## 📁 프로젝트 구조
 
 ```
@@ -67,7 +81,7 @@ game_jam/
 1. **저장소 클론**
    ```bash
    git clone <repository-url>
-   cd game_jam
+   cd pinball_game
    ```
 
 2. **Visual Studio에서 솔루션 열기**
@@ -130,9 +144,9 @@ game_jam/
 
 ## 🐛 알려진 이슈 및 해결책
 
-### 셰이더 파일 경로 이슈
-- **문제**: Output 폴더로 복사 시 셰이더 파일을 찾을 수 없음
-- **해결**: 프로젝트 빌드 시 자동으로 `Shader` 폴더가 `Output`으로 복사하는 것으로 Output 독립성 확보
+### 간헐적 Flipper 오작동 문제
+- **문제**: Flipper의 빠른 속도로 인해 Ball을 통과하여 오히려 Ball이 아래로 떨어지는 현상
+- **해결**: CCD를 추가해야 하나, 프로젝트 볼륨상 추가하지 않고 세부 조정을 통해 완화
 
 ### UTF-8 인코딩
 - **설정**: 프로젝트에서 `/utf-8` 컴파일러 옵션 사용으로 빌드 경고 제거
@@ -150,3 +164,13 @@ game_jam/
 - **콘솔 출력**: 외부 터미널 On/Off 토글 및 충돌, 점수, 상태 정보 실시간 출력
 - **ImGui**: 실시간 파라미터 조정 가능
 - **Visual Studio 디버깅**: PDB 파일 포함된 디버그 빌드
+
+## 🚀 개선점
+
+### 향후 개발 계획
+- **CCD**: 공 충돌 정밀성 보완
+- **사운드 시스템**: Background Sound 및 효과음 추가
+- **추가 컨텐츠**:
+  - 반탄력이 큰 장애물
+  - 들어가면 다른 곳으로 나오는 Hole
+  - 추가 Shooter를 통한 상단 장애물 접근 빈도 향상

@@ -71,11 +71,11 @@ void FImGuiManager::RenderImGui()
 			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 
 			// "GameOver!" 창 그리기 시작
-			ImGui::Begin("Game Over!", nullptr, WindowFlags);
+			ImGui::Begin(" ", nullptr, WindowFlags);
 
 			// GameOver 텍스트를 크게 중앙에 표시
 			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("GAME OVER").x) * 0.5f);
-			ImGui::Text("GAME OVER");
+			ImGui::Text("GAME OVER!");
 
 			ImGui::Spacing();
 			ImGui::Spacing();

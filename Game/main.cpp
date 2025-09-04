@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "Actor/Public/PadPair.h"
+#include "Actor/Public/FlipperPair.h"
 #include "Actor/Public/Shooter.h"
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_internal.h"
