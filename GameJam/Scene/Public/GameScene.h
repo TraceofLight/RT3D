@@ -34,7 +34,7 @@ private:
 
 	void GenerateObstacles();
 	void AddNewBall();
-	void AddNewRectangle(FVector3 location, float rotation, float width, float height);
+	void AddNewRectangle(FVector3 location, float rotation, float width, float height, bool autoRotation = false);
 	void AddNewTriangle(FVector3 location, float rotation, float base, float height);
 
 private:
