@@ -29,26 +29,20 @@ void GameScene::Init()
 	m_Shooted = false;
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
-	Shooter->SetLocation({0.9f, -0.9f, 0.0f});
+	Shooter->SetLocation({0.82f, -0.9f, 0.0f});
 
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
 	GenerateObstacles();
 
-	//Above Shooter
-	AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f,true);
-
-	//Center
-	AddNewRectangle(FVector3(0.0f, 0.0f, 0.0f), 0.3f, 0.1f, 0.4f, true);
-
 	// PadPair 설정
 	FPadPairConfig PadCfg;
 	PadCfg.Base = 0.05f;
 	PadCfg.Height = 0.3f;
 	PadCfg.CenterX = 0.0f;
-	PadCfg.CenterY = 0.0f;
-	PadCfg.XOffset = 0.30f;
+	PadCfg.CenterY = 0.035f;
+	PadCfg.XOffset = 0.350f;
 	PadCfg.YOffset = -0.85f;
 	PadCfg.MidAngleDeg = 90.f;
 	PadCfg.SweepHalfDeg = 30.f;
@@ -88,11 +82,17 @@ void GameScene::GenerateObstacles()
 	AddNewTriangle(FVector3(-0.68f, -0.0f, 0.0f), -1.57f, 0.85f, 0.15f);
 
 	// rectangle obstacle 1
-	AddNewRectangle(FVector3(-0.3f, 0.3f, 0.0f), -0.4f, 0.35f, 0.1f);
+	AddNewRectangle(FVector3(-0.3f, 0.5f, 0.0f), -0.4f, 0.35f, 0.1f);
 
 	// bottom fillings
 	AddNewRectangle(FVector3(0.53f, -0.9f, 0.0f), -0.0f, 0.26f, 0.2f);
 	AddNewRectangle(FVector3(-0.58f, -0.9f, 0.0f), -0.0f, 0.36f, 0.28f);
+
+	//Above Shooter
+	// AddNewRectangle(FVector3(0.8f, 0.8f, 0.0f), 0.3f, 0.1f, 0.4f,true);
+
+	// rotating center
+	AddNewRectangle(FVector3(0.0f, 0.0f, 0.0f), 0.3f, 0.08f, 0.35f, true);
 
 	// temp shooter top
 	AddNewRectangle(FVector3(0.9f, 0.9f, 0.0f), -0.6f, 0.2f, 0.2f);
