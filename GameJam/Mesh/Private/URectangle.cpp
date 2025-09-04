@@ -12,8 +12,10 @@ URectangle::URectangle()
 	Velocity.y = (-0.2f + (rand() / (float)RAND_MAX) * 0.4f);
 	Velocity.z = 0.0f;
 	// Size Setting
-	Width = 0.1f + (rand() / (float)RAND_MAX) * 0.1f;
-	Height = 0.1f + (rand() / (float)RAND_MAX) * 0.1f;
+	// Width = 0.1f + (rand() / (float)RAND_MAX) * 0.1f;
+	// Height = 0.1f + (rand() / (float)RAND_MAX) * 0.1f;
+	Width = 0.2f;
+	Height = 0.5f;
 	// Mass Setting
 	Mass = Width * Height;
 	// Rotation Setting

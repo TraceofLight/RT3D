@@ -32,6 +32,7 @@ private:
 	bool isGameOver();
 	void CheckBallTriggers();
 
+	void GenerateObstacles();
 	void AddNewBall();
 	void AddNewRectangle(FVector3 location, float rotation, float width, float height);
 	void AddNewTriangle(FVector3 location, float rotation, float base, float height);
