@@ -48,37 +48,137 @@ void FImGuiManager::RenderImGui()
 
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() == "GAME")
 	{
-		RenderGameGui();
+		// Game Over 상태일 때는 게임 UI를 렌더링하지 않음
+		if (!FSceneManager::GetInstance().GetCurrentScene()->GetPause())
+		{
+			RenderGameGui();
+		}
+
 		if (FSceneManager::GetInstance().GetCurrentScene()->GetPause())
 		{
-			// 화면 중앙 좌표 가져오기
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImVec2 center = viewport->GetCenter();
+			// 플레이어 이름 입력을 위한 정적 변수
+			static char PlayerName[32] = "Player";
+			static bool ScoreSubmitted = false;
 
-			// 창 위치와 크기 설정
-			ImGui::SetNextWindowPos(center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
-			ImGui::SetNextWindowSize(ImVec2(400, 250), ImGuiCond_Always);
+			// 화면 중앙 좌표 가져오기
+			const ImGuiViewport* Viewport = ImGui::GetMainViewport();
+			ImVec2 Center = Viewport->GetCenter();
+
+			ImGui::SetNextWindowPos(Center, ImGuiCond_Always, ImVec2(0.5f, 0.5f));
+			ImGui::SetNextWindowSize(ImVec2(400, 350), ImGuiCond_Always);
 
 			// 창 스타일 플래그 설정
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
+			ImGuiWindowFlags WindowFlags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse;
 
 			// "GameOver!" 창 그리기 시작
-			ImGui::Begin("GameOver!", nullptr, window_flags);
+			ImGui::Begin("Game Over!", nullptr, WindowFlags);
 
 			// GameOver 텍스트를 크게 중앙에 표시
 			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("GAME OVER").x) * 0.5f);
 			ImGui::Text("GAME OVER");
 
-			ImGui::Spacing(); // 약간의 간격 추가
-			ImGui::Separator(); // 구분선 추가
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+
+			// 최종 점수 표시
+			FScoreManager* ScoreManager = FScoreManager::GetInstance();
+			if (ScoreManager)
+			{
+				ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Final Score: 00000").x) * 0.5f);
+				ImGui::Text("Final Score: %d", ScoreManager->GetCurrentScore());
+			}
+
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+
+			// 플레이어 이름 입력 필드 (중앙 정렬)
+			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Enter Your Name:").x) * 0.5f);
+			ImGui::Text("Enter Your Name:");
+			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - 200.0f) * 0.5f);
+			ImGui::SetNextItemWidth(200.0f);
+			ImGui::InputText("##PlayerName", PlayerName, sizeof(PlayerName));
+
+			ImGui::Spacing();
+			ImGui::Spacing();
+
+			// 점수 제출 버튼
+			if (!ScoreSubmitted)
+			{
+				ImGui::Spacing();
+				float SubmitButtonWidth = 150;
+				ImGui::SetCursorPosX((ImGui::GetWindowSize().x - SubmitButtonWidth) * 0.5f);
+
+				bool NameValid = strlen(PlayerName) > 0 && strlen(PlayerName) < sizeof(PlayerName) - 1;
+
+				// 이름이 유효하지 않으면 버튼 비활성화
+				if (!NameValid)
+				{
+					ImGui::PushStyleVar(ImGuiStyleVar_Alpha, ImGui::GetStyle().Alpha * 0.5f);
+				}
+
+				if (ImGui::Button("SUBMIT SCORE", ImVec2(SubmitButtonWidth, 30)) && NameValid)
+				{
+					if (ScoreManager)
+					{
+						ScoreManager->SubmitScore(string(PlayerName));
+						ScoreSubmitted = true;
+					}
+				}
+
+				if (!NameValid)
+				{
+					ImGui::PopStyleVar();
+					// 경고 메시지 표시
+					if (strlen(PlayerName) == 0)
+					{
+						ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Name Cannot Be Empty").x) * 0.5f);
+						ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "Name Cannot Be Empty");
+					}
+					else
+					{
+						ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Name Too Long (max 30 chars)").x) * 0.5f);
+						ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.5f, 1.0f), "Name Too Long (max 30 chars)");
+					}
+				}
+				else
+				{
+					ImGui::Spacing();
+					ImGui::Spacing();
+				}
+			}
+			else
+			{
+				ImGui::Spacing();
+				ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Score Submitted!").x) * 0.5f);
+				ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Score Submitted!");
+			}
+
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+			ImGui::Spacing();
 			ImGui::Spacing();
 			ImGui::Spacing();
 
 			// RESTART 버튼 중앙 정렬 및 그리기
-			float restartButtonWidth = 150; // 버튼 크기를 고정하거나 계산
-			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - restartButtonWidth) * 0.5f);
-			if (ImGui::Button("RESTART", ImVec2(restartButtonWidth, 40)))
+			float RestartButtonWidth = 150;
+			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - RestartButtonWidth) * 0.5f);
+			if (ImGui::Button("RESTART", ImVec2(RestartButtonWidth, 40)))
 			{
+				// 게임 재시작 시 점수 제출 상태 리셋
+				ScoreSubmitted = false;
+				strcpy_s(PlayerName, sizeof(PlayerName), "Player"); // 기본 이름으로 리셋
 				FSceneManager::GetInstance().LoadScene("GAME");
 			}
 
@@ -89,6 +189,9 @@ void FImGuiManager::RenderImGui()
 			ImGui::SetCursorPosX((ImGui::GetWindowSize().x - exitButtonWidth) * 0.5f);
 			if (ImGui::Button("EXIT TO LOBBY", ImVec2(exitButtonWidth, 40)))
 			{
+				// 로비로 나갈 때도 점수 제출 상태 리셋
+				ScoreSubmitted = false;
+				strcpy_s(PlayerName, sizeof(PlayerName), "Player"); // 기본 이름으로 리셋
 				FSceneManager::GetInstance().LoadScene("LOBBY");
 			}
 
@@ -106,9 +209,9 @@ void FImGuiManager::RenderLobbyGui()
 	static bool bShowCredits = false;
 
 	// 화면 크기 정보 가져오기
-	ImGuiIO& io = ImGui::GetIO();
-	float screenWidth = io.DisplaySize.x;
-	float screenHeight = io.DisplaySize.y;
+	ImGuiIO& IO = ImGui::GetIO();
+	float screenWidth = IO.DisplaySize.x;
+	float screenHeight = IO.DisplaySize.y;
 
 	// 메인 메뉴 위도우 크기 및 위치 설정 (높이 줄이고 중앙 배치)
 	float windowWidth = 300.0f;
@@ -256,13 +359,20 @@ void FImGuiManager::RenderGameGui()
 		ImGui::Text("Top 10 Scores:");
 		ImGui::Separator();
 
-		for (size_t i = 0; i < leaderboard.size(); ++i)
+		if (leaderboard.empty())
 		{
-			ImVec4 textColor = (i < 3) ? ImVec4(1.0f, 0.8f, 0.2f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
-			ImGui::TextColored(textColor, "%d. %s - %d",
-			                   static_cast<int>(i + 1),
-			                   leaderboard[i].PlayerName.c_str(),
-			                   leaderboard[i].Score);
+			ImGui::TextColored(ImVec4(0.5f, 0.5f, 0.5f, 1.0f), "None");
+		}
+		else
+		{
+			for (size_t i = 0; i < leaderboard.size(); ++i)
+			{
+				ImVec4 TextColor = (i < 3) ? ImVec4(1.0f, 0.8f, 0.2f, 1.0f) : ImVec4(1.0f, 1.0f, 1.0f, 1.0f);
+				ImGui::TextColored(TextColor, "%d. %s - %d",
+				                   static_cast<int>(i + 1),
+				                   leaderboard[i].PlayerName.c_str(),
+				                   leaderboard[i].Score);
+			}
 		}
 	}
 
@@ -318,9 +428,9 @@ void FImGuiManager::RenderGameGui()
 	CurrentY += 130.0f;
 
 	// Key Input Status
-	float keyInputHeight = ScreenHeight - CurrentY - WindowPadding;
+	float KeyInputHeight = ScreenHeight - CurrentY - WindowPadding;
 	ImGui::SetNextWindowPos(ImVec2(RightPanelX, CurrentY));
-	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, keyInputHeight));
+	ImGui::SetNextWindowSize(ImVec2(RightPanelWidth, KeyInputHeight));
 	ImGui::Begin("Key Input Status", nullptr,
 	             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoCollapse);
 

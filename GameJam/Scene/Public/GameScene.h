@@ -22,12 +22,13 @@ public:
 private:
 	void InputProcess();
 	void RenderProcess();
+	void CollisionProcess();
 
-	// void HandleBallRectangleCollisions();
-	void ResolveBallRectangle(UPinBall* Ball, const URectangle* Rect);
-	void ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle);
-	void HandleBallPadPairCollisions();
-	void HandleBallRectangleCollisions();
+	void ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Rect);
+	void ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Triangle);
+	void HandlePadPairCollisions();
+	void HandleRectangleCollisions();
+	void HandleTriangleCollisions();
 	bool isGameOver();
 	void CheckBallTriggers();
 

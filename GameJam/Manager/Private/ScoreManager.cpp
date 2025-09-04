@@ -77,15 +77,8 @@ const vector<FScoreEntry>& FScoreManager::GetLeaderboard() const
 
 void FScoreManager::LoadLeaderboard()
 {
-	// 실제 파일에서 로드하는 대신 샘플 데이터로 초기화
-	if (Leaderboard.empty())
-	{
-		Leaderboard.push_back(FScoreEntry(10000, "Player1"));
-		Leaderboard.push_back(FScoreEntry(8500, "Player2"));
-		Leaderboard.push_back(FScoreEntry(7200, "Player3"));
-		Leaderboard.push_back(FScoreEntry(6800, "Player4"));
-		Leaderboard.push_back(FScoreEntry(5400, "Player5"));
-	}
+	// 실제 파일에서 로드하는 대신 빈 리더보드로 시작
+	// Leaderboard를 비워둡니다
 }
 
 void FScoreManager::SaveLeaderboard()
