@@ -6,6 +6,8 @@ class UShooter;
 class UPinBall;
 class URectangle;
 class UTriangle;
+class UConcaveCircle;
+class UBall;
 class UPrimitive;
 class UPadPair;
 
@@ -24,18 +26,23 @@ private:
 	void InputProcess();
 	void RenderProcess();
 	void CollisionProcess();
+	void GenerateObstacles();
 
-	void ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Rect);
-	void ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Triangle);
+	void ResolveRectangleCollsion(UPinBall* Ball, const URectangle* Rect);
+	void ResolveTriangleCollision(UPinBall* Ball, const UTriangle* Triangle);
+	void ResolveBallConcaveCircle(UPinBall* Ball, const UConcaveCircle* ConcaveCircle);
+	void ResolveBallConvexCircle(UPinBall* Ball, const UBall* ConvexCircle);
 	void HandlePadPairCollisions();
 	void HandleRectangleCollisions();
 	void HandleTriangleCollisions();
+	void HandleConcaveCircleCollisions();
+	void HandleConvexCircleCollisions();
 	bool isGameOver();
 	void CheckBallTriggers();
 
-	void GenerateObstacles();
-	void AddNewBall();
-	void AddNewRectangle(FVector3 location, float rotation, float width, float height, bool autoRotation = false,RectRotType type = RectRotType::RAND);
+	void AddNewRectangle(FVector3 location, float rotation, float width, float height, bool autoRotation = false,
+	                     RectRotType type = RectRotType::RAND);
+
 	void AddNewTriangle(FVector3 location, float rotation, float base, float height);
 
 private:
@@ -57,5 +64,14 @@ private:
 	// Score Manager
 	FScoreManager* m_ScoreManager = nullptr;
 
-	bool bIsBallSpawned = false;
+	// Concave Circle Colliders
+	// UConcaveCircle* m_MainBoundary = nullptr; // 메인 경계벽
+	// UConcaveCircle* m_LeftFlipperGuide = nullptr; // 좌측 플리퍼 가이드
+	// UConcaveCircle* m_RightFlipperGuide = nullptr; // 우측 플리퍼 가이드
+	// UConcaveCircle* m_LeftSideGuide = nullptr; // 좌측 사이드 가이드
+	// UConcaveCircle* m_RightSideGuide = nullptr; // 우측 사이드 가이드
+
+	// Convex & Concave Colliders
+	UConcaveCircle* m_TopBumperWall = nullptr;
+	UBall* m_CenterBumperBall = nullptr;
 };

@@ -10,6 +10,7 @@
 #include "Mesh/Public/UBall.h"
 #include "Mesh/Public/URectangle.h"
 #include "Mesh/Public/UTriangle.h"
+#include "Mesh/Public/UConcaveCircle.h"
 #include "Actor/Public/PadPair.h"
 
 GameScene::GameScene() : Scene("GAME")
@@ -25,8 +26,8 @@ GameScene::~GameScene()
 
 void GameScene::Init()
 {
-	pause = false;
-    m_Rectangle = new URectangle();
+	bIsPause = false;
+	m_Rectangle = new URectangle();
 	m_Shooted = false;
 	m_ActorBall = nullptr;
 	Shooter = new UShooter();
@@ -57,6 +58,20 @@ void GameScene::Init()
 
 	m_PadPair = new UPadPair();
 	m_PadPair->Init(PadCfg);
+
+	// 상단 범퍼 벽
+	m_TopBumperWall = new UConcaveCircle(
+		FVector3(0.0f, 0.6f, 0.0f), // 상단 중앙
+		0.9f, // 반지름
+		0.f, // 시작 각도 (0도)
+		PI // 끝 각도 (180도)
+	);
+
+	// 중앙 범퍼
+	m_CenterBumperBall = new UBall();
+	m_CenterBumperBall->SetLocation(FVector3(0.3f, 0.2f, 0.0f));
+	m_CenterBumperBall->SetRadius(0.15f);
+	m_CenterBumperBall->SetVelocity(FVector3(0.0f, 0.0f, 0.0f)); // 정지 상태
 }
 
 void GameScene::GenerateObstacles()
@@ -105,8 +120,8 @@ void GameScene::GenerateObstacles()
 
 void GameScene::Update(float deltaTime)
 {
-    FTimeManager* TimeManager = FTimeManager::GetInstance();
-    FInputManager* KeyManager = FInputManager::GetInstance();
+	FTimeManager* TimeManager = FTimeManager::GetInstance();
+	FInputManager* KeyManager = FInputManager::GetInstance();
 	FSceneManager& SceneMgr = FSceneManager::GetInstance();
 
 	// 지연 삭제 처리 (프레임 시작 시)
@@ -114,14 +129,14 @@ void GameScene::Update(float deltaTime)
 
 	// ScoreManager 업데이트 (시간 기반 점수 처리)
 	// 공이 발사된 후에만 시간 기반 점수 가산
-	if (m_ScoreManager && !pause && m_Shooted)
+	if (m_ScoreManager && !bIsPause && m_Shooted)
 	{
 		m_ScoreManager->Update();
 	}
 
 	m_PrimitiveList = SceneMgr.GetAllScenePrimivites();
 
-    InputProcess();
+	InputProcess();
 
 	if (FSceneManager::GetInstance().GetCurrentScene()->GetName() != "GAME")
 		return;
@@ -146,7 +161,7 @@ void GameScene::Update(float deltaTime)
 
 	if (isGameOver())
 	{
-		pause = true;
+		SetPause();
 	}
 	m_PadPair->Update(KeyManager, TimeManager->GetDeltaTime());
 
@@ -159,24 +174,35 @@ void GameScene::Update(float deltaTime)
 
 void GameScene::Render()
 {
-    RenderProcess();
+	RenderProcess();
 }
 
 void GameScene::Cleanup()
 {
-    for (int i = 0; i < m_TotalPrimitives; ++i)
-    {
-        delete (*m_PrimitiveList)[i];
-    }
+	for (int i = 0; i < m_TotalPrimitives; ++i)
+	{
+		delete (*m_PrimitiveList)[i];
+	}
 	m_PrimitiveList->clear();
-    if(m_Rectangle)
-    {
-        delete m_Rectangle;
-        m_Rectangle = nullptr;
-    }
+	if (m_Rectangle)
+	{
+		delete m_Rectangle;
+		m_Rectangle = nullptr;
+	}
 
 	delete Shooter;
 	delete m_PadPair;
+
+	if (m_TopBumperWall)
+	{
+		delete m_TopBumperWall;
+		m_TopBumperWall = nullptr;
+	}
+	if (m_CenterBumperBall)
+	{
+		delete m_CenterBumperBall;
+		m_CenterBumperBall = nullptr;
+	}
 
 	// Clear Delayed Task Target
 	m_BallsToDelete.clear();
@@ -207,7 +233,6 @@ void GameScene::InputProcess()
 		{
 			if (!m_Shooted)
 			{
-
 				m_ActorBall = Shooter->Shoot();
 				if (m_ActorBall != nullptr)
 				{
@@ -271,9 +296,9 @@ void GameScene::CheckBallTriggers()
 
 void GameScene::RenderProcess()
 {
-    URenderer* Renderer = URenderer::GetInstance();
-    //Renderer->Prepare();
-    //Renderer->PrepareShader();
+	URenderer* Renderer = URenderer::GetInstance();
+	//Renderer->Prepare();
+	//Renderer->PrepareShader();
 
 	for (int i = 0; i < m_TotalPrimitives; ++i)
 	{
@@ -289,33 +314,115 @@ void GameScene::RenderProcess()
 		}
 		else if (URectangle* Rectangle = dynamic_cast<URectangle*>(Primitive))
 		{
-			Renderer->UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height, Rectangle->Rotation);
+			Renderer->UpdateConstantForRectangle(Rectangle->Location, Rectangle->Width, Rectangle->Height,
+			                                     Rectangle->Rotation);
 			Renderer->RenderRectangle();
 		}
 		else if (UTriangle* Triangle = dynamic_cast<UTriangle*>(Primitive))
 		{
-			Renderer->UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height, Triangle->Rotation,
-										 Triangle->Radius);
+			Renderer->UpdateConstantForTriangle(Triangle->Location, Triangle->Base, Triangle->Height,
+			                                    Triangle->Rotation,
+			                                    Triangle->Radius);
 			Renderer->RenderTriangle();
+		}
+		else if (UConcaveCircle* ConcaveCircle = dynamic_cast<UConcaveCircle*>(Primitive))
+		{
+			Renderer->UpdateConstant(ConcaveCircle->GetCenter(), ConcaveCircle->GetRadius());
+			Renderer->RenderPrimitive();
 		}
 	}
 
-    // Shooter 렌더링 추가
-    if (Shooter && Shooter->GetShape())
-    {
-        Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
-                                           Shooter->GetShape()->GetWidth(),
-                                           Shooter->GetShape()->GetHeight(),0.0f);
-        Renderer->RenderRectangle();
-    }
+	// Shooter 렌더링 추가
+	if (Shooter && Shooter->GetShape())
+	{
+		Renderer->UpdateConstantForRectangle(Shooter->GetLocation(),
+		                                     Shooter->GetShape()->GetWidth(),
+		                                     Shooter->GetShape()->GetHeight(), 0.0f);
+		Renderer->RenderRectangle();
+	}
 
 	// PadPair 렌더링
 	m_PadPair->Render(*Renderer);
+
+	// ConcaveCircle 렌더링
+	auto RenderConcave = [&](const UConcaveCircle* CC, float cr, float cg, float cb, float ca)
+	{
+		if (!CC) return;
+		const FVector3 C = CC->GetCenter();
+		const float R = CC->GetRadius();
+		const bool bFull = CC->IsFullCircle();
+		const float Start = CC->GetArcAngleStart();
+		const float End = CC->GetArcAngleEnd();
+		const int Segments = 64;
+		FVertexSimple verts[128];
+		int count = 0;
+		auto append_segment = [&](const FVector3& A, const FVector3& B)
+		{
+			if (count + 2 > 128) return;
+			verts[count++] = {A.x, A.y, A.z, cr, cg, cb, ca};
+			verts[count++] = {B.x, B.y, B.z, cr, cg, cb, ca};
+		};
+
+		auto build_ring = [&](float radius, bool closeLoop)
+		{
+			if (bFull)
+			{
+				FVector3 prev = {C.x + radius, C.y + 0.0f, C.z};
+				for (int i = 1; i <= Segments; ++i)
+				{
+					float t = (float)i / (float)Segments;
+					float ang = t * 6.28318530718f;
+					FVector3 curr = {C.x + radius * cosf(ang), C.y + radius * sinf(ang), C.z};
+					append_segment(prev, curr);
+					prev = curr;
+				}
+			}
+			else
+			{
+				float span = End - Start;
+				float step = span / (float)Segments;
+				FVector3 prev = {C.x + radius * cosf(Start), C.y + radius * sinf(Start), C.z};
+				for (int i = 1; i <= Segments; ++i)
+				{
+					float ang = Start + step * i;
+					FVector3 curr = {C.x + radius * cosf(ang), C.y + radius * sinf(ang), C.z};
+					append_segment(prev, curr);
+					prev = curr;
+				}
+			}
+		};
+
+		// 상수버퍼 업데이트 (기본값으로 리셋)
+		Renderer->UpdateConstant({0.f, 0.f, 0.f}, 1.0f);
+		build_ring(R, bFull);
+		if (CC->GetInnerRadius() > 0.0f)
+		{
+			build_ring(CC->GetInnerRadius(), bFull);
+		}
+		if (count > 1)
+		{
+			Renderer->RenderLines(verts, (UINT)count);
+		}
+	};
+
+	RenderConcave(m_TopBumperWall, 0.2f, 0.8f, 1.f, 1.f); // 파랑빛 상단 범퍼
+	// RenderConcave(m_MainBoundary, 1.f, 0.6f, 0.1f, 1.f); // 오렌지빛 메인 바운더리
+	// RenderConcave(m_LeftFlipperGuide, 0.6f, 1.f, 0.2f, 1.f); // 연두빛 좌측 가이드
+	// RenderConcave(m_RightFlipperGuide, 1.f, 0.2f, 0.6f, 1.f); // 자주빛 우측 가이드
+	// RenderConcave(m_LeftSideGuide, 0.8f, 0.8f, 0.8f, 1.f); // 회색 좌측 사이드
+	// RenderConcave(m_RightSideGuide, 0.8f, 0.8f, 0.8f, 1.f); // 회색 우측 사이드
+
+	// ConvexCircle (볼록 충돌체) 렌더링
+	if (m_CenterBumperBall)
+	{
+		Renderer->UpdateConstant(m_CenterBumperBall->GetLocation(), m_CenterBumperBall->GetRadius());
+		Renderer->RenderPrimitive(); // 노랑빛 중앙 범퍼 (볼록)
+	}
 }
 
 void GameScene::CollisionProcess()
 {
-	if (m_ActorBall == nullptr || pause)
+	if (m_ActorBall == nullptr || bIsPause)
 	{
 		return;
 	}
@@ -323,6 +430,8 @@ void GameScene::CollisionProcess()
 	HandlePadPairCollisions();
 	HandleRectangleCollisions();
 	HandleTriangleCollisions();
+	HandleConcaveCircleCollisions();
+	HandleConvexCircleCollisions();
 }
 
 /**
@@ -344,8 +453,8 @@ void GameScene::ResolveRectangleCollsion(UPinBall* PinBall, const URectangle* Re
 	//    로컬 x축: (cosθ, sinθ), 로컬 y축: (-sinθ, cosθ)  (CCW 기준)
 	const float c = cosf(Rect->Rotation);
 	const float s = sinf(Rect->Rotation);
-	const FVector3 axisX(c, s, 0.f);   // 로컬 x축이 월드에서 가리키는 방향
-	const FVector3 axisY(-s, c, 0.f);   // 로컬 y축이 월드에서 가리키는 방향
+	const FVector3 axisX(c, s, 0.f); // 로컬 x축이 월드에서 가리키는 방향
+	const FVector3 axisY(-s, c, 0.f); // 로컬 y축이 월드에서 가리키는 방향
 
 	// 3) 월드→로컬 (축으로 투영)
 	//    로컬 좌표 = [dot(delta, axisX), dot(delta, axisY)]
@@ -442,9 +551,9 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 	const float c = std::cos(Triangle->Rotation);
 	const float s = std::sin(Triangle->Rotation);
 	auto Rotate = [&](const FVector3& L) -> FVector3
-		{
-			return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
-		};
+	{
+		return FVector3(L.x * c - L.y * s, L.x * s + L.y * c, 0.0f);
+	};
 
 	const FVector3 center = Triangle->Location;
 	FVector3 w0 = Rotate(v0) + center;
@@ -453,19 +562,19 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 
 	// 점-선분 최근접점
 	auto ClosestPointOnSegment = [](const FVector3& A, const FVector3& B, const FVector3& P) -> FVector3
+	{
+		FVector3 AB = B - A;
+		float lenSq = AB.LengthSquare();
+		if (lenSq <= 1e-12f)
 		{
-			FVector3 AB = B - A;
-			float lenSq = AB.LengthSquare();
-			if (lenSq <= 1e-12f)
-			{
-				return A;
-			}
+			return A;
+		}
 
-			float t = Dot(P - A, AB) / lenSq;
-			t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
+		float t = Dot(P - A, AB) / lenSq;
+		t = (t < 0.f) ? 0.f : (t > 1.f ? 1.f : t);
 
-			return A + AB * t;
-		};
+		return A + AB * t;
+	};
 
 	const FVector3 C = PinBall->GetLocation();
 
@@ -520,12 +629,12 @@ void GameScene::ResolveTriangleCollision(UPinBall* PinBall, const UTriangle* Tri
 	{
 		PinBall->GetVelocity() -= normal * (1.f + Triangle->Restitution) * vn;
 
-        // 충돌 시 점수 추가
-        if (m_ScoreManager)
-        {
-            m_ScoreManager->AddCollisionScore();
-        }
-    }
+		// 충돌 시 점수 추가
+		if (m_ScoreManager)
+		{
+			m_ScoreManager->AddCollisionScore();
+		}
+	}
 }
 
 void GameScene::HandlePadPairCollisions()
@@ -563,12 +672,8 @@ void GameScene::HandleTriangleCollisions()
 	}
 }
 
-void GameScene::AddNewBall()
-{
-
-}
-
-void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height,bool autoRotation, RectRotType type)
+void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, float height, bool autoRotation,
+                                RectRotType type)
 {
 	// Create the rectangle
 	URectangle* NewRectangle = new URectangle();
@@ -584,13 +689,13 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 
 	switch (type)
 	{
-	case RectRotType::CLOCK :
+	case RectRotType::CLOCK:
 		NewRectangle->clockwise = true;
 		break;
-	case RectRotType::REVCLOCK :
+	case RectRotType::REVCLOCK:
 		NewRectangle->clockwise = false;
 		break;
-	default :
+	default:
 		break;
 	}
 
@@ -598,9 +703,6 @@ void GameScene::AddNewRectangle(FVector3 location, float rotation, float width, 
 	Scene* currentScene = FCM.GetCurrentScene();
 	// Add to the vector
 	currentScene->GetScenePrimitives()->push_back(NewRectangle);
-
-	// Update total count
-	++m_TotalPrimitives;
 }
 
 void GameScene::AddNewTriangle(FVector3 location, float rotation, float base, float height)
@@ -626,7 +728,6 @@ bool GameScene::isGameOver()
 	UPinBall* Ball = m_ActorBall;
 	if (Ball != nullptr)
 	{
-
 		if (Ball->GetLocation().y < -1.0f)
 		{
 			return true;
@@ -665,4 +766,197 @@ void GameScene::ProcessDelayedDeletions()
 bool GameScene::IsMarkedForDeletion(UPinBall* InBall) const
 {
 	return std::find(m_BallsToDelete.begin(), m_BallsToDelete.end(), InBall) != m_BallsToDelete.end();
+}
+
+/**
+ * @brief 공과 오목 원형 충돌체간의 충돌을 감지하고 처리하는 함수
+ * @param Ball 충돌을 검사할 공 객체
+ * @param ConcaveCircle 충돌을 검사할 오목 원형 충돌체 객체
+ */
+void GameScene::ResolveBallConcaveCircle(UPinBall* Ball, const UConcaveCircle* ConcaveCircle)
+{
+	if (!Ball || !ConcaveCircle)
+		return;
+
+	FVector3 BallPos = Ball->GetLocation();
+	float BallRadius = Ball->GetShape()->GetRadius();
+
+	// 공이 오목 원의 내부에 있는지 확인
+	if (!ConcaveCircle->IsPointInside(BallPos))
+	{
+		return; // 밖에 있으면 충돌하지 않음
+	}
+
+	DEBUG_PRINT("[ConcaveCircle] Ball is inside concave circle!\n");
+
+	// 공의 중심에서 원의 중심으로의 벡터
+	FVector3 Diff = BallPos - ConcaveCircle->GetCenter();
+	float DistFromCenter = Diff.Length();
+
+	// 공이 원의 경계와 충돌하는지 확인 (공의 반지름을 고려)
+	float CollisionRadius = ConcaveCircle->GetRadius() - BallRadius;
+
+	DEBUG_PRINT("[ConcaveCircle] DistFromCenter: %.3f, CollisionRadius: %.3f\n", DistFromCenter, CollisionRadius);
+
+	if (DistFromCenter >= CollisionRadius)
+	{
+		DEBUG_PRINT("[ConcaveCircle] COLLISION DETECTED! Resolving...\n");
+
+		// 충돌 발생 - 공을 원의 안쪽으로 밀어냄
+		FVector3 Normal;
+		if (DistFromCenter > 0.00001f)
+		{
+			Normal = Diff / DistFromCenter; // 중심에서 바깥쪽으로의 단위벡터
+		}
+		else
+		{
+			// 공이 정확히 중심에 있는 경우 임의의 방향 설정
+			Normal = FVector3(1.0f, 0.0f, 0.0f);
+		}
+
+		// 침투 깊이 계산 (음수여야 함 - 안쪽으로 밀어내기 위해)
+		float Penetration = CollisionRadius - DistFromCenter;
+		DEBUG_PRINT("[ConcaveCircle] Penetration: %.3f\n", Penetration);
+
+		if (Penetration > 0.0f)
+		{
+			// 공을 안쪽으로 밀어냄 (Normal의 반대 방향)
+			Ball->GetLocation() -= Normal * Penetration;
+			DEBUG_PRINT("[ConcaveCircle] Ball position corrected\n");
+		}
+
+		// 속도 반사 처리
+		float Vn = Dot(Ball->GetVelocity(), Normal);
+		if (Vn > 0.f) // 밖으로 향하는 속도만 반사
+		{
+			float Restitution = 1.0f;
+			Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
+			DEBUG_PRINT("[ConcaveCircle] Ball velocity reflected\n");
+
+			// 충돌 시 점수 추가
+			if (m_ScoreManager)
+			{
+				m_ScoreManager->AddCollisionScore();
+			}
+		}
+	}
+}
+
+void GameScene::HandleConcaveCircleCollisions()
+{
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
+	{
+		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
+		if (Ball != nullptr && !IsMarkedForDeletion(Ball))
+		{
+			// 개별 ConcaveCircle 멤버들과의 충돌 처리
+			if (m_TopBumperWall)
+			{
+				ResolveBallConcaveCircle(Ball, m_TopBumperWall);
+			}
+			// if (m_MainBoundary)
+			// {
+			// 	ResolveBallConcaveCircle(Ball, m_MainBoundary);
+			// }
+			// if (m_LeftFlipperGuide)
+			// {
+			// 	ResolveBallConcaveCircle(Ball, m_LeftFlipperGuide);
+			// }
+			// if (m_RightFlipperGuide)
+			// {
+			// 	ResolveBallConcaveCircle(Ball, m_RightFlipperGuide);
+			// }
+			// if (m_LeftSideGuide)
+			// {
+			// 	ResolveBallConcaveCircle(Ball, m_LeftSideGuide);
+			// }
+			// if (m_RightSideGuide)
+			// {
+			// 	ResolveBallConcaveCircle(Ball, m_RightSideGuide);
+			// }
+		}
+	}
+}
+
+/**
+ * @brief 공과 볼록 원형 충돌체간의 충돌을 감지하고 처리하는 함수
+ * @param Ball 충돌을 검사할 공 객체
+ * @param ConvexCircle 충돌을 검사할 볼록 원형 충돌체 객체
+ */
+void GameScene::ResolveBallConvexCircle(UPinBall* Ball, const UBall* ConvexCircle)
+{
+	if (!Ball || !ConvexCircle)
+		return;
+
+	FVector3 BallPos = Ball->GetLocation();
+	FVector3 ConvexPos = ConvexCircle->GetLocation();
+	float BallRadius = Ball->GetShape()->GetRadius();
+	float ConvexRadius = ConvexCircle->GetRadius();
+
+	// 두 원의 중심 간 거리 계산
+	FVector3 Diff = BallPos - ConvexPos;
+	float DistFromCenter = Diff.Length();
+	float TotalRadius = BallRadius + ConvexRadius;
+
+	// 충돌 감지: 중심 간 거리가 두 반지름의 합보다 작을 때
+	if (DistFromCenter >= TotalRadius)
+	{
+		return; // 충돌하지 않음
+	}
+
+	DEBUG_PRINT("[ConvexCircle] Ball colliding with convex circle!\n");
+
+	// 충돌 발생 - 공을 볼록 충돌체에서 밀어냄
+	FVector3 Normal;
+	if (DistFromCenter > 0.00001f)
+	{
+		Normal = Diff / DistFromCenter; // 볼록 충돌체에서 공 방향으로의 단위벡터
+	}
+	else
+	{
+		// 두 원이 정전히 겹친 경우 임의의 방향 설정
+		Normal = FVector3(1.0f, 0.0f, 0.0f);
+	}
+
+	// 침투 깊이 계산
+	float Penetration = TotalRadius - DistFromCenter;
+	DEBUG_PRINT("[ConvexCircle] Penetration: %.3f\n", Penetration);
+
+	if (Penetration > 0.0f)
+	{
+		// 공을 바깥쪽으로 밀어냄
+		Ball->GetLocation() += Normal * Penetration;
+		DEBUG_PRINT("[ConvexCircle] Ball position corrected\n");
+	}
+
+	// 속도 반사 처리
+	float Vn = Dot(Ball->GetVelocity(), Normal);
+	if (Vn < 0.f) // 볼록 충돌체로 향하는 속도만 반사
+	{
+		float Restitution = 1.2f; // 볼록 충돌체는 약간 더 강하게 반사
+		Ball->GetVelocity() -= Normal * (1.f + Restitution) * Vn;
+		DEBUG_PRINT("[ConvexCircle] Ball velocity reflected with restitution %.1f\n", Restitution);
+
+		// 충돌 시 점수 추가
+		if (m_ScoreManager)
+		{
+			m_ScoreManager->AddCollisionScore();
+		}
+	}
+}
+
+void GameScene::HandleConvexCircleCollisions()
+{
+	for (int i = 0; i < static_cast<int>(m_PrimitiveList->size()); ++i)
+	{
+		UPinBall* Ball = dynamic_cast<UPinBall*>((*m_PrimitiveList)[i]);
+		if (Ball != nullptr && !IsMarkedForDeletion(Ball))
+		{
+			// 개별 ConvexCircle 멤버들과의 충돌 처리
+			if (m_CenterBumperBall)
+			{
+				ResolveBallConvexCircle(Ball, m_CenterBumperBall);
+			}
+		}
+	}
 }

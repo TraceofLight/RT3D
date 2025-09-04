@@ -54,21 +54,21 @@ void FScoreManager::ResetCurrentScore()
 	CurrentScore = 0;
 }
 
-void FScoreManager::SubmitScore(const string& playerName)
+void FScoreManager::SubmitScore(const string& InPlayerName)
 {
-	Leaderboard.emplace_back(CurrentScore, playerName);
-	
+	Leaderboard.emplace_back(CurrentScore, InPlayerName);
+
 	// 점수 기준 내림차순 정렬
 	sort(Leaderboard.begin(), Leaderboard.end(), [](const FScoreEntry& a, const FScoreEntry& b) {
 		return a.Score > b.Score;
 	});
-	
+
 	// 상위 10개만 유지
 	if (Leaderboard.size() > MaxLeaderboardEntries)
 	{
 		Leaderboard.resize(MaxLeaderboardEntries);
 	}
-	
+
 	SaveLeaderboard();
 }
 
@@ -93,14 +93,14 @@ void FScoreManager::SaveLeaderboard()
 void FScoreManager::ProcessTimeBasedScore()
 {
 	TimeSinceLastTimeScore += TimeManager->GetDeltaTime();
-	
+
 	// 1초가 지날 때마다 100점 추가
 	if (TimeSinceLastTimeScore >= 1.0f)
 	{
 		CurrentScore += TIME_SCORE_PER_SECOND;
 		TimeSinceLastTimeScore -= 1.0f;  // 1초 차감 (누적 오차 방지)
-		
-		DEBUG_PRINT("[ScoreManager] Time bonus: +%d points (Total: %d)\n", 
+
+		DEBUG_PRINT("[ScoreManager] Time bonus: +%d points (Total: %d)\n",
 					TIME_SCORE_PER_SECOND, CurrentScore);
 	}
 }
@@ -110,7 +110,7 @@ void FScoreManager::AddCollisionScore()
 {
 	// 충돌 점수는 TimeBuffer를 무시하고 즉시 추가
 	CurrentScore += COLLISION_SCORE;
-	
-	DEBUG_PRINT("[ScoreManager] Collision bonus: +%d points (Total: %d)\n", 
+
+	DEBUG_PRINT("[ScoreManager] Collision bonus: +%d points (Total: %d)\n",
 				COLLISION_SCORE, CurrentScore);
 }
