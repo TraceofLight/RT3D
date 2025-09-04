@@ -90,8 +90,11 @@ void FImGuiManager::RenderImGui()
 			FScoreManager* ScoreManager = FScoreManager::GetInstance();
 			if (ScoreManager)
 			{
-				ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize("Final Score: 00000").x) * 0.5f);
-				ImGui::Text("Final Score: %d", ScoreManager->GetCurrentScore());
+				// 실제 점수 텍스트 크기 계산
+				char ScoreText[64];
+				snprintf(ScoreText, sizeof(ScoreText), "Final Score: %d", ScoreManager->GetCurrentScore());
+				ImGui::SetCursorPosX((ImGui::GetWindowSize().x - ImGui::CalcTextSize(ScoreText).x) * 0.5f);
+				ImGui::Text("%s", ScoreText);
 			}
 
 			ImGui::Spacing();
@@ -210,17 +213,17 @@ void FImGuiManager::RenderLobbyGui()
 
 	// 화면 크기 정보 가져오기
 	ImGuiIO& IO = ImGui::GetIO();
-	float screenWidth = IO.DisplaySize.x;
-	float screenHeight = IO.DisplaySize.y;
+	float ScreenWidth = IO.DisplaySize.x;
+	float ScreenHeight = IO.DisplaySize.y;
 
-	// 메인 메뉴 위도우 크기 및 위치 설정 (높이 줄이고 중앙 배치)
-	float windowWidth = 300.0f;
-	float windowHeight = 280.f;
-	float windowX = (screenWidth - windowWidth) * 0.5f;
-	float windowY = (screenHeight - windowHeight) * 0.5f;
+	// 메인 메뉴 위도우 크기 및 위치 설정
+	float WindowWidth = 300.0f;
+	float WindowHeight = 280.f;
+	float WindowX = (ScreenWidth - WindowWidth) * 0.5f;
+	float WindowY = (ScreenHeight - WindowHeight) * 0.5f;
 
-	ImGui::SetNextWindowPos(ImVec2(windowX, windowY));
-	ImGui::SetNextWindowSize(ImVec2(windowWidth, windowHeight));
+	ImGui::SetNextWindowPos(ImVec2(WindowX, WindowY));
+	ImGui::SetNextWindowSize(ImVec2(WindowWidth, WindowHeight));
 	ImGui::Begin("PinBall Game", nullptr,
 	             ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse);
 
@@ -240,7 +243,7 @@ void FImGuiManager::RenderLobbyGui()
 
 	const char* Title = "PinBall";
 	float TitleWidth = ImGui::CalcTextSize(Title).x;
-	ImGui::SetCursorPosX((windowWidth - TitleWidth) * 0.5f);
+	ImGui::SetCursorPosX((WindowWidth - TitleWidth) * 0.5f);
 	ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "%s", Title);
 
 	ImGui::SetWindowFontScale(1.0f);
@@ -272,7 +275,7 @@ void FImGuiManager::RenderLobbyGui()
 
 	// Credits 버튼 중앙 정렬
 	float buttonWidth = 120.0f;
-	ImGui::SetCursorPosX((windowWidth - buttonWidth) * 0.5f);
+	ImGui::SetCursorPosX((WindowWidth - buttonWidth) * 0.5f);
 	if (ImGui::Button("Credits", ImVec2(buttonWidth, 0)))
 	{
 		bShowCredits = !bShowCredits;
@@ -286,13 +289,13 @@ void FImGuiManager::RenderLobbyGui()
 		ImGui::Spacing();
 
 		// 팀 정보 중앙 정렬
-		ImGui::SetCursorPosX((windowWidth - ImGui::CalcTextSize("Team 5").x) * 0.5f);
+		ImGui::SetCursorPosX((WindowWidth - ImGui::CalcTextSize("Team 5").x) * 0.5f);
 		ImGui::TextColored(ImVec4(0.8f, 0.8f, 1.0f, 1.0f), "Team 5");
 
-		ImGui::SetCursorPosX((windowWidth - ImGui::CalcTextSize("Kim HeeJun, Lee HoJin,").x) * 0.5f);
+		ImGui::SetCursorPosX((WindowWidth - ImGui::CalcTextSize("Kim HeeJun, Lee HoJin,").x) * 0.5f);
 		ImGui::Text("Kim HeeJun, Lee HoJin,");
 
-		ImGui::SetCursorPosX((windowWidth - ImGui::CalcTextSize("Jung SeYeon, Heo Jun").x) * 0.5f);
+		ImGui::SetCursorPosX((WindowWidth - ImGui::CalcTextSize("Jung SeYeon, Heo Jun").x) * 0.5f);
 		ImGui::Text("Jung SeYeon, Heo Jun");
 	}
 
@@ -466,8 +469,9 @@ void FImGuiManager::RenderGameGui()
 		ImGui::Separator();
 		ImGui::TextColored(ImVec4(0.8f, 0.8f, 0.2f, 1.0f), "Controls:");
 		ImGui::Text("ESC: Exit");
-		ImGui::Text("Space: Shooter (Hold/Release)");
-		ImGui::Text("Delete: Remove Ball");
+		ImGui::Text("Space: Shooter (Hold / Release)");
+		ImGui::Text("A: Move Left Pad");
+		ImGui::Text("D: Move Right Pad");
 	}
 
 	ImGui::End();
