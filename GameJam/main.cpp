@@ -21,9 +21,6 @@
 #include "Mesh/Public/UBall.h"
 #include "Mesh/Public/UTriangle.h"
 
-// 외부 터미널 출력 전역 변수
-bool bShowExternalTerminal = true;
-
 // 외부 터미널 초기화 함수
 static bool bExternalTerminalInitialized = false;
 static void InitializeExternalTerminal();
@@ -44,7 +41,7 @@ void InputProcess(bool& InExitFlag);
  */
 static void InitializeExternalTerminal()
 {
-	if (bShowExternalTerminal && !bExternalTerminalInitialized)
+	if (SHOW_EXTERNAL_TERMINAL && !bExternalTerminalInitialized)
 	{
 		// 새로운 콘솔 창 할당
 		if (AllocConsole())

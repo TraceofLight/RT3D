@@ -7,7 +7,7 @@ extern bool bShowExternalTerminal;
 
 #define DEBUG_PRINT(format, ...) \
 do { \
-if (bShowExternalTerminal) \
+if (SHOW_EXTERNAL_TERMINAL) \
 printf(format, ##__VA_ARGS__); \
 else \
 OutputDebugStringA((std::string(format).c_str())); \
@@ -16,7 +16,7 @@ OutputDebugStringA((std::string(format).c_str())); \
 // 문자열 포맷팅을 위한 헬퍼 매크로
 #define DEBUG_PRINT_FORMAT(format, ...) \
 do { \
-if (bShowExternalTerminal) \
+if (SHOW_EXTERNAL_TERMINAL) \
 printf(format, ##__VA_ARGS__); \
 else { \
 char buffer[1024]; \
