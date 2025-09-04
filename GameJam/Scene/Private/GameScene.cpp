@@ -415,15 +415,15 @@ void GameScene::ResolveBallTriangle(UPinBall* Ball, const UTriangle* Triangle)
 
 void GameScene::HandleBallPadPairCollisions()
 {
-	for (int i = 0; i < m_TotalPrimitives; ++i)
+	if (m_ActorBall == nullptr || pause)
 	{
-		auto PrimitiveList = *m_PrimitiveList;
-		UPinBall* Ball = dynamic_cast<UPinBall*>(PrimitiveList[i]);
-		if (!IsMarkedForDeletion(Ball) && Ball!=nullptr)
-		{
-			ResolveBallTriangle(Ball, m_PadPair->Left().GetShape());
-			ResolveBallTriangle(Ball, m_PadPair->Right().GetShape());
-		}
+		return;
+	}
+
+	if (!IsMarkedForDeletion(m_ActorBall))
+	{
+		ResolveBallTriangle(m_ActorBall, m_PadPair->Left().GetShape());
+		ResolveBallTriangle(m_ActorBall, m_PadPair->Right().GetShape());
 	}
 }
 
