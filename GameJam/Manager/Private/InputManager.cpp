@@ -5,6 +5,7 @@
 FInputManager* FInputManager::Instance = nullptr;
 
 FInputManager::FInputManager()
+	: bIsWindowFocused(true)
 {
 	InitializeKeyMapping();
 }
@@ -84,6 +85,17 @@ void FInputManager::Update()
 {
 	// 이전 프레임 상태를 현재 프레임 상태로 복사
 	PreviousKeyState = CurrentKeyState;
+
+	// 윈도우가 포커스를 잃었을 때는 입력 처리를 중단
+	if (!bIsWindowFocused)
+	{
+		// 모든 키 상태를 false로 유지
+		for (auto& Pair : CurrentKeyState)
+		{
+			Pair.second = false;
+		}
+		return;
+	}
 
 	// 마우스 위치 업데이트
 	UpdateMousePosition();
@@ -279,4 +291,22 @@ const char* FInputManager::KeyInputToString(EKeyInput InKey)
 	KeyString = string(magic_enum::enum_name<EKeyInput>(InKey));
 
 	return KeyString.c_str();
+}
+
+void FInputManager::SetWindowFocus(bool bInFocused)
+{
+	bIsWindowFocused = bInFocused;
+
+	if (!bInFocused)
+	{
+		for (auto& Pair : CurrentKeyState)
+		{
+			Pair.second = false;
+		}
+
+		for (auto& Pair : PreviousKeyState)
+		{
+			Pair.second = false;
+		}
+	}
 }

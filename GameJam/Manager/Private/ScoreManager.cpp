@@ -27,12 +27,14 @@ FScoreManager* FScoreManager::GetInstance()
 void FScoreManager::Initialize()
 {
 	TimeSinceLastScore = 0.0f;
+	TimeSinceLastTimeScore = 0.0f;  // 시간 기반 점수 타이머 초기화
 	LoadLeaderboard();
 }
 
 void FScoreManager::Update()
 {
 	TimeSinceLastScore += TimeManager->GetDeltaTime();
+	ProcessTimeBasedScore();  // 시간 기반 점수 처리
 }
 
 void FScoreManager::AddScore(int InScore)
@@ -85,4 +87,30 @@ void FScoreManager::SaveLeaderboard()
 {
 	// TODO: 실제 파일 저장 구현
 	// 현재는 메모리에만 보관
+}
+
+// 시간 기반 점수 처리 (1초마다 100점)
+void FScoreManager::ProcessTimeBasedScore()
+{
+	TimeSinceLastTimeScore += TimeManager->GetDeltaTime();
+	
+	// 1초가 지날 때마다 100점 추가
+	if (TimeSinceLastTimeScore >= 1.0f)
+	{
+		CurrentScore += TIME_SCORE_PER_SECOND;
+		TimeSinceLastTimeScore -= 1.0f;  // 1초 차감 (누적 오차 방지)
+		
+		DEBUG_PRINT("[ScoreManager] Time bonus: +%d points (Total: %d)\n", 
+					TIME_SCORE_PER_SECOND, CurrentScore);
+	}
+}
+
+// 충돌 시 점수 추가 (10점)
+void FScoreManager::AddCollisionScore()
+{
+	// 충돌 점수는 TimeBuffer를 무시하고 즉시 추가
+	CurrentScore += COLLISION_SCORE;
+	
+	DEBUG_PRINT("[ScoreManager] Collision bonus: +%d points (Total: %d)\n", 
+				COLLISION_SCORE, CurrentScore);
 }

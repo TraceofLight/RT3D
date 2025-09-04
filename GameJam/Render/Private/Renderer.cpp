@@ -315,6 +315,30 @@ void URenderer::RenderTriangle() const
 }
 
 /**
+ * @brief Line Segments 그리는 함수
+ * Concave Collider를 위해 구현되었음
+ */
+void URenderer::RenderLines(const FVertexSimple* InVertices, UINT InCount) const
+{
+    if (!InVertices || InCount == 0)
+    {
+        return;
+    }
+
+    ID3D11Buffer* tempVB = CreateVertexBuffer(const_cast<FVertexSimple*>(InVertices), sizeof(FVertexSimple) * InCount);
+
+    UINT Offset = 0;
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    DeviceContext->IASetVertexBuffers(0, 1, &tempVB, &Stride, &Offset);
+    DeviceContext->Draw(InCount, 0);
+
+    ReleaseVertexBuffer(tempVB);
+
+    // 복원: 이후 삼각형 렌더링을 위해 TRIANGLE LIST로 되돌림
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+/**
  * @brief 정점 Buffer 생성 함수
  * @param InVertices
  * @param InByteWidth
