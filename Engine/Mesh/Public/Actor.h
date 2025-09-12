@@ -52,7 +52,7 @@ T* AActor::CreateDefaultSubobject(const FString& InName)
 	T* NewComponent = new T();
 
 	///////////////////////////////////////////
-	NewComponent->AddMemoryUsage(sizeof(T));
+	NewComponent->AddMemoryUsage();
 	///생성자에서 자신의 메모리 설정하게 수정 필요///
 	NewComponent->SetOuter(this);
 	//Outer 설정 시 Outer의 메모리 카운트에 자신의 메모리 합산 작업 수행
