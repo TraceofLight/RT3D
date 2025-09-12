@@ -135,10 +135,46 @@ LRESULT CALLBACK FAppWindow::WndProc(HWND InWindowHandle, uint32 InMessage, WPAR
 		if (InWParam != SIZE_MINIMIZED)
 		{
 			if (!URenderer::GetInstance().GetIsResizing())
-			{ //드래그 X 일때 추가 처리 (최대화 버튼, ...)
+			{ // 드래그 X 일때 추가 처리 (최대화 버튼, ...)
 				URenderer::GetInstance().OnResize(LOWORD(InLParam), HIWORD(InLParam));
 				UUIManager::GetInstance().RepositionImGuiWindows();
 			}
+		}
+		else // SIZE_MINIMIZED
+		{
+			// 윈도우가 최소화될 때 입력 비활성화 및 상태 저장
+			UE_LOG("AppWindow: Window 최소화 (WM_SIZE - SIZE_MINIMIZED)");
+			UInputManager::GetInstance().SetWindowFocus(false);
+			UUIManager::GetInstance().OnWindowMinimized();
+		}
+		break;
+
+	case WM_SETFOCUS:
+		// 윈도우가 포커스를 얻었을 때 입력 활성화 및 상태 복원
+		UE_LOG("AppWindow: Window 포커스 획득 (WM_SETFOCUS)");
+		UInputManager::GetInstance().SetWindowFocus(true);
+		UUIManager::GetInstance().OnWindowRestored();
+		break;
+
+	case WM_KILLFOCUS:
+		// 윈도우가 포커스를 잃었을 때 입력 비활성화
+		UInputManager::GetInstance().SetWindowFocus(false);
+		break;
+
+	case WM_ACTIVATE:
+		// 윈도우 활성/비활성 상태 변화
+		if (LOWORD(InWParam) == WA_INACTIVE)
+		{
+			// 윈도우가 비활성화될 때
+			UInputManager::GetInstance().SetWindowFocus(false);
+			// 주의: WM_ACTIVATE에서 OnWindowMinimized를 호출하지 않음 (최소화가 아닌 단순 비활성화)
+		}
+		else
+		{
+			// 윈도우가 활성화될 때 (WA_ACTIVE 또는 WA_CLICKACTIVE)
+			UE_LOG("AppWindow: Window 활성화 (WM_ACTIVATE)");
+			UInputManager::GetInstance().SetWindowFocus(true);
+			UUIManager::GetInstance().OnWindowRestored();
 		}
 		break;
 
