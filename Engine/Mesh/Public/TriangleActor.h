@@ -1,6 +1,7 @@
 #pragma once
-
 #include "Mesh/Public/Actor.h"
+
+class UTriangleComponent;
 
 UCLASS()
 class ATriangleActor : public AActor

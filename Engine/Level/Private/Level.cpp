@@ -2,6 +2,7 @@
 #include "Level/Public/Level.h"
 
 #include "Mesh/Public/Actor.h"
+#include "Mesh/Public/PrimitiveComponent.h"
 
 ULevel::ULevel() = default;
 
