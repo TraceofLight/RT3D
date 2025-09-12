@@ -51,7 +51,7 @@ void UObject::SetOuter(UObject* InObject)
 void UObject::AddMemoryUsage(uint64 InBytes, uint32 InCount)
 {
 	// 최상위에서 InBytes를 디폴트인자로 호출했다면
-	if (InBytes == 0 && AllocatedBytes == 0)
+	if (InBytes == 0)
 	{
 		AllocatedBytes += GetClass()->GetClassSize();
 	}
