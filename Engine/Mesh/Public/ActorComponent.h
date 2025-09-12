@@ -3,8 +3,12 @@
 
 class AActor;
 
+UCLASS()
 class UActorComponent : public UObject
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(UActorComponent, UObject)
+
 public:
 	UActorComponent();
 	~UActorComponent();

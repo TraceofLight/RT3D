@@ -77,7 +77,7 @@ T* ULevel::SpawnActor(const FString& InName)
 	T* NewActor = new T();
 
 	///////////////////////////////////////////
-	NewActor->AddMemoryUsage(sizeof(T));
+	NewActor->AddMemoryUsage();
 	///생성자에서 자신의 메모리 설정하게 수정 필요///
 	NewActor->SetOuter(this);
 	//Outer 설정 시 Outer의 메모리 카운트에 자신의 메모리 합산 작업 수행
