@@ -2,8 +2,13 @@
 
 #include "Mesh/Public/Actor.h"
 
+UCLASS()
+
 class ASquareActor : public AActor
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(ASquareActor, AActor)
+
 	using Super = AActor;
 public:
 	ASquareActor();

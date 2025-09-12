@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/SquareActor.h"
 
+IMPLEMENT_CLASS(ASquareActor, AActor)
+
 ASquareActor::ASquareActor()
 {
 	SquareComponent = CreateDefaultSubobject<USquareComponent>("SquareComponent");

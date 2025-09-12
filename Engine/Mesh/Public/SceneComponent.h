@@ -2,8 +2,12 @@
 #include "Mesh/Public/ActorComponent.h"
 #include "ResourceManager.h"
 
+UCLASS()
 class USceneComponent : public UActorComponent
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(USceneComponent, UActorComponent)
+
 public:
 	USceneComponent();
 
@@ -41,8 +45,12 @@ private:
 	const float MinScale = 0.01f;
 };
 
+UCLASS()
 class UPrimitiveComponent : public USceneComponent
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(UPrimitiveComponent, USceneComponent)
+
 public:
 	UPrimitiveComponent();
 
@@ -73,32 +81,50 @@ protected:
 
 };
 
+UCLASS()
 class UTriangleComponent : public UPrimitiveComponent
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(UTriangleComponent, UPrimitiveComponent)
+
 public:
 	UTriangleComponent();
 };
 
+UCLASS()
 class USquareComponent : public UPrimitiveComponent
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(USquareComponent, UPrimitiveComponent)
+
 public:
 	USquareComponent();
 };
 
+UCLASS()
 class UCubeComponent : public UPrimitiveComponent
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(UCubeComponent, UPrimitiveComponent)
+
 public:
 	UCubeComponent();
 };
 
+UCLASS()
 class USphereComponent : public UPrimitiveComponent
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(USphereComponent, UPrimitiveComponent)
 public:
 	USphereComponent();
 };
 
+UCLASS()
 class ULineComponent : public UPrimitiveComponent
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(ULineComponent, UPrimitiveComponent)
 public:
 	ULineComponent();
 };
