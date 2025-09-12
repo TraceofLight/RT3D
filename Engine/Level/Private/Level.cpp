@@ -43,10 +43,23 @@ void ULevel::Update()
 	//Deprecated : EditorPrimitive는 에디터에서 처리
 	//EditorPrimitiveComponents.clear();
 
+	//AActor* pOldActor = nullptr;
 	for (auto& Actor : LevelActors)
 	{
 		if (Actor)
 		{
+			/*if (pOldActor != nullptr)
+			{
+				if (Actor->IsA(pOldActor->GetClass()))
+				{
+					UE_LOG("두개 같은 클래스");
+				}
+				else
+				{
+					UE_LOG("두개 다른 클래스");
+				}
+			}
+			pOldActor = Actor;*/
 			Actor->Tick();
 			AddLevelPrimitiveComponent(Actor);
 		}

@@ -20,7 +20,8 @@ public:
 	void SetName(const FString& InName) { Name = InName; }
 	void SetOuter(UObject* InObject);
 
-	void AddMemoryUsage(uint64 InBytes, uint32 InCount = 1);
+	// InBytes가 디폴트 인자인 0으로 들어가면, RTTI로 실제타입의 사이즈를 InBytes 대신 씀.
+	void AddMemoryUsage(uint64 InBytes = 0, uint32 InCount = 1);
 	void RemoveMemoryUsage(uint64 InBytes, uint32 InCount = 1);
 
 	uint64 GetAllocatedBytes() const { return AllocatedBytes; }
