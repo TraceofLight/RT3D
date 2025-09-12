@@ -9,7 +9,7 @@ class UInputManager :
 	DECLARE_SINGLETON(UInputManager)
 
 public:
-	void Update(FAppWindow* InWindow);
+	void Update(const FAppWindow* InWindow);
 	void UpdateMousePosition(const FAppWindow* InWindow);
 	void ProcessKeyMessage(uint32 InMessage, WPARAM WParam, LPARAM LParam);
 
@@ -34,6 +34,9 @@ public:
 
 	// Mouse Wheel
 	float GetMouseWheelDelta() const { return MouseWheelDelta; }
+
+	// Double Click Detection
+	bool IsMouseDoubleClicked(EKeyInput InMouseButton) const;
 
 	// Getter
 	const FVector& GetMouseNDCPosition() const { return NDCMousePosition; }
@@ -60,5 +63,13 @@ private:
 	// Window Focus
 	bool bIsWindowFocused;
 
+	// Double Click Detection
+	float DoubleClickTime;
+	TMap<EKeyInput, float> LastClickTime;
+	TMap<EKeyInput, bool> DoubleClickState;
+	TMap<EKeyInput, int> ClickCount;
+
 	void InitializeKeyMapping();
+	void InitializeMouseClickStatus();
+	void UpdateDoubleClickDetection();
 };

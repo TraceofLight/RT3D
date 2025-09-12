@@ -5,9 +5,12 @@
 IMPLEMENT_SINGLETON(UInputManager)
 
 UInputManager::UInputManager()
-	: bIsWindowFocused(true), MouseWheelDelta(0.0f)
+	: MouseWheelDelta(0.0f)
+	  , bIsWindowFocused(true)
+	  , DoubleClickTime(0.5f)
 {
 	InitializeKeyMapping();
+	InitializeMouseClickStatus();
 }
 
 UInputManager::~UInputManager() = default;
@@ -71,7 +74,25 @@ void UInputManager::InitializeKeyMapping()
 	}
 }
 
-void UInputManager::Update(FAppWindow* InWindow)
+/**
+ * @brief 더블클릭 상태 초기화하는 함수
+ */
+void UInputManager::InitializeMouseClickStatus()
+{
+	LastClickTime[EKeyInput::MouseLeft] = 0.0f;
+	LastClickTime[EKeyInput::MouseRight] = 0.0f;
+	LastClickTime[EKeyInput::MouseMiddle] = 0.0f;
+
+	DoubleClickState[EKeyInput::MouseLeft] = false;
+	DoubleClickState[EKeyInput::MouseRight] = false;
+	DoubleClickState[EKeyInput::MouseMiddle] = false;
+
+	ClickCount[EKeyInput::MouseLeft] = 0;
+	ClickCount[EKeyInput::MouseRight] = 0;
+	ClickCount[EKeyInput::MouseMiddle] = 0;
+}
+
+void UInputManager::Update(const FAppWindow* InWindow)
 {
 	// 이전 프레임 상태를 현재 프레임 상태로 복사
 	PreviousKeyState = CurrentKeyState;
@@ -100,17 +121,19 @@ void UInputManager::Update(FAppWindow* InWindow)
 	// 마우스 휠 델타 리셋
 	MouseWheelDelta = 0.0f;
 
+	// 더블클릭 감지 업데이트
+	UpdateDoubleClickDetection();
+
 	// GetAsyncKeyState를 사용하여 현재 키 상태를 업데이트
 	for (auto& Pair : VirtualKeyMap)
 	{
 		int32 VirtualKey = Pair.first;
 		EKeyInput KeyInput = Pair.second;
 
-		// 마우스 버튼은 GetAsyncKeyState가 잘 작동하지 않을 수 있으므로 메시지 기반으로 처리
-		if (KeyInput == EKeyInput::MouseLeft || KeyInput == EKeyInput::MouseRight || KeyInput ==
-			EKeyInput::MouseMiddle)
+		if (KeyInput == EKeyInput::MouseLeft || KeyInput == EKeyInput::MouseRight ||
+			KeyInput == EKeyInput::MouseMiddle)
 		{
-			// 마우스 버튼은 ProcessKeyMessage에서 처리
+			// 마우스 버튼은 마우스 버튼은 GetAsyncKeyState가 잘 작동하지 않을 수 있으므로 ProcessKeyMessage에서 처리
 			continue;
 		}
 
@@ -206,7 +229,31 @@ void UInputManager::ProcessKeyMessage(uint32 InMessage, WPARAM WParam, LPARAM LP
 	//	break;
 
 	case WM_LBUTTONDOWN:
-		CurrentKeyState[EKeyInput::MouseLeft] = true;
+		{
+			CurrentKeyState[EKeyInput::MouseLeft] = true;
+
+			// Double click
+			float CurrentTime = static_cast<float>(GetTickCount64()) / 1000.0f;
+			float TimeSinceLastClick = CurrentTime - LastClickTime[EKeyInput::MouseLeft];
+
+			if (TimeSinceLastClick <= DoubleClickTime && TimeSinceLastClick > 0.01f) // 최소 0.01초 간격
+			{
+				++ClickCount[EKeyInput::MouseLeft];
+				if (ClickCount[EKeyInput::MouseLeft] >= 2)
+				{
+					DoubleClickState[EKeyInput::MouseLeft] = true;
+					ClickCount[EKeyInput::MouseLeft] = 0; // 리셋
+				}
+			}
+			else
+			{
+				// 첫 번째 클릭 또는 시간 초과
+				ClickCount[EKeyInput::MouseLeft] = 1;
+				DoubleClickState[EKeyInput::MouseLeft] = false;
+			}
+
+			LastClickTime[EKeyInput::MouseLeft] = CurrentTime;
+		}
 		break;
 
 	case WM_LBUTTONUP:
@@ -214,7 +261,31 @@ void UInputManager::ProcessKeyMessage(uint32 InMessage, WPARAM WParam, LPARAM LP
 		break;
 
 	case WM_RBUTTONDOWN:
-		CurrentKeyState[EKeyInput::MouseRight] = true;
+		{
+			CurrentKeyState[EKeyInput::MouseRight] = true;
+
+			// Double click
+			float CurrentTime = static_cast<float>(GetTickCount64()) / 1000.0f;
+			float TimeSinceLastClick = CurrentTime - LastClickTime[EKeyInput::MouseRight];
+
+			if (TimeSinceLastClick <= DoubleClickTime && TimeSinceLastClick > 0.01f)
+			{
+				++ClickCount[EKeyInput::MouseRight];
+				if (ClickCount[EKeyInput::MouseRight] >= 2)
+				{
+					DoubleClickState[EKeyInput::MouseRight] = true;
+					ClickCount[EKeyInput::MouseRight] = 0;
+				}
+			}
+			else
+			{
+				// 첫 번째 클릭 또는 시간 초과
+				ClickCount[EKeyInput::MouseRight] = 1;
+				DoubleClickState[EKeyInput::MouseRight] = false;
+			}
+
+			LastClickTime[EKeyInput::MouseRight] = CurrentTime;
+		}
 		break;
 
 	case WM_RBUTTONUP:
@@ -222,7 +293,31 @@ void UInputManager::ProcessKeyMessage(uint32 InMessage, WPARAM WParam, LPARAM LP
 		break;
 
 	case WM_MBUTTONDOWN:
-		CurrentKeyState[EKeyInput::MouseMiddle] = true;
+		{
+			CurrentKeyState[EKeyInput::MouseMiddle] = true;
+
+			// Double click
+			float CurrentTime = static_cast<float>(GetTickCount64()) / 1000.0f;
+			float TimeSinceLastClick = CurrentTime - LastClickTime[EKeyInput::MouseMiddle];
+
+			if (TimeSinceLastClick <= DoubleClickTime && TimeSinceLastClick > 0.01f)
+			{
+				++ClickCount[EKeyInput::MouseMiddle];
+				if (ClickCount[EKeyInput::MouseMiddle] >= 2)
+				{
+					DoubleClickState[EKeyInput::MouseMiddle] = true;
+					ClickCount[EKeyInput::MouseMiddle] = 0;
+				}
+			}
+			else
+			{
+				// 첫 번째 클릭 또는 시간 초과
+				ClickCount[EKeyInput::MouseMiddle] = 1;
+				DoubleClickState[EKeyInput::MouseMiddle] = false;
+			}
+
+			LastClickTime[EKeyInput::MouseMiddle] = CurrentTime;
+		}
 		break;
 
 	case WM_MBUTTONUP:
@@ -361,5 +456,49 @@ void UInputManager::SetWindowFocus(bool bInFocused)
 		{
 			Pair.second = false;
 		}
+
+		// 포커스를 잃었을 때 더블클릭 상태도 리셋
+		for (auto& Pair : DoubleClickState)
+		{
+			Pair.second = false;
+		}
 	}
+}
+
+/**
+ * @brief 더블클릭 감지 업데이트
+ * 매 프레임마다 더블클릭 상태를 리셋하고 타임아웃 처리
+ */
+void UInputManager::UpdateDoubleClickDetection()
+{
+	for (auto& Pair : DoubleClickState)
+	{
+		Pair.second = false;
+	}
+
+	float CurrentTime = static_cast<float>(GetTickCount64()) / 1000.0f;
+	for (auto& Pair : ClickCount)
+	{
+		EKeyInput MouseButton = Pair.first;
+		if (CurrentTime - LastClickTime[MouseButton] > DoubleClickTime)
+		{
+			// 클릭 카운트 리셋
+			Pair.second = 0;
+		}
+	}
+}
+
+/**
+ * @brief 마우스 더블클릭 감지
+ * @param InMouseButton 확인할 마우스 버튼
+ * @return 더블클릭 되었으면 true, 아니면 false
+ */
+bool UInputManager::IsMouseDoubleClicked(EKeyInput InMouseButton) const
+{
+	auto Iter = DoubleClickState.find(InMouseButton);
+	if (Iter != DoubleClickState.end())
+	{
+		return Iter->second;
+	}
+	return false;
 }
