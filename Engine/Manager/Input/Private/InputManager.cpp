@@ -108,11 +108,14 @@ void UInputManager::Update(const FAppWindow* InWindow)
 		return;
 	}
 
-	// ImGui Input 받는 경우 다른 시스템 입력 중단
-	ImGuiIO& IO = ImGui::GetIO();
-	if (IO.WantCaptureKeyboard)
+	// ImGui가 초기화되었고 Input 받는 경우 다른 시스템 입력 중단
+	if (ImGui::GetCurrentContext() != nullptr)
 	{
-		return;
+		ImGuiIO& IO = ImGui::GetIO();
+		if (IO.WantCaptureKeyboard)
+		{
+			return;
+		}
 	}
 
 	// 마우스 위치 업데이트
@@ -146,6 +149,14 @@ void UInputManager::Update(const FAppWindow* InWindow)
 void UInputManager::UpdateMousePosition(const FAppWindow* InWindow)
 {
 	PreviousMousePosition = CurrentMousePosition;
+
+	// 윈도우가 포커스를 잃었을 때는 마우스 위치 업데이트를 중단
+	if (!bIsWindowFocused)
+	{
+		// 마우스 델타를 0으로 리셋
+		MouseDelta = FVector(0.0f, 0.0f, 0.0f);
+		return;
+	}
 
 	int32 ViewportWidth;
 	int32 ViewportHeight;
@@ -204,30 +215,24 @@ bool UInputManager::IsKeyReleased(EKeyInput InKey) const
 
 void UInputManager::ProcessKeyMessage(uint32 InMessage, WPARAM WParam, LPARAM LParam)
 {
+	// 윈도우가 포커스를 잃었을 때는 입력 처리를 중단
+	if (!bIsWindowFocused)
+	{
+		return;
+	}
+
+	// ImGui가 초기화되었고 마우스나 키보드를 캡처하고 있는 경우 입력 처리를 중단
+	if (ImGui::GetCurrentContext() != nullptr)
+	{
+		ImGuiIO& IO = ImGui::GetIO();
+		if (IO.WantCaptureMouse || IO.WantCaptureKeyboard)
+		{
+			return;
+		}
+	}
+
 	switch (InMessage)
 	{
-	//case WM_KEYDOWN:
-	//case WM_SYSKEYDOWN:
-	//	{
-	//		auto it = VirtualKeyMap.find(static_cast<int32>(WParam));
-	//		if (it != VirtualKeyMap.end())
-	//		{
-	//			CurrentKeyState[it->second] = true;
-	//		}
-	//	}
-	//	break;
-
-	//case WM_KEYUP:
-	//case WM_SYSKEYUP:
-	//	{
-	//		auto it = VirtualKeyMap.find(static_cast<int32>(WParam));
-	//		if (it != VirtualKeyMap.end())
-	//		{
-	//			CurrentKeyState[it->second] = false;
-	//		}
-	//	}
-	//	break;
-
 	case WM_LBUTTONDOWN:
 		{
 			CurrentKeyState[EKeyInput::MouseLeft] = true;

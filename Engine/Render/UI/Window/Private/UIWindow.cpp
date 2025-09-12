@@ -123,16 +123,58 @@ void UUIWindow::RenderWindow()
 	ApplyDockingSettings();
 
 	// ImGui 윈도우 시작
-	ImGui::SetNextWindowSize(Config.DefaultSize, ImGuiCond_FirstUseEver);
-	ImGui::SetNextWindowPos(Config.DefaultPosition, ImGuiCond_FirstUseEver);
+	// 복원이 필요한 경우 위치와 크기 강제 설정
+	if (bShouldRestorePosition && RestoreFrameCount > 0)
+	{
+		ImGui::SetNextWindowPos(LastWindowPosition, ImGuiCond_Always);
+		--RestoreFrameCount;
+		if (RestoreFrameCount <= 0)
+		{
+			bShouldRestorePosition = false;
+		}
+	}
+	else if (!bShouldRestorePosition)
+	{
+		ImGui::SetNextWindowPos(Config.DefaultPosition, ImGuiCond_FirstUseEver);
+	}
 
-	// 크기 제한 설정
-	//ImGui::SetNextWindowSizeConstraints(Config.MinSize, Config.MaxSize);
+	// ImGui의 내부 상태를 무시하고 강제로 적용
+	if (bShouldRestoreSize && RestoreFrameCount > 0)
+	{
+		ImGui::SetNextWindowSize(LastWindowSize, ImGuiCond_Always);
+		ImGui::SetNextWindowSizeConstraints(LastWindowSize, LastWindowSize);
+
+		// ImGui 내부 상태 초기화를 위해 FirstUseEver도 시도
+		ImGui::SetNextWindowSize(LastWindowSize, ImGuiCond_FirstUseEver);
+
+		// 크기 복원도 같은 프레임 카운터 사용
+		if (RestoreFrameCount <= 0)
+		{
+			bShouldRestoreSize = false;
+			bForceSize = false;
+			ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(10000, 10000));
+		}
+	}
+	else if (!bShouldRestoreSize)
+	{
+		ImGui::SetNextWindowSize(Config.DefaultSize, ImGuiCond_FirstUseEver);
+	}
 
 	bool bIsOpen = bIsWindowOpen;
 
 	if (ImGui::Begin(Config.WindowTitle.c_str(), &bIsOpen, Config.WindowFlags))
 	{
+		// 잘 적용되지 않는 문제로 인해 여러 번 강제 적용 시도
+		if (bShouldRestoreSize && RestoreFrameCount > 0)
+		{
+			ImGui::SetWindowSize(LastWindowSize, ImGuiCond_Always);
+			ImGui::SetWindowSize(LastWindowSize);
+			if (bShouldRestorePosition)
+			{
+				ImGui::SetWindowPos(LastWindowPosition, ImGuiCond_Always);
+			}
+		}
+
 		if (!bIsResized)
 		{
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();

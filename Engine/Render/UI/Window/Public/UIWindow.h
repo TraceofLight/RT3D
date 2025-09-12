@@ -108,6 +108,25 @@ public:
 	const TArray<UWidget*>& GetWidgets() const { return Widgets; }
 	void SetIsResized(bool IsResized) { bIsResized = IsResized; }
 
+	// 윈도우 위치 / 크기 가져오기
+	ImVec2 GetLastWindowPosition() const { return LastWindowPosition; }
+	ImVec2 GetLastWindowSize() const { return LastWindowSize; }
+
+	void SetLastWindowPosition(const ImVec2& Position)
+	{
+		LastWindowPosition = Position;
+		bShouldRestorePosition = true;
+		RestoreFrameCount = 10;
+	}
+
+	void SetLastWindowSize(const ImVec2& Size)
+	{
+		LastWindowSize = Size;
+		bShouldRestoreSize = true;
+		RestoreFrameCount = 10;
+		bForceSize = true;
+	}
+
 	bool IsVisible() const
 	{
 		return CurrentState == EUIWindowState::Visible || CurrentState == EUIWindowState::Maximized;
@@ -149,7 +168,13 @@ private:
 
 	TArray<UWidget*> Widgets;
 
-	ImVec2 PositionRatio = { 0.5f, 0.5f };
-	ImVec2 SizeRatio = { 0.5f, 0.5f };
+	ImVec2 PositionRatio = {0.5f, 0.5f};
+	ImVec2 SizeRatio = {0.5f, 0.5f};
 	bool bIsResized = false;
+
+	// 최소화된 UI 복원 관련
+	bool bShouldRestorePosition = false;
+	bool bShouldRestoreSize = false;
+	int RestoreFrameCount = 0;
+	bool bForceSize = false;
 };

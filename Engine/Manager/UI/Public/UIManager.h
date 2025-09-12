@@ -31,6 +31,10 @@ public:
 	void HideAllWindows() const;
 	void ShowAllWindows() const;
 
+	// 윈도우 최소화 / 복원 처리
+	void OnWindowMinimized();
+	void OnWindowRestored();
+
 	// Getter & Setter
 	size_t GetUIWindowCount() const { return UIWindows.size(); }
 	const TArray<UUIWindow*>& GetAllUIWindows() const { return UIWindows; }
@@ -47,6 +51,17 @@ private:
 	UUIWindow* FocusedWindow = nullptr;
 	bool bIsInitialized = false;
 	float TotalTime = 0.0f;
+
+	// 윈도우 상태 저장
+	struct FUIWindowSavedState
+	{
+		uint32 WindowID;
+		ImVec2 SavedPosition;
+		ImVec2 SavedSize;
+		bool bWasVisible;
+	};
+	TArray<FUIWindowSavedState> SavedWindowStates;
+	bool bIsMinimized = false;
 
 	// ImGui Helper
 	UImGuiHelper* ImGuiHelper = nullptr;
