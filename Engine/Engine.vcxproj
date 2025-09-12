@@ -216,6 +216,7 @@
     <ClInclude Include="Render\UI\Window\Public\UIWindow.h"/>
     <ClInclude Include="Utility\Public\LevelSerializer.h"/>
     <ClInclude Include="Utility\Public\Metadata.h"/>
+    <ClInclude Include="Utility\Public\UELogParser.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Private\Class.cpp" />
@@ -277,6 +278,7 @@
     <ClCompile Include="Render\UI\Window\Private\OutlinerWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\UIWindow.cpp"/>
     <ClCompile Include="Utility\Private\LevelSerializer.cpp"/>
+    <ClCompile Include="Utility\Private\UELogParser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets">
