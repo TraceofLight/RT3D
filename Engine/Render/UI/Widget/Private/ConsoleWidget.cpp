@@ -69,7 +69,6 @@ streamsize ConsoleStreamBuffer::xsputn(const char* InString, streamsize InCount)
 	return InCount;
 }
 
-
 void UConsoleWidget::RenderWidget()
 {
 	// 제어 버튼들
@@ -195,25 +194,64 @@ ImVec4 UConsoleWidget::GetColorByLogType(ELogType InType)
 }
 
 /**
- * @brief 기본 로그 추가 함수
+ * @brief 타입 없는 로그 작성 함수
+ * 따로 LogType을 정의하지 않았다면, Info 타입의 로그로 추가한다
+ * LogType을 뒤에 놓지 않는다면 기본값 설정이 불가능한데 다중 인자를 받고 있어 기본형을 이런 방식으로 처리
  */
 void UConsoleWidget::AddLog(const char* fmt, ...)
 {
-	char buf[1024];
-
-	// Variable Argument List 접근
 	va_list args;
+
+	// 가변 인자를 파라미터로 받는 Internal 함수 호출
 	va_start(args, fmt);
-
-	(void)vsnprintf(buf, sizeof(buf), fmt, args);
-	buf[sizeof(buf) - 1] = 0;
-
+	AddLogInternal(ELogType::Info, fmt, args);
 	va_end(args);
+}
 
-	// 기본 Info 타입으로 로그 추가
+/**
+ * @brief 타입을 추가한 로그 작성 함수
+ * 내부적으로 타입 없는 로그 함수와 동일하게 Internal 함수를 호출한다
+ */
+void UConsoleWidget::AddLog(ELogType InType, const char* fmt, ...)
+{
+	va_list args;
+
+	// 가변 인자를 파라미터로 받는 Internal 함수 호출
+	va_start(args, fmt);
+	AddLogInternal(InType, fmt, args);
+	va_end(args);
+}
+
+/**
+ * @brief 로그를 내부적으로 처리하는 함수
+ * 로그가 잘리는 현상을 방지하기 위해 동적 버퍼를 활용하여 로그를 입력 받음
+ */
+void UConsoleWidget::AddLogInternal(ELogType InType, const char* fmt, va_list InArguments)
+{
+	va_list ArgumentsCopy;
+
+	// Get log length
+	va_copy(ArgumentsCopy, InArguments);
+	int LogLength = vsnprintf(nullptr, 0, fmt, ArgumentsCopy);
+	va_end(ArgumentsCopy);
+
+	// 필요한 크기만큼 동적 할당
+	// malloc 대신 overloading 함수의 영향을 받을 수 있도록 new 할당 사용
+	char* Buffer = new char[LogLength + 1];
+
+	// Make full string
+	va_copy(ArgumentsCopy, InArguments);
+	(void)vsnprintf(Buffer, LogLength + 1, fmt, ArgumentsCopy);
+	va_end(ArgumentsCopy);
+
+	// 기본 Info 타입으로 log 추가
 	FLogEntry LogEntry;
-	LogEntry.Type = ELogType::Info;
-	LogEntry.Message = FString(buf);
+	LogEntry.Type = InType;
+
+	// Log buffer 복사 후 제거
+	LogEntry.Message = FString(Buffer);
+	delete[] Buffer;
+
 	LogItems.push_back(LogEntry);
 
 	// Auto Scroll
@@ -221,25 +259,36 @@ void UConsoleWidget::AddLog(const char* fmt, ...)
 }
 
 /**
- * @brief 타입 특정 로그 추가 함수
+ * @brief 시스템 로그들을 처리하기 위한 멤버 함수
+ * @param InText log text
+ * @param bInIsError 에러 여부
  */
-void UConsoleWidget::AddLog(ELogType InType, const char* fmt, ...)
+void UConsoleWidget::AddSystemLog(const char* InText, bool bInIsError)
 {
-	char buf[1024];
+	if (!InText || strlen(InText) == 0)
+	{
+		return;
+	}
 
-	// Variable Argument List 접근
-	va_list args;
-	va_start(args, fmt);
-
-	(void)vsnprintf(buf, sizeof(buf), fmt, args);
-	buf[sizeof(buf) - 1] = 0;
-
-	va_end(args);
-
-	// 지정된 타입으로 로그 추가
 	FLogEntry LogEntry;
-	LogEntry.Type = InType;
-	LogEntry.Message = FString(buf);
+
+	if (bInIsError)
+	{
+		LogEntry.Message = "Error: " + FString(InText);
+		LogEntry.Type = ELogType::Error;
+	}
+	else
+	{
+		LogEntry.Message = "System: " + FString(InText);
+		LogEntry.Type = ELogType::System;
+	}
+
+	// 끝에 있는 개행 문자 제거
+	if (!LogEntry.Message.empty() && LogEntry.Message.back() == '\n')
+	{
+		LogEntry.Message.pop_back();
+	}
+
 	LogItems.push_back(LogEntry);
 
 	// Auto Scroll
@@ -676,7 +725,7 @@ void UConsoleWidget::ExecuteTerminalCommand(const char* InCommand)
 		return;
 	}
 
-	AddLog("[Terminal] > %s", InCommand);
+	AddLog(ELogType::UELog, ("[Terminal] >" + FString(InCommand)).c_str());
 
 	try
 	{
@@ -921,40 +970,4 @@ void UConsoleWidget::CleanupSystemRedirect()
 	{
 		// Ignore Cleanup Errors
 	}
-}
-
-void UConsoleWidget::AddSystemLog(const char* InText, bool bInIsError)
-{
-	if (!InText || strlen(InText) == 0)
-	{
-		return;
-	}
-
-	FString LogText;
-	ELogType LogType;
-
-	if (bInIsError)
-	{
-		LogText = "Error: " + FString(InText);
-		LogType = ELogType::Error;
-	}
-	else
-	{
-		LogText = "System: " + FString(InText);
-		LogType = ELogType::System;
-	}
-
-	// 끝에 있는 개행 문자 제거
-	if (!LogText.empty() && LogText.back() == '\n')
-	{
-		LogText.pop_back();
-	}
-
-	FLogEntry LogEntry;
-	LogEntry.Type = LogType;
-	LogEntry.Message = LogText;
-	LogItems.push_back(LogEntry);
-
-	// Auto Scroll
-	bIsScrollToBottom = true;
 }

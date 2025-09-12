@@ -523,3 +523,6 @@ imgui.ini
 
 # Warp
 WARP.md
+
+# Visual Studio Class Diagram
+*.cd
