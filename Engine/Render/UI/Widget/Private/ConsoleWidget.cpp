@@ -1,10 +1,7 @@
 #include "pch.h"
 #include "Render/UI/Widget/Public/ConsoleWidget.h"
-#include <sstream>
-#include <iostream>
-#include <cstdio>
-#include <vector>
-#include <stdexcept>
+
+#include "Utility/Public/UELogParser.h"
 
 IMPLEMENT_SINGLETON(UConsoleWidget)
 
@@ -31,11 +28,11 @@ void UConsoleWidget::Initialize()
 	OriginalConsoleOutput = nullptr;
 	OriginalConsoleError = nullptr;
 
-	AddLog(ELogType::Success, "ConsoleWindow: Game Console 초기화 성공");
-	AddLog(ELogType::System, "ConsoleWindow: Logging System Ready");
-
 	// Initialize System Output Redirection
 	InitializeSystemRedirect();
+
+	AddLog(ELogType::Success, "ConsoleWindow: Game Console 초기화 성공");
+	AddLog(ELogType::System, "ConsoleWindow: Logging System Ready");
 }
 
 /**
@@ -68,7 +65,6 @@ streamsize ConsoleStreamBuffer::xsputn(const char* InString, streamsize InCount)
 	}
 	return InCount;
 }
-
 
 void UConsoleWidget::RenderWidget()
 {
@@ -195,25 +191,64 @@ ImVec4 UConsoleWidget::GetColorByLogType(ELogType InType)
 }
 
 /**
- * @brief 기본 로그 추가 함수
+ * @brief 타입 없는 로그 작성 함수
+ * 따로 LogType을 정의하지 않았다면, Info 타입의 로그로 추가한다
+ * LogType을 뒤에 놓지 않는다면 기본값 설정이 불가능한데 다중 인자를 받고 있어 기본형을 이런 방식으로 처리
  */
 void UConsoleWidget::AddLog(const char* fmt, ...)
 {
-	char buf[1024];
-
-	// Variable Argument List 접근
 	va_list args;
+
+	// 가변 인자를 파라미터로 받는 Internal 함수 호출
 	va_start(args, fmt);
-
-	(void)vsnprintf(buf, sizeof(buf), fmt, args);
-	buf[sizeof(buf) - 1] = 0;
-
+	AddLogInternal(ELogType::Info, fmt, args);
 	va_end(args);
+}
 
-	// 기본 Info 타입으로 로그 추가
+/**
+ * @brief 타입을 추가한 로그 작성 함수
+ * 내부적으로 타입 없는 로그 함수와 동일하게 Internal 함수를 호출한다
+ */
+void UConsoleWidget::AddLog(ELogType InType, const char* fmt, ...)
+{
+	va_list args;
+
+	// 가변 인자를 파라미터로 받는 Internal 함수 호출
+	va_start(args, fmt);
+	AddLogInternal(InType, fmt, args);
+	va_end(args);
+}
+
+/**
+ * @brief 로그를 내부적으로 처리하는 함수
+ * 로그가 잘리는 현상을 방지하기 위해 동적 버퍼를 활용하여 로그를 입력 받음
+ */
+void UConsoleWidget::AddLogInternal(ELogType InType, const char* fmt, va_list InArguments)
+{
+	va_list ArgumentsCopy;
+
+	// Get log length
+	va_copy(ArgumentsCopy, InArguments);
+	int LogLength = vsnprintf(nullptr, 0, fmt, ArgumentsCopy);
+	va_end(ArgumentsCopy);
+
+	// 필요한 크기만큼 동적 할당
+	// malloc 대신 overloading 함수의 영향을 받을 수 있도록 new 할당 사용
+	char* Buffer = new char[LogLength + 1];
+
+	// Make full string
+	va_copy(ArgumentsCopy, InArguments);
+	(void)vsnprintf(Buffer, LogLength + 1, fmt, ArgumentsCopy);
+	va_end(ArgumentsCopy);
+
+	// 기본 Info 타입으로 log 추가
 	FLogEntry LogEntry;
-	LogEntry.Type = ELogType::Info;
-	LogEntry.Message = FString(buf);
+	LogEntry.Type = InType;
+
+	// Log buffer 복사 후 제거
+	LogEntry.Message = FString(Buffer);
+	delete[] Buffer;
+
 	LogItems.push_back(LogEntry);
 
 	// Auto Scroll
@@ -221,25 +256,36 @@ void UConsoleWidget::AddLog(const char* fmt, ...)
 }
 
 /**
- * @brief 타입 특정 로그 추가 함수
+ * @brief 시스템 로그들을 처리하기 위한 멤버 함수
+ * @param InText log text
+ * @param bInIsError 에러 여부
  */
-void UConsoleWidget::AddLog(ELogType InType, const char* fmt, ...)
+void UConsoleWidget::AddSystemLog(const char* InText, bool bInIsError)
 {
-	char buf[1024];
+	if (!InText || strlen(InText) == 0)
+	{
+		return;
+	}
 
-	// Variable Argument List 접근
-	va_list args;
-	va_start(args, fmt);
-
-	(void)vsnprintf(buf, sizeof(buf), fmt, args);
-	buf[sizeof(buf) - 1] = 0;
-
-	va_end(args);
-
-	// 지정된 타입으로 로그 추가
 	FLogEntry LogEntry;
-	LogEntry.Type = InType;
-	LogEntry.Message = FString(buf);
+
+	if (bInIsError)
+	{
+		LogEntry.Message = "Error: " + FString(InText);
+		LogEntry.Type = ELogType::Error;
+	}
+	else
+	{
+		LogEntry.Message = "System: " + FString(InText);
+		LogEntry.Type = ELogType::System;
+	}
+
+	// 끝에 있는 개행 문자 제거
+	if (!LogEntry.Message.empty() && LogEntry.Message.back() == '\n')
+	{
+		LogEntry.Message.pop_back();
+	}
+
 	LogItems.push_back(LogEntry);
 
 	// Auto Scroll
@@ -333,287 +379,47 @@ void UConsoleWidget::ProcessCommand(const char* InCommand)
 
 	FString Input = InCommand;
 
-	// UE_LOG( 우선 탐색
+	// UE_Log Parsing
 	size_t StartPosition = Input.find("UE_LOG(");
 	if (StartPosition != FString::npos && StartPosition == 0)
 	{
-		StartPosition += 7; // "UE_LOG(" 길이
-		size_t EndPosition = Input.rfind(')');
-
-		if (EndPosition != FString::npos && EndPosition > StartPosition)
+		try
 		{
-			FString Arguments = Input.substr(StartPosition, EndPosition - StartPosition);
+			UELogParser::ParseResult Result = ParseUELogFromString(Input);
 
-			// 첫 번째 인수는 문자열 (" 로 시작)
-			if (!Arguments.empty() && Arguments[0] == '"')
+			if (Result.bSuccess)
 			{
-				size_t FirstQuoteEnd = Arguments.find('"', 1);
-				if (FirstQuoteEnd != FString::npos)
-				{
-					FString FormatString = Arguments.substr(1, FirstQuoteEnd - 1);
-
-					// 뒤쪽에 있는 인수들 처리
-					FString RemainingArguments;
-					if (FirstQuoteEnd + 1 < Arguments.length())
-					{
-						RemainingArguments = Arguments.substr(FirstQuoteEnd + 1);
-						// 앞의 콤마와 공백 제거
-						while (!RemainingArguments.empty() &&
-							(RemainingArguments[0] == ',' || RemainingArguments[0] == ' '))
-							RemainingArguments = RemainingArguments.substr(1);
-					}
-
-					// printf 스타일 다중 인자 처리 개선
-					if (!RemainingArguments.empty())
-					{
-						try
-						{
-							// 인자들을 콤마로 분리
-							TArray<FString> Args;
-							std::istringstream ArgStream(RemainingArguments);
-							FString Token;
-
-							// 콤마로 분리하되 따옴표 안의 콤마는 무시
-							bool bInQuotes = false;
-							FString CurrentArg;
-
-							for (size_t i = 0; i < RemainingArguments.length(); ++i)
-							{
-								char Character = RemainingArguments[i];
-
-								if (Character == '"')
-								{
-									bInQuotes = !bInQuotes;
-									CurrentArg += Character;
-								}
-								else if (Character == ',' && !bInQuotes)
-								{
-									// 인자 완료
-									// 앞뒤 공백 제거
-									while (!CurrentArg.empty() && (CurrentArg.front() == ' ' || CurrentArg.front() ==
-										'\t'))
-									{
-										CurrentArg = CurrentArg.substr(1);
-									}
-									while (!CurrentArg.empty() && (CurrentArg.back() == ' ' || CurrentArg.back() ==
-										'\t'))
-									{
-										CurrentArg.pop_back();
-									}
-
-									if (!CurrentArg.empty())
-									{
-										Args.push_back(CurrentArg);
-									}
-
-									CurrentArg.clear();
-								}
-								else
-								{
-									CurrentArg += Character;
-								}
-							}
-
-							// 마지막 인자 처리
-							while (!CurrentArg.empty() && (CurrentArg.front() == ' ' || CurrentArg.front() == '\t'))
-								CurrentArg = CurrentArg.substr(1);
-							while (!CurrentArg.empty() && (CurrentArg.back() == ' ' || CurrentArg.back() == '\t'))
-								CurrentArg.pop_back();
-							if (!CurrentArg.empty())
-								Args.push_back(CurrentArg);
-
-							// 더 큰 버퍼로 안전하게 처리
-							TArray<char> Buffer(4096);
-
-							// 포맷 스트링의 플레이스홀더 개수와 인자 개수 확인
-							size_t FormatSpecifiers = 0;
-							size_t pos = 0;
-							while ((pos = FormatString.find('%', pos)) != FString::npos)
-							{
-								if (pos + 1 < FormatString.length() && FormatString[pos + 1] != '%')
-								{
-									++FormatSpecifiers;
-								}
-								++pos;
-							}
-
-							if (FormatSpecifiers != Args.size())
-							{
-								FLogEntry ErrorEntry;
-								ErrorEntry.Type = ELogType::Error;
-								ErrorEntry.Message = "UE_LOG: 포맷 지정자(" + std::to_string(FormatSpecifiers) +
-									")와 인자 개수(" + std::to_string(Args.size()) + ")가 일치하지 않습니다.";
-								LogItems.push_back(ErrorEntry);
-								bIsScrollToBottom = true;
-								return;
-							}
-
-							// 실제 포맷팅 처리
-							int Result = 0;
-
-							if (Args.size() == 1)
-							{
-								if (FormatString.find("%d") != FString::npos || FormatString.find("%i") !=
-									FString::npos)
-								{
-									int Value = std::stoi(Args[0]);
-									Result = snprintf(Buffer.data(), Buffer.size(), FormatString.c_str(), Value);
-								}
-								else if (FormatString.find("%s") != FString::npos)
-								{
-									FString StringArg = Args[0];
-									if (StringArg.length() >= 2 && StringArg.front() == '"' && StringArg.back() == '"')
-										StringArg = StringArg.substr(1, StringArg.length() - 2);
-									Result = snprintf(Buffer.data(), Buffer.size(), FormatString.c_str(),
-									                  StringArg.c_str());
-								}
-								else if (FormatString.find("%f") != FString::npos)
-								{
-									float Value = std::stof(Args[0]);
-									Result = snprintf(Buffer.data(), Buffer.size(), FormatString.c_str(), Value);
-								}
-							}
-							else if (Args.size() == 2)
-							{
-								// 2개 인자 동시 처리 (가장 흔한 케이스들)
-								size_t firstPercent = FormatString.find('%');
-								size_t secondPercent = FormatString.find('%', firstPercent + 1);
-
-								if (firstPercent != FString::npos && secondPercent != FString::npos)
-								{
-									char firstType = FormatString[firstPercent + 1];
-									char secondType = FormatString[secondPercent + 1];
-
-									// %d %d
-									if ((firstType == 'd' || firstType == 'i') && (secondType == 'd' || secondType ==
-										'i'))
-									{
-										int val1 = std::stoi(Args[0]);
-										int val2 = std::stoi(Args[1]);
-										Result = snprintf(Buffer.data(), Buffer.size(), FormatString.c_str(), val1,
-										                  val2);
-									}
-									// %s %s
-									else if (firstType == 's' && secondType == 's')
-									{
-										FString str1 = Args[0];
-										FString str2 = Args[1];
-										if (str1.length() >= 2 && str1.front() == '"' && str1.back() == '"')
-											str1 = str1.substr(1, str1.length() - 2);
-										if (str2.length() >= 2 && str2.front() == '"' && str2.back() == '"')
-											str2 = str2.substr(1, str2.length() - 2);
-										Result = snprintf(Buffer.data(), Buffer.size(), FormatString.c_str(),
-										                  str1.c_str(), str2.c_str());
-									}
-									// %s %d 또는 %d %s
-									else if ((firstType == 's' && (secondType == 'd' || secondType == 'i')) ||
-										((firstType == 'd' || firstType == 'i') && secondType == 's'))
-									{
-										if (firstType == 's')
-										{
-											FString str = Args[0];
-											if (str.length() >= 2 && str.front() == '"' && str.back() == '"')
-												str = str.substr(1, str.length() - 2);
-											int val = std::stoi(Args[1]);
-											Result = snprintf(Buffer.data(), Buffer.size(), FormatString.c_str(),
-											                  str.c_str(), val);
-										}
-										else
-										{
-											int val = std::stoi(Args[0]);
-											FString str = Args[1];
-											if (str.length() >= 2 && str.front() == '"' && str.back() == '"')
-												str = str.substr(1, str.length() - 2);
-											Result = snprintf(Buffer.data(), Buffer.size(), FormatString.c_str(), val,
-											                  str.c_str());
-										}
-									}
-								}
-							}
-							else
-							{
-								// 3개 이상 인자 또는 지원되지 않는 조합에 대한 일반적 처리
-								FLogEntry ErrorEntry;
-								ErrorEntry.Type = ELogType::Error;
-								ErrorEntry.Message = "UE_LOG: " + std::to_string(Args.size()) +
-									"개 인자 또는 현재 포맷 조합은 지원되지 않습니다. "
-									"단순 형식만 사용해주세요 (1-2개 인자).";
-								LogItems.push_back(ErrorEntry);
-								bIsScrollToBottom = true;
-								return;
-							}
-
-							// 포맷팅 결과 확인 및 안전성 검사
-							if (Result < 0)
-							{
-								FLogEntry ErrorEntry;
-								ErrorEntry.Type = ELogType::Error;
-								ErrorEntry.Message = "UE_LOG: snprintf 포맷팅 오류가 발생했습니다.";
-								LogItems.push_back(ErrorEntry);
-								bIsScrollToBottom = true;
-								return;
-							}
-							else if (Result >= static_cast<int>(Buffer.size()))
-							{
-								FLogEntry ErrorEntry;
-								ErrorEntry.Type = ELogType::Error;
-								ErrorEntry.Message = "UE_LOG: 출력이 버퍼 크기(" + std::to_string(Buffer.size()) +
-									")를 초과했습니다. 필요한 크기: " + std::to_string(Result + 1);
-								LogItems.push_back(ErrorEntry);
-								bIsScrollToBottom = true;
-								return;
-							}
-
-							// 성공적으로 포맷팅된 경우
-							// Result는 null terminator를 제외한 길이이므로 Buffer[Result]는 안전함
-							FLogEntry LogEntry;
-							LogEntry.Type = ELogType::UELog;
-							LogEntry.Message = FString(Buffer.data());
-							LogItems.push_back(LogEntry);
-							bIsScrollToBottom = true;
-						}
-						catch (const std::exception& e)
-						{
-							FLogEntry ErrorEntry;
-							ErrorEntry.Type = ELogType::Error;
-							ErrorEntry.Message = "UE_LOG: 인자 처리 중 오류 발생: " + FString(e.what());
-							LogItems.push_back(ErrorEntry);
-							bIsScrollToBottom = true;
-						}
-						catch (...)
-						{
-							FLogEntry ErrorEntry;
-							ErrorEntry.Type = ELogType::Error;
-							ErrorEntry.Message = "UE_LOG: 알 수 없는 인자 처리 오류가 발생했습니다: " + RemainingArguments;
-							LogItems.push_back(ErrorEntry);
-							bIsScrollToBottom = true;
-						}
-					}
-					else
-					{
-						// 인수 없는 경우
-						FLogEntry UELogEntry;
-						UELogEntry.Type = ELogType::UELog;
-						UELogEntry.Message = FormatString;
-						LogItems.push_back(UELogEntry);
-						bIsScrollToBottom = true;
-					}
-				}
-				else
-				{
-					AddLog(ELogType::Error, "UELog: Error: Invalid Format: 문자열 종료 따옴표가 없습니다");
-					bIsScrollToBottom = true;
-				}
+				// 파싱 성공
+				FLogEntry LogEntry;
+				LogEntry.Type = ELogType::UELog;
+				LogEntry.Message = FString(Result.FormattedMessage);
+				LogItems.push_back(LogEntry);
+				bIsScrollToBottom = true;
 			}
 			else
 			{
-				AddLog(ELogType::Error, "UELog: Error: Invalid Format: 첫 인자는 반드시 문자열이어야 합니다");
+				// 파싱 실패
+				FLogEntry ErrorEntry;
+				ErrorEntry.Type = ELogType::Error;
+				ErrorEntry.Message = "UELogParser: UE_LOG 파싱 오류: " + FString(Result.ErrorMessage);
+				LogItems.push_back(ErrorEntry);
 				bIsScrollToBottom = true;
 			}
 		}
-		else
+		catch (const std::exception& e)
 		{
-			AddLog(ELogType::Error, "UELog: Error: Invalid Format: 맨 뒤 괄호가 존재하지 않습니다");
+			FLogEntry ErrorEntry;
+			ErrorEntry.Type = ELogType::Error;
+			ErrorEntry.Message = "UELogParser: 예외 발생: " + FString(e.what());
+			LogItems.push_back(ErrorEntry);
+			bIsScrollToBottom = true;
+		}
+		catch (...)
+		{
+			FLogEntry ErrorEntry;
+			ErrorEntry.Type = ELogType::Error;
+			ErrorEntry.Message = "UELogParser: 알 수 없는 오류가 발생했습니다.";
+			LogItems.push_back(ErrorEntry);
 			bIsScrollToBottom = true;
 		}
 	}
@@ -634,25 +440,19 @@ void UConsoleWidget::ProcessCommand(const char* InCommand)
 		AddLog(ELogType::System, "Available Commands:");
 		AddLog(ELogType::Info, "  CLEAR - Clear The Console");
 		AddLog(ELogType::Info, "  HELP - Show This Help");
-		AddLog(ELogType::Info, "  UE_LOG(\"String with format\", Args...) - Log With printf Formatting");
-		AddLog(ELogType::Debug, "    1개 인자 예제: UE_LOG(\"Hello World %%d\", 2025)");
-		AddLog(ELogType::Debug, "    1개 인자 예제: UE_LOG(\"User: %%s\", \"John\")");
-		AddLog(ELogType::Debug, "    2개 인자 예제: UE_LOG(\"Player %%s has %%d points\", \"Alice\", 1500)");
-		AddLog(ELogType::Debug, "    2개 인자 예제: UE_LOG(\"Score: %%d, Lives: %%d\", 2500, 3)");
-		AddLog(ELogType::Warning, "    주의: 포맷 지정자와 인자 개수가 일치해야 합니다!");
+		AddLog(ELogType::Info, "  UE_LOG(\"String with format\", Args...) - Enhanced printf Formatting");
+		AddLog(ELogType::Debug, "    기본 예제: UE_LOG(\"Hello World %%d\", 2025)");
+		AddLog(ELogType::Debug, "    문자열: UE_LOG(\"User: %%s\", \"John\")");
+		AddLog(ELogType::Debug, "    혼합형: UE_LOG(\"Player %%s has %%d points\", \"Alice\", 1500)");
+		AddLog(ELogType::Debug, "    다중 인자: UE_LOG(\"Score: %%d, Lives: %%d\", 2500, 3)");
 		AddLog(ELogType::Info, "");
 		AddLog(ELogType::System, "Camera Controls:");
-		AddLog(ELogType::Info, "  우클릭 + WASD - 카메라 이돘");
-		AddLog(ELogType::Info, "  우클릭 + Q/E - 위/아래 이돘");
+		AddLog(ELogType::Info, "  우클릭 + WASD - 카메라 이동");
+		AddLog(ELogType::Info, "  우클릭 + Q/E - 위/아래 이동");
 		AddLog(ELogType::Info, "  우클릭 + 마우스 이동 - 카메라 회전");
-		AddLog(ELogType::Success, "  우클릭 + 마우스 휠 - 이동속도 조절 (0.5~50.0)");
+		AddLog(ELogType::Success, "  우클릭 + 마우스 휠 - 이동속도 조절 (20 ~ 50)");
 		AddLog(ELogType::Info, "");
 		AddLog(ELogType::System, "Terminal Commands:");
-		AddLog(ELogType::Info, "  dir, ls - List directory contents");
-		AddLog(ELogType::Info, "  cd [path] - Change directory");
-		AddLog(ELogType::Info, "  echo [text] - Display text");
-		AddLog(ELogType::Info, "  type [file] - Display file contents");
-		AddLog(ELogType::Info, "  ping [host] - Network ping");
 		AddLog(ELogType::Info, "  Any Windows command will be executed directly");
 	}
 	else
@@ -676,7 +476,7 @@ void UConsoleWidget::ExecuteTerminalCommand(const char* InCommand)
 		return;
 	}
 
-	AddLog("[Terminal] > %s", InCommand);
+	AddLog(ELogType::UELog, ("Terminal: Execute Command: " + FString(InCommand)).c_str());
 
 	try
 	{
@@ -692,7 +492,7 @@ void UConsoleWidget::ExecuteTerminalCommand(const char* InCommand)
 
 		if (!CreatePipe(&PipeReadHandle, &PipeWriteHandle, &SecurityAttribute, 0))
 		{
-			AddLog("[Terminal Error] Failed To Create Pipe For Command Execution.");
+			AddLog("Terminal: Error: Failed To Create Pipe For Command Execution.");
 			return;
 		}
 
@@ -843,22 +643,22 @@ void UConsoleWidget::ExecuteTerminalCommand(const char* InCommand)
 		else if (ExitCode == 0)
 		{
 			// 출력은 없지만 성공적으로 실행된 경우
-			AddLog("[Terminal] Command executed successfully (no output)");
+			AddLog("Terminal: Command 실행 성공 (No Output)");
 		}
 
 		// 에러 코드가 있는 경우 표시
 		if (ExitCode != 0)
 		{
-			AddLog("[Terminal Error] Command failed with exit code: %d", ExitCode);
+			AddLog("Terminal: Error: Command failed with exit code: %d", ExitCode);
 		}
 	}
 	catch (const exception& Exception)
 	{
-		AddLog("[Terminal Error] Exception occurred: %s", Exception.what());
+		AddLog("Terminal: Error: Exception occurred: %s", Exception.what());
 	}
 	catch (...)
 	{
-		AddLog("[Terminal Error] Unknown Error Occurred While Executing Command");
+		AddLog("Terminal: Error: Unknown Error Occurred While Executing Command");
 	}
 }
 
@@ -921,40 +721,4 @@ void UConsoleWidget::CleanupSystemRedirect()
 	{
 		// Ignore Cleanup Errors
 	}
-}
-
-void UConsoleWidget::AddSystemLog(const char* InText, bool bInIsError)
-{
-	if (!InText || strlen(InText) == 0)
-	{
-		return;
-	}
-
-	FString LogText;
-	ELogType LogType;
-
-	if (bInIsError)
-	{
-		LogText = "Error: " + FString(InText);
-		LogType = ELogType::Error;
-	}
-	else
-	{
-		LogText = "System: " + FString(InText);
-		LogType = ELogType::System;
-	}
-
-	// 끝에 있는 개행 문자 제거
-	if (!LogText.empty() && LogText.back() == '\n')
-	{
-		LogText.pop_back();
-	}
-
-	FLogEntry LogEntry;
-	LogEntry.Type = LogType;
-	LogEntry.Message = LogText;
-	LogItems.push_back(LogEntry);
-
-	// Auto Scroll
-	bIsScrollToBottom = true;
 }

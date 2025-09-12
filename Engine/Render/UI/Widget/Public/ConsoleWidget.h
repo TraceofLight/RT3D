@@ -41,27 +41,29 @@ private:
 class UConsoleWidget : public UWidget
 {
 public:
-	// Widget Interface
+	// Widget interface
 	void Initialize() override;
 	void Update() override;
 	void RenderWidget() override;
 
-	// Log Functions
+	// Log functions
 	void AddLog(const char* fmt, ...);
 	void AddLog(ELogType InType, const char* fmt, ...);
+	void AddSystemLog(const char* InText, bool bInIsError = false);
 	void ClearLog();
 
+	// Console command
 	void ProcessCommand(const char* InCommand);
 	void ExecuteTerminalCommand(const char* InCommand);
 
+	// Use external terminal
 	void InitializeSystemRedirect();
 	void CleanupSystemRedirect();
-	void AddSystemLog(const char* InText, bool bInIsError = false);
 
-	// History Navigation
+	// History navigation
 	int HandleHistoryCallback(ImGuiInputTextCallbackData* InData);
 
-	// Special Member Function
+	// Special member function
 	UConsoleWidget();
 	UConsoleWidget& GetInstance();
 	~UConsoleWidget() override;
@@ -71,23 +73,24 @@ public:
 	UConsoleWidget& operator=(UConsoleWidget&&) = delete;
 
 private:
-	// Helper Functions
-	static ImVec4 GetColorByLogType(ELogType InType);
-
-private:
-	// Command Input
+	// Command input
 	char InputBuf[256];
 	TArray<FString> CommandHistory;
 	int HistoryPosition;
 
-	// Log Output
+	// Log output
 	TArray<FLogEntry> LogItems;
 	bool bIsAutoScroll;
 	bool bIsScrollToBottom;
 
-	// Stream Redirection
+	// Stream redirection
 	ConsoleStreamBuffer* ConsoleOutputBuffer;
 	ConsoleStreamBuffer* ConsoleErrorBuffer;
 	streambuf* OriginalConsoleOutput;
 	streambuf* OriginalConsoleError;
+
+	// Helper functions
+	static ImVec4 GetColorByLogType(ELogType InType);
+
+	void AddLogInternal(ELogType InType, const char* fmt, va_list InArguments);
 };
