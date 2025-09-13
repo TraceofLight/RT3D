@@ -35,50 +35,49 @@ void UObject::SetOuter(UObject* InObject)
 		return;
 	}
 
-	// 기존 Outer가 있다면 해당 오브젝트에서 메모리 관리 제거
+	// 기존 Outer가 있었다면, 나의 전체 메모리 사용량을 빼달라고 전파
+	// 새로운 Outer가 있다면, 나의 전체 메모리 사용량을 더해달라고 전파
 	if (Outer)
 	{
-		Outer->RemoveMemoryUsage(AllocatedBytes, AllocatedCounts);
+		Outer->PropagateMemoryChange(-static_cast<int64>(AllocatedBytes), -static_cast<int32>(AllocatedCounts));
 	}
 
-	// 새로운 Outer 설정 후 새로운 Outer에서 메모리 관리
 	Outer = InObject;
+
 	if (Outer)
 	{
-		Outer->AddMemoryUsage(AllocatedBytes, AllocatedCounts);
+		Outer->PropagateMemoryChange(AllocatedBytes, AllocatedCounts);
 	}
 }
 
 void UObject::AddMemoryUsage(uint64 InBytes, uint32 InCount)
 {
-	// 최상위에서 InBytes를 디폴트인자로 호출했다면
-	if (InBytes == 0)
-	{
-		AllocatedBytes += GetClass()->GetClassSize();
-	}
-	AllocatedBytes += InBytes;
-	AllocatedCounts += InCount;
+	uint64 BytesToAdd = InBytes;
 
-	if (Outer)
+	if (!BytesToAdd)
 	{
-		Outer->AddMemoryUsage(InBytes);
+		BytesToAdd = GetClass()->GetClassSize();
 	}
+
+	// 메모리 변경 전파
+	PropagateMemoryChange(BytesToAdd, InCount);
 }
 
 void UObject::RemoveMemoryUsage(uint64 InBytes, uint32 InCount)
 {
-	if (AllocatedBytes >= InBytes)
-	{
-		AllocatedBytes -= InBytes;
-	}
-	if (AllocatedCounts >= InCount)
-	{
-		AllocatedCounts -= InCount;
-	}
+	PropagateMemoryChange(-static_cast<int64>(InBytes), -static_cast<int32>(InCount));
+}
 
+void UObject::PropagateMemoryChange(uint64 InBytesDelta, uint32 InCountDelta)
+{
+	// 자신의 값에 변화량을 더함
+	AllocatedBytes += InBytesDelta;
+	AllocatedCounts += InCountDelta;
+
+	// Outer가 있다면, 동일한 변화량을 그대로 전파
 	if (Outer)
 	{
-		Outer->RemoveMemoryUsage(InBytes);
+		Outer->PropagateMemoryChange(InBytesDelta, InCountDelta);
 	}
 }
 
