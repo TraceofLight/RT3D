@@ -30,7 +30,7 @@ public:
 	bool IsWindowFocused() const { return bIsWindowFocused; }
 
 	// Helper Function
-	static const wchar_t* KeyInputToString(EKeyInput InKey);
+	static FString KeyInputToString(EKeyInput InKey);
 
 	// Mouse Wheel
 	float GetMouseWheelDelta() const { return MouseWheelDelta; }

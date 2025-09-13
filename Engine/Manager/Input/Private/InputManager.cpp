@@ -11,6 +11,13 @@ UInputManager::UInputManager()
 {
 	InitializeKeyMapping();
 	InitializeMouseClickStatus();
+
+	// Enum reflection 시스템 디버그 정보 출력
+#ifdef _DEBUG
+	UE_LOG("=== Input Manager Enum Information ===");
+	ENUM_DEBUG_PRINT(EKeyInput);
+	ENUM_DEBUG_PRINT(EKeyStatus);
+#endif
 }
 
 UInputManager::~UInputManager() = default;
@@ -402,48 +409,9 @@ TArray<EKeyInput> UInputManager::GetReleasedKeys() const
 	return GetKeysByStatus(EKeyStatus::Released);
 }
 
-const wchar_t* UInputManager::KeyInputToString(EKeyInput InKey)
+FString UInputManager::KeyInputToString(EKeyInput InKey)
 {
-	switch (InKey)
-	{
-	case EKeyInput::W: return L"W";
-	case EKeyInput::A: return L"A";
-	case EKeyInput::S: return L"S";
-	case EKeyInput::D: return L"D";
-	case EKeyInput::Q: return L"Q";
-	case EKeyInput::E: return L"E";
-	case EKeyInput::Space: return L"Space";
-	case EKeyInput::Enter: return L"Enter";
-	case EKeyInput::Esc: return L"Esc";
-	case EKeyInput::Tab: return L"Tab";
-	case EKeyInput::Shift: return L"Shift";
-	case EKeyInput::Ctrl: return L"Ctrl";
-	case EKeyInput::Alt: return L"Alt";
-	case EKeyInput::Up: return L"Up";
-	case EKeyInput::Down: return L"Down";
-	case EKeyInput::Left: return L"Left";
-	case EKeyInput::Right: return L"Right";
-	case EKeyInput::MouseLeft: return L"MouseLeft";
-	case EKeyInput::MouseRight: return L"MouseRight";
-	case EKeyInput::MouseMiddle: return L"MouseMiddle";
-	case EKeyInput::Num0: return L"Num0";
-	case EKeyInput::Num1: return L"Num1";
-	case EKeyInput::Num2: return L"Num2";
-	case EKeyInput::Num3: return L"Num3";
-	case EKeyInput::Num4: return L"Num4";
-	case EKeyInput::Num5: return L"Num5";
-	case EKeyInput::Num6: return L"Num6";
-	case EKeyInput::Num7: return L"Num7";
-	case EKeyInput::Num8: return L"Num8";
-	case EKeyInput::Num9: return L"Num9";
-	case EKeyInput::F1: return L"F1";
-	case EKeyInput::F2: return L"F2";
-	case EKeyInput::F3: return L"F3";
-	case EKeyInput::F4: return L"F4";
-	case EKeyInput::Backspace: return L"Backspace";
-	case EKeyInput::Delete: return L"Delete";
-	default: return L"Unknown";
-	}
+	return EnumToString<EKeyInput>(InKey);
 }
 
 void UInputManager::SetWindowFocus(bool bInFocused)

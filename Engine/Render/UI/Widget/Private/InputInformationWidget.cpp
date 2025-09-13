@@ -29,8 +29,7 @@ void UInputInformationWidget::Update()
 	TArray<EKeyInput> PressedKeys = InputManager.GetPressedKeys();
 	for (const auto& Key : PressedKeys)
 	{
-		const wchar_t* KeyString = UInputManager::KeyInputToString(Key);
-		FString KeyName = FString(reinterpret_cast<const char*>(KeyString));
+		FString KeyName = UInputManager::GetInstance().KeyInputToString(Key);
 
 		// 키 통계 업데이트
 		if (KeyPressCount.find(KeyName) == KeyPressCount.end())
@@ -123,8 +122,8 @@ void UInputInformationWidget::RenderKeyList(const TArray<EKeyInput>& InPressedKe
 	{
 		for (const EKeyInput& Key : InPressedKeys)
 		{
-			const wchar_t* KeyString = UInputManager::KeyInputToString(Key);
-			ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "- %ls", KeyString);
+			FString KeyString = UInputManager::GetInstance().KeyInputToString(Key);
+			ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "- %s", KeyString.c_str());
 		}
 
 		ImGui::Separator();
