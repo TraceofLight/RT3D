@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/TriangleActor.h"
+#include "Mesh/Public/TriangleComponent.h"
 
 IMPLEMENT_CLASS(ATriangleActor, AActor)
-
 
 ATriangleActor::ATriangleActor()
 {
@@ -11,4 +11,3 @@ ATriangleActor::ATriangleActor()
 	TriangleComponent->SetOwner(this);
 	SetRootComponent(TriangleComponent);
 }
-

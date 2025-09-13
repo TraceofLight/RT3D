@@ -2,6 +2,8 @@
 
 #include "Mesh/Public/Actor.h"
 
+class USphereComponent;
+
 UCLASS()
 class ASphereActor : public AActor
 {
@@ -13,4 +15,3 @@ public:
 private:
 	USphereComponent* SphereComponent = nullptr;
 };
-

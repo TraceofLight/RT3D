@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Mesh/Public/CubeActor.h"
+#include "Mesh/Public/CubeComponent.h"
 
 IMPLEMENT_CLASS(ACubeActor, AActor)
 

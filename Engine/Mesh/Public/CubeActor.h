@@ -2,6 +2,8 @@
 
 #include "Mesh/Public/Actor.h"
 
+class UCubeComponent;
+
 UCLASS()
 class ACubeActor : public AActor
 {

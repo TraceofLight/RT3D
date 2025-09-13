@@ -2,8 +2,9 @@
 
 #include "Mesh/Public/Actor.h"
 
-UCLASS()
+class USquareComponent;
 
+UCLASS()
 class ASquareActor : public AActor
 {
 	GENERATED_BODY()
