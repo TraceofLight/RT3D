@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BatchLines.h" />
     <ClInclude Include="Core\Public\Class.h" />
     <ClInclude Include="Core\Public\Name.h" />
     <ClInclude Include="Core\Public\Object.h" />
@@ -230,6 +231,7 @@
     <ClInclude Include="Utility\Public\UELogParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BatchLines.cpp" />
     <ClCompile Include="Core\Private\Class.cpp" />
     <ClCompile Include="Core\Private\Name.cpp" />
     <ClCompile Include="Core\Private\Object.cpp" />
@@ -315,9 +317,13 @@
     <FxCompile Include="Asset\Shader\SampleShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainVS</EntryPointName>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

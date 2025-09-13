@@ -322,6 +322,36 @@ void URenderer::RenderPrimitive(FEditorPrimitive& Primitive, struct FRenderState
 	Pipeline->Draw(Primitive.NumVertices, 0);
 }
 
+void URenderer::RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, FRenderState& InRenderState)
+{
+	ID3D11DepthStencilState* DepthStencilState =
+		InPrimitive.bShouldAlwaysVisible ? DisabledDepthStencilState : DefaultDepthStencilState;
+
+	ID3D11RasterizerState* RasterizerState =
+		GetRasterizerState(InRenderState);
+
+	FPipelineInfo PipelineInfo = {
+			DefaultInputLayout,
+			DefaultVertexShader,
+			RasterizerState,
+			DepthStencilState,
+			DefaultPixelShader,
+			nullptr,
+			InPrimitive.Topology
+	};
+
+	Pipeline->UpdatePipeline(PipelineInfo);
+
+	Pipeline->SetConstantBuffer(0, true, ConstantBufferModels);
+	UpdateConstant(InPrimitive.Location, InPrimitive.Rotation, InPrimitive.Scale);
+
+	Pipeline->SetConstantBuffer(2, true, ConstantBufferColor);
+	UpdateConstant(InPrimitive.Color);
+
+	Pipeline->SetVertexBuffer(InPrimitive.Vertexbuffer, Stride);
+	Pipeline->Draw(InPrimitive.NumVertices, 0);
+}
+
 /**
  * @brief 정점 Buffer 생성 함수
  * @param InVertices
@@ -546,6 +576,22 @@ void URenderer::UpdateConstant(const FVector4& Color) const
 			ColorConstants->W = Color.W;
 		}
 		GetDeviceContext()->Unmap(ConstantBufferColor, 0);
+	}
+}
+
+void URenderer::UpdateBatchLineConstant(const UPrimitiveComponent* Primitive, const BatchLineContants& batchLineConstant) const
+{
+	if (ConstantBufferBatchLine)
+	{
+		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+
+		GetDeviceContext()->Map(ConstantBufferBatchLine, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+		// update constant buffer every frame
+		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
+		{
+			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(), FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()), Primitive->GetRelativeScale3D());
+		}
+		GetDeviceContext()->Unmap(ConstantBufferBatchLine, 0);
 	}
 }
 

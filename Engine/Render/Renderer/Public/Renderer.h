@@ -58,6 +58,7 @@ public:
 	void RenderLevel();
 	void RenderEnd() const;
 	void RenderPrimitive(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
+	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
 
 	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0);
 	bool GetIsResizing() { return bIsResizing;}
@@ -74,6 +75,24 @@ public:
 	void UpdateConstant(const FVector& InPosition, const FVector& InRotation, const FVector& InScale) const;
 	void UpdateConstant(const FViewProjConstants& InViewProjConstants) const;
 	void UpdateConstant(const FVector4& Color) const;
+	void UpdateBatchLineConstant(const UPrimitiveComponent* Primitive, const BatchLineContants& batchLineConstant) const;
+
+	//template<typename T>
+	//void UpdateConstantGeneralType(const T* constData, ) const
+	//{
+	//	if (constData)
+	//	{
+	//		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+
+	//		GetDeviceContext()->Map(constData, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+	//		// update constant buffer every frame
+	//		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
+	//		{
+	//			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(), FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()), Primitive->GetRelativeScale3D());
+	//		}
+	//		GetDeviceContext()->Unmap(constData, 0);
+	//	}
+	//}
 
 	ID3D11Device* GetDevice() const { return DeviceResources->GetDevice(); }
 	ID3D11DeviceContext* GetDeviceContext() const { return DeviceResources->GetDeviceContext(); }
@@ -92,6 +111,7 @@ private:
 	ID3D11Buffer* ConstantBufferModels = nullptr;
 	ID3D11Buffer* ConstantBufferViewProj = nullptr;
 	ID3D11Buffer* ConstantBufferColor = nullptr;
+	ID3D11Buffer* ConstantBufferBatchLine = nullptr;
 
 	FLOAT ClearColor[4] = {0.025f, 0.025f, 0.025f, 1.0f};
 

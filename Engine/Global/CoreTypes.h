@@ -1,7 +1,23 @@
 #pragma once
 #include "Global/Vector.h"
 #include "Global/Matrix.h"
+#include "Global/Types.h"
 #include <cstdint>
+
+// 테스트 용으로 미리 만든 거
+struct FBoundingBox
+{
+	FVector min;
+	FVector max;
+};
+
+struct BatchLineContants
+{
+	float CellSize;
+	FMatrix BoundingBoxModel;
+	int32 ZGridStartIndex; // 인덱스 버퍼에서, z방향쪽 그리드가 시작되는 인덱스
+	int32 BoundingBoxStartIndex; // 인덱스 버퍼에서, 바운딩박스가 시작되는 인덱스
+};
 
 struct FViewProjConstants
 {
