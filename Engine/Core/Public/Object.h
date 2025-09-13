@@ -1,5 +1,8 @@
 #pragma once
 #include "Class.h"
+#include "Name.h"
+
+struct FName;
 
 UCLASS()
 class UObject
@@ -8,16 +11,11 @@ class UObject
 	DECLARE_CLASS(UObject, UObject)
 
 public:
-	// Special Member Function
-	UObject();
-	explicit UObject(const FString& InString);
-	virtual ~UObject() = default;
-
 	// Getter & Setter
-	const FString& GetName() const { return Name; }
+	const FString& GetName() const { return Name.ToString(); }
 	const UObject* GetOuter() const { return Outer; }
 
-	void SetName(const FString& InName) { Name = InName; }
+	void SetName(const FName& InName) { Name = InName; }
 	void SetOuter(UObject* InObject);
 
 	// InBytes가 디폴트 인자인 0으로 들어가면, RTTI로 실제타입의 사이즈를 InBytes 대신 씀.
@@ -29,10 +27,15 @@ public:
 
 	bool IsA(const UClass* InClass) const;
 
+	// Special Member Function
+	UObject();
+	explicit UObject(const FString& InString);
+	virtual ~UObject() = default;
+
 private:
-	uint32 UUID = -1;
-	uint32 InternalIndex = -1;
-	FString Name;
+	uint32 UUID;
+	uint32 InternalIndex;
+	FName Name;
 	UObject* Outer;
 
 	uint64 AllocatedBytes = 0;

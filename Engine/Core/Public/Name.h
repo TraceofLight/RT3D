@@ -11,14 +11,7 @@
  */
 struct FName
 {
-	FName(const char* InStringPtr);
-	FName(const FString& InString);
-
-	int32 Compare(const FName& InOther) const;
-	bool operator==(const FName& InOther) const;
-
-	FString ToString() const;
-
+public:
 	// DisplayIndex는 사용자가 정의한 대문자명까지 원래 이름대로 표기하기 위한 Index
 	// 실제론 동일한 값을 가지나 해당 변수를 사용할 때 목적을 명확하게 사용하기 위해 구분하는 것으로 확인됨
 	int32 DisplayIndex;
@@ -27,4 +20,21 @@ struct FName
 	static TArray<FString> DisplayNames;
 	static TMap<FString, uint32> NameMap;
 	static uint32 NextIndex;
+
+	static const FName None;
+
+	FName(const char* InStringPtr);
+	FName(const FString& InString);
+
+	int32 Compare(const FName& InOther) const;
+	bool operator==(const FName& InOther) const;
+
+	FString ToString() const;
+
+private:
+	FName(int32 InComparisonIndex)
+	{
+		this->ComparisonIndex = InComparisonIndex;
+		this->DisplayIndex = this->ComparisonIndex;
+	}
 };

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Core/Public/Object.h"
 #include "Core/Public/EngineStatics.h"
+#include "Core/Public/Name.h"
 
 uint32 UEngineStatics::NextUUID = 0;
 TArray<UObject*> GUObjectArray;
@@ -8,17 +9,17 @@ TArray<UObject*> GUObjectArray;
 IMPLEMENT_CLASS_BASE(UObject)
 
 UObject::UObject()
-	: Outer(nullptr)
+	: Name(FName::None), Outer(nullptr)
 {
 	UUID = UEngineStatics::GenUUID();
-	Name = "Object_" + to_string(UUID);
+	Name = FName("Object_" + to_string(UUID));
 
 	GUObjectArray.push_back(this);
 	InternalIndex = static_cast<uint32>(GUObjectArray.size()) - 1;
 }
 
 UObject::UObject(const FString& InString)
-	: Name(InString)
+	: Name(FName(InString))
 	  , Outer(nullptr)
 {
 	UUID = UEngineStatics::GenUUID();
@@ -82,8 +83,8 @@ void UObject::RemoveMemoryUsage(uint64 InBytes, uint32 InCount)
 }
 
 /**
- * 해당 클래스가 현재 내 클래스의 조상 클래스인지 판단하는 함수
- * Recursive하게 처리함
+ * @brief 해당 클래스가 현재 내 클래스의 조상 클래스인지 판단하는 함수
+ * 내부적으로 재귀를 활용해서 부모를 계속 탐색한 뒤 결과를 반환한다
  * @param InClass 판정할 Class
  * @return 판정 결과
  */

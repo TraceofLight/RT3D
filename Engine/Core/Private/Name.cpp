@@ -1,9 +1,11 @@
 #include "pch.h"
 #include "Core/Public/Name.h"
 
-TArray<FString> FName::DisplayNames;
-TMap<FString, uint32> FName::NameMap;
-uint32 FName::NextIndex = 0;
+TArray<FString> FName::DisplayNames = {"None"};
+TMap<FString, uint32> FName::NameMap = {{"none", 0}};
+uint32 FName::NextIndex = 1;
+
+const FName FName::None(0);
 
 /**
  * @brief FName 생성자
