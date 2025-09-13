@@ -6,7 +6,7 @@
 
 ULevel::ULevel() = default;
 
-ULevel::ULevel(const FString& InName)
+ULevel::ULevel(const FName& InName)
 	: UObject(InName)
 {
 }
@@ -230,7 +230,7 @@ void ULevel::MarkActorForDeletion(AActor* InActor)
 
 	// 삭제 대기 리스트에 추가
 	ActorsToDelete.push_back(InActor);
-	UE_LOG("Level: 다음 Tick에 Actor를 제거하기 위한 마킹 처리: %s", InActor->GetName().data());
+	UE_LOG("Level: 다음 Tick에 Actor를 제거하기 위한 마킹 처리: %s", InActor->GetName().ToString().data());
 
 	// 선택 해제는 바로 처리
 	if (SelectedActor == InActor)
@@ -274,11 +274,11 @@ void ULevel::ProcessPendingDeletions()
 			}
 		}
 
-		FString DeletedActorName = ActorToDelete->GetName();
+		FName DeletedActorName = ActorToDelete->GetName();
 
 		// Release Memory
 		delete ActorToDelete;
-		UE_LOG("Level: Actor 제거: %s (%p)", DeletedActorName.data(), static_cast<void*>(ActorToDelete));
+		UE_LOG("Level: Actor 제거: %s (%p)", DeletedActorName.ToString().data(), static_cast<void*>(ActorToDelete));
 	}
 
 	// Clear TArray

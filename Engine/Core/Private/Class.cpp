@@ -15,10 +15,10 @@ TArray<UClass*> UClass::AllClasses;
  * @param InClassSize Class Size
  * @param InConstructor 생성자 함수 포인터
  */
-UClass::UClass(const FString& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor)
+UClass::UClass(const FName& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor)
 	: ClassName(InName), SuperClass(InSuperClass), ClassSize(InClassSize), Constructor(InConstructor)
 {
-	UE_LOG("UClass: 클래스 등록: %s", ClassName.c_str());
+	UE_LOG("UClass: 클래스 등록: %s", ClassName.ToString().data());
 }
 
 /**
@@ -95,7 +95,7 @@ void UClass::SignUpClass(UClass* InClass)
 	if (InClass)
 	{
 		AllClasses.push_back(InClass);
-		UE_LOG("UClass: Class registered: %s (Total: %llu)", InClass->GetClass().c_str(), AllClasses.size());
+		UE_LOG("UClass: Class registered: %s (Total: %llu)", InClass->GetClass().ToString().data(), AllClasses.size());
 	}
 }
 
@@ -112,16 +112,16 @@ void UClass::PrintAllClasses()
 		UClass* Class = AllClasses[i];
 
 		stringstream ss;
-		ss << Class->GetClass();
+		ss << Class->GetClass().ToString();
 
 		if (Class)
 		{
-			ss << "[" << i << "] " << Class->GetClass()
+			ss << "[" << i << "] " << Class->GetClass().ToString()
 				<< " (Size: " << Class->GetClassSize() << " bytes)";
 
 			if (Class->GetSuperClass())
 			{
-				ss << " -> " << Class->GetSuperClass()->GetClass();
+				ss << " -> " << Class->GetSuperClass()->GetClass().ToString();
 			}
 			else
 			{

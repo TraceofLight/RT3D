@@ -20,7 +20,7 @@ enum class EUIWindowState : uint8_t
  */
 struct FUIWindowConfig
 {
-	FString WindowTitle = "Untitled Window"; // 윈도우 제목
+	FName WindowTitle = "Untitled Window"; // 윈도우 제목
 	ImVec2 DefaultSize = ImVec2(300, 400); // 기본 크기
 	ImVec2 DefaultPosition = ImVec2(100, 100); // 기본 위치
 	ImVec2 MinSize = ImVec2(200, 150); // 최소 크기
@@ -101,7 +101,7 @@ public:
 	FUIWindowConfig& GetMutableConfig() { return Config; }
 	EUIWindowState GetWindowState() const { return CurrentState; }
 	const uint32& GetWindowID() const { return WindowID; }
-	const FString& GetWindowTitle() const { return Config.WindowTitle; }
+	const FName& GetWindowTitle() const { return Config.WindowTitle; }
 	int GetPriority() const { return Config.Priority; }
 	float GetLastFocusTime() const { return LastFocusTime; }
 	bool IsFocused() const { return bIsFocused; }

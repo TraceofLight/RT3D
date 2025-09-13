@@ -148,6 +148,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Public\Class.h" />
+    <ClInclude Include="Core\Public\Name.h" />
     <ClInclude Include="Core\Public\Object.h" />
     <ClInclude Include="Editor\Public\Axis.h" />
     <ClInclude Include="Editor\Public\Camera.h" />
@@ -230,6 +231,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Private\Class.cpp" />
+    <ClCompile Include="Core\Private\Name.cpp" />
     <ClCompile Include="Core\Private\Object.cpp" />
     <ClCompile Include="Editor\Private\Axis.cpp" />
     <ClCompile Include="Editor\Private\Camera.cpp" />

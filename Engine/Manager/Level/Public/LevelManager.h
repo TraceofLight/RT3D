@@ -12,8 +12,8 @@ DECLARE_SINGLETON(ULevelManager)
 public:
 	void Update() const;
 	void CreateDefaultLevel();
-	void RegisterLevel(const FString& InName, ULevel* InLevel);
-	void LoadLevel(const FString& InName);
+	void RegisterLevel(const FName& InName, ULevel* InLevel);
+	void LoadLevel(const FName& InName);
 	void Shutdown();
 
 	// Getter
@@ -32,5 +32,5 @@ public:
 
 private:
 	ULevel* CurrentLevel;
-	TMap<FString, ULevel*> Levels;
+	TMap<FName, ULevel*> Levels;
 };

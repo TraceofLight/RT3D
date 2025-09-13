@@ -14,7 +14,7 @@ class ULevel :
 {
 public:
 	ULevel();
-	ULevel(const FString& InName);
+	ULevel(const FName& InName);
 	~ULevel() override;
 
 	virtual void Init();
@@ -32,7 +32,7 @@ public:
 	//void AddEditorPrimitiveComponent(AActor* Actor);
 
 	template<typename T, typename... Args>
-	T* SpawnActor(const FString& InName = "");
+	T* SpawnActor(const FName& InName = "");
 	// template<typename T, typename... Args>
 	// T* SpawnEditorActor(Args&&... args);
 
@@ -72,30 +72,13 @@ private:
 };
 
 template <typename T, typename ... Args>
-T* ULevel::SpawnActor(const FString& InName)
+T* ULevel::SpawnActor(const FName& InName)
 {
 	T* NewActor = new T();
-
-	///////////////////////////////////////////
-	NewActor->AddMemoryUsage();
-	///생성자에서 자신의 메모리 설정하게 수정 필요///
 	NewActor->SetOuter(this);
-	//Outer 설정 시 Outer의 메모리 카운트에 자신의 메모리 합산 작업 수행
 
 	LevelActors.push_back(NewActor);
 	NewActor->BeginPlay();
 
 	return NewActor;
 }
-
-//Deprecated : EditorPrimitive는 에디터에서 처리
-//template <typename T, typename ... Args>
-//T* ULevel::SpawnEditorActor(Args&&... InArgs)
-//{
-//	T* NewActor = new T(std::forward<Args>(InArgs)...);
-//
-//	EditorActors.push_back(NewActor);
-//	NewActor->BeginPlay();
-//
-//	return NewActor;
-//}

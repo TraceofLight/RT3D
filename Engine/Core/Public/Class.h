@@ -1,5 +1,6 @@
 #pragma once
-#include "Global/CoreTypes.h"
+#include "Name.h"
+// #include "Global/CoreTypes.h"
 
 class UObject;
 class UClass;
@@ -18,7 +19,7 @@ public:
 	// 생성자 함수 포인터 타입 정의
 	typedef UObject* (*ClassConstructorType)();
 
-	UClass(const FString& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor);
+	UClass(const FName& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor);
 
 	static UClass* FindClass(const FString& InClassName);
 	static void SignUpClass(UClass* InClass);
@@ -28,12 +29,12 @@ public:
 	UObject* CreateDefaultObject() const;
 
  	// Getter
-	const FString& GetClass() const { return ClassName; }
+	const FName& GetClass() const { return ClassName; }
 	UClass* GetSuperClass() const { return SuperClass; }
 	size_t GetClassSize() const { return ClassSize; }
 
 private:
-	FString ClassName;
+	FName ClassName;
 	UClass* SuperClass;
 	size_t ClassSize;
 	ClassConstructorType Constructor;

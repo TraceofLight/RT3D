@@ -121,7 +121,7 @@ void UUIManager::Update()
 /**
  * @brief 모든 UI 윈도우 렌더링
  */
-void UUIManager::Render()
+void UUIManager::Render() const
 {
 	if (!bIsInitialized)
 	{
@@ -186,7 +186,7 @@ bool UUIManager::RegisterUIWindow(UUIWindow* InWindow)
 
 	UIWindows.push_back(InWindow);
 
-	UE_LOG("UIManager: UI Window 등록: %s", InWindow->GetWindowTitle().c_str());
+	UE_LOG("UIManager: UI Window 등록: %s", InWindow->GetWindowTitle().ToString().data());
 	UE_LOG("UIManager: 전체 등록된 Window 갯수: %zu", UIWindows.size());
 
 	return true;
@@ -207,7 +207,7 @@ bool UUIManager::UnregisterUIWindow(UUIWindow* InWindow)
 	auto It = std::find(UIWindows.begin(), UIWindows.end(), InWindow);
 	if (It == UIWindows.end())
 	{
-		UE_LOG("UIManager: Warning: Attempted to unregister non-existent window: %d", InWindow->GetWindowID());
+		UE_LOG("UIManager: Warning: Attempted to unregister non-existent window: %u", InWindow->GetWindowID());
 		return false;
 	}
 
@@ -233,7 +233,7 @@ bool UUIManager::UnregisterUIWindow(UUIWindow* InWindow)
  * @param InWindowName 검색할 윈도우 제목
  * @return 찾은 윈도우 (없으면 nullptr)
  */
-UUIWindow* UUIManager::FindUIWindow(const FString& InWindowName) const
+UUIWindow* UUIManager::FindUIWindow(const FName& InWindowName) const
 {
 	for (auto* Window : UIWindows)
 	{
@@ -245,7 +245,7 @@ UUIWindow* UUIManager::FindUIWindow(const FString& InWindowName) const
 	return nullptr;
 }
 
-UWidget* UUIManager::FindWidget(const FString& InWidgetName) const
+UWidget* UUIManager::FindWidget(const FName& InWidgetName) const
 {
 	for (auto* Window : UIWindows)
 	{
@@ -331,7 +331,7 @@ void UUIManager::PrintDebugInfo() const
 		auto* Window = UIWindows[i];
 		if (Window)
 		{
-			UE_LOG("[%zu] %d (%s)", i, Window->GetWindowID(), Window->GetWindowTitle().c_str());
+			UE_LOG("[%zu] %u (%s)", i, Window->GetWindowID(), Window->GetWindowTitle().ToString().data());
 			UE_LOG("    State: %s", (Window->IsVisible() ? "Visible" : "Hidden"));
 			UE_LOG("    Priority: %d", Window->GetPriority());
 			UE_LOG("    Focused: %s", (Window->IsFocused() ? "Yes" : "No"));
@@ -387,7 +387,7 @@ LRESULT UUIManager::WndProcHandler(HWND hwnd, uint32 msg, WPARAM wParam, LPARAM 
 	return UImGuiHelper::WndProcHandler(hwnd, msg, wParam, lParam);
 }
 
-void UUIManager::RepositionImGuiWindows()
+void UUIManager::RepositionImGuiWindows() const
 {
 	// 1. 현재 화면(Viewport)의 작업 영역을 가져옵니다.
 	for (auto& window : UIWindows)

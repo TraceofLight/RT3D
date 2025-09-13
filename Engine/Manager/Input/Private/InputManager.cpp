@@ -11,13 +11,6 @@ UInputManager::UInputManager()
 {
 	InitializeKeyMapping();
 	InitializeMouseClickStatus();
-
-	// Enum reflection 시스템 디버그 정보 출력
-#ifdef _DEBUG
-	UE_LOG("=== Input Manager Enum Information ===");
-	ENUM_DEBUG_PRINT(EKeyInput);
-	ENUM_DEBUG_PRINT(EKeyStatus);
-#endif
 }
 
 UInputManager::~UInputManager() = default;
@@ -59,7 +52,7 @@ void UInputManager::InitializeKeyMapping()
 	VirtualKeyMap['8'] = EKeyInput::Num8;
 	VirtualKeyMap['9'] = EKeyInput::Num9;
 
-	// 마우스 버튼 (특별 처리 필요)
+	// 마우스 버튼
 	VirtualKeyMap[VK_LBUTTON] = EKeyInput::MouseLeft;
 	VirtualKeyMap[VK_RBUTTON] = EKeyInput::MouseRight;
 	VirtualKeyMap[VK_MBUTTON] = EKeyInput::MouseMiddle;

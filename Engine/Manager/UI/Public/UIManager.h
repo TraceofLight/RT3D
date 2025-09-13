@@ -21,13 +21,13 @@ public:
 	void Initialize(HWND InWindowHandle);
 	void Shutdown();
 	void Update();
-	void Render();
+	void Render() const;
 	bool RegisterUIWindow(UUIWindow* InWindow);
 	bool UnregisterUIWindow(UUIWindow* InWindow);
 	void PrintDebugInfo() const;
 
-	UUIWindow* FindUIWindow(const FString& InWindowName) const;
-	UWidget* FindWidget(const FString& InWidgetName) const;
+	UUIWindow* FindUIWindow(const FName& InWindowName) const;
+	UWidget* FindWidget(const FName& InWidgetName) const;
 	void HideAllWindows() const;
 	void ShowAllWindows() const;
 
@@ -45,7 +45,8 @@ public:
 	// ImGui 관련 메서드
 	static LRESULT WndProcHandler(HWND hwnd, uint32 msg, WPARAM wParam, LPARAM lParam);
 
-	void RepositionImGuiWindows();
+	void RepositionImGuiWindows() const;
+
 private:
 	TArray<UUIWindow*> UIWindows;
 	UUIWindow* FocusedWindow = nullptr;
@@ -60,6 +61,7 @@ private:
 		ImVec2 SavedSize;
 		bool bWasVisible;
 	};
+
 	TArray<FUIWindowSavedState> SavedWindowStates;
 	bool bIsMinimized = false;
 

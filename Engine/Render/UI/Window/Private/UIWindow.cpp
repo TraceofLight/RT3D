@@ -162,7 +162,7 @@ void UUIWindow::RenderWindow()
 
 	bool bIsOpen = bIsWindowOpen;
 
-	if (ImGui::Begin(Config.WindowTitle.c_str(), &bIsOpen, Config.WindowFlags))
+	if (ImGui::Begin(Config.WindowTitle.ToString().data(), &bIsOpen, Config.WindowFlags))
 	{
 		// 잘 적용되지 않는 문제로 인해 여러 번 강제 적용 시도
 		if (bShouldRestoreSize && RestoreFrameCount > 0)
