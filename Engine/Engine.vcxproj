@@ -159,6 +159,7 @@
     <ClInclude Include="Global\Constant.h" />
     <ClInclude Include="Global\CoreTypes.h" />
     <ClInclude Include="Global\Enum.h" />
+    <ClInclude Include="Global\EnumReflection.h" />
     <ClInclude Include="Global\Function.h" />
     <ClInclude Include="Global\Macro.h" />
     <ClInclude Include="Global\Matrix.h" />
