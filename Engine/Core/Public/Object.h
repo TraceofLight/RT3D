@@ -2,8 +2,6 @@
 #include "Class.h"
 #include "Name.h"
 
-struct FName;
-
 UCLASS()
 class UObject
 {
@@ -12,7 +10,7 @@ class UObject
 
 public:
 	// Getter & Setter
-	const FString& GetName() const { return Name.ToString(); }
+	const FName& GetName() const { return Name; }
 	const UObject* GetOuter() const { return Outer; }
 
 	void SetName(const FName& InName) { Name = InName; }
@@ -29,7 +27,7 @@ public:
 
 	// Special Member Function
 	UObject();
-	explicit UObject(const FString& InString);
+	explicit UObject(const FName& InName);
 	virtual ~UObject() = default;
 
 private:

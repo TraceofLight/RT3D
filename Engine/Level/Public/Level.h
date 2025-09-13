@@ -14,7 +14,7 @@ class ULevel :
 {
 public:
 	ULevel();
-	ULevel(const FString& InName);
+	ULevel(const FName& InName);
 	~ULevel() override;
 
 	virtual void Init();

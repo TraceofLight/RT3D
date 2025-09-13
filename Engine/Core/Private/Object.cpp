@@ -18,8 +18,8 @@ UObject::UObject()
 	InternalIndex = static_cast<uint32>(GUObjectArray.size()) - 1;
 }
 
-UObject::UObject(const FString& InString)
-	: Name(FName(InString))
+UObject::UObject(const FName& InName)
+	: Name(InName)
 	  , Outer(nullptr)
 {
 	UUID = UEngineStatics::GenUUID();

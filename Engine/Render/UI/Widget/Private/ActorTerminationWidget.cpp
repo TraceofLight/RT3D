@@ -85,8 +85,8 @@ void UActorTerminationWidget::DeleteSelectedActor()
 	}
 
 	UE_LOG("ActorTerminationWidget: 선택된 Actor를 삭제를 위해 마킹 처리: %s (%p)",
-	       SelectedActor->GetName().empty() ? "UnNamed" : SelectedActor->GetName().c_str(),
-	       SelectedActor);
+	       SelectedActor->GetName() == FName::None ? "UnNamed" : SelectedActor->GetName().ToString().data(),
+	       reinterpret_cast<void*>(SelectedActor));
 
 	// 지연 삭제를 사용하여 안전하게 다음 틱에서 삭제
 	CurrentLevel->MarkActorForDeletion(SelectedActor);

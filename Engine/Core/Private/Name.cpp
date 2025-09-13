@@ -70,10 +70,20 @@ bool FName::operator==(const FName& InOther) const
 }
 
 /**
+ * FName 비교 연산자 (부등호)
+ * @param InOther 비교할 다른 FName
+ * @return 다른지 여부
+ */
+bool FName::operator!=(const FName& InOther) const
+{
+	return !(*this == InOther);
+}
+
+/**
  * @brief 사용자가 제공한 이름을 반환하는 멤버 함수
  * @return DisplayName
  */
-FString FName::ToString() const
+const FString& FName::ToString() const
 {
 	return DisplayNames[DisplayIndex];
 }

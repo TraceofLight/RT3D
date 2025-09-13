@@ -28,8 +28,15 @@ public:
 
 	int32 Compare(const FName& InOther) const;
 	bool operator==(const FName& InOther) const;
+	bool operator!=(const FName& InOther) const;
 
-	FString ToString() const;
+	const FString& ToString() const;
+	
+	// 해시 함수를 위한 GetHash() 메서드
+	size_t GetHash() const
+	{
+		return std::hash<int32>{}(ComparisonIndex);
+	}
 
 private:
 	FName(int32 InComparisonIndex)
@@ -38,3 +45,15 @@ private:
 		this->DisplayIndex = this->ComparisonIndex;
 	}
 };
+
+// std::hash에 대한 FName 특수화
+namespace std {
+	template<>
+	struct hash<FName>
+	{
+		std::size_t operator()(const FName& name) const noexcept
+		{
+			return name.GetHash();
+		}
+	};
+}
