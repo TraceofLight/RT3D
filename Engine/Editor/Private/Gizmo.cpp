@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Editor/Public/Gizmo.h"
-#include "Editor/Public/ObjectPicker.h"
+
+#include "Manager/Resource/Public/ResourceManager.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Manager/Input/Public/InputManager.h"
 #include "Mesh/Public/Actor.h"
 
 UGizmo::UGizmo()
@@ -106,7 +106,7 @@ void UGizmo::ChangeGizmoMode()
 	case EGizmoMode::Rotate:
 		GizmoMode = EGizmoMode::Scale; break;
 	case EGizmoMode::Scale:
-		GizmoMode = EGizmoMode::Translate; 
+		GizmoMode = EGizmoMode::Translate;
 	}
 }
 

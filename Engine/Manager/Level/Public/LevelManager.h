@@ -4,10 +4,12 @@
 class ULevel;
 struct FLevelMetadata;
 
+UCLASS()
 class ULevelManager :
 	public UObject
 {
-DECLARE_SINGLETON(ULevelManager)
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(ULevelManager, UObject)
 
 public:
 	void Update() const;

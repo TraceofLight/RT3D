@@ -3,7 +3,7 @@
 
 #include "Utility/Public/UELogParser.h"
 
-IMPLEMENT_SINGLETON(UConsoleWidget)
+IMPLEMENT_SINGLETON_CLASS(UConsoleWidget, UWidget)
 
 UConsoleWidget::UConsoleWidget() = default;
 
@@ -27,9 +27,6 @@ void UConsoleWidget::Initialize()
 	ConsoleErrorBuffer = nullptr;
 	OriginalConsoleOutput = nullptr;
 	OriginalConsoleError = nullptr;
-
-	// Initialize System Output Redirection
-	InitializeSystemRedirect();
 
 	AddLog(ELogType::Success, "ConsoleWindow: Game Console 초기화 성공");
 	AddLog(ELogType::System, "ConsoleWindow: Logging System Ready");
@@ -662,11 +659,25 @@ void UConsoleWidget::ExecuteTerminalCommand(const char* InCommand)
 	}
 }
 
-// System output redirection implementation
+/**
+ * @brief System output redirection implementation
+ */
 void UConsoleWidget::InitializeSystemRedirect()
 {
 	try
 	{
+		// 유효성 체크
+		if (OriginalConsoleOutput != nullptr || OriginalConsoleError != nullptr)
+		{
+			return;
+		}
+
+		if (!cout.rdbuf() || !cerr.rdbuf())
+		{
+			AddLog(ELogType::Error, "ConsoleWindow: cout/cerr streams are not available");
+			return;
+		}
+
 		// Save Original Stream Buffers
 		OriginalConsoleOutput = cout.rdbuf();
 		OriginalConsoleError = cerr.rdbuf();
@@ -681,9 +692,13 @@ void UConsoleWidget::InitializeSystemRedirect()
 
 		AddLog(ELogType::System, "ConsoleWindow: Console Output Redirection Initialized");
 	}
+	catch (const exception& Exception)
+	{
+		AddLog(ELogType::Error, "ConsoleWindow: Failed To Initialize Console Output Redirection: %s", Exception.what());
+	}
 	catch (...)
 	{
-		AddLog(ELogType::Error, "ConsoleWindow: Failed To Initialize Console Output Redirection");
+		AddLog(ELogType::Error, "ConsoleWindow: Failed To Initialize Console Output Redirection: Unknown Error");
 	}
 }
 

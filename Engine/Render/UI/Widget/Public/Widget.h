@@ -18,6 +18,9 @@ public:
 	// 후처리는 취사 선택
 	virtual void PostProcess() {}
 
+	// Singleton 판별 함수 (default는 false)
+	virtual bool IsSingleton() const { return false; }
+
 	// Special Member Function
 	UWidget() = default;
 	UWidget(const FString& InName);

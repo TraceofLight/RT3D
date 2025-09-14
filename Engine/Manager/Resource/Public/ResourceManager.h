@@ -1,12 +1,15 @@
 #pragma once
 #include "Core/Public/Object.h"
 
-class UResourceManager : public UObject
+UCLASS()
+class UResourceManager
+	: public UObject
 {
-	DECLARE_SINGLETON(UResourceManager)
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(UResourceManager, UObject)
+
 public:
 	void Initialize();
-
 	void Release();
 
 	TArray<FVertex>* GetVertexData(EPrimitiveType Type);
@@ -14,7 +17,6 @@ public:
 	uint32 GetNumVertices(EPrimitiveType Type);
 
 private:
-
 	TMap<EPrimitiveType, ID3D11Buffer*> Vertexbuffers;
 	TMap<EPrimitiveType, uint32> NumVertices;
 	TMap<EPrimitiveType, TArray<FVertex>*> VertexDatas;

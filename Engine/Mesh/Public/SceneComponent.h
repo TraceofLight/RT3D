@@ -1,6 +1,5 @@
 #pragma once
 #include "Mesh/Public/ActorComponent.h"
-#include "ResourceManager.h"
 
 UCLASS()
 class USceneComponent : public UActorComponent

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Mesh/Public/SceneComponent.h"
-#include "Mesh/Public/ResourceManager.h"
+
+#include "Manager/Resource/Public/ResourceManager.h"
 
 IMPLEMENT_CLASS(USceneComponent, UActorComponent)
 

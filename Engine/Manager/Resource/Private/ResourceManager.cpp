@@ -1,9 +1,10 @@
 #include "pch.h"
-#include "Mesh/Public/ResourceManager.h"
+#include "Manager/Resource/Public/ResourceManager.h"
+
 #include "Mesh/Public/VertexDatas.h"
 #include "Render/Renderer/Public/Renderer.h"
 
-IMPLEMENT_SINGLETON(UResourceManager)
+IMPLEMENT_SINGLETON_CLASS_BASE(UResourceManager)
 
 UResourceManager::UResourceManager() = default;
 

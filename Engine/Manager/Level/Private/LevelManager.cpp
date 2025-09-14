@@ -10,7 +10,7 @@
 #include "Utility/Public/LevelSerializer.h"
 #include "Utility/Public/Metadata.h"
 
-IMPLEMENT_SINGLETON(ULevelManager)
+IMPLEMENT_SINGLETON_CLASS_BASE(ULevelManager)
 
 ULevelManager::ULevelManager() = default;
 
