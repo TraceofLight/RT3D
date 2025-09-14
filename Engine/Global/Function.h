@@ -10,6 +10,11 @@ static void SafeDelete(T& InDynamicObject)
 	InDynamicObject = nullptr;
 }
 
+/**
+ * @brief wstring을 멀티바이트 FString으로 변환합니다.
+ * @param InString 변환할 FString
+ * @return 변환된 wstring
+ */
 static FString WideStringToString(const wstring& InString)
 {
 	int32 ByteNumber = WideCharToMultiByte(CP_UTF8, 0,
@@ -19,6 +24,30 @@ static FString WideStringToString(const wstring& InString)
 
 	WideCharToMultiByte(CP_UTF8, 0,
 	                    InString.c_str(), -1, OutString.data(), ByteNumber, nullptr, nullptr);
+
+	return OutString;
+}
+
+/**
+ * @brief 멀티바이트 UTF-8 FString을 와이드 스트링(wstring)으로 변환합니다.
+ * @param InString 변환할 FString (UTF-8)
+ * @return 변환된 wstring
+ */
+static wstring StringToWideString(const FString& InString)
+{
+	// 필요한 와이드 문자의 개수를 계산
+	int32 WideCharNumber = MultiByteToWideChar(CP_UTF8, 0,
+										  InString.c_str(), -1, nullptr, 0);
+
+	// 계산된 크기만큼 wstring 버퍼를 할당
+	wstring OutString(WideCharNumber, 0);
+
+	// 실제 변환을 수행
+	MultiByteToWideChar(CP_UTF8, 0,
+						InString.c_str(), -1, OutString.data(), WideCharNumber);
+
+	// null 문자 제거
+	OutString.resize(WideCharNumber - 1);
 
 	return OutString;
 }

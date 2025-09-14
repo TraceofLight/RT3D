@@ -1,10 +1,12 @@
 #pragma once
 #include "Core/Public/Object.h"
 
+UCLASS()
 class UPathManager :
 	public UObject
 {
-	DECLARE_SINGLETON(UPathManager)
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(UPathManager, UObject)
 
 public:
 	void Init();

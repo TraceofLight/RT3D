@@ -5,7 +5,7 @@
 #include "Render/UI/ImGui/Public/ImGuiHelper.h"
 #include "Render/UI/Widget/Public/Widget.h"
 
-IMPLEMENT_SINGLETON(UUIManager)
+IMPLEMENT_SINGLETON_CLASS_BASE(UUIManager)
 
 UUIManager::UUIManager()
 {

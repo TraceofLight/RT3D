@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Manager/Time/Public/TimeManager.h"
 
-IMPLEMENT_SINGLETON(UTimeManager)
+IMPLEMENT_SINGLETON_CLASS_BASE(UTimeManager)
 
 UTimeManager::UTimeManager()
 {
