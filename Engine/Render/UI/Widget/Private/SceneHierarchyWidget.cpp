@@ -8,6 +8,7 @@
 #include "Mesh/Public/SphereActor.h"
 #include "Mesh/Public/TriangleActor.h"
 #include "Mesh/Public/SquareActor.h"
+#include "Editor/Public/Camera.h"
 
 USceneHierarchyWidget::USceneHierarchyWidget()
 	: UWidget("Scene Hierarchy Widget")
@@ -166,6 +167,56 @@ void USceneHierarchyWidget::SelectActor(AActor* InActor)
 	if (CurrentLevel)
 	{
 		CurrentLevel->SetSelectedActor(InActor);
-		UE_LOG("SceneHierarchy: Selected Actor: %s", InActor->GetName().ToString().data());
+		UE_LOG("SceneHierarchy: '%s' 를 선택했습니다", InActor->GetName().ToString().data());
+
+		if (InActor)
+		{
+			FocusOnActor(InActor);
+		}
 	}
+}
+
+/**
+ * @brief 카메라를 특정 Actor에 포커스하는 함수
+ * @param InActor 포커스할 Actor
+ */
+void USceneHierarchyWidget::FocusOnActor(const AActor* InActor) const
+{
+	if (!Camera || !InActor)
+	{
+		return;
+	}
+
+	// Actor의 월드 위치를 얻음
+	FVector ActorLocation = InActor->GetActorLocation();
+
+	// 카메라를 Actor로부터 적당한 거리에 배치
+	// 기본적으로 Actor 뒤쪽에서 약간 위에서 바라보도록 설정
+	FVector CameraOffset = FVector(-FOCUS_DISTANCE, 0.0f, FOCUS_HEIGHT_OFFSET);
+	FVector NewCameraLocation = ActorLocation + CameraOffset;
+
+	// 카메라가 Actor를 바라보도록 회전 계산
+	FVector DirectionToActor = ActorLocation - NewCameraLocation;
+	DirectionToActor.Normalize();
+
+	// 엔진 좌표계에 맞는 회전 계산
+	// Z축이 Forward이므로 DirectionToActor가 Z축 양의 방향을 가리키도록 회전 계산
+
+	// Yaw 계산 (Y축 회전, 좌우)
+	// X-Z 평면에서의 각도 계산
+	float Yaw = FVector::GetRadianToDegree(atan2f(DirectionToActor.X, DirectionToActor.Z));
+
+	// Pitch 계산 (X축 회전, 상하)
+	// Y축 성분을 이용하여 상하 각도 계산
+	float HorizontalLength = sqrtf(DirectionToActor.X * DirectionToActor.X + DirectionToActor.Z * DirectionToActor.Z);
+	float Pitch = FVector::GetRadianToDegree(atan2f(-DirectionToActor.Y, HorizontalLength));
+
+	// Roll은 0으로 설정
+	float Roll = 0.0f;
+
+	// 카메라 위치 및 회전 설정
+	Camera->SetLocation(NewCameraLocation);
+	Camera->SetRotation(FVector(Pitch, Yaw, Roll));
+
+	UE_LOG("SceneHierarchy: 카메라를 '%s' 에 포커싱합니다", InActor->GetName().ToString().data());
 }
