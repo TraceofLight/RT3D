@@ -17,10 +17,6 @@ public:
 	int32 DisplayIndex;
 	int32 ComparisonIndex;
 
-	static TArray<FString> DisplayNames;
-	static TMap<FString, uint32> NameMap;
-	static uint32 NextIndex;
-
 	static const FName None;
 
 	FName(const char* InStringPtr);
@@ -31,7 +27,7 @@ public:
 	bool operator!=(const FName& InOther) const;
 
 	const FString& ToString() const;
-	
+
 	// 해시 함수를 위한 GetHash() 메서드
 	size_t GetHash() const
 	{
@@ -39,6 +35,10 @@ public:
 	}
 
 private:
+	static TArray<FString> DisplayNames;
+	static TMap<FString, uint32> NameMap;
+	static uint32 NextIndex;
+
 	FName(int32 InComparisonIndex)
 	{
 		this->ComparisonIndex = InComparisonIndex;
@@ -51,9 +51,9 @@ namespace std {
 	template<>
 	struct hash<FName>
 	{
-		std::size_t operator()(const FName& name) const noexcept
+		size_t operator()(const FName& InName) const noexcept
 		{
-			return name.GetHash();
+			return InName.GetHash();
 		}
 	};
 }
