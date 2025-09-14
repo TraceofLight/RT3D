@@ -9,7 +9,7 @@ UGrid::UGrid()
 	, NumLines(250)
 	, CellSize(0)
 {
-	NumVertices = NumLines * 2;
+	NumVertices = NumLines * 4;
 	Vertices.reserve(NumVertices);
 	UpdateVerticesBy(1);
 }
@@ -37,13 +37,13 @@ void UGrid::UpdateVerticesBy(float NewCellSize)
 	{
 		if (LineCount == 0)
 		{
-			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength };
-			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, 0.f };
+			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength });
+			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, 0.f });
 		}
 		else
 		{
-			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength };
-			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, LineLength };
+			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength });
+			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, LineLength });
 		}
 	}
 
@@ -52,13 +52,13 @@ void UGrid::UpdateVerticesBy(float NewCellSize)
 	{
 		if (LineCount == 0)
 		{
-			Vertices[vertexIndex++] = { -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize };
-			Vertices[vertexIndex++] = { 0.f, 0.f, static_cast<float>(LineCount) * NewCellSize };
+			Vertices.push_back({ -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize });
+			Vertices.push_back({ 0.f, 0.f, static_cast<float>(LineCount) * NewCellSize });
 		}
 		else
 		{
-			Vertices[vertexIndex++] = { -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize };
-			Vertices[vertexIndex++] = { LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize };
+			Vertices.push_back({ -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize });
+			Vertices.push_back({ LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize });
 		}
 	}
 }

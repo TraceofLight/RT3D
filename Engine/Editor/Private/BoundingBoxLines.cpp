@@ -38,12 +38,12 @@ void UBoundingBoxLines::UpdateVertices(FBoundingBox boundingBoxInfo)
 	float maxX = boundingBoxInfo.max.X, maxY = boundingBoxInfo.max.Y, maxZ = boundingBoxInfo.max.Z;
 
 	// 꼭짓점 정의 (0~3: 앞면, 4~7: 뒷면)
-	Vertices[0] = { minX, minY, minZ }; // Front-Bottom-Left
-	Vertices[1] = { maxX, minY, minZ }; // Front-Bottom-Right
-	Vertices[2] = { maxX, maxY, minZ }; // Front-Top-Right
-	Vertices[3] = { minX, maxY, minZ }; // Front-Top-Left
-	Vertices[4] = { minX, minY, maxZ }; // Back-Bottom-Left
-	Vertices[5] = { maxX, minY, maxZ }; // Back-Bottom-Right
-	Vertices[6] = { maxX, maxY, maxZ }; // Back-Top-Right
-	Vertices[7] = { minX, maxY, maxZ }; // Back-Top-Left
+	Vertices.push_back({ minX, minY, minZ }); // Front-Bottom-Left
+	Vertices.push_back({ maxX, minY, minZ }); // Front-Bottom-Right
+	Vertices.push_back({ maxX, maxY, minZ }); // Front-Top-Right
+	Vertices.push_back({ minX, maxY, minZ }); // Front-Top-Left
+	Vertices.push_back({ minX, minY, maxZ }); // Back-Bottom-Left
+	Vertices.push_back({ maxX, minY, maxZ }); // Back-Bottom-Right
+	Vertices.push_back({ maxX, maxY, maxZ }); // Back-Top-Right
+	Vertices.push_back({ minX, maxY, maxZ }); // Back-Top-Left
 }

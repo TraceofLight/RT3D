@@ -58,7 +58,7 @@ public:
 	void RenderLevel();
 	void RenderEnd() const;
 	void RenderPrimitive(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
-	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState, bool bUseBaseConstantBuffer);
+	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState, bool bUseBaseConstantBuffer, uint32 stride, uint32 indexBufferStride);
 
 	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0);
 	bool GetIsResizing() { return bIsResizing;}

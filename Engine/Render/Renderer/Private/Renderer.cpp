@@ -322,7 +322,7 @@ void URenderer::RenderPrimitive(FEditorPrimitive& Primitive, struct FRenderState
 	Pipeline->Draw(Primitive.NumVertices, 0);
 }
 
-void URenderer::RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, FRenderState& InRenderState, bool bUseBaseConstantBuffer)
+void URenderer::RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, FRenderState& InRenderState, bool bUseBaseConstantBuffer, uint32 stride, uint32 indexBufferStride)
 {
 	ID3D11DepthStencilState* DepthStencilState =
 		InPrimitive.bShouldAlwaysVisible ? DisabledDepthStencilState : DefaultDepthStencilState;
@@ -354,8 +354,9 @@ void URenderer::RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, FRenderSta
 		Pipeline->SetConstantBuffer(2, true, ConstantBufferColor);
 		UpdateConstant(InPrimitive.Color);
 	}
-	
-	Pipeline->SetVertexBuffer(InPrimitive.Vertexbuffer, Stride);
+
+	Pipeline->SetIndexBuffer(InPrimitive.IndexBuffer, indexBufferStride);
+	Pipeline->SetVertexBuffer(InPrimitive.Vertexbuffer, stride);
 	Pipeline->DrawIndexed(InPrimitive.NumIndices, 0, 0);
 }
 

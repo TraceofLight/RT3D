@@ -19,6 +19,8 @@ public:
 
 	void UpdatePipeline(FPipelineInfo Info);
 
+	void SetIndexBuffer(ID3D11Buffer* indexBuffer, uint32 stride);
+
 	void SetVertexBuffer(ID3D11Buffer* VertexBuffer, uint32 Stride);
 
 	void SetConstantBuffer(uint32 Slot, bool bIsVS, ID3D11Buffer* ConstantBuffer);
