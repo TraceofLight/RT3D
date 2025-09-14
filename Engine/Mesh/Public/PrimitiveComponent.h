@@ -25,6 +25,7 @@ public:
 	void SetColor(const FVector4& InColor) { Color = InColor; }
 
 	const IBoundingVolume* GetBoundingBox() const { return BoundingBox; }
+	void GetWorldAABB(FVector& OutMin, FVector& OutMax) const;
 
 protected:
 	const TArray<FVertex>* Vertices = nullptr;

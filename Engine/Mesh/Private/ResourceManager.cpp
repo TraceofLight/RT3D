@@ -61,9 +61,9 @@ void UResourceManager::Initialize()
 		MinPoint.X = min(MinPoint.X, Vertex.Position.X);
 		MinPoint.Y = min(MinPoint.Y, Vertex.Position.Y);
 		MinPoint.Z = min(MinPoint.Z, Vertex.Position.Z);
-		MaxPoint.X = min(MaxPoint.X, Vertex.Position.X);
-		MaxPoint.Y = min(MaxPoint.Y, Vertex.Position.Y);
-		MaxPoint.Z = min(MaxPoint.Z, Vertex.Position.Z);
+		MaxPoint.X = max(MaxPoint.X, Vertex.Position.X);
+		MaxPoint.Y = max(MaxPoint.Y, Vertex.Position.Y);
+		MaxPoint.Z = max(MaxPoint.Z, Vertex.Position.Z);
 	}
 	CubeAABB = FAABB(MinPoint, MaxPoint);
 
@@ -75,9 +75,9 @@ void UResourceManager::Initialize()
 		MinPoint.X = min(MinPoint.X, Vertex.Position.X);
 		MinPoint.Y = min(MinPoint.Y, Vertex.Position.Y);
 		MinPoint.Z = min(MinPoint.Z, Vertex.Position.Z);
-		MaxPoint.X = min(MaxPoint.X, Vertex.Position.X);
-		MaxPoint.Y = min(MaxPoint.Y, Vertex.Position.Y);
-		MaxPoint.Z = min(MaxPoint.Z, Vertex.Position.Z);
+		MaxPoint.X = max(MaxPoint.X, Vertex.Position.X);
+		MaxPoint.Y = max(MaxPoint.Y, Vertex.Position.Y);
+		MaxPoint.Z = max(MaxPoint.Z, Vertex.Position.Z);
 	}
 	SphereAABB = FAABB(MinPoint, MaxPoint);
 }

@@ -47,7 +47,21 @@ void UEditor::RenderEditor()
 {
 	Grid.RenderGrid();
 	Axis.Render();
-	Gizmo.RenderGizmo(ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor(), Camera.GetLocation());
+
+	AActor* SelectedActor = ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor();
+	Gizmo.RenderGizmo(SelectedActor, Camera.GetLocation());
+
+	if (SelectedActor)
+	{
+		for (const auto& Component : SelectedActor->GetOwnedComponents())
+		{
+			if (auto* PrimitiveComponent = dynamic_cast<UPrimitiveComponent*>(Component))
+			{
+				URenderer::GetInstance().RenderLocalOBB(PrimitiveComponent);
+				URenderer::GetInstance().RenderWorldAABB(PrimitiveComponent);
+			}
+		}
+	}
 }
 
 void UEditor::ProcessMouseInput(ULevel* InLevel)

@@ -59,6 +59,8 @@ public:
 	//void Update();
 	void RenderBegin();
 	void RenderLevel();
+	void RenderLocalOBB(const UPrimitiveComponent* InPrimitive);
+	void RenderWorldAABB(const UPrimitiveComponent* InPrimitive);
 	void RenderEnd() const;
 	void RenderPrimitive(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
 
@@ -76,6 +78,7 @@ public:
 	void UpdateConstant(const UPrimitiveComponent* Primitive);
 	void UpdateConstant(const FVector& InPosition, const FVector& InRotation, const FVector& InScale) const;
 	void UpdateConstant(const FViewProjConstants& InViewProjConstants) const;
+	void UpdateConstant(const FMatrix& InMatrix) const;
 	void UpdateConstant(const FVector4& Color) const;
 
 	ID3D11Device* GetDevice() const { return DeviceResources->GetDevice(); }
