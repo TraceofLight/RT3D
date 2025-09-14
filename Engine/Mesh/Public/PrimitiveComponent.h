@@ -24,6 +24,8 @@ public:
 	FVector4 GetColor() const { return Color; }
 	void SetColor(const FVector4& InColor) { Color = InColor; }
 
+	const IBoundingVolume* GetBoundingBox() const { return BoundingBox; }
+
 protected:
 	const TArray<FVertex>* Vertices = nullptr;
 	FVector4 Color = FVector4{ 0.f,0.f,0.f,0.f };
@@ -35,4 +37,5 @@ protected:
 
 	bool bVisible = true;
 
+	const IBoundingVolume* BoundingBox = nullptr;
 };

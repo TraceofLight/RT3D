@@ -32,8 +32,6 @@ UEditor::UEditor()
 	SceneHierarchyWidget->SetCamera(&Camera);
 };
 
-UEditor::~UEditor() = default;
-
 void UEditor::Update()
 {
 	auto& Renderer = URenderer::GetInstance();
@@ -51,7 +49,6 @@ void UEditor::RenderEditor()
 	Axis.Render();
 	Gizmo.RenderGizmo(ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor(), Camera.GetLocation());
 }
-
 
 void UEditor::ProcessMouseInput(ULevel* InLevel)
 {

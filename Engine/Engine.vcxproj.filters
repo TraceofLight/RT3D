@@ -195,6 +195,9 @@
     <ClCompile Include="Mesh\Private\SphereComponent.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Core\Private\Name.cpp" />
+    <ClCompile Include="Render\UI\Widget\Private\SceneHierarchyWidget.cpp" />
+    <ClCompile Include="Render\UI\Window\Private\SceneManagerWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Public\Class.h">
@@ -432,6 +435,10 @@
     <ClInclude Include="Mesh\Public\PrimitiveComponent.h">
       <Filter>Mesh\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Public\Name.h" />
+    <ClInclude Include="Global\EnumReflection.h" />
+    <ClInclude Include="Render\UI\Widget\Public\SceneHierarchyWidget.h" />
+    <ClInclude Include="Render\UI\Window\Public\SceneManagerWindow.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Asset">
