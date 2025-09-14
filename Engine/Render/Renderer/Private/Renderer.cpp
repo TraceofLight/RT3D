@@ -383,13 +383,20 @@ ID3D11Buffer* URenderer::CreateVertexBuffer(FVertex* InVertices, uint32 InByteWi
 	return vertexBuffer;
 }
 
-ID3D11Buffer* URenderer::CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth) const
+ID3D11Buffer* URenderer::CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth, bool bCpuAccess) const
 {
 	// 2. Create a vertex buffer
 	D3D11_BUFFER_DESC VertexBufferDesc = {};
 	VertexBufferDesc.ByteWidth = InByteWidth;
 	VertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated
 	VertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	if (bCpuAccess)
+	{
+		VertexBufferDesc.Usage = D3D11_USAGE_DYNAMIC; // CPU에서 자주 수정할 경우
+		VertexBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE; // CPU 쓰기 가능
+		VertexBufferDesc.MiscFlags = 0;
+	}
+	
 
 	D3D11_SUBRESOURCE_DATA VertexBufferSRD = { InVertices };
 
@@ -659,6 +666,33 @@ void URenderer::UpdateConstant(const FVector4& Color) const
 		}
 		GetDeviceContext()->Unmap(ConstantBufferColor, 0);
 	}
+}
+
+bool URenderer::UpdateVertexBuffer(ID3D11Buffer* vertexBuffer, const std::vector<FVector>& vertices)
+{
+	if (!GetDeviceContext() || !vertexBuffer || vertices.empty())
+		return false;
+
+	D3D11_MAPPED_SUBRESOURCE mappedResource = {};
+	HRESULT hr = GetDeviceContext()->Map(
+		vertexBuffer,
+		0,                          // 서브리소스 인덱스 (버퍼는 0)
+		D3D11_MAP_WRITE_DISCARD,    // 전체 갱신
+		0,                          // 플래그 없음
+		&mappedResource
+	);
+
+	if (FAILED(hr))
+		return false;
+
+	// GPU 메모리에 새 데이터 복사
+	// to do: 어쩔 때 한번 read access violation 걸림
+	memcpy(mappedResource.pData, vertices.data(), sizeof(FVector) * vertices.size());
+
+	// GPU 접근 재허용
+	GetDeviceContext()->Unmap(vertexBuffer, 0);
+
+	return true;
 }
 
 //void URenderer::UpdateAndSetBatchLineConstant(const BatchLineContants& inBatchLineConstant) const

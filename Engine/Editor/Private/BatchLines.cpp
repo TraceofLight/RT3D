@@ -9,9 +9,10 @@ UBatchLines::UBatchLines()
 	, BoundingBoxLines()
 {
 	Vertices.reserve(Grid.GetNumVertices() + BoundingBoxLines.GetNumVertices());
+	Vertices.resize(Grid.GetNumVertices() + BoundingBoxLines.GetNumVertices());
 
 	Grid.MergeVerticesAt(Vertices, 0);
-	BoundingBoxLines.MergeVerticesAt(Vertices, Vertices.size());
+	BoundingBoxLines.MergeVerticesAt(Vertices, Grid.GetNumVertices());
 
 	SetIndices();
 
@@ -23,20 +24,13 @@ UBatchLines::UBatchLines()
 	/*AddWorldGridVerticesAndConstData();
 	AddBoundingBoxVertices();*/
 
-	// to do: 아래 코드가 맞는지 확인 필요(index buffer 가능하게 만들어야 할 것 같은데)
-	D3D11_INPUT_ELEMENT_DESC layout[] =
-	{
-		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
-		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
-	};
-
 	Primitive.NumVertices = static_cast<uint32>(Vertices.size());
 	Primitive.NumIndices = static_cast<uint32>(Indices.size());
 	Primitive.IndexBuffer = Renderer.CreateIndexBuffer(Indices.data(), Primitive.NumIndices * sizeof(uint32));
 	//Primitive.Color = FVector4(1, 1, 1, 0.2f);
 	Primitive.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
 	Primitive.Vertexbuffer = Renderer.CreateVertexBuffer(
-		Vertices.data(), Primitive.NumVertices * sizeof(FVector));
+		Vertices.data(), Primitive.NumVertices * sizeof(FVector), true);
 	/*Primitive.Location = FVector(0, 0, 0);
 	Primitive.Rotation = FVector(0, 0, 0);
 	Primitive.Scale = FVector(1, 1, 1);*/
@@ -53,6 +47,7 @@ void UBatchLines::UpdateUGridVertices(const float newCellSize)
 	}
 	Grid.UpdateVerticesBy(newCellSize);
 	Grid.MergeVerticesAt(Vertices, 0);
+	bChangedVertices = true;
 }
 
 void UBatchLines::UpdateBoundingBoxVertices(const FBoundingBox& newBoundingBoxInfo)
@@ -64,12 +59,23 @@ void UBatchLines::UpdateBoundingBoxVertices(const FBoundingBox& newBoundingBoxIn
 	}
 	BoundingBoxLines.UpdateVertices(newBoundingBoxInfo);
 	BoundingBoxLines.MergeVerticesAt(Vertices, Grid.GetNumVertices());
+	bChangedVertices = true;
 }
 
 void UBatchLines::UpdateBatchLineVertices(const float newCellSize, const FBoundingBox& newBoundingBoxInfo)
 {
 	UpdateUGridVertices(newCellSize);
 	UpdateBoundingBoxVertices(newBoundingBoxInfo);
+	bChangedVertices = true;
+}
+
+void UBatchLines::UpdateVertexBuffer()
+{
+	if (bChangedVertices)
+	{
+		URenderer::GetInstance().UpdateVertexBuffer(Primitive.Vertexbuffer, Vertices);
+	}
+	bChangedVertices = false;
 }
 
 //void UBatchLines::UpdateConstant(FBoundingBox boundingBoxInfo)

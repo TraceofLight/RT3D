@@ -25,6 +25,11 @@ public:
 		return CellSize;
 	}
 
+	void SetCellSize(const float newCellSize)
+	{
+		CellSize = newCellSize;
+	}
+
 private:
 	float CellSize = 1.0f;
 	int NumLines = 250;

@@ -66,7 +66,7 @@ public:
 
 	//Testing Func
 	ID3D11Buffer* CreateVertexBuffer(FVertex* InVertices, uint32 InByteWidth) const;
-	ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth) const;
+	ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth, bool bCpuAccess) const;
 	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth) const;
 	static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
 	void CreateVertexShaderAndInputLayout(const wstring& filePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& inputLayoutDescs, ID3D11VertexShader** outVertexShader, ID3D11InputLayout** outInputLayout);
@@ -96,6 +96,8 @@ public:
 	//		GetDeviceContext()->Unmap(constData, 0);
 	//	}
 	//}
+
+	bool UpdateVertexBuffer(ID3D11Buffer* vertexBuffer, const std::vector<FVector>& vertices);
 
 	ID3D11Device* GetDevice() const { return DeviceResources->GetDevice(); }
 	ID3D11DeviceContext* GetDeviceContext() const { return DeviceResources->GetDeviceContext(); }

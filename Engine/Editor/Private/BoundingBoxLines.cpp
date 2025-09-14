@@ -18,12 +18,25 @@ void UBoundingBoxLines::MergeVerticesAt(TArray<FVector>& destVertices, size_t in
 	// 미리 메모리 확보
 	destVertices.reserve(destVertices.size() + std::distance(Vertices.begin(), Vertices.end()));
 
+	// 덮어쓸 수 있는 개수 계산
+	size_t overwriteCount = std::min(
+		Vertices.size(),
+		destVertices.size() - insertStartIndex
+	);
+
+	// 기존 요소 덮어쓰기
+	std::copy(
+		Vertices.begin(),
+		Vertices.begin() + overwriteCount,
+		destVertices.begin() + insertStartIndex
+	);
+
 	// 원하는 위치에 삽입
-	destVertices.insert(
+	/*destVertices.insert(
 		destVertices.begin() + insertStartIndex,
 		Vertices.begin(),
 		Vertices.end()
-	);
+	);*/
 }
 
 void UBoundingBoxLines::UpdateVertices(FBoundingBox boundingBoxInfo)
@@ -37,13 +50,19 @@ void UBoundingBoxLines::UpdateVertices(FBoundingBox boundingBoxInfo)
 	float minX = boundingBoxInfo.min.X, minY = boundingBoxInfo.min.Y, minZ = boundingBoxInfo.min.Z;
 	float maxX = boundingBoxInfo.max.X, maxY = boundingBoxInfo.max.Y, maxZ = boundingBoxInfo.max.Z;
 
+	if (Vertices.size() < NumVertices)
+	{
+		Vertices.resize(NumVertices);
+	}
+
 	// 꼭짓점 정의 (0~3: 앞면, 4~7: 뒷면)
-	Vertices.push_back({ minX, minY, minZ }); // Front-Bottom-Left
-	Vertices.push_back({ maxX, minY, minZ }); // Front-Bottom-Right
-	Vertices.push_back({ maxX, maxY, minZ }); // Front-Top-Right
-	Vertices.push_back({ minX, maxY, minZ }); // Front-Top-Left
-	Vertices.push_back({ minX, minY, maxZ }); // Back-Bottom-Left
-	Vertices.push_back({ maxX, minY, maxZ }); // Back-Bottom-Right
-	Vertices.push_back({ maxX, maxY, maxZ }); // Back-Top-Right
-	Vertices.push_back({ minX, maxY, maxZ }); // Back-Top-Left
+	uint32 vertexIndex = 0;
+	Vertices[vertexIndex++] = { minX, minY, minZ }; // Front-Bottom-Left
+	Vertices[vertexIndex++] = { maxX, minY, minZ }; // Front-Bottom-Right
+	Vertices[vertexIndex++] = { maxX, maxY, minZ }; // Front-Top-Right
+	Vertices[vertexIndex++] = { minX, maxY, minZ }; // Front-Top-Left
+	Vertices[vertexIndex++] = { minX, minY, maxZ }; // Back-Bottom-Left
+	Vertices[vertexIndex++] = { maxX, minY, maxZ }; // Back-Bottom-Right
+	Vertices[vertexIndex++] = { maxX, maxY, maxZ }; // Back-Top-Right
+	Vertices[vertexIndex++] = { minX, maxY, maxZ }; // Back-Top-Left
 }

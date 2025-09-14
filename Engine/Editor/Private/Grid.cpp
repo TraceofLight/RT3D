@@ -30,20 +30,24 @@ void UGrid::UpdateVerticesBy(float NewCellSize)
 
 	float LineLength = NewCellSize * static_cast<float>(NumLines) / 2.f;
 
-	int32 vertexIndex = 0;
+	if (Vertices.size() < NumVertices)
+	{
+		Vertices.resize(NumVertices);
+	}
 
+	uint32 vertexIndex = 0;
 	// z축 라인 업데이트
 	for (int32 LineCount = -NumLines / 2; LineCount < NumLines / 2; ++LineCount)
 	{
 		if (LineCount == 0)
 		{
-			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength });
-			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, 0.f });
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength };
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, 0.f };
 		}
 		else
 		{
-			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength });
-			Vertices.push_back({ static_cast<float>(LineCount) * NewCellSize, 0.f, LineLength });
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, -LineLength };
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, LineLength };
 		}
 	}
 
@@ -52,13 +56,13 @@ void UGrid::UpdateVerticesBy(float NewCellSize)
 	{
 		if (LineCount == 0)
 		{
-			Vertices.push_back({ -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize });
-			Vertices.push_back({ 0.f, 0.f, static_cast<float>(LineCount) * NewCellSize });
+			Vertices[vertexIndex++] = { -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize };
+			Vertices[vertexIndex++] = { 0.f, 0.f, static_cast<float>(LineCount) * NewCellSize };
 		}
 		else
 		{
-			Vertices.push_back({ -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize });
-			Vertices.push_back({ LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize });
+			Vertices[vertexIndex++] = { -LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize };
+			Vertices[vertexIndex++] = { LineLength, 0.f, static_cast<float>(LineCount) * NewCellSize };
 		}
 	}
 }
@@ -73,12 +77,25 @@ void UGrid::MergeVerticesAt(TArray<FVector>& destVertices, size_t insertStartInd
 	// 미리 메모리 확보
 	destVertices.reserve(destVertices.size() + std::distance(Vertices.begin(), Vertices.end()));
 
+	// 덮어쓸 수 있는 개수 계산
+	size_t overwriteCount = std::min(
+		Vertices.size(),
+		destVertices.size() - insertStartIndex
+	);
+
+	// 기존 요소 덮어쓰기
+	std::copy(
+		Vertices.begin(),
+		Vertices.begin() + overwriteCount,
+		destVertices.begin() + insertStartIndex
+	);
+
 	// 원하는 위치에 삽입
-	destVertices.insert(
+	/*destVertices.insert(
 		destVertices.begin() + insertStartIndex,
 		Vertices.begin(),
 		Vertices.end()
-	);
+	);*/
 }
 
 //void UGrid::RenderGrid()

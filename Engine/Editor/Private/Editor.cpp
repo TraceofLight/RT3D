@@ -13,6 +13,7 @@
 #include "Mesh/Public/PrimitiveComponent.h"
 #include "Level/Public/Level.h"
 #include "Render/UI/Widget/Public/CameraControlWidget.h"
+#include "Render/UI/Widget/Public/FPSWidget.h"
 
 UEditor::UEditor()
 	: ObjectPicker(Camera)
@@ -25,6 +26,10 @@ UEditor::UEditor()
 		reinterpret_cast<UCameraControlWidget*>(UIManager.FindWidget("Camera Control Widget"));
 	CameraControlWidget->SetCamera(&Camera);
 
+	// Set UBatchLines to FPSWidget Panel
+	auto* FPSWidget =
+		reinterpret_cast<UFPSWidget*>(UIManager.FindWidget("FPS Widget"));
+	FPSWidget->SetBatchLine(&BatchLines);
 };
 
 UEditor::~UEditor() = default;
@@ -33,6 +38,8 @@ void UEditor::Update()
 {
 	auto& Renderer = URenderer::GetInstance();
 	Camera.Update();
+
+	BatchLines.UpdateVertexBuffer();
 
 	ProcessMouseInput(ULevelManager::GetInstance().GetCurrentLevel());
 
