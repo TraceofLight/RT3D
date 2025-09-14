@@ -38,10 +38,13 @@ void UEditor::Update()
 
 
 	Renderer.UpdateConstant(Camera.GetFViewProjConstants());
+
+	//BatchLines.UpdateConstant({ {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
 }
 void UEditor::RenderEditor()
 {
-	Grid.RenderGrid();
+	//Grid.RenderGrid();
+	BatchLines.Render();
 	Axis.Render();
 	Gizmo.RenderGizmo(ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor(), Camera.GetLocation());
 }

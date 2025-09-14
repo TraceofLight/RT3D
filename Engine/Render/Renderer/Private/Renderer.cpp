@@ -322,7 +322,7 @@ void URenderer::RenderPrimitive(FEditorPrimitive& Primitive, struct FRenderState
 	Pipeline->Draw(Primitive.NumVertices, 0);
 }
 
-void URenderer::RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, FRenderState& InRenderState)
+void URenderer::RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, FRenderState& InRenderState, bool bUseBaseConstantBuffer)
 {
 	ID3D11DepthStencilState* DepthStencilState =
 		InPrimitive.bShouldAlwaysVisible ? DisabledDepthStencilState : DefaultDepthStencilState;
@@ -330,26 +330,33 @@ void URenderer::RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, FRenderSta
 	ID3D11RasterizerState* RasterizerState =
 		GetRasterizerState(InRenderState);
 
+	ID3D11InputLayout* inputLayout = InPrimitive.InputLayout ? InPrimitive.InputLayout : DefaultInputLayout;
+	ID3D11VertexShader* vertexShader = InPrimitive.VertexShader ? InPrimitive.VertexShader : DefaultVertexShader;
+	ID3D11PixelShader* pixelShader = InPrimitive.PixelShader ? InPrimitive.PixelShader : DefaultPixelShader;
+
 	FPipelineInfo PipelineInfo = {
-			DefaultInputLayout,
-			DefaultVertexShader,
+			inputLayout,
+			vertexShader,
 			RasterizerState,
 			DepthStencilState,
-			DefaultPixelShader,
+			pixelShader,
 			nullptr,
 			InPrimitive.Topology
 	};
 
 	Pipeline->UpdatePipeline(PipelineInfo);
 
-	Pipeline->SetConstantBuffer(0, true, ConstantBufferModels);
-	UpdateConstant(InPrimitive.Location, InPrimitive.Rotation, InPrimitive.Scale);
+	if (bUseBaseConstantBuffer)
+	{
+		Pipeline->SetConstantBuffer(0, true, ConstantBufferModels);
+		UpdateConstant(InPrimitive.Location, InPrimitive.Rotation, InPrimitive.Scale);
 
-	Pipeline->SetConstantBuffer(2, true, ConstantBufferColor);
-	UpdateConstant(InPrimitive.Color);
-
+		Pipeline->SetConstantBuffer(2, true, ConstantBufferColor);
+		UpdateConstant(InPrimitive.Color);
+	}
+	
 	Pipeline->SetVertexBuffer(InPrimitive.Vertexbuffer, Stride);
-	Pipeline->Draw(InPrimitive.NumVertices, 0);
+	Pipeline->DrawIndexed(InPrimitive.NumIndices, 0, 0);
 }
 
 /**
@@ -367,6 +374,23 @@ ID3D11Buffer* URenderer::CreateVertexBuffer(FVertex* InVertices, uint32 InByteWi
 	VertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
 
 	D3D11_SUBRESOURCE_DATA VertexBufferSRD = {InVertices};
+
+	ID3D11Buffer* vertexBuffer;
+
+	GetDevice()->CreateBuffer(&VertexBufferDesc, &VertexBufferSRD, &vertexBuffer);
+
+	return vertexBuffer;
+}
+
+ID3D11Buffer* URenderer::CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth) const
+{
+	// 2. Create a vertex buffer
+	D3D11_BUFFER_DESC VertexBufferDesc = {};
+	VertexBufferDesc.ByteWidth = InByteWidth;
+	VertexBufferDesc.Usage = D3D11_USAGE_IMMUTABLE; // will never be updated
+	VertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+	D3D11_SUBRESOURCE_DATA VertexBufferSRD = { InVertices };
 
 	ID3D11Buffer* vertexBuffer;
 
@@ -428,6 +452,63 @@ void URenderer::OnResize(uint32 InWidth, uint32 InHeight)
 void URenderer::ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer)
 {
 	InVertexBuffer->Release();
+}
+
+void URenderer::CreateVertexShaderAndInputLayout(const wstring& filePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& inputLayoutDescs, ID3D11VertexShader** outVertexShader, ID3D11InputLayout** outInputLayout)
+{
+	ID3DBlob* VertexShaderCSO;
+	ID3DBlob* errorBlob = nullptr;
+
+	HRESULT hr = D3DCompileFromFile(filePath.c_str(), nullptr, nullptr, "mainVS", "vs_5_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0,
+		&VertexShaderCSO, &errorBlob);
+
+	if (FAILED(hr)) {
+		if (errorBlob) {
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+			errorBlob->Release();
+		}
+		// 실패 처리 (return 등)
+		return;
+	}
+
+	GetDevice()->CreateVertexShader(VertexShaderCSO->GetBufferPointer(),
+		VertexShaderCSO->GetBufferSize(), nullptr, outVertexShader);
+
+	/*D3D11_INPUT_ELEMENT_DESC layout[] =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+		{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};*/
+
+	GetDevice()->CreateInputLayout(inputLayoutDescs.data(), UINT(inputLayoutDescs.size()), VertexShaderCSO->GetBufferPointer(),
+		VertexShaderCSO->GetBufferSize(), outInputLayout);
+
+	Stride = sizeof(FVertex);
+
+	VertexShaderCSO->Release();
+}
+
+void URenderer::CreatePixelShader(const wstring& filePath, ID3D11PixelShader** pixelShader)
+{
+	ID3DBlob* PixelShaderCSO;
+	ID3DBlob* errorBlob = nullptr;
+
+	HRESULT hr = D3DCompileFromFile(filePath.c_str(), nullptr, nullptr, "mainPS", "ps_5_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0,
+		&PixelShaderCSO, &errorBlob);
+
+	if (FAILED(hr)) {
+		if (errorBlob) {
+			OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+			errorBlob->Release();
+		}
+		// 실패 처리 (return 등)
+		return;
+	}
+
+	GetDevice()->CreatePixelShader(PixelShaderCSO->GetBufferPointer(),
+		PixelShaderCSO->GetBufferSize(), nullptr, pixelShader);
+
+	PixelShaderCSO->Release();
 }
 
 /**
@@ -579,21 +660,39 @@ void URenderer::UpdateConstant(const FVector4& Color) const
 	}
 }
 
-void URenderer::UpdateBatchLineConstant(const UPrimitiveComponent* Primitive, const BatchLineContants& batchLineConstant) const
-{
-	if (ConstantBufferBatchLine)
-	{
-		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+//void URenderer::UpdateAndSetBatchLineConstant(const BatchLineContants& inBatchLineConstant) const
+//{
+//	Pipeline->SetConstantBuffer(3, true, ConstantBufferBatchLine);
+//
+//	if (ConstantBufferBatchLine)
+//	{
+//		D3D11_MAPPED_SUBRESOURCE ConstantBufferMSR = {};
+//
+//		GetDeviceContext()->Map(ConstantBufferBatchLine, 0, D3D11_MAP_WRITE_DISCARD, 0, &ConstantBufferMSR);
+//		// update constant buffer every frame
+//		BatchLineContants* batchLineConstant = (BatchLineContants*)ConstantBufferMSR.pData;
+//		{
+//			*batchLineConstant = inBatchLineConstant;
+//		}
+//		GetDeviceContext()->Unmap(ConstantBufferBatchLine, 0);
+//	}
+//}
 
-		GetDeviceContext()->Map(ConstantBufferBatchLine, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
-		// update constant buffer every frame
-		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
-		{
-			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(), FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()), Primitive->GetRelativeScale3D());
-		}
-		GetDeviceContext()->Unmap(ConstantBufferBatchLine, 0);
-	}
-}
+//void URenderer::UpdateBatchLineConstant(const UPrimitiveComponent* Primitive, const BatchLineContants& batchLineConstant) const
+//{
+//	if (ConstantBufferBatchLine)
+//	{
+//		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+//
+//		GetDeviceContext()->Map(ConstantBufferBatchLine, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+//		// update constant buffer every frame
+//		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
+//		{
+//			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(), FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()), Primitive->GetRelativeScale3D());
+//		}
+//		GetDeviceContext()->Unmap(ConstantBufferBatchLine, 0);
+//	}
+//}
 
 ID3D11RasterizerState* URenderer::GetRasterizerState(const FRenderState& InRenderState)
 {

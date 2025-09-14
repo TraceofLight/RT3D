@@ -79,3 +79,8 @@ void UPipeline::Draw(uint32 VertexCount, uint32 StartLocation)
 {
 	DeviceContext->Draw(VertexCount, StartLocation);
 }
+
+void UPipeline::DrawIndexed(uint32 indexCount, uint32 startIndexLocation, uint32 baseVertexLocation)
+{
+	DeviceContext->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
+}

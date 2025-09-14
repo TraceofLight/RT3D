@@ -1,11 +1,34 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
+    <ClCompile Include="Editor\Private\BatchLines.cpp">
+      <Filter>Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="main.cpp" />
     <ClCompile Include="Core\Private\Class.cpp">
+      <Filter>Core\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Private\Name.cpp">
       <Filter>Core\Private</Filter>
     </ClCompile>
     <ClCompile Include="Core\Private\Object.cpp">
       <Filter>Core\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Private\AppWindow.cpp">
+      <Filter>Core\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Private\ClientApp.cpp">
+      <Filter>Core\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Global\Matrix.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Global\Memory.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
+    <ClCompile Include="Global\Vector.cpp">
+      <Filter>Global</Filter>
     </ClCompile>
     <ClCompile Include="Editor\Private\Axis.cpp">
       <Filter>Editor\Private</Filter>
@@ -24,15 +47,6 @@
     </ClCompile>
     <ClCompile Include="Editor\Private\ObjectPicker.cpp">
       <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Matrix.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Memory.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Vector.cpp">
-      <Filter>Global</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui.cpp">
       <Filter>ImGui</Filter>
@@ -73,13 +87,28 @@
     <ClCompile Include="Manager\UI\Private\UIManager.cpp">
       <Filter>Manager\UI\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh\Private\AABB.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
     <ClCompile Include="Mesh\Private\Actor.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
     <ClCompile Include="Mesh\Private\ActorComponent.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh\Private\BoundingSphere.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
     <ClCompile Include="Mesh\Private\CubeActor.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\Private\CubeComponent.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\Private\LineComponent.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\Private\PrimitiveComponent.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
     <ClCompile Include="Mesh\Private\ResourceManager.cpp">
@@ -91,22 +120,23 @@
     <ClCompile Include="Mesh\Private\SphereActor.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh\Private\SphereComponent.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
     <ClCompile Include="Mesh\Private\SquareActor.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\Private\SquareComponent.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
     <ClCompile Include="Mesh\Private\TriangleActor.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh\Private\VertexDatas.cpp">
+    <ClCompile Include="Mesh\Private\TriangleComponent.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
-    <ClCompile Include="pch.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="Core\Private\AppWindow.cpp">
-      <Filter>Core\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Private\ClientApp.cpp">
-      <Filter>Core\Private</Filter>
+    <ClCompile Include="Mesh\Private\VertexDatas.cpp">
+      <Filter>Mesh\Private</Filter>
     </ClCompile>
     <ClCompile Include="Render\Renderer\Private\DeviceResources.cpp">
       <Filter>Render\Renderer\Private</Filter>
@@ -171,38 +201,59 @@
     <ClCompile Include="Utility\Private\UELogParser.cpp">
       <Filter>Utility\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh\Private\AABB.cpp">
-      <Filter>Mesh\Private</Filter>
+    <ClCompile Include="Editor\Private\BoundingBoxLines.cpp">
+      <Filter>Editor\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Mesh\Private\BoundingSphere.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\SquareComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\TriangleComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\CubeComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\LineComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\PrimitiveComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\SphereComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="BatchLines.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\Public\BatchLines.h">
+      <Filter>Editor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
     <ClInclude Include="Core\Public\Class.h">
+      <Filter>Core\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Public\Name.h">
       <Filter>Core\Public</Filter>
     </ClInclude>
     <ClInclude Include="Core\Public\Object.h">
       <Filter>Core\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Public\AppWindow.h">
+      <Filter>Core\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Public\ClientApp.h">
+      <Filter>Core\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Constant.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\CoreTypes.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Enum.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\EnumReflection.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Function.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Macro.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Matrix.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Memory.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Types.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Vector.h">
+      <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="Editor\Public\Axis.h">
       <Filter>Editor\Public</Filter>
@@ -224,36 +275,6 @@
     </ClInclude>
     <ClInclude Include="Editor\Public\ObjectPicker.h">
       <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Constant.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\CoreTypes.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Enum.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Function.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Macro.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Matrix.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Memory.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Types.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Struct.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Vector.h">
-      <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imconfig.h">
       <Filter>ImGui</Filter>
@@ -297,13 +318,31 @@
     <ClInclude Include="Manager\UI\Public\UIManager.h">
       <Filter>Manager\UI\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\Public\AABB.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
     <ClInclude Include="Mesh\Public\Actor.h">
       <Filter>Mesh\Public</Filter>
     </ClInclude>
     <ClInclude Include="Mesh\Public\ActorComponent.h">
       <Filter>Mesh\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\Public\BoundingSphere.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\Public\BoundingVolume.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
     <ClInclude Include="Mesh\Public\CubeActor.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\Public\CubeComponent.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\Public\LineComponent.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\Public\PrimitiveComponent.h">
       <Filter>Mesh\Public</Filter>
     </ClInclude>
     <ClInclude Include="Mesh\Public\ResourceManager.h">
@@ -315,10 +354,19 @@
     <ClInclude Include="Mesh\Public\SphereActor.h">
       <Filter>Mesh\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\Public\SphereComponent.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
     <ClInclude Include="Mesh\Public\SquareActor.h">
       <Filter>Mesh\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh\Public\SquareComponent.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
     <ClInclude Include="Mesh\Public\TriangleActor.h">
+      <Filter>Mesh\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\Public\TriangleComponent.h">
       <Filter>Mesh\Public</Filter>
     </ClInclude>
     <ClInclude Include="Mesh\Public\VertexDatas.h">
@@ -332,13 +380,6 @@
     </ClInclude>
     <ClInclude Include="Mesh\Sample\Triangle.h">
       <Filter>Mesh\Sample</Filter>
-    </ClInclude>
-    <ClInclude Include="pch.h" />
-    <ClInclude Include="Core\Public\AppWindow.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\ClientApp.h">
-      <Filter>Core\Public</Filter>
     </ClInclude>
     <ClInclude Include="Render\Renderer\Public\DeviceResources.h">
       <Filter>Render\Renderer\Public</Filter>
@@ -406,202 +447,181 @@
     <ClInclude Include="Utility\Public\UELogParser.h">
       <Filter>Utility\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh\Public\BoundingVolume.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\AABB.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\BoundingSphere.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\SphereComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\SquareComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\TriangleComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\CubeComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\LineComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\PrimitiveComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="BatchLines.h">
+    <ClInclude Include="Editor\Public\BoundingBoxLines.h">
       <Filter>Editor\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Filter Include="Asset">
-      <UniqueIdentifier>{f3279a3b-7fb3-414e-9501-ad3f2fd8c927}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Asset\Shader">
-      <UniqueIdentifier>{04871207-c874-4d0e-b65b-95a671c54cc0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core">
-      <UniqueIdentifier>{049c8f64-caa0-4b54-812d-07040b4a9066}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Private">
-      <UniqueIdentifier>{31ead672-cca6-4175-997f-e6dcda619fc4}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor">
-      <UniqueIdentifier>{909f0bdd-c02b-4d97-8f4b-fdd669cf0426}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Private">
-      <UniqueIdentifier>{59685555-937d-4b4a-b33a-1f26eae696ee}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Global">
-      <UniqueIdentifier>{57e302c5-160f-42f2-9150-83d28b22b328}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ImGui">
-      <UniqueIdentifier>{53f932ef-c9dd-41e7-9804-2a6393c5091e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Level">
-      <UniqueIdentifier>{9c1e021e-a3d9-4df5-b7a7-24871dbfee55}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Level\Private">
-      <UniqueIdentifier>{646d3224-911d-4034-bafa-48323c4f030b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager">
-      <UniqueIdentifier>{042438ef-538f-48a4-880e-5341062b570f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Input">
-      <UniqueIdentifier>{5ff396da-8173-45ba-b85d-45fe709bb091}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Input\Private">
-      <UniqueIdentifier>{749ba00a-a127-499c-a7d2-892f0ecad3d5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Level">
-      <UniqueIdentifier>{513f6f20-4833-4def-8d39-358a5e0afb7e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Level\Private">
-      <UniqueIdentifier>{85a66763-94c1-447b-bb03-9d1a5d3bc3d3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Path">
-      <UniqueIdentifier>{3a60d91c-4ab7-4e64-9ab7-90b66d504658}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Path\Private">
-      <UniqueIdentifier>{09a74565-32e7-4ce6-8645-684c7fd41510}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Time">
-      <UniqueIdentifier>{cad35db1-9329-4e69-809d-8afd2133acfb}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Time\Private">
-      <UniqueIdentifier>{11e72ce7-e5ac-41e7-ad00-9c0a93ae1db5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\UI">
-      <UniqueIdentifier>{9a6d2a55-f866-4900-bfdd-6125e7e600cd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\UI\Private">
-      <UniqueIdentifier>{80172243-0a5d-4298-a625-7137917bc05b}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Mesh">
-      <UniqueIdentifier>{408e7234-e078-41e3-a7c9-5de9af51bc73}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Mesh\Private">
-      <UniqueIdentifier>{18c4d185-9f70-42fd-ab28-066613b988ad}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render">
-      <UniqueIdentifier>{6bf4bb1f-9e08-4d50-a980-4f0ea9179a24}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\Renderer">
-      <UniqueIdentifier>{c7e50ebc-f47b-401d-97ad-f1725b2d90dc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\Renderer\Private">
-      <UniqueIdentifier>{4742f069-f449-483a-9ddb-1343406334a1}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI">
-      <UniqueIdentifier>{a9c66d99-d770-46ba-b7be-12153dfdb8b0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Factory">
-      <UniqueIdentifier>{8afd2133-8957-4df4-90b8-4ecd3c7604b2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Factory\Private">
-      <UniqueIdentifier>{15566cee-2545-4fc1-8188-1ae2bc15ab1d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\ImGui">
-      <UniqueIdentifier>{6ffa89d9-e437-45cf-8698-97b7eaccb872}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\ImGui\Private">
-      <UniqueIdentifier>{f16b37e0-88b1-4409-a257-036d70fac201}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Widget">
-      <UniqueIdentifier>{01e7c2d5-852c-4542-b69e-65c920c3fc92}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Widget\Private">
-      <UniqueIdentifier>{51da8b8f-6bf6-4d87-85ca-6e79bd44da8d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Window">
-      <UniqueIdentifier>{08298ef5-f5c9-4eb8-9116-ccab4d8f3152}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Window\Private">
-      <UniqueIdentifier>{069f7a12-f3c2-4c04-ae94-54c9a0c84d37}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utility">
-      <UniqueIdentifier>{bbfb0193-c40a-4050-8d68-d35ae62b5f38}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utility\Private">
-      <UniqueIdentifier>{9e93238e-42a3-4a27-9fc9-b1404730e412}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Core\Public">
-      <UniqueIdentifier>{badca26e-b4d7-49b1-a5ab-fd341ea00d0f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor\Public">
-      <UniqueIdentifier>{64233828-0fe2-4e80-9d5b-c072c1a1c362}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Level\Public">
-      <UniqueIdentifier>{689bde6d-c24a-4e5a-9448-5f43db21d05d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Input\Public">
-      <UniqueIdentifier>{719f7599-d78b-4a95-b08a-bd93c26f3e8f}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Level\Public">
-      <UniqueIdentifier>{92ba286c-cac3-4a35-868b-6fc17c30d19e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Path\Public">
-      <UniqueIdentifier>{fe040e83-8dac-481c-b12e-8cb02d6bfcf2}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\Time\Public">
-      <UniqueIdentifier>{71000d67-66ab-4cda-b9e6-e9ed2dbdda30}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Manager\UI\Public">
-      <UniqueIdentifier>{a63ca145-3a11-47c7-a9e7-7851bcc06789}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Mesh\Public">
-      <UniqueIdentifier>{d20e1863-4492-497d-b825-968ec2c60935}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Mesh\Sample">
-      <UniqueIdentifier>{00ead058-40d0-4314-bc5f-83473aea68a3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\Renderer\Public">
-      <UniqueIdentifier>{bc1c68a8-f0d2-427b-87db-fa692fc01385}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Factory\Public">
-      <UniqueIdentifier>{57a18c1d-1f5e-4518-84fd-2791727525cc}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\ImGui\Public">
-      <UniqueIdentifier>{3081125e-89b1-408a-94e8-11aad8522bb8}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Widget\Public">
-      <UniqueIdentifier>{4681c6bc-4857-42f7-bcb7-7848f9028b93}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Render\UI\Window\Public">
-      <UniqueIdentifier>{9801d1ce-a882-4030-a712-265c91a76fb5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Utility\Public">
-      <UniqueIdentifier>{98a87a3f-0a73-4c36-a228-54b99ff62034}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
+    <FxCompile Include="Asset\Shader\BatchLinePS.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\BatchLineVS.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
     <FxCompile Include="Asset\Shader\SampleShader.hlsl">
       <Filter>Asset\Shader</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Asset">
+      <UniqueIdentifier>{b4bffa40-a2b8-4d62-bef3-7c891797357b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Asset\Shader">
+      <UniqueIdentifier>{e52bbd2a-2d54-43d7-9ead-5abf7229dea1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{a642af03-cee0-4973-b645-351f103b86dc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Private">
+      <UniqueIdentifier>{8f24ae36-ed3e-4003-b9e8-84870973c40e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Editor\Public">
+      <UniqueIdentifier>{570cc67f-d59e-41b2-80f5-b2a85d271f23}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{9cdfd805-9606-4d41-9466-28543c37b63d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Private">
+      <UniqueIdentifier>{77a72bd0-316b-4a5d-8c32-2fdda6fc91c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Public">
+      <UniqueIdentifier>{94524a8f-695c-4092-96e7-4ced1f150186}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Global">
+      <UniqueIdentifier>{6a3fa141-4373-4217-8fea-8adf6b1556ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ImGui">
+      <UniqueIdentifier>{65052f2b-ba3d-42c8-a02a-1b0c6a4dd1d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Level">
+      <UniqueIdentifier>{4b0e40c1-cbae-4862-960d-ab314c9fa922}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Level\Private">
+      <UniqueIdentifier>{95a0a4ac-6c42-4253-9bbc-84589c641a74}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Level\Public">
+      <UniqueIdentifier>{da92b3bf-c5be-4ed9-bdc8-24fb98625279}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager">
+      <UniqueIdentifier>{d394252a-b483-4ddd-b05d-dbb1ba795697}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Input">
+      <UniqueIdentifier>{4d40c500-9fde-441f-92d9-34acfa58891d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Input\Private">
+      <UniqueIdentifier>{0b7016ee-f85c-4b15-bd56-9cde9d8201e7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Input\Public">
+      <UniqueIdentifier>{df0b9b3e-8701-4854-8fb1-ce5be6de0766}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Level">
+      <UniqueIdentifier>{0db4ad11-7653-4884-8e60-d61f678e9288}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Level\Private">
+      <UniqueIdentifier>{f7e5351d-ffe8-44c7-aa12-ecf7fa119b73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Level\Public">
+      <UniqueIdentifier>{c4334234-3aca-4ed0-8fc7-3ee4abefcdca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Path">
+      <UniqueIdentifier>{6772a168-6974-4ec5-866e-888443ca5e95}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Path\Private">
+      <UniqueIdentifier>{5122e413-db7c-4094-bf21-399d37bbfa09}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Path\Public">
+      <UniqueIdentifier>{62c1bcee-1dac-451e-b7f6-5c0fd675a05f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Time">
+      <UniqueIdentifier>{f02a9c6a-b6af-4663-b09e-35556642c4a1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Time\Private">
+      <UniqueIdentifier>{0d39e381-4887-4783-8829-6d79ed2ca067}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\Time\Public">
+      <UniqueIdentifier>{04b657e9-cd2a-40d2-b179-62478c4686b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\UI">
+      <UniqueIdentifier>{204f62d2-b6ee-4abc-8692-27f9a8092a48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\UI\Private">
+      <UniqueIdentifier>{1df7c894-3551-4015-8fa1-2fe487bf06ec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Manager\UI\Public">
+      <UniqueIdentifier>{6bf92d6f-931e-43c0-8260-a3376bbd181f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{e17b8685-a0c4-44a1-97a5-d1bc25898540}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh\Private">
+      <UniqueIdentifier>{b020547e-1776-4eeb-ad35-97d4d8fb597e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh\Public">
+      <UniqueIdentifier>{918c6188-febd-40bb-90c3-12227d6bfcd4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh\Sample">
+      <UniqueIdentifier>{9c1325e6-ba50-44ae-a50e-776195a2bf49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{74a4fde6-42bb-4189-9aa0-c148b4b7c418}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Renderer">
+      <UniqueIdentifier>{a6e906b8-b7b6-4143-bbdc-5da7272bf049}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Renderer\Private">
+      <UniqueIdentifier>{90f5d9fc-f0a1-4c24-a789-1d6286963c2c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\Renderer\Public">
+      <UniqueIdentifier>{be604b73-87d7-45db-9332-bc687973d4fe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI">
+      <UniqueIdentifier>{a398281d-8eec-48b6-9df3-c1e74937a352}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Factory">
+      <UniqueIdentifier>{b8bac7d7-17ee-4174-ba45-16bccbbc73ed}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Factory\Private">
+      <UniqueIdentifier>{7c6bb7ba-dd0b-4f6d-991c-fb7e8668d9b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Factory\Public">
+      <UniqueIdentifier>{41dfa7cc-1571-48e4-b7d9-7ee545f97f36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\ImGui">
+      <UniqueIdentifier>{36575304-6cdd-4266-aa6d-218cde763164}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\ImGui\Private">
+      <UniqueIdentifier>{3367b349-6b66-4e1f-8732-7d01f05df0ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\ImGui\Public">
+      <UniqueIdentifier>{6e4af672-34bd-4a0b-accb-0c748b978590}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Widget">
+      <UniqueIdentifier>{50065239-758e-4f4d-9329-72361a8b0a31}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Widget\Private">
+      <UniqueIdentifier>{4f60e0c0-93ad-4715-8340-34e579cc0aa9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Widget\Public">
+      <UniqueIdentifier>{70b96eee-b99b-415f-bd2d-3fe61cea2088}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Window">
+      <UniqueIdentifier>{851ab2c4-c619-4e50-8490-f81ce113cf03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Window\Private">
+      <UniqueIdentifier>{ccda0f10-6e6c-4874-98ae-806064db456c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render\UI\Window\Public">
+      <UniqueIdentifier>{dbfaeed8-b648-41e2-bb0d-f3311e508c0b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility">
+      <UniqueIdentifier>{f361d0c2-aee1-46d5-bd1c-3cd41403e898}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Private">
+      <UniqueIdentifier>{8bc83cd2-8d66-468a-a47a-061a57764d22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utility\Public">
+      <UniqueIdentifier>{97a7a99b-6f69-44ab-87f4-7d8f97e602b6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

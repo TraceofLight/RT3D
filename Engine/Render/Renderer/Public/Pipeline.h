@@ -29,6 +29,8 @@ public:
 
 	void Draw(uint32 VertexCount, uint32 StartLocation);
 
+	void DrawIndexed(uint32 indexCount, uint32 startIndexLocation, uint32 baseVertexLocation);
+
 private:
 	ID3D11DeviceContext* DeviceContext;
 };

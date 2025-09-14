@@ -61,6 +61,7 @@ struct FVector
 	 */
 	inline FVector operator-() const { return FVector(-X, -Y, -Z); }
 
+	bool operator==(const FVector& inOther) const;
 
 	/**
 	 * @brief 벡터의 길이 연산 함수

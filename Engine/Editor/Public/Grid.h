@@ -8,14 +8,27 @@ class UGrid : public UObject
 public:
 	UGrid();
 	~UGrid() override;
-	void SetLineVertices();
-	void SetGridProperty(float InCellSize, int InNumLines);
+	//void SetLineVertices();
+	//void SetGridProperty(float InCellSize, int InNumLines);
 
-	void RenderGrid();
+	void UpdateVerticesBy(float NewCellSize);
+	void MergeVerticesAt(TArray<FVector>& destVertices, size_t insertStartIndex);
+	//void RenderGrid();
+
+	uint32 GetNumVertices() const
+	{
+		return NumVertices;
+	}
+
+	float GetCellSize() const
+	{
+		return CellSize;
+	}
 
 private:
 	float CellSize = 1.0f;
 	int NumLines = 250;
-	FEditorPrimitive Primitive;
-	TArray<FVertex> LineVertices;
+	//FEditorPrimitive Primitive;
+	TArray<FVector> Vertices;
+	uint32 NumVertices;
 };

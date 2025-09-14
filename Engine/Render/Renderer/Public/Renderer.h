@@ -58,7 +58,7 @@ public:
 	void RenderLevel();
 	void RenderEnd() const;
 	void RenderPrimitive(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
-	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
+	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState, bool bUseBaseConstantBuffer);
 
 	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0);
 	bool GetIsResizing() { return bIsResizing;}
@@ -66,8 +66,11 @@ public:
 
 	//Testing Func
 	ID3D11Buffer* CreateVertexBuffer(FVertex* InVertices, uint32 InByteWidth) const;
+	ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth) const;
 	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth) const;
 	static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
+	void CreateVertexShaderAndInputLayout(const wstring& filePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& inputLayoutDescs, ID3D11VertexShader** outVertexShader, ID3D11InputLayout** outInputLayout);
+	void CreatePixelShader(const wstring& filePath, ID3D11PixelShader** pixelShader);
 
 	void CreateConstantBuffer();
 	void ReleaseConstantBuffer();
@@ -75,7 +78,7 @@ public:
 	void UpdateConstant(const FVector& InPosition, const FVector& InRotation, const FVector& InScale) const;
 	void UpdateConstant(const FViewProjConstants& InViewProjConstants) const;
 	void UpdateConstant(const FVector4& Color) const;
-	void UpdateBatchLineConstant(const UPrimitiveComponent* Primitive, const BatchLineContants& batchLineConstant) const;
+	//void UpdateAndSetBatchLineConstant(const BatchLineContants& batchLineConstant) const;
 
 	//template<typename T>
 	//void UpdateConstantGeneralType(const T* constData, ) const
@@ -84,7 +87,7 @@ public:
 	//	{
 	//		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
 
-	//		GetDeviceContext()->Map(constData, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+	//		GetDeviceContext()->Map(, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
 	//		// update constant buffer every frame
 	//		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
 	//		{
