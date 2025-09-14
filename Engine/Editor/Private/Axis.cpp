@@ -5,14 +5,19 @@
 UAxis::UAxis()
 {
 	URenderer& Renderer = URenderer::GetInstance();
-	AxisVertices.push_back({{ 0.0f,0.0f,50000.0f }, { 1,0,0,1 }});
-	AxisVertices.push_back({ { 0.0f,0.0f,0.0f }, { 1,0,0,1 } });
 
-	AxisVertices.push_back({ { 0.0f,50000.0f,0.0f }, { 0,1,0,1 } });
+	// ue right
+	AxisVertices.push_back({ { 0.0f,0.0f,50000.0f }, { 0,1,0,1 } });
 	AxisVertices.push_back({ { 0.0f,0.0f,0.0f }, { 0,1,0,1 } });
 
+	// ue forward
+	AxisVertices.push_back({ { 0.0f,50000.0f,0.0f }, { 1,0,0,1 } });
+	AxisVertices.push_back({ { 0.0f,0.0f,0.0f }, { 1,0,0,1 } });
+
+	// ue up
 	AxisVertices.push_back({ { 50000.0f,0.0f,0.0f }, { 0,0,1,1 } });
 	AxisVertices.push_back({ { 0.0f,0.0f,0.0f }, { 0,0,1,1 } });
+	
 
 	Primitive.NumVertices = static_cast<int>(AxisVertices.size());
 	Primitive.Vertexbuffer = Renderer.CreateVertexBuffer(AxisVertices.data(), Primitive.NumVertices * sizeof(FVertex));

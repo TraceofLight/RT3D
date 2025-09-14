@@ -40,30 +40,36 @@ void UGrid::SetLineVertices()
 {
 	float LineLength = CellSize * static_cast<float>(NumLines) / 2.f;
 
+	// dx기준 xz평면에 그리드 형성, ue 기준 xy평면에 형성해야 함
+
 	for (int32 LineCount = -NumLines/2; LineCount < NumLines/2; ++LineCount) // z축 라인
 	{
 		if (LineCount == 0)
 		{
-			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , -LineLength}, Primitive.Color });
-			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , 0.f}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, -LineLength, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, 0.0f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+			
 		}
 		else
 		{
-			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , -LineLength}, Primitive.Color });
-			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , LineLength}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, -LineLength, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, LineLength, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
 		}
 	}
+
 	for (int32 LineCount = -NumLines / 2; LineCount < NumLines / 2; ++LineCount) // x축 라인
 	{
 		if (LineCount == 0)
 		{
-			LineVertices.push_back({ {-LineLength, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
-			LineVertices.push_back({ {0.f, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, -LineLength}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, 0.0f}, Primitive.Color });
+			
 		}
 		else
 		{
-			LineVertices.push_back({ {-LineLength, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
-			LineVertices.push_back({ {LineLength, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, -LineLength}, Primitive.Color });
+			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, LineLength}, Primitive.Color });
+			
 		}
 	}
 }

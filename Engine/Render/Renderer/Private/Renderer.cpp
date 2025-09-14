@@ -193,7 +193,7 @@ void URenderer::Update(UEditor* Editor)
 	Editor->RenderEditor();
 
 	//RenderLines();
-
+	
 	UUIManager::GetInstance().Render();
 
 	RenderEnd();

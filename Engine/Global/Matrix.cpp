@@ -1,5 +1,22 @@
 #include "pch.h"
 
+
+FMatrix FMatrix::UEToDx = FMatrix(
+	{
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	});
+
+FMatrix FMatrix::DxToUE = FMatrix(
+	{
+		0.0f, 0.0f, 1.0f, 0.0f,
+		1.0f, 0.0f, 0.0f, 0.0f,
+		0.0f, 1.0f, 0.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 1.0f,
+	});
+
 /**
 * @brief float 타입의 배열을 사용한 FMatrix의 기본 생성자
 */
@@ -21,6 +38,22 @@ FMatrix::FMatrix(
 			{M10,M11,M12,M13},
 			{M20,M21,M22,M23},
 			{M30,M31,M32,M33} }
+{
+}
+
+FMatrix::FMatrix(const FVector& x, const FVector& y, const FVector& z)
+	:Data{	{x.X, x.Y, x.Z, 0.0f},
+			{y.X, y.Y, y.Z, 0.0f},
+			{z.X, z.Y, z.Z, 0.0f},
+			{0.0f, 0.0f, 0.0f, 1.0f}}
+{	
+}
+
+FMatrix::FMatrix(const FVector4& x, const FVector4& y, const FVector4& z)
+	:Data{	{x.X,x.Y,x.Z, x.W},
+			{y.X,y.Y,y.Z,y.W},
+			{z.X,z.Y,z.Z,z.W},
+			{0.0f, 0.0f, 0.0f, 1.0f} }
 {
 }
 
@@ -117,12 +150,12 @@ FMatrix FMatrix::ScaleMatrixInverse(const FVector& InOtherVector)
 */
 FMatrix FMatrix::RotationMatrix(const FVector& InOtherVector)
 {
-	return RotationX(InOtherVector.X) * RotationY(InOtherVector.Y) * RotationZ(InOtherVector.Z);
+	return RotationZ(InOtherVector.Z) * RotationY(InOtherVector.Y) * RotationX(InOtherVector.X);
 }
 
 FMatrix FMatrix::RotationMatrixInverse(const FVector& InOtherVector)
-{
-	return RotationZ(-InOtherVector.Z) * RotationY(-InOtherVector.Y) * RotationX(-InOtherVector.X);
+{	
+	return RotationX(-InOtherVector.X) * RotationY(-InOtherVector.Y) * RotationZ(-InOtherVector.Z);
 }
 
 /**
@@ -182,8 +215,9 @@ FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FVector& Rotation
 	FMatrix T = TranslationMatrix(Location);
 	FMatrix R = RotationMatrix(Rotation);
 	FMatrix S = ScaleMatrix(Scale);
+	FMatrix modelMatrix = S * R * T;
 
-	return FMatrix::Identity() * S * R * T;
+	return FMatrix::DxToUE * modelMatrix;
 }
 
 FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& Rotation, const FVector& Scale)
@@ -191,8 +225,35 @@ FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& R
 	FMatrix T = TranslationMatrixInverse(Location);
 	FMatrix R = RotationMatrixInverse(Rotation);
 	FMatrix S = ScaleMatrixInverse(Scale);
+	FMatrix modelMatrixInverse = T * R * S;
 
-	return FMatrix::Identity() * T * R * S;
+	return FMatrix::UEToDx * modelMatrixInverse;
+}
+
+FVector4 FMatrix::VectorMultiply(const FVector4& v, const FMatrix& m)
+{
+	FVector4 result = {};
+	result.X = (v.X * m.Data[0][0]) + (v.Y * m.Data[1][0]) + (v.Z * m.Data[2][0]) + (v.W * m.Data[3][0]);
+	result.Y = (v.X * m.Data[0][1]) + (v.Y * m.Data[1][1]) + (v.Z * m.Data[2][1]) + (v.W * m.Data[3][1]);
+	result.Z = (v.X * m.Data[0][2]) + (v.Y * m.Data[1][2]) + (v.Z * m.Data[2][2]) + (v.W * m.Data[3][2]);
+	result.W = (v.X * m.Data[0][3]) + (v.Y * m.Data[1][3]) + (v.Z * m.Data[2][3]) + (v.W * m.Data[3][3]);
+
+
+	return result;
+}
+
+FMatrix FMatrix::Transpose() const
+{
+	FMatrix result = {};
+	for (int i = 0; i < 4; i++)
+	{
+		for (int j = 0;j < 4;j++)
+		{
+			result.Data[i][j] = Data[j][i];
+		}
+	}
+
+	return result;
 }
 
 
