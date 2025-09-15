@@ -16,6 +16,9 @@ namespace Time
 constexpr float Pi = 3.141592f;
 constexpr uint64 KILO = 1024;
 constexpr uint64 MEGA = 1024 * 1024;
+constexpr float MATH_EPSILON = 1e-6;
+constexpr float ToRad = Pi / 180.0f;
+constexpr float ToDeg = 180.0f / Pi;
 
 constexpr float CameraSpeed = 6.0f;
 constexpr float KeySensitivityDegPerPixel = 0.05f;

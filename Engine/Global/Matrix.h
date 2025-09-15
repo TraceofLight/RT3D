@@ -9,6 +9,9 @@ struct FMatrix
 	*/
 	float Data[4][4];
 
+	static FMatrix DxToUE;
+	static FMatrix UEToDx;
+
 
 	/**
 	* @brief float 타입의 배열을 사용한 FMatrix의 기본 생성자
@@ -23,6 +26,10 @@ struct FMatrix
 		float M10, float M11, float M12, float M13,
 		float M20, float M21, float M22, float M23,
 		float M30, float M31, float M32, float M33);
+
+	FMatrix(const FVector&, const FVector&, const FVector&);
+
+	FMatrix(const FVector4&, const FVector4&, const FVector4&);
 
 	/**
 	* @brief 항등행렬
@@ -53,6 +60,8 @@ struct FMatrix
 	*/
 	static FMatrix RotationMatrix(const FVector& InOtherVector);
 
+	static FMatrix CreateFromYawPitchRoll(const float yaw, const float pitch, const float roll);
+
 	static FMatrix RotationMatrixInverse(const FVector& InOtherVector);
 
 	/**
@@ -73,4 +82,8 @@ struct FMatrix
 	static FMatrix GetModelMatrix(const FVector& Location, const FVector& Rotation, const FVector& Scale);
 
 	static FMatrix GetModelMatrixInverse(const FVector& Location, const FVector& Rotation, const FVector& Scale);
+
+	static FVector4 VectorMultiply(const FVector4&, const FMatrix&);
+
+	FMatrix Transpose() const;
 };

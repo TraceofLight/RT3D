@@ -61,6 +61,7 @@ void UCameraControlWidget::RenderWidget()
 
 	auto& Location = Camera->GetLocation();
 	auto& Rotation = Camera->GetRotation();
+	
 
 	if (ImGui::DragFloat3("Camera Location", &Location.X, 0.05f))
 	{

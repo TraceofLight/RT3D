@@ -19,7 +19,7 @@ public:
 
 	UCamera() :
 		ViewProjConstants(FViewProjConstants()),
-		RelativeLocation(FVector(-5.f, 10.f, -5.f)), RelativeRotation(FVector(45, 45, 0)),
+		RelativeLocation(FVector(-15.0f, 0.f, 10.0f)), RelativeRotation(FVector(0, 0, 0)),
 		FovY(90.f), Aspect(float(Render::INIT_SCREEN_WIDTH) / Render::INIT_SCREEN_HEIGHT),
 		NearZ(0.1f), FarZ(100.f), CameraType(ECameraType::ECT_Perspective)
 	{
@@ -92,10 +92,10 @@ public:
 private:
 	FViewProjConstants ViewProjConstants = {};
 	FVector RelativeLocation = {};
-	FVector RelativeRotation = {};
-	FVector Forward = { 0,0,1 };
-	FVector Up = {};
-	FVector Right = {};
+	FVector RelativeRotation = {};	
+	FVector Forward = { 1,0,0 };
+	FVector Up = {0,0,1};
+	FVector Right = {0,1,0};
 	float FovY = {};
 	float Aspect = {};
 	float NearZ = {};

@@ -104,10 +104,10 @@ private:
 	{
 		switch (InDirection)
 		{
-		case EGizmoDirection::Right:   return 0;
-		case EGizmoDirection::Up:      return 1;
-		case EGizmoDirection::Forward: return 2;
-		default:                       return 2;
+		case EGizmoDirection::Forward:	return 0;
+		case EGizmoDirection::Right:	return 1;
+		case EGizmoDirection::Up:		return 2;
+		default:						return 2;
 		}
 	}
 
