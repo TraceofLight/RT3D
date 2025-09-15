@@ -50,10 +50,10 @@ void UBatchLines::UpdateUGridVertices(const float newCellSize)
 	bChangedVertices = true;
 }
 
-void UBatchLines::UpdateBoundingBoxVertices(const FBoundingBox& newBoundingBoxInfo)
+void UBatchLines::UpdateBoundingBoxVertices(const FAABB& newBoundingBoxInfo)
 {
-	FBoundingBox curBoudingBoxInfo = BoundingBoxLines.GetRenderedBoxInfo();
-	if (newBoundingBoxInfo.min == curBoudingBoxInfo.min && newBoundingBoxInfo.max == curBoudingBoxInfo.max)
+	FAABB curBoudingBoxInfo = BoundingBoxLines.GetRenderedBoxInfo();
+	if (newBoundingBoxInfo.Min == curBoudingBoxInfo.Min && newBoundingBoxInfo.Max == curBoudingBoxInfo.Max)
 	{
 		return;
 	}
@@ -62,7 +62,7 @@ void UBatchLines::UpdateBoundingBoxVertices(const FBoundingBox& newBoundingBoxIn
 	bChangedVertices = true;
 }
 
-void UBatchLines::UpdateBatchLineVertices(const float newCellSize, const FBoundingBox& newBoundingBoxInfo)
+void UBatchLines::UpdateBatchLineVertices(const float newCellSize, const FAABB& newBoundingBoxInfo)
 {
 	UpdateUGridVertices(newCellSize);
 	UpdateBoundingBoxVertices(newBoundingBoxInfo);

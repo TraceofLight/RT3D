@@ -42,10 +42,23 @@ void UEditor::Update()
 	auto& Renderer = URenderer::GetInstance();
 	Camera.Update();
 
+	AActor* SelectedActor = ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor();
+	if (SelectedActor)
+	{
+		for (const auto& Component : SelectedActor->GetOwnedComponents())
+		{
+			if (auto* PrimitiveComponent = dynamic_cast<UPrimitiveComponent*>(Component))
+			{
+				FVector WorldMin, WorldMax;
+				PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
+				BatchLines.UpdateBoundingBoxVertices(FAABB(WorldMin, WorldMax));
+			}
+		}
+	}
+
 	BatchLines.UpdateVertexBuffer();
 
 	ProcessMouseInput(ULevelManager::GetInstance().GetCurrentLevel());
-
 
 	Renderer.UpdateConstant(Camera.GetFViewProjConstants());
 
@@ -60,18 +73,6 @@ void UEditor::RenderEditor()
 
 	AActor* SelectedActor = ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor();
 	Gizmo.RenderGizmo(SelectedActor, Camera.GetLocation());
-
-	if (SelectedActor)
-	{
-		for (const auto& Component : SelectedActor->GetOwnedComponents())
-		{
-			if (auto* PrimitiveComponent = dynamic_cast<UPrimitiveComponent*>(Component))
-			{
-				URenderer::GetInstance().RenderLocalOBB(PrimitiveComponent);
-				URenderer::GetInstance().RenderWorldAABB(PrimitiveComponent);
-			}
-		}
-	}
 }
 
 void UEditor::ProcessMouseInput(ULevel* InLevel)

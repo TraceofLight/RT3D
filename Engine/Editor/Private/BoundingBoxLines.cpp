@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "Editor/Public/BoundingBoxLines.h"
+#include "Mesh/Public/AABB.h"
 
 UBoundingBoxLines::UBoundingBoxLines()
 	: Vertices(TArray<FVector>())
 	, NumVertices(8)
 {
 	Vertices.reserve(NumVertices);
-	UpdateVertices({ {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
+	UpdateVertices(FAABB({0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}));
 }
 
 void UBoundingBoxLines::MergeVerticesAt(TArray<FVector>& destVertices, size_t insertStartIndex)
@@ -39,16 +40,16 @@ void UBoundingBoxLines::MergeVerticesAt(TArray<FVector>& destVertices, size_t in
 	);*/
 }
 
-void UBoundingBoxLines::UpdateVertices(FBoundingBox boundingBoxInfo)
+void UBoundingBoxLines::UpdateVertices(FAABB boundingBoxInfo)
 {
 	// 중복 삽입 방지
-	if (RenderedBoxInfo.min == boundingBoxInfo.min && RenderedBoxInfo.max == boundingBoxInfo.max)
+	if (RenderedBoxInfo.Min == boundingBoxInfo.Min && RenderedBoxInfo.Max == boundingBoxInfo.Max)
 	{
 		return;
 	}
 
-	float minX = boundingBoxInfo.min.X, minY = boundingBoxInfo.min.Y, minZ = boundingBoxInfo.min.Z;
-	float maxX = boundingBoxInfo.max.X, maxY = boundingBoxInfo.max.Y, maxZ = boundingBoxInfo.max.Z;
+	float MinX = boundingBoxInfo.Min.X, MinY = boundingBoxInfo.Min.Y, MinZ = boundingBoxInfo.Min.Z;
+	float MaxX = boundingBoxInfo.Max.X, MaxY = boundingBoxInfo.Max.Y, MaxZ = boundingBoxInfo.Max.Z;
 
 	if (Vertices.size() < NumVertices)
 	{
@@ -57,12 +58,12 @@ void UBoundingBoxLines::UpdateVertices(FBoundingBox boundingBoxInfo)
 
 	// 꼭짓점 정의 (0~3: 앞면, 4~7: 뒷면)
 	uint32 vertexIndex = 0;
-	Vertices[vertexIndex++] = { minX, minY, minZ }; // Front-Bottom-Left
-	Vertices[vertexIndex++] = { maxX, minY, minZ }; // Front-Bottom-Right
-	Vertices[vertexIndex++] = { maxX, maxY, minZ }; // Front-Top-Right
-	Vertices[vertexIndex++] = { minX, maxY, minZ }; // Front-Top-Left
-	Vertices[vertexIndex++] = { minX, minY, maxZ }; // Back-Bottom-Left
-	Vertices[vertexIndex++] = { maxX, minY, maxZ }; // Back-Bottom-Right
-	Vertices[vertexIndex++] = { maxX, maxY, maxZ }; // Back-Top-Right
-	Vertices[vertexIndex++] = { minX, maxY, maxZ }; // Back-Top-Left
+	Vertices[vertexIndex++] = { MinX, MinY, MinZ }; // Front-Bottom-Left
+	Vertices[vertexIndex++] = { MaxX, MinY, MinZ }; // Front-Bottom-Right
+	Vertices[vertexIndex++] = { MaxX, MaxY, MinZ }; // Front-Top-Right
+	Vertices[vertexIndex++] = { MinX, MaxY, MinZ }; // Front-Top-Left
+	Vertices[vertexIndex++] = { MinX, MinY, MaxZ }; // Back-Bottom-Left
+	Vertices[vertexIndex++] = { MaxX, MinY, MaxZ }; // Back-Bottom-Right
+	Vertices[vertexIndex++] = { MaxX, MaxY, MaxZ }; // Back-Top-Right
+	Vertices[vertexIndex++] = { MinX, MaxY, MaxZ }; // Back-Top-Left
 }
