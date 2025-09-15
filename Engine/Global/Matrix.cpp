@@ -150,12 +150,23 @@ FMatrix FMatrix::ScaleMatrixInverse(const FVector& InOtherVector)
 */
 FMatrix FMatrix::RotationMatrix(const FVector& InOtherVector)
 {
-	return RotationZ(InOtherVector.Z) * RotationY(InOtherVector.Y) * RotationX(InOtherVector.X);
+	const float yaw = InOtherVector.Y;
+	const float pitch = InOtherVector.X;
+	const float roll = InOtherVector.Z;
+	return RotationZ(yaw) * RotationY(pitch) * RotationX(roll);
+}
+
+FMatrix FMatrix::CreateFromYawPitchRoll(const float yaw, const float pitch, const float roll)
+{	
+	return RotationZ(yaw) * RotationY(pitch)* RotationX(roll);
 }
 
 FMatrix FMatrix::RotationMatrixInverse(const FVector& InOtherVector)
-{	
-	return RotationX(-InOtherVector.X) * RotationY(-InOtherVector.Y) * RotationZ(-InOtherVector.Z);
+{
+	const float yaw = InOtherVector.Y;
+	const float pitch = InOtherVector.X;
+	const float roll = InOtherVector.Z;
+	return RotationX(-yaw) * RotationY(-pitch) * RotationZ(-roll);
 }
 
 /**
@@ -217,7 +228,7 @@ FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FVector& Rotation
 	FMatrix S = ScaleMatrix(Scale);
 	FMatrix modelMatrix = S * R * T;
 
-	return FMatrix::DxToUE * modelMatrix;
+	return modelMatrix * FMatrix::DxToUE;
 }
 
 FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& Rotation, const FVector& Scale)

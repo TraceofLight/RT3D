@@ -12,7 +12,7 @@ UGizmo::UGizmo()
 	GizmoColor.resize(3);
 
 	/* *
-	* @brief 0: Right, 1: Up, 2: Forward
+	* @brief 0: Forward(x), 1: Right(y), 2: Up(z)
 	*/
 	GizmoColor[0] = FVector4(1, 0, 0, 1);
 	GizmoColor[1] = FVector4(0, 1, 0, 1);
@@ -72,8 +72,8 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 	{
 		LocalRotation = TargetActor->GetActorRotation();
 	}*/
-	// X (Right)
 
+	
 	float Scale = DistanceToCamera * ScaleFactor;
 	if (DistanceToCamera < MinScaleFactor)
 		Scale = MinScaleFactor * ScaleFactor;
@@ -82,18 +82,19 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 
 	P.Scale = FVector(Scale, Scale, Scale);
 
-	P.Rotation = FVector{0,89.99f,0} + LocalRotation;
+	// X (Forward)
+	P.Rotation = FVector{0,0,-89.99f} + LocalRotation;
+	P.Color = ColorFor(EGizmoDirection::Forward);
+	Renderer.RenderPrimitive(P, RenderState);
+
+	// Y (Right)
+	P.Rotation = FVector{ 0,0,0 } + LocalRotation;
 	P.Color = ColorFor(EGizmoDirection::Right);
 	Renderer.RenderPrimitive(P, RenderState);
 
-	// Y (Up)
-	P.Rotation = FVector{ -89.99f,0,0 } + LocalRotation;
-	P.Color = ColorFor(EGizmoDirection::Up);
-	Renderer.RenderPrimitive(P, RenderState);
-
 	// Z (Forward)
-	P.Rotation = FVector{ 0, 0, 0 } + LocalRotation;
-	P.Color = ColorFor(EGizmoDirection::Forward);
+	P.Rotation = FVector{ 89.99f, 0, 0 } + LocalRotation;
+	P.Color = ColorFor(EGizmoDirection::Up);
 	Renderer.RenderPrimitive(P, RenderState);
 }
 

@@ -60,6 +60,8 @@ struct FMatrix
 	*/
 	static FMatrix RotationMatrix(const FVector& InOtherVector);
 
+	static FMatrix CreateFromYawPitchRoll(const float yaw, const float pitch, const float roll);
+
 	static FMatrix RotationMatrixInverse(const FVector& InOtherVector);
 
 	/**

@@ -8,24 +8,17 @@ void UCamera::Update()
 {
 	const UInputManager& Input = UInputManager::GetInstance();
 
-	/*FVector4 Forward4 = FVector4(1, 0, 0, 1) * FMatrix::RotationMatrix(FVector::GetDegreeToRadian(RelativeRotation));	
-	Forward = FVector(Forward4.X, Forward4.Y, Forward4.Z);
-	Forward.Normalize();	
-	FVector tempUp = FVector(0, 0, 1);
-	Right = Forward.Cross(tempUp);
-	Right.Normalize();
-	Up = Forward.Cross(Right);
-	Up.Normalize();*/
+	//FVector rotationRadians = {};
+	//// roll
+	//rotationRadians.X = 0.0f;
+	//// pitch
+	//rotationRadians.Y = FVector::GetDegreeToRadian(RelativeRotation.X);
+	//// yaw
+	//rotationRadians.Z = FVector::GetDegreeToRadian(RelativeRotation.Y);
 
-	FVector rotationRadians = {};
-	// roll
-	rotationRadians.X = 0.0f;
-	// pitch
-	rotationRadians.Y = FVector::GetDegreeToRadian(RelativeRotation.X);
-	// yaw
-	rotationRadians.Z = FVector::GetDegreeToRadian(RelativeRotation.Y);
-
-	FMatrix rotationMatrix = FMatrix::RotationMatrix(rotationRadians);
+	//FMatrix rotationMatrix = FMatrix::RotationMatrix(rotationRadians);
+	
+	FMatrix rotationMatrix = FMatrix::RotationMatrix(FVector::GetDegreeToRadian(RelativeRotation));
 
 	FVector4 Forward4 = FVector4(1, 0, 0, 1) * rotationMatrix;
 	Forward = FVector(Forward4.X, Forward4.Y, Forward4.Z);
@@ -36,9 +29,6 @@ void UCamera::Update()
 	Right.Normalize();
 	Up = Right.Cross(Forward);
 	Up.Normalize();
-
-	/*RelativeRotation.X = rotationRadians.Y;
-	RelativeRotation.Y = rotationRadians.Z;*/
 	
 	/**
 	 * @brief 마우스 우클릭을 하고 있는 동안 카메라 제어가 가능합니다.
@@ -148,8 +138,12 @@ void UCamera::UpdateMatrixByOrth()
 	 * @brief View 행렬 연산
 	 */
 	FMatrix T = FMatrix::TranslationMatrixInverse(RelativeLocation);
-	FMatrix R = FMatrix::RotationMatrixInverse(FVector::GetDegreeToRadian(RelativeRotation));
+	FMatrix R = FMatrix(Right, Up, Forward);
+	R = R.Transpose();
 	ViewProjConstants.View = T * R;
+	/*FMatrix T = FMatrix::TranslationMatrixInverse(RelativeLocation);
+	FMatrix R = FMatrix::RotationMatrixInverse(FVector::GetDegreeToRadian(RelativeRotation));
+	ViewProjConstants.View = T * R;*/
 
 	/**
 	 * @brief Projection 행렬 연산
@@ -178,7 +172,8 @@ const FViewProjConstants UCamera::GetFViewProjConstantsInverse() const
 	* @brief View^(-1) = R * T
 	*/
 	FViewProjConstants Result = {};
-	FMatrix R = FMatrix::RotationMatrix(FVector::GetDegreeToRadian(RelativeRotation));
+	//FMatrix R = FMatrix::RotationMatrix(FVector::GetDegreeToRadian(RelativeRotation));
+	FMatrix R = FMatrix(Right, Up, Forward);	
 	FMatrix T = FMatrix::TranslationMatrix(RelativeLocation);
 	Result.View = R * T;
 
