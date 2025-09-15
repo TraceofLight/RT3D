@@ -84,6 +84,21 @@ void UResourceManager::Initialize()
 		MaxPoint.Z = max(MaxPoint.Z, Vertex.Position.Z);
 	}
 	SphereAABB = FAABB(MinPoint, MaxPoint);
+
+	// Initialize Shaders
+	ID3D11VertexShader* vertexShader;
+	ID3D11InputLayout* inputLayout;
+	TArray<D3D11_INPUT_ELEMENT_DESC> layoutDesc =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+	URenderer::GetInstance().CreateVertexShaderAndInputLayout(L"Asset/Shader/BatchLineVS.hlsl", layoutDesc, &vertexShader, &inputLayout);
+	VertexShaders.emplace(EShaderType::BatchLine, vertexShader);
+	InputLayouts.emplace(EShaderType::BatchLine, inputLayout);
+
+	ID3D11PixelShader* pixelShader;
+	URenderer::GetInstance().CreatePixelShader(L"Asset/Shader/BatchLinePS.hlsl", &pixelShader);
+	PixelShaders.emplace(EShaderType::BatchLine, pixelShader);
 }
 
 void UResourceManager::Release()
@@ -114,6 +129,21 @@ ID3D11Buffer* UResourceManager::GetVertexbuffer(EPrimitiveType InType)
 uint32 UResourceManager::GetNumVertices(EPrimitiveType InType)
 {
 	return NumVertices[InType];
+}
+
+ID3D11VertexShader* UResourceManager::GetVertexShader(EShaderType Type)
+{
+	return VertexShaders[Type];
+}
+
+ID3D11PixelShader* UResourceManager::GetPixelShader(EShaderType Type)
+{
+	return PixelShaders[Type];
+}
+
+ID3D11InputLayout* UResourceManager::GetIputLayout(EShaderType Type)
+{
+	return InputLayouts[Type];
 }
 
 const FAABB& UResourceManager::GetCubeAABB() const

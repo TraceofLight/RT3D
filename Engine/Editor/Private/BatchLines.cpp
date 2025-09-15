@@ -2,7 +2,7 @@
 #include "Editor/Public/BatchLines.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Editor/Public/EditorPrimitive.h"
-#include "Mesh/Public/ResourceManager.h"
+#include "Manager/Resource/Public/ResourceManager.h"
 
 UBatchLines::UBatchLines()
 	: Grid()
