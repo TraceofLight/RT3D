@@ -14,5 +14,5 @@ UCubeComponent::UCubeComponent()
 	NumVertices = ResourceManager.GetNumVertices(Type);
 	RenderState.CullMode = ECullMode::Back;
 	RenderState.FillMode = EFillMode::Solid;
-	BoundingBox = &ResourceManager.GetCubeAABB();
+	BoundingBox = &ResourceManager.GetAABB(Type);
 }

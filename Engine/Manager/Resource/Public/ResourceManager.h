@@ -37,8 +37,7 @@ public:
 	ID3D11ShaderResourceView* CreateTextureFromMemory(const void* InData, size_t InDataSize);
 
 	// Bounding Box
-	const FAABB& GetCubeAABB() const;
-	const FAABB& GetSphereAABB() const;
+	const FAABB& GetAABB(EPrimitiveType InType);
 
 private:
 	// Vertex Resource
@@ -58,6 +57,5 @@ private:
 	void ReleaseAllTextures();
 
 	// AABB Resource
-	FAABB CubeAABB;
-	FAABB SphereAABB;
+	TMap<EPrimitiveType, FAABB> AABBs; // 각 타입별 AABB 저장
 };

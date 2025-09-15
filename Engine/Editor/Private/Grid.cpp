@@ -26,7 +26,7 @@ void UGrid::UpdateVerticesBy(float NewCellSize)
 		return;
 	}
 
-	float CellSize = NewCellSize; // 필요하다면 멤버 변수도 갱신
+	CellSize = NewCellSize; // 필요하다면 멤버 변수도 갱신
 
 	float LineLength = NewCellSize * static_cast<float>(NumLines) / 2.f;
 
