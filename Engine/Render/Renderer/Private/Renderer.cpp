@@ -5,8 +5,10 @@
 
 #include "Manager/Level/Public/LevelManager.h"
 #include "Manager/UI/Public/UIManager.h"
+#include "Manager/Resource/Public/ResourceManager.h"
 #include "Mesh/Public/Actor.h"
 #include "Mesh/Public/PrimitiveComponent.h"
+#include "Mesh/Public/AABB.h"
 #include "Render/Renderer/Public/Pipeline.h"
 #include "Editor/Public/Editor.h"
 
@@ -255,6 +257,79 @@ void URenderer::RenderLevel()
 		Pipeline->SetVertexBuffer(PrimitiveComponent->GetVertexBuffer(), Stride);
 		Pipeline->Draw(static_cast<uint32>(PrimitiveComponent->GetVerticesData()->size()), 0);
 	}
+}
+
+void URenderer::RenderLocalOBB(const UPrimitiveComponent* InPrimitive)
+{
+	if (!InPrimitive)	return;
+
+	FVector LocalMin, LocalMax;
+	if (InPrimitive->GetBoundingBox()->GetType() == EBoundingVolumeType::AABB)
+	{
+		const FAABB* LocalAABB = static_cast<const FAABB*>(InPrimitive->GetBoundingBox());
+		LocalMin = LocalAABB->Min;
+		LocalMax = LocalAABB->Max;
+	}
+
+	ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(InPrimitive->GetRenderState());
+	FPipelineInfo PipelineInfo = {
+		DefaultInputLayout,
+		DefaultVertexShader,
+		LoadedRasterizerState,
+		DefaultDepthStencilState,
+		DefaultPixelShader,
+		nullptr,
+	};
+
+	FVector LocalOBBCenter = (LocalMax + LocalMin) * 0.5f;
+	FVector LocalOBBScale = LocalMax - LocalMin;
+	FMatrix FinalTransform = FMatrix::ScaleMatrix(LocalOBBScale) * FMatrix::TranslationMatrix(LocalOBBCenter) * InPrimitive->GetWorldTransformMatrix();
+
+	// Wireframe mode
+	FRenderState WireframeState;
+	WireframeState.FillMode = EFillMode::WireFrame;
+	WireframeState.CullMode = ECullMode::None;
+	ID3D11RasterizerState* wireframeRasterizer = GetRasterizerState(WireframeState);
+	PipelineInfo.RasterizerState = wireframeRasterizer;
+	Pipeline->UpdatePipeline(PipelineInfo);
+	UpdateConstant(FinalTransform);
+	UpdateConstant(FVector4(1, 1, 0, 1));
+	Pipeline->SetVertexBuffer(UResourceManager::GetInstance().GetVertexbuffer(EPrimitiveType::Cube), Stride);
+	Pipeline->Draw(UResourceManager::GetInstance().GetNumVertices(EPrimitiveType::Cube), 0);
+}
+
+void URenderer::RenderWorldAABB(const UPrimitiveComponent* InPrimitive)
+{
+	if (!InPrimitive)	return;
+
+	FVector WorldMin, WorldMax;
+	InPrimitive->GetWorldAABB(WorldMin, WorldMax);
+
+	ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(InPrimitive->GetRenderState());
+	FPipelineInfo PipelineInfo = {
+		DefaultInputLayout,
+		DefaultVertexShader,
+		LoadedRasterizerState,
+		DefaultDepthStencilState,
+		DefaultPixelShader,
+		nullptr,
+	};
+
+	FVector WorldAABBCenter = (WorldMax + WorldMin) * 0.5f;
+	FVector WorldAABBScale = WorldMax - WorldMin;
+	FMatrix FinalTransform = FMatrix::ScaleMatrix(WorldAABBScale) * FMatrix::TranslationMatrix(WorldAABBCenter);
+
+	// Wireframe mode
+	FRenderState WireframeState;
+	WireframeState.FillMode = EFillMode::WireFrame;
+	WireframeState.CullMode = ECullMode::None;
+	ID3D11RasterizerState* wireframeRasterizer = GetRasterizerState(WireframeState);
+	PipelineInfo.RasterizerState = wireframeRasterizer;
+	Pipeline->UpdatePipeline(PipelineInfo);
+	UpdateConstant(FinalTransform);
+	UpdateConstant(FVector4(0, 1, 0, 1));
+	Pipeline->SetVertexBuffer(UResourceManager::GetInstance().GetVertexbuffer(EPrimitiveType::Cube), Stride);
+	Pipeline->Draw(UResourceManager::GetInstance().GetNumVertices(EPrimitiveType::Cube), 0);
 }
 
 /**
@@ -529,6 +604,17 @@ void URenderer::UpdateConstant(const FViewProjConstants& InViewProjConstants) co
 			ViewProjectionConstants->Projection = InViewProjConstants.Projection;
 		}
 		GetDeviceContext()->Unmap(ConstantBufferViewProj, 0);
+	}
+}
+
+void URenderer::UpdateConstant(const FMatrix& InMatrix) const
+{
+	if (ConstantBufferModels)
+	{
+		D3D11_MAPPED_SUBRESOURCE msr;
+		GetDeviceContext()->Map(ConstantBufferModels, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		memcpy(msr.pData, &InMatrix, sizeof(FMatrix));
+		GetDeviceContext()->Unmap(ConstantBufferModels, 0);
 	}
 }
 
