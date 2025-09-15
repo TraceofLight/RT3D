@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/Public/Object.h"
+//#include "Editor/Public/Editor.h"
 
+class UEditor;
 class ULevel;
 struct FLevelMetadata;
 
@@ -32,7 +34,13 @@ public:
 	static FLevelMetadata ConvertLevelToMetadata(ULevel* InLevel);
 	static bool LoadLevelFromMetadata(ULevel* InLevel, const FLevelMetadata& InMetadata);
 
+	UEditor* GetEditor()
+	{
+		return Editor;
+	}
+
 private:
 	ULevel* CurrentLevel;
 	TMap<FName, ULevel*> Levels;
+	UEditor* Editor;
 };

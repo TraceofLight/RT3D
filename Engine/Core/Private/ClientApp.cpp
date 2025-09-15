@@ -93,7 +93,7 @@ int FClientApp::InitializeSystem()
 	ULevelManager::GetInstance().CreateDefaultLevel();
 
 	// Initialize Editor
-	Editor = new UEditor;
+	//Editor = new UEditor;
 
 	return S_OK;
 }
@@ -109,12 +109,12 @@ void FClientApp::UpdateSystem() const
 	auto& Renderer = URenderer::GetInstance();
 	auto& LevelManager = ULevelManager::GetInstance();
 
-	Editor->Update();
+	//Editor->Update();
+	LevelManager.Update();
 	TimeManager.Update();
 	InputManager.Update(Window);
 	UIManager.Update();
-	LevelManager.Update();
-	Renderer.Update(Editor);
+	Renderer.Update();
 }
 
 /**
@@ -161,6 +161,6 @@ void FClientApp::ShutdownSystem() const
 
 	// 레벨 매니저 정리
 	// ULevelManager::GetInstance().Release();
-	delete Editor;
+	//delete Editor;
 	delete Window;
 }
