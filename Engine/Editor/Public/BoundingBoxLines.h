@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Public/Object.h"
-#include "Global/CoreTypes.h"
+#include "Mesh/Public/AABB.h"
 
 class UBoundingBoxLines : UObject
 {
@@ -9,14 +9,14 @@ public:
 	~UBoundingBoxLines() = default;
 
 	void MergeVerticesAt(TArray<FVector>& destVertices, size_t insertStartIndex);
-	void UpdateVertices(FBoundingBox boundingBoxInfo);
+	void UpdateVertices(FAABB boundingBoxInfo);
 
 	uint32 GetNumVertices() const
 	{
 		return NumVertices;
 	}
 
-	FBoundingBox GetRenderedBoxInfo() const
+	FAABB GetRenderedBoxInfo() const
 	{
 		return RenderedBoxInfo;
 	}
@@ -24,5 +24,5 @@ public:
 private:
 	TArray<FVector> Vertices;
 	uint32 NumVertices = 8;
-	FBoundingBox RenderedBoxInfo;
+	FAABB RenderedBoxInfo;
 };

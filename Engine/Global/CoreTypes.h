@@ -4,13 +4,6 @@
 #include "Global/Types.h"
 #include <cstdint>
 
-// 테스트 용으로 미리 만든 거
-struct FBoundingBox
-{
-	FVector min;
-	FVector max;
-};
-
 //struct BatchLineContants
 //{
 //	float CellSize;

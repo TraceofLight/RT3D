@@ -14,10 +14,10 @@ public:
 	//~BatchLines();
 
 	void UpdateUGridVertices(const float newCellSize);
-	void UpdateBoundingBoxVertices(const FBoundingBox& newBoundingBoxInfo);
+	void UpdateBoundingBoxVertices(const FAABB& newBoundingBoxInfo);
 
 	// 전체 업데이트
-	void UpdateBatchLineVertices(const float newCellSize, const FBoundingBox& newBoundingBoxInfo);
+	void UpdateBatchLineVertices(const float newCellSize, const FAABB& newBoundingBoxInfo);
 
 	// GPU VertexBuffer에 복사
 	void UpdateVertexBuffer();
