@@ -11,7 +11,7 @@ class UBatchLines : UObject
 {
 public:
 	UBatchLines();
-	//~BatchLines();
+	~UBatchLines();
 
 	// 종류별 Vertices 업데이트
 	void UpdateUGridVertices(const float newCellSize);

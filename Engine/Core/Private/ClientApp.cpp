@@ -13,6 +13,7 @@
 
 #include "Render/UI/Window/Public/ConsoleWindow.h"
 
+#include "Manager/Config/Public/ConfigManager.h"
 
 FClientApp::FClientApp() = default;
 

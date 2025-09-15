@@ -2,20 +2,21 @@
 #include "Editor/Public/Grid.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Editor/Public/EditorPrimitive.h"
+#include "Manager/Config/Public/ConfigManager.h"
 
 
 UGrid::UGrid()
 	: Vertices(TArray<FVector>())
 	, NumLines(250)
-	, CellSize(0)
+	, CellSize(0) // 아래 UpdateVerticesBy에 넣어주는 값과 달라야 함
 {
 	NumVertices = NumLines * 4;
 	Vertices.reserve(NumVertices);
-	UpdateVerticesBy(1);
+	UpdateVerticesBy(UConfigManager::GetInstance().GetCellSize());
 }
 UGrid::~UGrid()
 {
-	//URenderer::ReleaseVertexBuffer(Primitive.Vertexbuffer);
+	UConfigManager::GetInstance().SetCellSize(CellSize);
 }
 
 void UGrid::UpdateVerticesBy(float NewCellSize)

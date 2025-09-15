@@ -39,6 +39,15 @@ UBatchLines::UBatchLines()
 	Primitive.PixelShader = UResourceManager::GetInstance().GetPixelShader(EShaderType::BatchLine);
 }
 
+UBatchLines::~UBatchLines()
+{
+	URenderer::ReleaseVertexBuffer(Primitive.Vertexbuffer);
+	Primitive.InputLayout->Release();
+	Primitive.VertexShader->Release();
+	Primitive.IndexBuffer->Release();
+	Primitive.PixelShader->Release();
+}
+
 void UBatchLines::UpdateUGridVertices(const float newCellSize)
 {
 	if (newCellSize == Grid.GetCellSize())
