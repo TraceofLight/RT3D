@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Public/Object.h"
+#include "Mesh/Public/AABB.h"
 
 /**
  * @brief 전역의 On-Memory Asset을 관리하는 매니저 클래스
@@ -30,6 +31,10 @@ public:
 	static ID3D11ShaderResourceView* CreateTextureFromFile(const FString& InFilePath);
 	ID3D11ShaderResourceView* CreateTextureFromMemory(const void* InData, size_t InDataSize);
 
+	// Bounding Box
+	const FAABB& GetCubeAABB() const;
+	const FAABB& GetSphereAABB() const;
+
 private:
 	// Vertex Resource
 	TMap<EPrimitiveType, ID3D11Buffer*> Vertexbuffers;
@@ -41,4 +46,8 @@ private:
 
 	// Release Functions
 	void ReleaseAllTextures();
+
+	// AABB Resource
+	FAABB CubeAABB;
+	FAABB SphereAABB;
 };

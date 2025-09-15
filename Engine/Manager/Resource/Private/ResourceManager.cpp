@@ -56,6 +56,34 @@ void UResourceManager::Initialize()
 	NumVertices.emplace(EPrimitiveType::CubeArrow, static_cast<uint32>(VerticesCubeArrow.size()));
 	NumVertices.emplace(EPrimitiveType::Ring, static_cast<uint32>(VerticesRing.size()));
 	NumVertices.emplace(EPrimitiveType::Line, static_cast<uint32>(VerticesLine.size()));
+
+	// Calculate Cube AABB
+	FVector MinPoint(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+	FVector MaxPoint(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (const auto& Vertex : VerticesCube)
+	{
+		MinPoint.X = min(MinPoint.X, Vertex.Position.X);
+		MinPoint.Y = min(MinPoint.Y, Vertex.Position.Y);
+		MinPoint.Z = min(MinPoint.Z, Vertex.Position.Z);
+		MaxPoint.X = max(MaxPoint.X, Vertex.Position.X);
+		MaxPoint.Y = max(MaxPoint.Y, Vertex.Position.Y);
+		MaxPoint.Z = max(MaxPoint.Z, Vertex.Position.Z);
+	}
+	CubeAABB = FAABB(MinPoint, MaxPoint);
+
+	// Calculate Sphere AABB
+	MinPoint = FVector(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+	MaxPoint = FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+	for (const auto& Vertex : VerticesSphere)
+	{
+		MinPoint.X = min(MinPoint.X, Vertex.Position.X);
+		MinPoint.Y = min(MinPoint.Y, Vertex.Position.Y);
+		MinPoint.Z = min(MinPoint.Z, Vertex.Position.Z);
+		MaxPoint.X = max(MaxPoint.X, Vertex.Position.X);
+		MaxPoint.Y = max(MaxPoint.Y, Vertex.Position.Y);
+		MaxPoint.Z = max(MaxPoint.Z, Vertex.Position.Z);
+	}
+	SphereAABB = FAABB(MinPoint, MaxPoint);
 }
 
 void UResourceManager::Release()
@@ -86,6 +114,16 @@ ID3D11Buffer* UResourceManager::GetVertexbuffer(EPrimitiveType InType)
 uint32 UResourceManager::GetNumVertices(EPrimitiveType InType)
 {
 	return NumVertices[InType];
+}
+
+const FAABB& UResourceManager::GetCubeAABB() const
+{
+	return CubeAABB;
+}
+
+const FAABB& UResourceManager::GetSphereAABB() const
+{
+	return SphereAABB;
 }
 
 /**

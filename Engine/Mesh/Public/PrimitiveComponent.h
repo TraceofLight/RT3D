@@ -1,5 +1,6 @@
 #pragma once
 #include "Mesh/Public/SceneComponent.h"
+#include "Mesh/Public/BoundingVolume.h"
 
 UCLASS()
 class UPrimitiveComponent : public USceneComponent
