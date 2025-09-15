@@ -57,7 +57,7 @@ void UGrid::UpdateVerticesBy(float NewCellSize)
 	{
 		if (LineCount == 0)
 		{
-			Vertices[vertexIndex++] = { 0.0f, static_cast<float>(LineCount) * NewCellSize, -LineLength };
+			Vertices[vertexIndex++] = { -LineLength, static_cast<float>(LineCount) * NewCellSize, 0.0f };
 			Vertices[vertexIndex++] = { 0.f, static_cast<float>(LineCount) * NewCellSize, 0.0f };
 		}
 		else
