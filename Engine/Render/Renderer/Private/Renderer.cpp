@@ -232,8 +232,16 @@ void URenderer::RenderLevel()
 	for (auto& PrimitiveComponent : ULevelManager::GetInstance().GetCurrentLevel()->GetLevelPrimitiveComponents())
 	{
 		if (!PrimitiveComponent) { continue; }
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
-		ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(PrimitiveComponent->GetRenderState());
+
+		FRenderState RenderState = PrimitiveComponent->GetRenderState();
+
+		const EViewModeIndex ViewMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
+		if (ViewMode == EViewModeIndex::VMI_Wireframe)
+		{
+			RenderState.CullMode = ECullMode::None;
+			RenderState.FillMode = EFillMode::WireFrame;
+		}
+		ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
 		FPipelineInfo PipelineInfo = {
 			DefaultInputLayout,
 			DefaultVertexShader,
@@ -242,7 +250,6 @@ void URenderer::RenderLevel()
 			DefaultPixelShader,
 			nullptr,
 		};
-		///////////////////////////////////////////////////////////////////////////////////////////////////////
 		Pipeline->UpdatePipeline(PipelineInfo);
 
 		Pipeline->SetConstantBuffer(0, true, ConstantBufferModels);

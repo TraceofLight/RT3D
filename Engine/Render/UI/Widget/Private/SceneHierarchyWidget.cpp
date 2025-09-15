@@ -41,6 +41,21 @@ void USceneHierarchyWidget::RenderWidget()
 	ImGui::Text("Level: %s", CurrentLevel->GetName().ToString().c_str());
 	ImGui::Separator();
 
+	// --- View Mode Selection ---
+	ImGui::Text("View Mode");
+	EViewModeIndex currentMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
+	int modeIndex = static_cast<int>(currentMode);
+
+	ImGui::RadioButton("Lit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Lit)); ImGui::SameLine();
+	ImGui::RadioButton("Unlit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Unlit)); ImGui::SameLine();
+	ImGui::RadioButton("Wireframe", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Wireframe));
+
+	if (modeIndex != static_cast<int>(currentMode))
+	{
+		ULevelManager::GetInstance().GetEditor()->SetViewMode(static_cast<EViewModeIndex>(modeIndex));
+	}
+	ImGui::Separator();
+
 	// 옵션 체크박스들
 	ImGui::Checkbox("Show Details", &bShowDetails);
 	ImGui::Separator();
