@@ -2,74 +2,144 @@
 #include "Editor/Public/Grid.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Editor/Public/EditorPrimitive.h"
+#include "Manager/Config/Public/ConfigManager.h"
 
 
 UGrid::UGrid()
+	: Vertices(TArray<FVector>())
+	, NumLines(250)
+	, CellSize(0) // 아래 UpdateVerticesBy에 넣어주는 값과 달라야 함
 {
-	URenderer& Renderer = URenderer::GetInstance();
-	SetLineVertices();
-
-	Primitive.NumVertices = static_cast<uint32>(LineVertices.size());
-	Primitive.Color = FVector4(1, 1, 1, 0.2f);
-	Primitive.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
-	Primitive.Vertexbuffer = Renderer.CreateVertexBuffer(
-		LineVertices.data(), Primitive.NumVertices * sizeof(FVertex));
-	Primitive.Location = FVector(0, 0, 0);
-	Primitive.Rotation = FVector(0, 0, 0);
-	Primitive.Scale = FVector(1, 1, 1);
+	NumVertices = NumLines * 4;
+	Vertices.reserve(NumVertices);
+	UpdateVerticesBy(UConfigManager::GetInstance().GetCellSize());
 }
 UGrid::~UGrid()
 {
-	URenderer::ReleaseVertexBuffer(Primitive.Vertexbuffer);
+	UConfigManager::GetInstance().SetCellSize(CellSize);
 }
 
-void UGrid::RenderGrid()
+void UGrid::UpdateVerticesBy(float NewCellSize)
 {
-	URenderer& Renderer = URenderer::GetInstance();
+	// 중복 삽입 방지
+	if (CellSize == NewCellSize)
+	{
+		return;
+	}
 
-	Renderer.RenderPrimitive(Primitive, Primitive.RenderState);
+	CellSize = NewCellSize; // 필요하다면 멤버 변수도 갱신
 
-}
-void UGrid::SetGridProperty(float InCellSize, int32 InNumLines)
-{
-	this->CellSize = InCellSize;
-	this->NumLines = InNumLines;
-}
+	float LineLength = NewCellSize * static_cast<float>(NumLines) / 2.f;
 
-void UGrid::SetLineVertices()
-{
-	float LineLength = CellSize * static_cast<float>(NumLines) / 2.f;
+	if (Vertices.size() < NumVertices)
+	{
+		Vertices.resize(NumVertices);
+	}
 
-	// dx기준 xz평면에 그리드 형성, ue 기준 xy평면에 형성해야 함
-
-	for (int32 LineCount = -NumLines/2; LineCount < NumLines/2; ++LineCount) // z축 라인
+	uint32 vertexIndex = 0;
+	// z축 라인 업데이트
+	for (int32 LineCount = -NumLines / 2; LineCount < NumLines / 2; ++LineCount)
 	{
 		if (LineCount == 0)
 		{
-			LineVertices.push_back({ {0.0f, -LineLength, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
-			LineVertices.push_back({ {0.0f, 0.0f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
-			
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, -LineLength, 0.0f };
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, 0.f, 0.f };
 		}
 		else
 		{
-			LineVertices.push_back({ {0.0f, -LineLength, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
-			LineVertices.push_back({ {0.0f, LineLength, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, -LineLength, 0.0f };
+			Vertices[vertexIndex++] = { static_cast<float>(LineCount) * NewCellSize, LineLength, 0.0f };
 		}
 	}
 
-	for (int32 LineCount = -NumLines / 2; LineCount < NumLines / 2; ++LineCount) // x축 라인
+	// x축 라인 업데이트
+	for (int32 LineCount = -NumLines / 2; LineCount < NumLines / 2; ++LineCount)
 	{
 		if (LineCount == 0)
 		{
-			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, -LineLength}, Primitive.Color });
-			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, 0.0f}, Primitive.Color });
-			
+			Vertices[vertexIndex++] = { 0.0f, static_cast<float>(LineCount) * NewCellSize, -LineLength };
+			Vertices[vertexIndex++] = { 0.f, static_cast<float>(LineCount) * NewCellSize, 0.0f };
 		}
 		else
 		{
-			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, -LineLength}, Primitive.Color });
-			LineVertices.push_back({ {0.0f, static_cast<float>(LineCount) * CellSize, LineLength}, Primitive.Color });
-			
+			Vertices[vertexIndex++] = { -LineLength, static_cast<float>(LineCount) * NewCellSize, 0.0f };
+			Vertices[vertexIndex++] = { LineLength, static_cast<float>(LineCount) * NewCellSize, 0.0f };
 		}
 	}
 }
+
+
+void UGrid::MergeVerticesAt(TArray<FVector>& destVertices, size_t insertStartIndex)
+{
+	// 인덱스 범위 보정
+	if (insertStartIndex > destVertices.size())
+		insertStartIndex = destVertices.size();
+
+	// 미리 메모리 확보
+	destVertices.reserve(destVertices.size() + std::distance(Vertices.begin(), Vertices.end()));
+
+	// 덮어쓸 수 있는 개수 계산
+	size_t overwriteCount = std::min(
+		Vertices.size(),
+		destVertices.size() - insertStartIndex
+	);
+
+	// 기존 요소 덮어쓰기
+	std::copy(
+		Vertices.begin(),
+		Vertices.begin() + overwriteCount,
+		destVertices.begin() + insertStartIndex
+	);
+
+	// 원하는 위치에 삽입
+	/*destVertices.insert(
+		destVertices.begin() + insertStartIndex,
+		Vertices.begin(),
+		Vertices.end()
+	);*/
+}
+
+//void UGrid::RenderGrid()
+//{
+//	URenderer& Renderer = URenderer::GetInstance();
+//
+//	Renderer.RenderPrimitive(Primitive, Primitive.RenderState);
+//
+//}
+//void UGrid::SetGridProperty(float InCellSize, int32 InNumLines)
+//{
+//	this->CellSize = InCellSize;
+//	this->NumLines = InNumLines;
+//}
+//
+//void UGrid::SetLineVertices()
+//{
+//	float LineLength = CellSize * static_cast<float>(NumLines) / 2.f;
+//
+//	for (int32 LineCount = -NumLines/2; LineCount < NumLines/2; ++LineCount) // z축 라인
+//	{
+//		if (LineCount == 0)
+//		{
+//			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , -LineLength}, Primitive.Color });
+//			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , 0.f}, Primitive.Color });
+//		}
+//		else
+//		{
+//			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , -LineLength}, Primitive.Color });
+//			LineVertices.push_back({ {static_cast<float>(LineCount) * CellSize,0.f , LineLength}, Primitive.Color });
+//		}
+//	}
+//	for (int32 LineCount = -NumLines / 2; LineCount < NumLines / 2; ++LineCount) // x축 라인
+//	{
+//		if (LineCount == 0)
+//		{
+//			LineVertices.push_back({ {-LineLength, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+//			LineVertices.push_back({ {0.f, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+//		}
+//		else
+//		{
+//			LineVertices.push_back({ {-LineLength, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+//			LineVertices.push_back({ {LineLength, 0.f, static_cast<float>(LineCount) * CellSize}, Primitive.Color });
+//		}
+//	}
+//}

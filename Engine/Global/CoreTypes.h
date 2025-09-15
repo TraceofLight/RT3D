@@ -1,7 +1,16 @@
 #pragma once
 #include "Global/Vector.h"
 #include "Global/Matrix.h"
+#include "Global/Types.h"
 #include <cstdint>
+
+//struct BatchLineContants
+//{
+//	float CellSize;
+//	//FMatrix BoundingBoxModel;
+//	uint32 ZGridStartIndex; // 인덱스 버퍼에서, z방향쪽 그리드가 시작되는 인덱스
+//	uint32 BoundingBoxStartIndex; // 인덱스 버퍼에서, 바운딩박스가 시작되는 인덱스
+//};
 
 struct FViewProjConstants
 {
@@ -26,6 +35,12 @@ struct FRay
 {
 	FVector4 Origin;
 	FVector4 Direction;
+};
+
+enum class EShaderType : uint8
+{
+	Default = 0,
+	BatchLine
 };
 
 /**

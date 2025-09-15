@@ -56,6 +56,46 @@ void UResourceManager::Initialize()
 	NumVertices.emplace(EPrimitiveType::CubeArrow, static_cast<uint32>(VerticesCubeArrow.size()));
 	NumVertices.emplace(EPrimitiveType::Ring, static_cast<uint32>(VerticesRing.size()));
 	NumVertices.emplace(EPrimitiveType::Line, static_cast<uint32>(VerticesLine.size()));
+
+	// Calculate Cube AABB
+	for (const auto& pair : VertexDatas)
+	{
+		EPrimitiveType type = pair.first;
+		const auto* vertices = pair.second;
+		if (!vertices || vertices->empty())
+			continue;
+
+		FVector minPoint(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+		FVector maxPoint(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+		for (const auto& vertex : *vertices)
+		{
+			minPoint.X = std::min(minPoint.X, vertex.Position.X);
+			minPoint.Y = std::min(minPoint.Y, vertex.Position.Y);
+			minPoint.Z = std::min(minPoint.Z, vertex.Position.Z);
+
+			maxPoint.X = std::max(maxPoint.X, vertex.Position.X);
+			maxPoint.Y = std::max(maxPoint.Y, vertex.Position.Y);
+			maxPoint.Z = std::max(maxPoint.Z, vertex.Position.Z);
+		}
+
+		AABBs[type] = FAABB(minPoint, maxPoint);
+	}
+
+	// Initialize Shaders
+	ID3D11VertexShader* vertexShader;
+	ID3D11InputLayout* inputLayout;
+	TArray<D3D11_INPUT_ELEMENT_DESC> layoutDesc =
+	{
+		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+	};
+	URenderer::GetInstance().CreateVertexShaderAndInputLayout(L"Asset/Shader/BatchLineVS.hlsl", layoutDesc, &vertexShader, &inputLayout);
+	VertexShaders.emplace(EShaderType::BatchLine, vertexShader);
+	InputLayouts.emplace(EShaderType::BatchLine, inputLayout);
+
+	ID3D11PixelShader* pixelShader;
+	URenderer::GetInstance().CreatePixelShader(L"Asset/Shader/BatchLinePS.hlsl", &pixelShader);
+	PixelShaders.emplace(EShaderType::BatchLine, pixelShader);
 }
 
 void UResourceManager::Release()
@@ -86,6 +126,36 @@ ID3D11Buffer* UResourceManager::GetVertexbuffer(EPrimitiveType InType)
 uint32 UResourceManager::GetNumVertices(EPrimitiveType InType)
 {
 	return NumVertices[InType];
+}
+
+ID3D11VertexShader* UResourceManager::GetVertexShader(EShaderType Type)
+{
+	return VertexShaders[Type];
+}
+
+ID3D11PixelShader* UResourceManager::GetPixelShader(EShaderType Type)
+{
+	return PixelShaders[Type];
+}
+
+ID3D11InputLayout* UResourceManager::GetIputLayout(EShaderType Type)
+{
+	return InputLayouts[Type];
+}
+
+//const FAABB& UResourceManager::GetCubeAABB() const
+//{
+//	return CubeAABB;
+//}
+//
+//const FAABB& UResourceManager::GetSphereAABB() const
+//{
+//	return SphereAABB;
+//}
+
+const FAABB& UResourceManager::GetAABB(EPrimitiveType InType)
+{
+	return AABBs[InType];
 }
 
 /**

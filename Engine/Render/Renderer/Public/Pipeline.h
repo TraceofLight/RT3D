@@ -19,6 +19,8 @@ public:
 
 	void UpdatePipeline(FPipelineInfo Info);
 
+	void SetIndexBuffer(ID3D11Buffer* indexBuffer, uint32 stride);
+
 	void SetVertexBuffer(ID3D11Buffer* VertexBuffer, uint32 Stride);
 
 	void SetConstantBuffer(uint32 Slot, bool bIsVS, ID3D11Buffer* ConstantBuffer);
@@ -28,6 +30,8 @@ public:
 	void SetSamplerState(uint32 Slot, bool bIsVS, ID3D11SamplerState* SamplerState);
 
 	void Draw(uint32 VertexCount, uint32 StartLocation);
+
+	void DrawIndexed(uint32 indexCount, uint32 startIndexLocation, uint32 baseVertexLocation);
 
 private:
 	ID3D11DeviceContext* DeviceContext;

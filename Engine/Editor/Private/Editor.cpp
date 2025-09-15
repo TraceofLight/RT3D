@@ -13,6 +13,7 @@
 #include "Mesh/Public/PrimitiveComponent.h"
 #include "Level/Public/Level.h"
 #include "Render/UI/Widget/Public/CameraControlWidget.h"
+#include "Render/UI/Widget/Public/FPSWidget.h"
 #include "Render/UI/Widget/Public/SceneHierarchyWidget.h"
 
 UEditor::UEditor()
@@ -26,32 +27,57 @@ UEditor::UEditor()
 		reinterpret_cast<UCameraControlWidget*>(UIManager.FindWidget("Camera Control Widget"));
 	CameraControlWidget->SetCamera(&Camera);
 
+	// Set UBatchLines to FPSWidget Panel
+	auto* FPSWidget =
+		reinterpret_cast<UFPSWidget*>(UIManager.FindWidget("FPS Widget"));
+	FPSWidget->SetBatchLine(&BatchLines);
 	// Set Camera to Scene Hierarchy Widget
 	auto* SceneHierarchyWidget =
 		reinterpret_cast<USceneHierarchyWidget*>(UIManager.FindWidget("Scene Hierarchy Widget"));
 	SceneHierarchyWidget->SetCamera(&Camera);
 };
 
-UEditor::~UEditor() = default;
-
 void UEditor::Update()
 {
 	auto& Renderer = URenderer::GetInstance();
 	Camera.Update();
 
+	AActor* SelectedActor = ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor();
+	if (SelectedActor)
+	{
+		for (const auto& Component : SelectedActor->GetOwnedComponents())
+		{
+			if (auto* PrimitiveComponent = dynamic_cast<UPrimitiveComponent*>(Component))
+			{
+				FVector WorldMin, WorldMax;
+				PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
+				BatchLines.UpdateBoundingBoxVertices(FAABB(WorldMin, WorldMax));
+			}
+		}
+	}
+	else
+	{
+		BatchLines.DisableRenderBoundingBox();
+	}
+
+	BatchLines.UpdateVertexBuffer();
+
 	ProcessMouseInput(ULevelManager::GetInstance().GetCurrentLevel());
 
-
 	Renderer.UpdateConstant(Camera.GetFViewProjConstants());
+
+	//BatchLines.UpdateConstant({ {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f} });
 }
 
 void UEditor::RenderEditor()
 {
-	Grid.RenderGrid();
+	//Grid.RenderGrid();
+	BatchLines.Render();
 	Axis.Render();
-	Gizmo.RenderGizmo(ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor(), Camera.GetLocation());
-}
 
+	AActor* SelectedActor = ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor();
+	Gizmo.RenderGizmo(SelectedActor, Camera.GetLocation());
+}
 
 void UEditor::ProcessMouseInput(ULevel* InLevel)
 {

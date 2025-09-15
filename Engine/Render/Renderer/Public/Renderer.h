@@ -59,8 +59,11 @@ public:
 	//void Update();
 	void RenderBegin();
 	void RenderLevel();
+	void RenderLocalOBB(const UPrimitiveComponent* InPrimitive);
+	void RenderWorldAABB(const UPrimitiveComponent* InPrimitive);
 	void RenderEnd() const;
 	void RenderPrimitive(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
+	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState, bool bUseBaseConstantBuffer, uint32 stride, uint32 indexBufferStride);
 
 	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0);
 	bool GetIsResizing() { return bIsResizing; }
@@ -68,15 +71,39 @@ public:
 
 	//Testing Func
 	ID3D11Buffer* CreateVertexBuffer(FVertex* InVertices, uint32 InByteWidth) const;
+	ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth, bool bCpuAccess) const;
 	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth) const;
 	static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
+	void CreateVertexShaderAndInputLayout(const wstring& filePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& inputLayoutDescs, ID3D11VertexShader** outVertexShader, ID3D11InputLayout** outInputLayout);
+	void CreatePixelShader(const wstring& filePath, ID3D11PixelShader** pixelShader);
 
 	void CreateConstantBuffer();
 	void ReleaseConstantBuffer();
 	void UpdateConstant(const UPrimitiveComponent* Primitive);
 	void UpdateConstant(const FVector& InPosition, const FVector& InRotation, const FVector& InScale) const;
 	void UpdateConstant(const FViewProjConstants& InViewProjConstants) const;
+	void UpdateConstant(const FMatrix& InMatrix) const;
 	void UpdateConstant(const FVector4& Color) const;
+	//void UpdateAndSetBatchLineConstant(const BatchLineContants& batchLineConstant) const;
+
+	//template<typename T>
+	//void UpdateConstantGeneralType(const T* constData, ) const
+	//{
+	//	if (constData)
+	//	{
+	//		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+
+	//		GetDeviceContext()->Map(, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
+	//		// update constant buffer every frame
+	//		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
+	//		{
+	//			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(), FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()), Primitive->GetRelativeScale3D());
+	//		}
+	//		GetDeviceContext()->Unmap(constData, 0);
+	//	}
+	//}
+
+	bool UpdateVertexBuffer(ID3D11Buffer* vertexBuffer, const std::vector<FVector>& vertices);
 
 	ID3D11Device* GetDevice() const { return DeviceResources->GetDevice(); }
 	ID3D11DeviceContext* GetDeviceContext() const { return DeviceResources->GetDeviceContext(); }
@@ -95,6 +122,7 @@ private:
 	ID3D11Buffer* ConstantBufferModels = nullptr;
 	ID3D11Buffer* ConstantBufferViewProj = nullptr;
 	ID3D11Buffer* ConstantBufferColor = nullptr;
+	ID3D11Buffer* ConstantBufferBatchLine = nullptr;
 
 	FLOAT ClearColor[4] = {0.025f, 0.025f, 0.025f, 1.0f};
 

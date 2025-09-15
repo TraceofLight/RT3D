@@ -149,10 +149,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\Public\BatchLines.h" />
     <ClInclude Include="Core\Public\Class.h" />
     <ClInclude Include="Core\Public\Name.h" />
     <ClInclude Include="Core\Public\Object.h" />
     <ClInclude Include="Editor\Public\Axis.h" />
+    <ClInclude Include="Editor\Public\BoundingBoxLines.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Editor\Public\Camera.h" />
     <ClInclude Include="Editor\Public\Editor.h" />
     <ClInclude Include="Editor\Public\EditorPrimitive.h" />
@@ -168,7 +172,6 @@
     <ClInclude Include="Global\Matrix.h" />
     <ClInclude Include="Global\Memory.h" />
     <ClInclude Include="Global\Types.h" />
-    <ClInclude Include="Global\Struct.h" />
     <ClInclude Include="Global\Vector.h" />
     <ClInclude Include="ImGui\imconfig.h" />
     <ClInclude Include="ImGui\imgui.h" />
@@ -179,6 +182,9 @@
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="Level\Public\Level.h" />
+    <ClInclude Include="Manager\Config\Public\ConfigManager.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Manager\Input\Public\InputManager.h" />
     <ClInclude Include="Manager\Level\Public\LevelManager.h" />
     <ClInclude Include="Manager\Path\Public\PathManager.h" />
@@ -235,10 +241,14 @@
     <ClInclude Include="Core\Public\EngineStatics.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Editor\Private\BatchLines.cpp" />
     <ClCompile Include="Core\Private\Class.cpp" />
     <ClCompile Include="Core\Private\Name.cpp" />
     <ClCompile Include="Core\Private\Object.cpp" />
     <ClCompile Include="Editor\Private\Axis.cpp" />
+    <ClCompile Include="Editor\Private\BoundingBoxLines.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="Editor\Private\Camera.cpp" />
     <ClCompile Include="Editor\Private\Editor.cpp" />
     <ClCompile Include="Editor\Private\Gizmo.cpp" />
@@ -255,6 +265,9 @@
     <ClCompile Include="ImGui\imgui_tables.cpp" />
     <ClCompile Include="ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Level\Private\Level.cpp" />
+    <ClCompile Include="Manager\Config\Private\ConfigManager.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="Manager\Input\Private\InputManager.cpp" />
     <ClCompile Include="Manager\Level\Private\LevelManager.cpp" />
     <ClCompile Include="Manager\Path\Private\PathManager.cpp" />
@@ -319,9 +332,33 @@
     <FxCompile Include="Asset\Shader\SampleShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainVS</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\BatchLinePS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Pixel</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainPS</EntryPointName>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mainPS</EntryPointName>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\BatchLineVS.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Vertex</ShaderType>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Vertex</ShaderType>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainVS</EntryPointName>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mainVS</EntryPointName>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

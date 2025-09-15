@@ -3,11 +3,14 @@
 
 #include "Manager/Time/Public/TimeManager.h"
 
+#include "Manager/Config/Public/ConfigManager.h"
+
 constexpr float REFRESH_INTERVAL = 0.1f;
 
 UFPSWidget::UFPSWidget()
 	: UWidget("FPS Widget")
 {
+	
 }
 
 UFPSWidget::~UFPSWidget() = default;
@@ -94,6 +97,13 @@ void UFPSWidget::RenderWidget()
 				FrameTimeHistory[i] = 0.0f;
 			}
 		}
+	}
+
+	// test용: CellSize 값을 실시간으로 조정
+	CellSize = PbatchLine->GetCellSize();
+	if (ImGui::SliderFloat("Grid Spacing", &CellSize, 0.0f, 10.0f, "%.1f"))
+	{
+		PbatchLine->UpdateUGridVertices(CellSize);
 	}
 
 	ImGui::Separator();

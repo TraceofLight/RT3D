@@ -1,24 +1,22 @@
 #pragma once
+#include "Core/Public/Object.h"
 #include "Editor/Public/Camera.h"
 #include "Editor/Public/Gizmo.h"
 #include "Editor/Public/Grid.h"
 #include "Editor/public/Axis.h"
-#include "Core/Public/Object.h"
 #include "Editor/Public/ObjectPicker.h"
+#include "Editor/Public/BatchLines.h"
 
 class UEditor : public UObject
 {
 public:
-
 	UEditor();
-	~UEditor();
+	~UEditor() = default;
 
-	
 	void Update();
 	void RenderEditor();
 
 private:
-
 	void ProcessMouseInput(ULevel* InLevel);
 	TArray<UPrimitiveComponent*> FindCandidatePrimitives(ULevel* InLevel);
 
@@ -32,5 +30,6 @@ private:
 	const float MinScale = 0.01f;
 	UGizmo Gizmo;
 	UAxis Axis;
-	UGrid Grid;
+	UBatchLines BatchLines;
+	//UGrid Grid;
 };

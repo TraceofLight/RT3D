@@ -1,5 +1,6 @@
 #pragma once
 #include "Mesh/Public/SceneComponent.h"
+#include "Mesh/Public/BoundingVolume.h"
 
 UCLASS()
 class UPrimitiveComponent : public USceneComponent
@@ -24,6 +25,9 @@ public:
 	FVector4 GetColor() const { return Color; }
 	void SetColor(const FVector4& InColor) { Color = InColor; }
 
+	const IBoundingVolume* GetBoundingBox() const { return BoundingBox; }
+	void GetWorldAABB(FVector& OutMin, FVector& OutMax) const;
+
 protected:
 	const TArray<FVertex>* Vertices = nullptr;
 	FVector4 Color = FVector4{ 0.f,0.f,0.f,0.f };
@@ -35,4 +39,5 @@ protected:
 
 	bool bVisible = true;
 
+	const IBoundingVolume* BoundingBox = nullptr;
 };

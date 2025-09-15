@@ -14,4 +14,5 @@ USphereComponent::USphereComponent()
 	NumVertices = ResourceManager.GetNumVertices(Type);
 	RenderState.CullMode = ECullMode::Back;
 	RenderState.FillMode = EFillMode::Solid;
+	BoundingBox = &ResourceManager.GetAABB(Type);
 }
