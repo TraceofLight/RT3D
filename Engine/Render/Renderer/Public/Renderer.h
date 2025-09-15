@@ -55,7 +55,7 @@ public:
 
 	void CreateDefaultShader();
 	void ReleaseDefaultShader();
-	void Update(UEditor* Editor);
+	void Update();
 	//void Update();
 	void RenderBegin();
 	void RenderLevel();

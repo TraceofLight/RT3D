@@ -186,12 +186,12 @@ void URenderer::ReleaseDefaultShader()
 	}
 }
 
-void URenderer::Update(UEditor* Editor)
+void URenderer::Update()
 {
 	RenderBegin();
 
 	RenderLevel();
-	Editor->RenderEditor();
+	ULevelManager::GetInstance().GetEditor()->RenderEditor();
 
 	//RenderLines();
 	

@@ -9,10 +9,15 @@
 #include "Manager/Path/Public/PathManager.h"
 #include "Utility/Public/LevelSerializer.h"
 #include "Utility/Public/Metadata.h"
+#include "Editor/Public/Editor.h"
+
 
 IMPLEMENT_SINGLETON_CLASS_BASE(ULevelManager)
 
-ULevelManager::ULevelManager() = default;
+ULevelManager::ULevelManager()
+{
+	Editor = new UEditor;
+}
 
 ULevelManager::~ULevelManager() = default;
 
@@ -48,6 +53,7 @@ void ULevelManager::Shutdown()
 	{
 		SafeDelete(Level.second);
 	}
+	delete Editor;
 }
 
 /**
@@ -65,6 +71,10 @@ void ULevelManager::Update() const
 	if (CurrentLevel)
 	{
 		CurrentLevel->Update();
+	}
+	if (Editor)
+	{
+		Editor->Update();
 	}
 }
 
