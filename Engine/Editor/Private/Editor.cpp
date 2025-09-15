@@ -55,6 +55,10 @@ void UEditor::Update()
 			}
 		}
 	}
+	else
+	{
+		BatchLines.DisableRenderBoundingBox();
+	}
 
 	BatchLines.UpdateVertexBuffer();
 

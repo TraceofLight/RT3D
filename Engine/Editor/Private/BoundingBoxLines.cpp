@@ -7,7 +7,7 @@ UBoundingBoxLines::UBoundingBoxLines()
 	, NumVertices(8)
 {
 	Vertices.reserve(NumVertices);
-	UpdateVertices(FAABB({0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 1.0f}));
+	UpdateVertices(FAABB({0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}));
 }
 
 void UBoundingBoxLines::MergeVerticesAt(TArray<FVector>& destVertices, size_t insertStartIndex)
@@ -66,4 +66,6 @@ void UBoundingBoxLines::UpdateVertices(FAABB boundingBoxInfo)
 	Vertices[vertexIndex++] = { MaxX, MinY, MaxZ }; // Back-Bottom-Right
 	Vertices[vertexIndex++] = { MaxX, MaxY, MaxZ }; // Back-Top-Right
 	Vertices[vertexIndex++] = { MinX, MaxY, MaxZ }; // Back-Top-Left
+
+	RenderedBoxInfo = boundingBoxInfo;
 }

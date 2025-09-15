@@ -58,32 +58,29 @@ void UResourceManager::Initialize()
 	NumVertices.emplace(EPrimitiveType::Line, static_cast<uint32>(VerticesLine.size()));
 
 	// Calculate Cube AABB
-	FVector MinPoint(+FLT_MAX, +FLT_MAX, +FLT_MAX);
-	FVector MaxPoint(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-	for (const auto& Vertex : VerticesCube)
+	for (const auto& pair : VertexDatas)
 	{
-		MinPoint.X = min(MinPoint.X, Vertex.Position.X);
-		MinPoint.Y = min(MinPoint.Y, Vertex.Position.Y);
-		MinPoint.Z = min(MinPoint.Z, Vertex.Position.Z);
-		MaxPoint.X = max(MaxPoint.X, Vertex.Position.X);
-		MaxPoint.Y = max(MaxPoint.Y, Vertex.Position.Y);
-		MaxPoint.Z = max(MaxPoint.Z, Vertex.Position.Z);
-	}
-	CubeAABB = FAABB(MinPoint, MaxPoint);
+		EPrimitiveType type = pair.first;
+		const auto* vertices = pair.second;
+		if (!vertices || vertices->empty())
+			continue;
 
-	// Calculate Sphere AABB
-	MinPoint = FVector(+FLT_MAX, +FLT_MAX, +FLT_MAX);
-	MaxPoint = FVector(-FLT_MAX, -FLT_MAX, -FLT_MAX);
-	for (const auto& Vertex : VerticesSphere)
-	{
-		MinPoint.X = min(MinPoint.X, Vertex.Position.X);
-		MinPoint.Y = min(MinPoint.Y, Vertex.Position.Y);
-		MinPoint.Z = min(MinPoint.Z, Vertex.Position.Z);
-		MaxPoint.X = max(MaxPoint.X, Vertex.Position.X);
-		MaxPoint.Y = max(MaxPoint.Y, Vertex.Position.Y);
-		MaxPoint.Z = max(MaxPoint.Z, Vertex.Position.Z);
+		FVector minPoint(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+		FVector maxPoint(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+		for (const auto& vertex : *vertices)
+		{
+			minPoint.X = std::min(minPoint.X, vertex.Position.X);
+			minPoint.Y = std::min(minPoint.Y, vertex.Position.Y);
+			minPoint.Z = std::min(minPoint.Z, vertex.Position.Z);
+
+			maxPoint.X = std::max(maxPoint.X, vertex.Position.X);
+			maxPoint.Y = std::max(maxPoint.Y, vertex.Position.Y);
+			maxPoint.Z = std::max(maxPoint.Z, vertex.Position.Z);
+		}
+
+		AABBs[type] = FAABB(minPoint, maxPoint);
 	}
-	SphereAABB = FAABB(MinPoint, MaxPoint);
 
 	// Initialize Shaders
 	ID3D11VertexShader* vertexShader;
@@ -146,14 +143,19 @@ ID3D11InputLayout* UResourceManager::GetIputLayout(EShaderType Type)
 	return InputLayouts[Type];
 }
 
-const FAABB& UResourceManager::GetCubeAABB() const
-{
-	return CubeAABB;
-}
+//const FAABB& UResourceManager::GetCubeAABB() const
+//{
+//	return CubeAABB;
+//}
+//
+//const FAABB& UResourceManager::GetSphereAABB() const
+//{
+//	return SphereAABB;
+//}
 
-const FAABB& UResourceManager::GetSphereAABB() const
+const FAABB& UResourceManager::GetAABB(EPrimitiveType InType)
 {
-	return SphereAABB;
+	return AABBs[InType];
 }
 
 /**

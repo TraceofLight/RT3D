@@ -13,6 +13,7 @@ public:
 	UBatchLines();
 	//~BatchLines();
 
+	// 종류별 Vertices 업데이트
 	void UpdateUGridVertices(const float newCellSize);
 	void UpdateBoundingBoxVertices(const FAABB& newBoundingBoxInfo);
 
@@ -27,9 +28,14 @@ public:
 		return Grid.GetCellSize();
 	}
 
-	void SetCellSize(const float newCellSize)
+	/*void SetCellSize(const float newCellSize)
 	{
 		Grid.SetCellSize(newCellSize);
+	}*/
+
+	void DisableRenderBoundingBox()
+	{
+		UpdateBoundingBoxVertices({ {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f} });
 	}
 
 	//void UpdateConstant(FBoundingBox boundingBoxInfo);
@@ -53,4 +59,6 @@ private:
 
 	UGrid Grid;
 	UBoundingBoxLines BoundingBoxLines;
+
+	bool bRenderBox;
 };
