@@ -31,6 +31,12 @@ void UPipeline::UpdatePipeline(FPipelineInfo Info)
 		DeviceContext->OMSetBlendState(Info.BlendState, nullptr, 0xffffffff);
 }
 
+void UPipeline::SetIndexBuffer(ID3D11Buffer* indexBuffer, uint32 stride)
+{
+	uint32 fffset = 0;
+	DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+}
+
 /// @brief 정점 버퍼를 바인딩
 void UPipeline::SetVertexBuffer(ID3D11Buffer* VertexBuffer, uint32 Stride)
 {
@@ -78,4 +84,9 @@ void UPipeline::SetSamplerState(uint32 Slot, bool bIsVS, ID3D11SamplerState* Sam
 void UPipeline::Draw(uint32 VertexCount, uint32 StartLocation)
 {
 	DeviceContext->Draw(VertexCount, StartLocation);
+}
+
+void UPipeline::DrawIndexed(uint32 indexCount, uint32 startIndexLocation, uint32 baseVertexLocation)
+{
+	DeviceContext->DrawIndexed(indexCount, startIndexLocation, baseVertexLocation);
 }

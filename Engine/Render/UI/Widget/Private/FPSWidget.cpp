@@ -96,6 +96,12 @@ void UFPSWidget::RenderWidget()
 		}
 	}
 
+	// test용: CellSize 값을 실시간으로 조정
+	if (ImGui::SliderFloat("Grid Spacing", &CellSize, 0.0f, 10.0f, "%.1f"))
+	{
+		PbatchLine->UpdateUGridVertices(CellSize);
+	}
+
 	ImGui::Separator();
 }
 

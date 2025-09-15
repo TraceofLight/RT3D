@@ -92,6 +92,15 @@ FVector& FVector::operator*=(const float Ratio)
 	return *this;
 }
 
+bool FVector::operator==(const FVector& inOther) const
+{
+	if (X == inOther.X && Y == inOther.Y && Z == inOther.Z)
+	{
+		return true;
+	}
+	return false;
+}
+
 
 	/**
 	 * @brief FVector 기본 생성자

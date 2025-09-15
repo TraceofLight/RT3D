@@ -21,6 +21,11 @@ public:
 	ID3D11Buffer* GetVertexbuffer(EPrimitiveType InType);
 	uint32 GetNumVertices(EPrimitiveType InType);
 
+	// Shader 관련 함수들
+	ID3D11VertexShader* GetVertexShader(EShaderType Type);
+	ID3D11PixelShader* GetPixelShader(EShaderType Type);
+	ID3D11InputLayout* GetIputLayout(EShaderType Type);
+
 	// Texture 관련 함수들
 	ID3D11ShaderResourceView* LoadTexture(const FString& InFilePath);
 	ID3D11ShaderResourceView* GetTexture(const FString& InFilePath);
@@ -40,6 +45,11 @@ private:
 	TMap<EPrimitiveType, ID3D11Buffer*> Vertexbuffers;
 	TMap<EPrimitiveType, uint32> NumVertices;
 	TMap<EPrimitiveType, TArray<FVertex>*> VertexDatas;
+
+	// Shaser Resources
+	TMap<EShaderType, ID3D11VertexShader*> VertexShaders;
+	TMap<EShaderType, ID3D11InputLayout*> InputLayouts;
+	TMap<EShaderType, ID3D11PixelShader*> PixelShaders;
 
 	// Texture Resource
 	TMap<FString, ID3D11ShaderResourceView*> TextureCache;

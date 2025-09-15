@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="Core\Private\Name.cpp">
@@ -15,7 +15,13 @@
     <ClCompile Include="Render\UI\Window\Private\SceneManagerWindow.cpp">
       <Filter>Render\UI\Window\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\Private\BatchLines.cpp">
+      <Filter>Editor\Private</Filter>
+    </ClCompile>
     <ClCompile Include="Core\Private\Class.cpp">
+      <Filter>Core\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Private\Name.cpp">
       <Filter>Core\Private</Filter>
     </ClCompile>
     <ClCompile Include="Core\Private\Object.cpp">
@@ -44,15 +50,6 @@
     </ClCompile>
     <ClCompile Include="Editor\Private\ObjectPicker.cpp">
       <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Matrix.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Memory.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Vector.cpp">
-      <Filter>Global</Filter>
     </ClCompile>
     <ClCompile Include="ImGui\imgui.cpp">
       <Filter>ImGui</Filter>
@@ -204,8 +201,18 @@
     <ClCompile Include="Utility\Private\UELogParser.cpp">
       <Filter>Utility\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Editor\Private\BoundingBoxLines.cpp">
+      <Filter>Editor\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Global\Matrix.cpp" />
+    <ClCompile Include="Global\Memory.cpp" />
+    <ClCompile Include="Global\Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Editor\Public\BatchLines.h">
+      <Filter>Editor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="pch.h" />
     <ClInclude Include="Core\Public\Name.h">
       <Filter>Core\Public</Filter>
     </ClInclude>
@@ -215,7 +222,6 @@
     <ClInclude Include="Manager\Resource\Public\ResourceManager.h">
       <Filter>Manager\Resource\Public</Filter>
     </ClInclude>
-    <ClInclude Include="pch.h" />
     <ClInclude Include="Render\UI\Widget\Public\SceneHierarchyWidget.h">
       <Filter>Render\UI\Widget\Public</Filter>
     </ClInclude>
@@ -225,7 +231,11 @@
     <ClInclude Include="Core\Public\EngineStatics.h">
       <Filter>Core\Public</Filter>
     </ClInclude>
+    <ClInclude Include="pch.h" />
     <ClInclude Include="Core\Public\Class.h">
+      <Filter>Core\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Public\Name.h">
       <Filter>Core\Public</Filter>
     </ClInclude>
     <ClInclude Include="Core\Public\Object.h">
@@ -236,6 +246,42 @@
     </ClInclude>
     <ClInclude Include="Core\Public\ClientApp.h">
       <Filter>Core\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor\Public\Axis.h">
+      <Filter>Editor\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Public\ClientApp.h">
+      <Filter>Core\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Constant.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\CoreTypes.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Enum.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\EnumReflection.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Function.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Macro.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Matrix.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Memory.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Types.h">
+      <Filter>Global</Filter>
+    </ClInclude>
+    <ClInclude Include="Global\Vector.h">
+      <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="Editor\Public\Axis.h">
       <Filter>Editor\Public</Filter>
@@ -257,36 +303,6 @@
     </ClInclude>
     <ClInclude Include="Editor\Public\ObjectPicker.h">
       <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Constant.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\CoreTypes.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Enum.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Function.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Macro.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Matrix.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Memory.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Types.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Struct.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Vector.h">
-      <Filter>Global</Filter>
     </ClInclude>
     <ClInclude Include="ImGui\imconfig.h">
       <Filter>ImGui</Filter>
@@ -456,6 +472,17 @@
     <ClInclude Include="Utility\Public\UELogParser.h">
       <Filter>Utility\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Editor\Public\BoundingBoxLines.h">
+      <Filter>Editor\Public</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Asset\Shader\BatchLinePS.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\BatchLineVS.hlsl">
+      <Filter>Asset\Shader</Filter>
+    </FxCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Core">
@@ -634,5 +661,8 @@
     <FxCompile Include="Asset\Shader\SampleShader.hlsl">
       <Filter>Asset\Shader</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>

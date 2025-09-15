@@ -5,6 +5,7 @@
 #include "Editor/Public/Grid.h"
 #include "Editor/public/Axis.h"
 #include "Editor/Public/ObjectPicker.h"
+#include "Editor/Public/BatchLines.h"
 
 class UEditor : public UObject
 {
@@ -29,5 +30,6 @@ private:
 	const float MinScale = 0.01f;
 	UGizmo Gizmo;
 	UAxis Axis;
-	UGrid Grid;
+	UBatchLines BatchLines;
+	//UGrid Grid;
 };
