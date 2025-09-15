@@ -204,6 +204,9 @@
     <ClCompile Include="Editor\Private\BoundingBoxLines.cpp">
       <Filter>Editor\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Global\Matrix.cpp" />
+    <ClCompile Include="Global\Memory.cpp" />
+    <ClCompile Include="Global\Vector.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Editor\Public\BatchLines.h">
@@ -658,5 +661,8 @@
     <FxCompile Include="Asset\Shader\SampleShader.hlsl">
       <Filter>Asset\Shader</Filter>
     </FxCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ClassDiagram.cd" />
   </ItemGroup>
 </Project>
