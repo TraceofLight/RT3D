@@ -6,7 +6,8 @@ using std::streambuf;
 class UConsoleWidget;
 struct ImGuiInputTextCallbackData;
 
-struct FLogEntry {
+struct FLogEntry
+{
 	ELogType Type;
 	FString Message;
 };
@@ -38,8 +39,12 @@ private:
  * @brief Console Widget
  * 콘솔의 실제 기능을 담당하는 위젯 (로그 표시, 명령어 처리 등)
  */
+UCLASS()
 class UConsoleWidget : public UWidget
 {
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(UConsoleWidget, UWidget)
+
 public:
 	// Widget interface
 	void Initialize() override;
@@ -62,15 +67,7 @@ public:
 
 	// History navigation
 	int HandleHistoryCallback(ImGuiInputTextCallbackData* InData);
-
-	// Special member function
-	UConsoleWidget();
-	UConsoleWidget& GetInstance();
-	~UConsoleWidget() override;
-	UConsoleWidget(const UConsoleWidget&) = delete;
-	UConsoleWidget& operator=(const UConsoleWidget&) = delete;
-	UConsoleWidget(UConsoleWidget&&) = delete;
-	UConsoleWidget& operator=(UConsoleWidget&&) = delete;
+	bool IsSingleton() const override { return true; }
 
 private:
 	// Command input

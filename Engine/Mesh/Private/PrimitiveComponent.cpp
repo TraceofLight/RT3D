@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/PrimitiveComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(UPrimitiveComponent, USceneComponent)
 
 UPrimitiveComponent::UPrimitiveComponent()
@@ -111,6 +113,39 @@ void UPrimitiveComponent::SetTopology(D3D11_PRIMITIVE_TOPOLOGY InTopology)
 D3D11_PRIMITIVE_TOPOLOGY UPrimitiveComponent::GetTopology() const
 {
 	return Topology;
+}
+
+void UPrimitiveComponent::GetWorldAABB(FVector& OutMin, FVector& OutMax) const
+{
+	if (!BoundingBox)	return;
+
+	if (BoundingBox->GetType() == EBoundingVolumeType::AABB)
+	{
+		const FAABB* LocalAABB = static_cast<const FAABB*>(BoundingBox);
+		FVector LocalCorners[8] =
+		{
+			FVector(LocalAABB->Min.X, LocalAABB->Min.Y, LocalAABB->Min.Z), FVector(LocalAABB->Max.X, LocalAABB->Min.Y, LocalAABB->Min.Z),
+			FVector(LocalAABB->Min.X, LocalAABB->Max.Y, LocalAABB->Min.Z), FVector(LocalAABB->Max.X, LocalAABB->Max.Y, LocalAABB->Min.Z),
+			FVector(LocalAABB->Min.X, LocalAABB->Min.Y, LocalAABB->Max.Z), FVector(LocalAABB->Max.X, LocalAABB->Min.Y, LocalAABB->Max.Z),
+			FVector(LocalAABB->Min.X, LocalAABB->Max.Y, LocalAABB->Max.Z), FVector(LocalAABB->Max.X, LocalAABB->Max.Y, LocalAABB->Max.Z)
+		};
+		const FMatrix& WorldTransform = GetWorldTransformMatrix();
+		FVector WorldMin(+FLT_MAX, +FLT_MAX, +FLT_MAX);
+		FVector WorldMax(-FLT_MAX, -FLT_MAX, -FLT_MAX);
+
+		for (int i = 0; i < 8; i++)
+		{
+			FVector4 WorldCorner = FVector4(LocalCorners[i].X, LocalCorners[i].Y, LocalCorners[i].Z, 1.0f) * WorldTransform;
+			WorldMin.X = std::min(WorldMin.X, WorldCorner.X);
+			WorldMin.Y = std::min(WorldMin.Y, WorldCorner.Y);
+			WorldMin.Z = std::min(WorldMin.Z, WorldCorner.Z);
+			WorldMax.X = std::max(WorldMax.X, WorldCorner.X);
+			WorldMax.Y = std::max(WorldMax.Y, WorldCorner.Y);
+			WorldMax.Z = std::max(WorldMax.Z, WorldCorner.Z);
+		}
+		OutMin = WorldMin;
+		OutMax = WorldMax;
+	}
 }
 
 /*

@@ -9,7 +9,7 @@ UOutlinerWindow::UOutlinerWindow()
 	FUIWindowConfig Config;
 	Config.WindowTitle = "Outliner";
 	Config.DefaultSize = ImVec2(270, 340);
-	Config.DefaultPosition = ImVec2(1305, 10);
+	Config.DefaultPosition = ImVec2(1625, 10);
 	Config.MinSize = ImVec2(270, 50);
 	Config.bResizable = true;
 	Config.bMovable = true;

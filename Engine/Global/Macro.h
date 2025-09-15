@@ -2,32 +2,86 @@
 
 #define DT UTimeManager::GetInstance().GetDeltaTime()
 
-// 싱글톤 패턴 매크로화
-// Declare - Implement를 쌍으로 사용해야 한다
-#define DECLARE_SINGLETON(ClassName) \
-public: \
-static ClassName& GetInstance(); \
-private: \
-ClassName(); \
-virtual ~ClassName(); \
-ClassName(const ClassName&) = delete; \
-ClassName& operator=(const ClassName&) = delete; \
-ClassName(ClassName&&) = delete; \
-ClassName& operator=(ClassName&&) = delete;
-
-#define IMPLEMENT_SINGLETON(ClassName) \
-ClassName& ClassName::GetInstance() \
-{ \
-static ClassName Instance; \
-return Instance; \
-}
-
-// UE_LOG Macro
+// UE_LOG Macro 시스템
+// 기본 UE_LOG (Info 타입)
 #define UE_LOG(fmt, ...) \
     do { \
         printf(fmt "\n", ##__VA_ARGS__); \
         try { \
             UConsoleWindow::GetInstance().AddLog("" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+// 로그 타입별 매크로들
+#define UE_LOG_INFO(fmt, ...) \
+    do { \
+        printf("[INFO] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::Info, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_WARNING(fmt, ...) \
+    do { \
+        printf("[WARNING] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::Warning, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_ERROR(fmt, ...) \
+    do { \
+        printf("[ERROR] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::Error, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_SUCCESS(fmt, ...) \
+    do { \
+        printf("[SUCCESS] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::Success, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_SYSTEM(fmt, ...) \
+    do { \
+        printf("[SYSTEM] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::System, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_DEBUG(fmt, ...) \
+    do { \
+        printf("[DEBUG] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::Debug, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_COMMAND(fmt, ...) \
+    do { \
+        printf("[CMD] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::Command, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_TERMINAL(fmt, ...) \
+    do { \
+        printf("[TERMINAL] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::Terminal, "" fmt, ##__VA_ARGS__); \
+        } catch(...) {} \
+    } while(0)
+
+#define UE_LOG_TERMINAL_ERROR(fmt, ...) \
+    do { \
+        printf("[TERMINAL_ERROR] " fmt "\n", ##__VA_ARGS__); \
+        try { \
+            UConsoleWindow::GetInstance().AddLog(ELogType::TerminalError, "" fmt, ##__VA_ARGS__); \
         } catch(...) {} \
     } while(0)
 

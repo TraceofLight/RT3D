@@ -12,9 +12,11 @@ class UImGuiHelper;
  * @param bIsInitialized 초기화 상태
  * @param TotalTime 전체 경과 시간
  */
+UCLASS()
 class UUIManager : public UObject
 {
-	DECLARE_SINGLETON(UUIManager)
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(UUIManager, UObject)
 
 public:
 	void Initialize();

@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/SphereComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(USphereComponent, UPrimitiveComponent)
 
 USphereComponent::USphereComponent()
@@ -12,4 +14,5 @@ USphereComponent::USphereComponent()
 	NumVertices = ResourceManager.GetNumVertices(Type);
 	RenderState.CullMode = ECullMode::Back;
 	RenderState.FillMode = EFillMode::Solid;
+	BoundingBox = &ResourceManager.GetSphereAABB();
 }

@@ -3,10 +3,12 @@
 
 class FAppWindow;
 
+UCLASS()
 class UInputManager :
 	public UObject
 {
-	DECLARE_SINGLETON(UInputManager)
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(UInputManager, UObject)
 
 public:
 	void Update(const FAppWindow* InWindow);

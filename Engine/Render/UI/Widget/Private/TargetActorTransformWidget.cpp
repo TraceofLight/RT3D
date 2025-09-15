@@ -50,10 +50,10 @@ void UTargetActorTransformWidget::Update()
 void UTargetActorTransformWidget::RenderWidget()
 {
 	// Memory Information
-	ImGui::Text("레벨 메모리 정보");
-	ImGui::Text("Level Object Count: %u", LevelObjectCount);
-	ImGui::Text("Level Memory: %.3f KB", static_cast<float>(LevelMemoryByte) / KILO);
-	ImGui::Separator();
+	// ImGui::Text("레벨 메모리 정보");
+	// ImGui::Text("Level Object Count: %u", LevelObjectCount);
+	// ImGui::Text("Level Memory: %.3f KB", static_cast<float>(LevelMemoryByte) / KILO);
+	// ImGui::Separator();
 
 	ImGui::Text("동적 할당된 메모리 정보");
 	ImGui::Text("Overall Object Count: %u", TotalAllocationCount);

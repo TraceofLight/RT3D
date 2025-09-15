@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/SquareComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(USquareComponent, UPrimitiveComponent)
 
 USquareComponent::USquareComponent()

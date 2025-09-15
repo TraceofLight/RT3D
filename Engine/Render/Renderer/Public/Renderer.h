@@ -10,6 +10,7 @@ class UPrimitiveComponent;
 class AActor;
 class AGizmo;
 class UEditor;
+
 /**
  * @brief Rendering Pipeline 전반을 처리하는 클래스
  *
@@ -35,10 +36,12 @@ class UEditor;
  * @param vertexBufferSphere
  * @param numVerticesSphere
  */
+UCLASS()
 class URenderer :
 	public UObject
 {
-DECLARE_SINGLETON(URenderer)
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(URenderer, UObject)
 
 public:
 	void Init(HWND InWindowHandle);
@@ -56,12 +59,14 @@ public:
 	//void Update();
 	void RenderBegin();
 	void RenderLevel();
+	void RenderLocalOBB(const UPrimitiveComponent* InPrimitive);
+	void RenderWorldAABB(const UPrimitiveComponent* InPrimitive);
 	void RenderEnd() const;
 	void RenderPrimitive(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
 	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState, bool bUseBaseConstantBuffer, uint32 stride, uint32 indexBufferStride);
 
 	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0);
-	bool GetIsResizing() { return bIsResizing;}
+	bool GetIsResizing() { return bIsResizing; }
 	void SetIsResizing(bool isResizing) { bIsResizing = isResizing; }
 
 	//Testing Func
@@ -77,6 +82,7 @@ public:
 	void UpdateConstant(const UPrimitiveComponent* Primitive);
 	void UpdateConstant(const FVector& InPosition, const FVector& InRotation, const FVector& InScale) const;
 	void UpdateConstant(const FViewProjConstants& InViewProjConstants) const;
+	void UpdateConstant(const FMatrix& InMatrix) const;
 	void UpdateConstant(const FVector4& Color) const;
 	//void UpdateAndSetBatchLineConstant(const BatchLineContants& batchLineConstant) const;
 
@@ -101,7 +107,7 @@ public:
 
 	ID3D11Device* GetDevice() const { return DeviceResources->GetDevice(); }
 	ID3D11DeviceContext* GetDeviceContext() const { return DeviceResources->GetDeviceContext(); }
-	IDXGISwapChain* GetSwapChain() const { return DeviceResources->GetSwapChain();}
+	IDXGISwapChain* GetSwapChain() const { return DeviceResources->GetSwapChain(); }
 	ID3D11RenderTargetView* GetRenderTargetView() const { return DeviceResources->GetRenderTargetView(); }
 	UDeviceResources* GetDeviceResources() const { return DeviceResources; }
 
@@ -142,9 +148,9 @@ private:
 		size_t operator()(const FRasterKey& InKey) const noexcept
 		{
 			auto Mix = [](size_t& H, size_t V)
-				{
-					H ^= V + 0x9e3779b97f4a7c15ULL + (H << 6) + (H << 2);
-				};
+			{
+				H ^= V + 0x9e3779b97f4a7c15ULL + (H << 6) + (H << 2);
+			};
 
 			size_t H = 0;
 			Mix(H, (size_t)InKey.FillMode);

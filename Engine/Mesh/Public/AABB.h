@@ -7,6 +7,7 @@ struct FAABB : public IBoundingVolume
 	FVector Min;
 	FVector Max;
 
+	FAABB() : Min(0.f, 0.f, 0.f), Max(0.f, 0.f, 0.f) {}
 	FAABB(const FVector& InMin, const FVector& InMax) : Min(InMin), Max(InMax) {}
 
 	bool RaycastHit() const override;

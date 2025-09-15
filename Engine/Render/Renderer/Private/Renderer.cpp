@@ -5,12 +5,14 @@
 
 #include "Manager/Level/Public/LevelManager.h"
 #include "Manager/UI/Public/UIManager.h"
+#include "Manager/Resource/Public/ResourceManager.h"
 #include "Mesh/Public/Actor.h"
 #include "Mesh/Public/PrimitiveComponent.h"
+#include "Mesh/Public/AABB.h"
 #include "Render/Renderer/Public/Pipeline.h"
 #include "Editor/Public/Editor.h"
 
-IMPLEMENT_SINGLETON(URenderer)
+IMPLEMENT_SINGLETON_CLASS_BASE(URenderer)
 
 URenderer::URenderer() = default;
 
@@ -43,7 +45,6 @@ void URenderer::Release()
  */
 void URenderer::CreateRasterizerState()
 {
-
 }
 
 void URenderer::CreateDepthStencilState()
@@ -138,13 +139,13 @@ void URenderer::CreateDefaultShader()
 	                   &VertexShaderCSO, nullptr);
 
 	GetDevice()->CreateVertexShader(VertexShaderCSO->GetBufferPointer(),
-	                           VertexShaderCSO->GetBufferSize(), nullptr, &DefaultVertexShader);
+	                                VertexShaderCSO->GetBufferSize(), nullptr, &DefaultVertexShader);
 
 	D3DCompileFromFile(L"Asset/Shader/SampleShader.hlsl", nullptr, nullptr, "mainPS", "ps_5_0", 0, 0,
 	                   &PixelShaderCSO, nullptr);
 
 	GetDevice()->CreatePixelShader(PixelShaderCSO->GetBufferPointer(),
-	                          PixelShaderCSO->GetBufferSize(), nullptr, &DefaultPixelShader);
+	                               PixelShaderCSO->GetBufferSize(), nullptr, &DefaultPixelShader);
 
 	D3D11_INPUT_ELEMENT_DESC layout[] =
 	{
@@ -153,7 +154,7 @@ void URenderer::CreateDefaultShader()
 	};
 
 	GetDevice()->CreateInputLayout(layout, ARRAYSIZE(layout), VertexShaderCSO->GetBufferPointer(),
-	                          VertexShaderCSO->GetBufferSize(), &DefaultInputLayout);
+	                               VertexShaderCSO->GetBufferSize(), &DefaultInputLayout);
 
 	Stride = sizeof(FVertex);
 
@@ -211,7 +212,7 @@ void URenderer::RenderBegin()
 
 	GetDeviceContext()->RSSetViewports(1, &DeviceResources->GetViewportInfo());
 
-	ID3D11RenderTargetView* rtvs[] = { rtv };  // 배열 생성
+	ID3D11RenderTargetView* rtvs[] = {rtv}; // 배열 생성
 
 	GetDeviceContext()->OMSetRenderTargets(1, rtvs, DeviceResources->GetDepthStencilView());
 	DeviceResources->UpdateViewport();
@@ -248,7 +249,7 @@ void URenderer::RenderLevel()
 		UpdateConstant(
 			PrimitiveComponent->GetRelativeLocation(),
 			PrimitiveComponent->GetRelativeRotation(),
-			PrimitiveComponent->GetRelativeScale3D() );
+			PrimitiveComponent->GetRelativeScale3D());
 
 		Pipeline->SetConstantBuffer(2, true, ConstantBufferColor);
 		UpdateConstant(PrimitiveComponent->GetColor());
@@ -256,6 +257,79 @@ void URenderer::RenderLevel()
 		Pipeline->SetVertexBuffer(PrimitiveComponent->GetVertexBuffer(), Stride);
 		Pipeline->Draw(static_cast<uint32>(PrimitiveComponent->GetVerticesData()->size()), 0);
 	}
+}
+
+void URenderer::RenderLocalOBB(const UPrimitiveComponent* InPrimitive)
+{
+	if (!InPrimitive)	return;
+
+	FVector LocalMin, LocalMax;
+	if (InPrimitive->GetBoundingBox()->GetType() == EBoundingVolumeType::AABB)
+	{
+		const FAABB* LocalAABB = static_cast<const FAABB*>(InPrimitive->GetBoundingBox());
+		LocalMin = LocalAABB->Min;
+		LocalMax = LocalAABB->Max;
+	}
+
+	ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(InPrimitive->GetRenderState());
+	FPipelineInfo PipelineInfo = {
+		DefaultInputLayout,
+		DefaultVertexShader,
+		LoadedRasterizerState,
+		DefaultDepthStencilState,
+		DefaultPixelShader,
+		nullptr,
+	};
+
+	FVector LocalOBBCenter = (LocalMax + LocalMin) * 0.5f;
+	FVector LocalOBBScale = LocalMax - LocalMin;
+	FMatrix FinalTransform = FMatrix::ScaleMatrix(LocalOBBScale) * FMatrix::TranslationMatrix(LocalOBBCenter) * InPrimitive->GetWorldTransformMatrix();
+
+	// Wireframe mode
+	FRenderState WireframeState;
+	WireframeState.FillMode = EFillMode::WireFrame;
+	WireframeState.CullMode = ECullMode::None;
+	ID3D11RasterizerState* wireframeRasterizer = GetRasterizerState(WireframeState);
+	PipelineInfo.RasterizerState = wireframeRasterizer;
+	Pipeline->UpdatePipeline(PipelineInfo);
+	UpdateConstant(FinalTransform);
+	UpdateConstant(FVector4(1, 1, 0, 1));
+	Pipeline->SetVertexBuffer(UResourceManager::GetInstance().GetVertexbuffer(EPrimitiveType::Cube), Stride);
+	Pipeline->Draw(UResourceManager::GetInstance().GetNumVertices(EPrimitiveType::Cube), 0);
+}
+
+void URenderer::RenderWorldAABB(const UPrimitiveComponent* InPrimitive)
+{
+	if (!InPrimitive)	return;
+
+	FVector WorldMin, WorldMax;
+	InPrimitive->GetWorldAABB(WorldMin, WorldMax);
+
+	ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(InPrimitive->GetRenderState());
+	FPipelineInfo PipelineInfo = {
+		DefaultInputLayout,
+		DefaultVertexShader,
+		LoadedRasterizerState,
+		DefaultDepthStencilState,
+		DefaultPixelShader,
+		nullptr,
+	};
+
+	FVector WorldAABBCenter = (WorldMax + WorldMin) * 0.5f;
+	FVector WorldAABBScale = WorldMax - WorldMin;
+	FMatrix FinalTransform = FMatrix::ScaleMatrix(WorldAABBScale) * FMatrix::TranslationMatrix(WorldAABBCenter);
+
+	// Wireframe mode
+	FRenderState WireframeState;
+	WireframeState.FillMode = EFillMode::WireFrame;
+	WireframeState.CullMode = ECullMode::None;
+	ID3D11RasterizerState* wireframeRasterizer = GetRasterizerState(WireframeState);
+	PipelineInfo.RasterizerState = wireframeRasterizer;
+	Pipeline->UpdatePipeline(PipelineInfo);
+	UpdateConstant(FinalTransform);
+	UpdateConstant(FVector4(0, 1, 0, 1));
+	Pipeline->SetVertexBuffer(UResourceManager::GetInstance().GetVertexbuffer(EPrimitiveType::Cube), Stride);
+	Pipeline->Draw(UResourceManager::GetInstance().GetNumVertices(EPrimitiveType::Cube), 0);
 }
 
 /**
@@ -268,7 +342,8 @@ void URenderer::RenderEnd() const
 
 static inline D3D11_CULL_MODE ToD3D11(ECullMode InCull)
 {
-	switch (InCull) {
+	switch (InCull)
+	{
 	case ECullMode::Back:
 		return D3D11_CULL_BACK;
 	case ECullMode::Front:
@@ -282,7 +357,8 @@ static inline D3D11_CULL_MODE ToD3D11(ECullMode InCull)
 
 static inline D3D11_FILL_MODE ToD3D11(EFillMode InFill)
 {
-	switch (InFill) {
+	switch (InFill)
+	{
 	case EFillMode::Solid:
 		return D3D11_FILL_SOLID;
 	case EFillMode::WireFrame:
@@ -301,13 +377,13 @@ void URenderer::RenderPrimitive(FEditorPrimitive& Primitive, struct FRenderState
 		GetRasterizerState(InRenderState);
 
 	FPipelineInfo PipelineInfo = {
-			DefaultInputLayout,
-			DefaultVertexShader,
-			RasterizerState,
-			DepthStencilState,
-			DefaultPixelShader,
-			nullptr,
-			Primitive.Topology
+		DefaultInputLayout,
+		DefaultVertexShader,
+		RasterizerState,
+		DepthStencilState,
+		DefaultPixelShader,
+		nullptr,
+		Primitive.Topology
 	};
 
 	Pipeline->UpdatePipeline(PipelineInfo);
@@ -449,7 +525,7 @@ void URenderer::OnResize(uint32 InWidth, uint32 InHeight)
 	DeviceResources->CreateDepthBuffer();
 
 	auto* rtv = DeviceResources->GetRenderTargetView();
-	ID3D11RenderTargetView* rtvs[] = { rtv };  // 배열 생성
+	ID3D11RenderTargetView* rtvs[] = {rtv}; // 배열 생성
 	GetDeviceContext()->OMSetRenderTargets(1, rtvs, DeviceResources->GetDepthStencilView());
 }
 
@@ -602,11 +678,14 @@ void URenderer::UpdateConstant(const UPrimitiveComponent* Primitive)
 		// update constant buffer every frame
 		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
 		{
-			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(), FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()), Primitive->GetRelativeScale3D());
+			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(),
+			                                     FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()),
+			                                     Primitive->GetRelativeScale3D());
 		}
 		GetDeviceContext()->Unmap(ConstantBufferModels, 0);
 	}
 }
+
 /**
  * @brief 상수 버퍼 업데이트 함수
  * @param InOffset
@@ -644,6 +723,17 @@ void URenderer::UpdateConstant(const FViewProjConstants& InViewProjConstants) co
 			ViewProjectionConstants->Projection = InViewProjConstants.Projection;
 		}
 		GetDeviceContext()->Unmap(ConstantBufferViewProj, 0);
+	}
+}
+
+void URenderer::UpdateConstant(const FMatrix& InMatrix) const
+{
+	if (ConstantBufferModels)
+	{
+		D3D11_MAPPED_SUBRESOURCE msr;
+		GetDeviceContext()->Map(ConstantBufferModels, 0, D3D11_MAP_WRITE_DISCARD, 0, &msr);
+		memcpy(msr.pData, &InMatrix, sizeof(FMatrix));
+		GetDeviceContext()->Unmap(ConstantBufferModels, 0);
 	}
 }
 
@@ -734,7 +824,7 @@ ID3D11RasterizerState* URenderer::GetRasterizerState(const FRenderState& InRende
 	D3D11_FILL_MODE FillMode = ToD3D11(InRenderState.FillMode);
 	D3D11_CULL_MODE CillMode = ToD3D11(InRenderState.CullMode);
 
-	const FRasterKey Key{ FillMode, CillMode };
+	const FRasterKey Key{FillMode, CillMode};
 	if (auto It = RasterCache.find(Key); It != RasterCache.end())
 		return It->second;
 
