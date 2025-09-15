@@ -65,7 +65,7 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 	//이 t에 대한 방정식을 풀어서 근의공식 적용하면 됨.
 	
 	FVector GizmoLocation = Gizmo.GetGizmoLocation();
-	FVector GizmoAxises[3] = { {0, 0, 1}, {1, 0, 0}, {0, 1, 0} };
+	FVector GizmoAxises[3] = { {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
 
 	//로컬 기즈모, 쿼터니언 구현 후 사용
 	/*if (!Gizmo.IsWorld())	

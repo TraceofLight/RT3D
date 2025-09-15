@@ -76,7 +76,7 @@ public:
 	const FVector& GetDragStartActorScale() { return DragStartActorScale; }
 	const EGizmoMode GetGizmoMode() { return GizmoMode; }
 	const FVector GetGizmoAxis() {
-		FVector Axis[3]{ {0,1,0},{0,0,1},{1,0,0} }; return Axis[AxisIndex(GizmoDirection)];
+		FVector Axis[3]{ {1,0,0},{0,1,0},{0,0,1} }; return Axis[AxisIndex(GizmoDirection)];
 	}
 
 	float GetTranslateRadius() const { return TranslateCollisionConfig.Radius * TranslateCollisionConfig.Scale; }

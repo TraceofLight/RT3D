@@ -150,6 +150,10 @@ FMatrix FMatrix::ScaleMatrixInverse(const FVector& InOtherVector)
 */
 FMatrix FMatrix::RotationMatrix(const FVector& InOtherVector)
 {
+	// Dx11 yaw(y), pitch(x), roll(z)
+	// UE yaw(z), pitch(y), roll(x)
+	// 회전 축이 바뀌어서 각 회전행렬 함수에 바뀐 값을 적용
+
 	const float yaw = InOtherVector.Y;
 	const float pitch = InOtherVector.X;
 	const float roll = InOtherVector.Z;
@@ -228,7 +232,8 @@ FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FVector& Rotation
 	FMatrix S = ScaleMatrix(Scale);
 	FMatrix modelMatrix = S * R * T;
 
-	return modelMatrix * FMatrix::DxToUE;
+	// Dx11 y-up 왼손좌표계에서 정의된 물체의 정점을 UE z-up 왼손좌표계로 변환
+	return  FMatrix::DxToUE * modelMatrix;
 }
 
 FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& Rotation, const FVector& Scale)
@@ -238,7 +243,8 @@ FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& R
 	FMatrix S = ScaleMatrixInverse(Scale);
 	FMatrix modelMatrixInverse = T * R * S;
 
-	return FMatrix::UEToDx * modelMatrixInverse;
+	// UE 좌표계로 변환된 물체의 정점을 원래의 Dx 11 왼손좌표계 정점으로 변환
+	return modelMatrixInverse * FMatrix::UEToDx;
 }
 
 FVector4 FMatrix::VectorMultiply(const FVector4& v, const FMatrix& m)
