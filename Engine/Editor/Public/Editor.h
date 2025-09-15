@@ -7,6 +7,13 @@
 #include "Editor/Public/ObjectPicker.h"
 #include "Editor/Public/BatchLines.h"
 
+enum class EViewModeIndex : uint32
+{
+	VMI_Lit,
+	VMI_Unlit,
+	VMI_Wireframe,
+};
+
 class UEditor : public UObject
 {
 public:
@@ -15,6 +22,9 @@ public:
 
 	void Update();
 	void RenderEditor();
+
+	void SetViewMode(EViewModeIndex InNewViewMode) { CurrentViewMode = InNewViewMode; }
+	EViewModeIndex GetViewMode() const { return CurrentViewMode; }
 
 private:
 	void ProcessMouseInput(ULevel* InLevel);
@@ -32,4 +42,6 @@ private:
 	UAxis Axis;
 	UBatchLines BatchLines;
 	//UGrid Grid;
+
+	EViewModeIndex CurrentViewMode = EViewModeIndex::VMI_Lit;
 };
