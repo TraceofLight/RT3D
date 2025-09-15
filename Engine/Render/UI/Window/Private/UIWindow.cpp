@@ -35,7 +35,10 @@ UUIWindow::~UUIWindow()
 {
 	for (UWidget* Widget : Widgets)
 	{
-		SafeDelete(Widget);
+		if (!Widget->IsSingleton())
+		{
+			SafeDelete(Widget);
+		}
 	}
 }
 
@@ -50,8 +53,8 @@ void UUIWindow::OnMainWindowResized()
 	const ImGuiViewport* viewport = ImGui::GetMainViewport();
 	const ImVec2 currentViewportSize = viewport->WorkSize;
 
- 	const ImVec2 anchor = PositionRatio;
-	const ImVec2 pivot = { 0.f, 0.f };
+	const ImVec2 anchor = PositionRatio;
+	const ImVec2 pivot = {0.f, 0.f};
 
 	ImVec2 responsiveSize(
 		currentViewportSize.x * SizeRatio.x,
@@ -90,17 +93,41 @@ void UUIWindow::ClampWindow()
 	ImVec2 size = LastWindowSize;
 
 	bool size_changed = false;
-	if (size.x > WorkSize.x) { size.x = WorkSize.x; size_changed = true; }
-	if (size.y > WorkSize.y) { size.y = WorkSize.y; size_changed = true; }
+	if (size.x > WorkSize.x)
+	{
+		size.x = WorkSize.x;
+		size_changed = true;
+	}
+	if (size.y > WorkSize.y)
+	{
+		size.y = WorkSize.y;
+		size_changed = true;
+	}
 	if (size_changed)
 	{
 		ImGui::SetWindowSize(size);
 	}
 	bool pos_changed = false;
-	if (pos.x + size.x > WorkPos.x + WorkSize.x) { pos.x = WorkPos.x + WorkSize.x - size.x; pos_changed = true; }
-	if (pos.y + size.y > WorkPos.y + WorkSize.y) { pos.y = WorkPos.y + WorkSize.y - size.y; pos_changed = true; }
-	if (pos.x < WorkPos.x) { pos.x = WorkPos.x; pos_changed = true; }
-	if (pos.y < WorkPos.y) { pos.y = WorkPos.y; pos_changed = true; }
+	if (pos.x + size.x > WorkPos.x + WorkSize.x)
+	{
+		pos.x = WorkPos.x + WorkSize.x - size.x;
+		pos_changed = true;
+	}
+	if (pos.y + size.y > WorkPos.y + WorkSize.y)
+	{
+		pos.y = WorkPos.y + WorkSize.y - size.y;
+		pos_changed = true;
+	}
+	if (pos.x < WorkPos.x)
+	{
+		pos.x = WorkPos.x;
+		pos_changed = true;
+	}
+	if (pos.y < WorkPos.y)
+	{
+		pos.y = WorkPos.y;
+		pos_changed = true;
+	}
 	if (pos_changed)
 	{
 		ImGui::SetWindowPos(pos);
@@ -162,7 +189,7 @@ void UUIWindow::RenderWindow()
 
 	bool bIsOpen = bIsWindowOpen;
 
-	if (ImGui::Begin(Config.WindowTitle.c_str(), &bIsOpen, Config.WindowFlags))
+	if (ImGui::Begin(Config.WindowTitle.ToString().data(), &bIsOpen, Config.WindowFlags))
 	{
 		// 잘 적용되지 않는 문제로 인해 여러 번 강제 적용 시도
 		if (bShouldRestoreSize && RestoreFrameCount > 0)
@@ -180,13 +207,13 @@ void UUIWindow::RenderWindow()
 			const ImGuiViewport* viewport = ImGui::GetMainViewport();
 			ImVec2 currentPos = ImGui::GetWindowPos();
 			ImVec2 currentSize = ImGui::GetWindowSize();
-			ImVec2 pivot = { 0.f, 0.f };
+			ImVec2 pivot = {0.f, 0.f};
 
 			PositionRatio.x = (currentPos.x - viewport->WorkPos.x + currentSize.x * pivot.x) / viewport->WorkSize.x;
 			PositionRatio.y = (currentPos.y - viewport->WorkPos.y + currentSize.y * pivot.y) / viewport->WorkSize.y;
 
-			SizeRatio.x = currentSize.x  / viewport->WorkSize.x;
-			SizeRatio.y = currentSize.y  / viewport->WorkSize.y;
+			SizeRatio.x = currentSize.x / viewport->WorkSize.x;
+			SizeRatio.y = currentSize.y / viewport->WorkSize.y;
 		}
 		// 실제 UI 컨텐츠 렌더링
 		RenderWidget();

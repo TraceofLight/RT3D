@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/TriangleComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(UTriangleComponent, UPrimitiveComponent)
 
 UTriangleComponent::UTriangleComponent()

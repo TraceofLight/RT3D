@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/PrimitiveComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(UPrimitiveComponent, USceneComponent)
 
 UPrimitiveComponent::UPrimitiveComponent()

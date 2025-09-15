@@ -1,5 +1,5 @@
 #pragma once
-#include "Global/CoreTypes.h"
+#include "Name.h"
 
 class UObject;
 class UClass;
@@ -18,7 +18,7 @@ public:
 	// 생성자 함수 포인터 타입 정의
 	typedef UObject* (*ClassConstructorType)();
 
-	UClass(const FString& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor);
+	UClass(const FName& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor);
 
 	static UClass* FindClass(const FString& InClassName);
 	static void SignUpClass(UClass* InClass);
@@ -27,13 +27,13 @@ public:
 	bool IsChildOf(const UClass* InClass) const;
 	UObject* CreateDefaultObject() const;
 
- 	// Getter
-	const FString& GetClass() const { return ClassName; }
+	// Getter
+	const FName& GetClass() const { return ClassName; }
 	UClass* GetSuperClass() const { return SuperClass; }
 	size_t GetClassSize() const { return ClassSize; }
 
 private:
-	FString ClassName;
+	FName ClassName;
 	UClass* SuperClass;
 	size_t ClassSize;
 	ClassConstructorType Constructor;
@@ -91,6 +91,94 @@ private: \
     UObject* ClassName::CreateDefaultObject##ClassName() \
     { \
         return new ClassName(); \
+    }
+
+/**
+ * @brief 싱글톤 클래스용 RTTI 매크로 시스템
+ *
+ * 싱글톤 패턴을 사용하는 클래스에 UClass 시스템을 적용하기 위한 매크로들
+ * 기존 DECLARE_CLASS/IMPLEMENT_CLASS와 동일한 RTTI 기능을 제공하면서
+ * 싱글톤 패턴의 GetInstance() 방식과 호환되도록 설계
+ */
+
+// 싱글톤 클래스 선언부에 사용하는 매크로
+#define DECLARE_SINGLETON_CLASS(ClassName, SuperClassName) \
+public: \
+    typedef ClassName ThisClass; \
+    typedef SuperClassName Super; \
+    static UClass* StaticClass(); \
+    virtual UClass* GetClass() const; \
+    static UObject* CreateDefaultObject##ClassName(); \
+    static ClassName& GetInstance(); \
+private: \
+    static UClass* ClassPrivate; \
+    ClassName(); \
+    virtual ~ClassName(); \
+    ClassName(const ClassName&) = delete; \
+    ClassName& operator=(const ClassName&) = delete; \
+    ClassName(ClassName&&) = delete; \
+    ClassName& operator=(ClassName&&) = delete;
+
+// 싱글톤 클래스 구현부에 사용하는 매크로
+#define IMPLEMENT_SINGLETON_CLASS(ClassName, SuperClassName) \
+    UClass* ClassName::ClassPrivate = nullptr; \
+    UClass* ClassName::StaticClass() \
+    { \
+        if (!ClassPrivate) \
+        { \
+            ClassPrivate = new UClass( \
+                FString(#ClassName), \
+                SuperClassName::StaticClass(), \
+                sizeof(ClassName), \
+                &ClassName::CreateDefaultObject##ClassName \
+            ); \
+            UClass::SignUpClass(ClassPrivate); \
+        } \
+        return ClassPrivate; \
+    } \
+    UClass* ClassName::GetClass() const \
+    { \
+        return ClassName::StaticClass(); \
+    } \
+    UObject* ClassName::CreateDefaultObject##ClassName() \
+    { \
+        return &ClassName::GetInstance(); \
+    } \
+    ClassName& ClassName::GetInstance() \
+    { \
+        static ClassName Instance; \
+        return Instance; \
+    }
+
+// 싱글톤 베이스 클래스용 매크로 (SuperClass가 nullptr인 경우)
+#define IMPLEMENT_SINGLETON_CLASS_BASE(ClassName) \
+    UClass* ClassName::ClassPrivate = nullptr; \
+    UClass* ClassName::StaticClass() \
+    { \
+        if (!ClassPrivate) \
+        { \
+            ClassPrivate = new UClass( \
+                FString(#ClassName), \
+                nullptr, \
+                sizeof(ClassName), \
+                &ClassName::CreateDefaultObject##ClassName \
+            ); \
+            UClass::SignUpClass(ClassPrivate); \
+        } \
+        return ClassPrivate; \
+    } \
+    UClass* ClassName::GetClass() const \
+    { \
+        return ClassName::StaticClass(); \
+    } \
+    UObject* ClassName::CreateDefaultObject##ClassName() \
+    { \
+        return &ClassName::GetInstance(); \
+    } \
+    ClassName& ClassName::GetInstance() \
+    { \
+        static ClassName Instance; \
+        return Instance; \
     }
 
 // UObject의 기본 매크로 (Base Class)

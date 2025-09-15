@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/CubeComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(UCubeComponent, UPrimitiveComponent)
 
 UCubeComponent::UCubeComponent()

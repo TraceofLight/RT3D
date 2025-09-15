@@ -3,10 +3,12 @@
 
 class FAppWindow;
 
+UCLASS()
 class UInputManager :
 	public UObject
 {
-	DECLARE_SINGLETON(UInputManager)
+	GENERATED_BODY()
+	DECLARE_SINGLETON_CLASS(UInputManager, UObject)
 
 public:
 	void Update(const FAppWindow* InWindow);
@@ -30,7 +32,7 @@ public:
 	bool IsWindowFocused() const { return bIsWindowFocused; }
 
 	// Helper Function
-	static const wchar_t* KeyInputToString(EKeyInput InKey);
+	static FString KeyInputToString(EKeyInput InKey);
 
 	// Mouse Wheel
 	float GetMouseWheelDelta() const { return MouseWheelDelta; }

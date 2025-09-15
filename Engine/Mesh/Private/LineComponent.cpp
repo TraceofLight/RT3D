@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/LineComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(ULineComponent, UPrimitiveComponent)
 
 ULineComponent::ULineComponent()

@@ -10,13 +10,13 @@
 #include "Utility/Public/LevelSerializer.h"
 #include "Utility/Public/Metadata.h"
 
-IMPLEMENT_SINGLETON(ULevelManager)
+IMPLEMENT_SINGLETON_CLASS_BASE(ULevelManager)
 
 ULevelManager::ULevelManager() = default;
 
 ULevelManager::~ULevelManager() = default;
 
-void ULevelManager::RegisterLevel(const FString& InName, ULevel* InLevel)
+void ULevelManager::RegisterLevel(const FName& InName, ULevel* InLevel)
 {
 	Levels[InName] = InLevel;
 	if (!CurrentLevel)
@@ -25,7 +25,7 @@ void ULevelManager::RegisterLevel(const FString& InName, ULevel* InLevel)
 	}
 }
 
-void ULevelManager::LoadLevel(const FString& InName)
+void ULevelManager::LoadLevel(const FName& InName)
 {
 	if (Levels.find(InName) == Levels.end())
 	{
@@ -56,8 +56,8 @@ void ULevelManager::Shutdown()
  */
 void ULevelManager::CreateDefaultLevel()
 {
-	Levels["Default"] = new ULevel("Default");
-	LoadLevel("Default");
+	Levels[FName("Default")] = new ULevel("Default");
+	LoadLevel(FName("Default"));
 }
 
 void ULevelManager::Update() const
@@ -84,7 +84,9 @@ bool ULevelManager::SaveCurrentLevel(const FString& InFilePath) const
 	if (FilePath.empty())
 	{
 		// 기본 파일명은 Level 이름으로 세팅
-		FilePath = GenerateLevelFilePath(CurrentLevel->GetName().empty() ? "Untitled" : CurrentLevel->GetName());
+		FilePath = GenerateLevelFilePath(CurrentLevel->GetName() == FName::None
+			                                 ? "Untitled"
+			                                 : CurrentLevel->GetName().ToString());
 	}
 
 	UE_LOG("LevelManager: 현재 레벨을 다음 경로에 저장합니다: %s", FilePath.string().c_str());
@@ -172,9 +174,10 @@ bool ULevelManager::LoadLevel(const FString& InLevelName, const FString& InFileP
 		// 기존 레벨이 있다면 정리
 		ULevel* OldLevel;
 
-		if (Levels.find(InLevelName) != Levels.end())
+		FName LevelName(InLevelName);
+		if (Levels.find(LevelName) != Levels.end())
 		{
-			OldLevel = Levels[InLevelName];
+			OldLevel = Levels[LevelName];
 
 			// CurrentLevel이 삭제될 레벨과 같다면 미리 nullptr로 설정
 			if (CurrentLevel == OldLevel)
@@ -184,11 +187,11 @@ bool ULevelManager::LoadLevel(const FString& InLevelName, const FString& InFileP
 			}
 
 			delete OldLevel;
-			Levels.erase(InLevelName);
+			Levels.erase(LevelName);
 		}
 
 		// 새 레벨 등록 및 활성화
-		RegisterLevel(InLevelName, NewLevel);
+		RegisterLevel(LevelName, NewLevel);
 
 		// 현재 레벨을 로드된 레벨로 전환
 		if (CurrentLevel && CurrentLevel != NewLevel)
@@ -219,7 +222,8 @@ bool ULevelManager::CreateNewLevel(const FString& InLevelName)
 	UE_LOG("LevelManager: Creating New Level: %s", InLevelName.c_str());
 
 	// 이미 존재하는 레벨 이름인지 확인
-	if (Levels.find(InLevelName) != Levels.end())
+	FName LevelName(InLevelName);
+	if (Levels.find(LevelName) != Levels.end())
 	{
 		UE_LOG("LevelManager: Level '%s' Already Exists", InLevelName.c_str());
 		return false;
@@ -229,7 +233,7 @@ bool ULevelManager::CreateNewLevel(const FString& InLevelName)
 	ULevel* NewLevel = new ULevel(InLevelName);
 
 	// 레벨 등록 및 활성화
-	RegisterLevel(InLevelName, NewLevel);
+	RegisterLevel(LevelName, NewLevel);
 
 	// 현재 레벨을 새 레벨로 전환
 	if (CurrentLevel && CurrentLevel != NewLevel)

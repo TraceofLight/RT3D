@@ -122,6 +122,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y</Command>
@@ -144,10 +145,12 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Public\Class.h" />
+    <ClInclude Include="Core\Public\Name.h" />
     <ClInclude Include="Core\Public\Object.h" />
     <ClInclude Include="Editor\Public\Axis.h" />
     <ClInclude Include="Editor\Public\Camera.h" />
@@ -159,6 +162,7 @@
     <ClInclude Include="Global\Constant.h" />
     <ClInclude Include="Global\CoreTypes.h" />
     <ClInclude Include="Global\Enum.h" />
+    <ClInclude Include="Global\EnumReflection.h" />
     <ClInclude Include="Global\Function.h" />
     <ClInclude Include="Global\Macro.h" />
     <ClInclude Include="Global\Matrix.h" />
@@ -178,6 +182,7 @@
     <ClInclude Include="Manager\Input\Public\InputManager.h" />
     <ClInclude Include="Manager\Level\Public\LevelManager.h" />
     <ClInclude Include="Manager\Path\Public\PathManager.h" />
+    <ClInclude Include="Manager\Resource\Public\ResourceManager.h" />
     <ClInclude Include="Manager\Time\Public\TimeManager.h" />
     <ClInclude Include="Manager\UI\Public\UIManager.h" />
     <ClInclude Include="Mesh\Public\AABB.h" />
@@ -189,7 +194,6 @@
     <ClInclude Include="Mesh\Public\CubeComponent.h" />
     <ClInclude Include="Mesh\Public\LineComponent.h" />
     <ClInclude Include="Mesh\Public\PrimitiveComponent.h" />
-    <ClInclude Include="Mesh\Public\ResourceManager.h" />
     <ClInclude Include="Mesh\Public\SceneComponent.h" />
     <ClInclude Include="Mesh\Public\SphereActor.h" />
     <ClInclude Include="Mesh\Public\SphereComponent.h" />
@@ -215,6 +219,7 @@
     <ClInclude Include="Render\UI\Widget\Public\FPSWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\InputInformationWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\PrimitiveSpawnWidget.h" />
+    <ClInclude Include="Render\UI\Widget\Public\SceneHierarchyWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\SceneIOWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\TargetActorTransformWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\Widget.h" />
@@ -222,13 +227,16 @@
     <ClInclude Include="Render\UI\Window\Public\ControlPanelWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\ExperimentalFeatureWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\OutlinerWindow.h" />
+    <ClInclude Include="Render\UI\Window\Public\SceneManagerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\UIWindow.h" />
     <ClInclude Include="Utility\Public\LevelSerializer.h" />
     <ClInclude Include="Utility\Public\Metadata.h" />
     <ClInclude Include="Utility\Public\UELogParser.h" />
+    <ClInclude Include="Core\Public\EngineStatics.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Core\Private\Class.cpp" />
+    <ClCompile Include="Core\Private\Name.cpp" />
     <ClCompile Include="Core\Private\Object.cpp" />
     <ClCompile Include="Editor\Private\Axis.cpp" />
     <ClCompile Include="Editor\Private\Camera.cpp" />
@@ -250,6 +258,7 @@
     <ClCompile Include="Manager\Input\Private\InputManager.cpp" />
     <ClCompile Include="Manager\Level\Private\LevelManager.cpp" />
     <ClCompile Include="Manager\Path\Private\PathManager.cpp" />
+    <ClCompile Include="Manager\Resource\Private\ResourceManager.cpp" />
     <ClCompile Include="Manager\Time\Private\TimeManager.cpp" />
     <ClCompile Include="Manager\UI\Private\UIManager.cpp" />
     <ClCompile Include="Mesh\Private\AABB.cpp" />
@@ -260,7 +269,6 @@
     <ClCompile Include="Mesh\Private\CubeComponent.cpp" />
     <ClCompile Include="Mesh\Private\LineComponent.cpp" />
     <ClCompile Include="Mesh\Private\PrimitiveComponent.cpp" />
-    <ClCompile Include="Mesh\Private\ResourceManager.cpp" />
     <ClCompile Include="Mesh\Private\SceneComponent.cpp" />
     <ClCompile Include="Mesh\Private\SphereActor.cpp" />
     <ClCompile Include="Mesh\Private\SphereComponent.cpp" />
@@ -286,6 +294,7 @@
     <ClCompile Include="Render\UI\Widget\Private\FPSWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\InputInformationWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\PrimitiveSpawnWidget.cpp" />
+    <ClCompile Include="Render\UI\Widget\Private\SceneHierarchyWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\SceneIOWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\TargetActorTransformWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\Widget.cpp" />
@@ -293,6 +302,7 @@
     <ClCompile Include="Render\UI\Window\Private\ControlPanelWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\ExperimentalFeatureWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\OutlinerWindow.cpp" />
+    <ClCompile Include="Render\UI\Window\Private\SceneManagerWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\UIWindow.cpp" />
     <ClCompile Include="Utility\Private\LevelSerializer.cpp" />
     <ClCompile Include="Utility\Private\UELogParser.cpp" />
@@ -301,9 +311,6 @@
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
-    <Content Include="Core\Public\EngineStatics.h" />
-    <Content Include="Render\AxisLine\Public\Axis.h" />
-    <Content Include="Render\AxisLine\Public\AxisLine.h" />
     <Content Include="Asset\**\*.*">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

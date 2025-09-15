@@ -1,6 +1,8 @@
 #include "pch.h"
 #include "Mesh/Public/SphereComponent.h"
 
+#include "Manager/Resource/Public/ResourceManager.h"
+
 IMPLEMENT_CLASS(USphereComponent, UPrimitiveComponent)
 
 USphereComponent::USphereComponent()

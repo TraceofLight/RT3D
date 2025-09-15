@@ -5,6 +5,7 @@
 #include "Core/Public/AppWindow.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/Level/Public/LevelManager.h"
+#include "Manager/Resource/Public/ResourceManager.h"
 #include "Manager/Time/Public/TimeManager.h"
 
 #include "Manager/UI/Public/UIManager.h"
@@ -80,22 +81,11 @@ int FClientApp::InitializeSystem()
 	Renderer.Init(Window->GetWindowHandle());
 
 	// UIManager Initialize
-	auto& UiManager = UUIManager::GetInstance();
-	UiManager.Initialize(Window->GetWindowHandle());
+	auto& UIManger = UUIManager::GetInstance();
+	UIManger.Initialize(Window->GetWindowHandle());
 	UUIWindowFactory::CreateDefaultUILayout();
 
 	UResourceManager::GetInstance().Initialize();
-
-	// UE_LOG 테스트
-	// UE_LOG("=== Engine Initialization Started ===");
-	// UE_LOG("Window Handle: %p", Window->GetWindowHandle());
-	// UE_LOG("Renderer initialized successfully");
-
-	// Console Window 테스트
-	// cout << "[System] This is cout output test\n";
-	// cerr << "[System] This is cerr output test\n";
-
-	// UE_LOG("=== Engine Initialization Completed ===");
 
 	// Create Default Level
 	// TODO(KHJ): 나중에 Init에서 처리하도록 하는 게 맞을 듯
@@ -110,19 +100,19 @@ int FClientApp::InitializeSystem()
 /**
  * @brief Update System While Game Processing
  */
-void FClientApp::UpdateSystem()
+void FClientApp::UpdateSystem() const
 {
 	auto& TimeManager = UTimeManager::GetInstance();
 	auto& InputManager = UInputManager::GetInstance();
+	auto& UIManager = UUIManager::GetInstance();
 	auto& Renderer = URenderer::GetInstance();
 	auto& LevelManager = ULevelManager::GetInstance();
-	auto& UiManager = UUIManager::GetInstance();
 
 	Editor->Update();
 	TimeManager.Update();
 	InputManager.Update(Window);
+	UIManager.Update();
 	LevelManager.Update();
-	UiManager.Update();
 	Renderer.Update(Editor);
 }
 
@@ -161,7 +151,7 @@ void FClientApp::MainLoop()
  * @brief 시스템 종료 처리
  * 모든 리소스를 안전하게 해제하고 매니저들을 정리합니다.
  */
-void FClientApp::ShutdownSystem()
+void FClientApp::ShutdownSystem() const
 {
 	URenderer::GetInstance().Release();
 	UUIManager::GetInstance().Shutdown();

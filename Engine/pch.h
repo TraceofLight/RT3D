@@ -58,16 +58,21 @@ using filesystem::path;
 using filesystem::exists;
 using filesystem::create_directories;
 
+#define IMGUI_DEFINE_MATH_OPERATORS
+#include "Render/UI/Window/Public/ConsoleWindow.h"
+
+// DT Include
+#include "Manager/Time/Public/TimeManager.h"
+
+// 빌드 조건에 따른 Library 분류
+#ifdef _DEBUG
+#define DIRECTX_TOOL_KIT R"(DirectXTK\DirectXTK_debug)"
+#else
+#define DIRECTX_TOOL_KIT R"(DirectXTK\DirectXTK)"
+#endif
+
 // Library Linking
 #pragma comment(lib, "user32")
 #pragma comment(lib, "d3d11")
 #pragma comment(lib, "d3dcompiler")
-
-#define IMGUI_DEFINE_MATH_OPERATORS
-#include "Render/UI/Window/Public/ConsoleWindow.h"
-
-// DT Include Once
-#ifndef TIME_MANAGER
-#define TIME_MANAGER
-#include "Manager/Time/Public/TimeManager.h"
-#endif // _TIME_MANAGER
+#pragma comment(lib, DIRECTX_TOOL_KIT)
