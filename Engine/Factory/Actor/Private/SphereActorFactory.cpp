@@ -13,7 +13,7 @@ USphereActorFactory::USphereActorFactory()
 	SupportedClass = ASphereActor::StaticClass();
 	Description = "SphereActor Factory";
 
-	RegisterFactory(this);
+	RegisterFactory(TObjectPtr<UFactory>(this));
 }
 
 /**

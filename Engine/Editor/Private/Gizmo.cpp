@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "Editor/Public/Gizmo.h"
 
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Mesh/Public/Actor.h"
 
 UGizmo::UGizmo()
 {
-	UResourceManager& ResourceManager = UResourceManager::GetInstance();
+	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 	Primitives.resize(3);
 	GizmoColor.resize(3);
 
@@ -74,7 +74,7 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 		LocalRotation = TargetActor->GetActorRotation();
 	}*/
 
-	
+
 	float Scale = DistanceToCamera * ScaleFactor;
 	if (DistanceToCamera < MinScaleFactor)
 		Scale = MinScaleFactor * ScaleFactor;

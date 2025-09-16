@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "Mesh/Public/CubeComponent.h"
 
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 
 IMPLEMENT_CLASS(UCubeComponent, UPrimitiveComponent)
 
 UCubeComponent::UCubeComponent()
 {
-	UResourceManager& ResourceManager = UResourceManager::GetInstance();
+	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 	Type = EPrimitiveType::Cube;
 	Vertices = ResourceManager.GetVertexData(Type);
 	Vertexbuffer = ResourceManager.GetVertexbuffer(Type);

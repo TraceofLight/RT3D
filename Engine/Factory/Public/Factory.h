@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Public/Object.h"
+#include "Core/Public/ObjectPtr.h"
 
 /**
  * @brief Base Factory Class
@@ -23,9 +24,9 @@ public:
 	virtual bool DoesSupportClass(UClass* InClass);
 
 	// 생성을 처리하는 과정에서 해당 객체를 생성해 줄 Factory를 찾기 위한 함수
-	static TArray<UFactory*>& GetFactoryList();
-	static void RegisterFactory(UFactory* InFactory);
-	static UFactory* FindFactory(UClass* InClass);
+	static TArray<TObjectPtr<UFactory>>& GetFactoryList();
+	static void RegisterFactory(TObjectPtr<UFactory> InFactory);
+	static TObjectPtr<UFactory> FindFactory(TObjectPtr<UClass> InClass);
 
 	// Getter
 	const FString& GetDescription() const { return Description; }
@@ -36,6 +37,6 @@ public:
 	~UFactory() override = default;
 
 protected:
-	UClass* SupportedClass;
+	TObjectPtr<UClass> SupportedClass;
 	FString Description;
 };

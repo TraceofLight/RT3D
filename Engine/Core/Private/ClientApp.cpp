@@ -5,7 +5,7 @@
 #include "Core/Public/AppWindow.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/Level/Public/LevelManager.h"
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 #include "Manager/Time/Public/TimeManager.h"
 
 #include "Manager/UI/Public/UIManager.h"
@@ -86,7 +86,7 @@ int FClientApp::InitializeSystem()
 	UIManger.Initialize(Window->GetWindowHandle());
 	UUIWindowFactory::CreateDefaultUILayout();
 
-	UResourceManager::GetInstance().Initialize();
+	UAssetManager::GetInstance().Initialize();
 
 	// Create Default Level
 	// TODO(KHJ): 나중에 Init에서 처리하도록 하는 게 맞을 듯
@@ -157,7 +157,7 @@ void FClientApp::ShutdownSystem() const
 	URenderer::GetInstance().Release();
 	UUIManager::GetInstance().Shutdown();
 	ULevelManager::GetInstance().Shutdown();
-	UResourceManager::GetInstance().Release();
+	UAssetManager::GetInstance().Release();
 
 	// 레벨 매니저 정리
 	// ULevelManager::GetInstance().Release();

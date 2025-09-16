@@ -1,6 +1,7 @@
 #pragma once
 #include "Factory.h"
 #include "Factory/Actor/Public/ActorFactory.h"
+#include "Core/Public/ObjectPtr.h"
 
 using std::is_base_of_v;
 
@@ -22,7 +23,8 @@ T* NewObject(UObject* InOuter = nullptr, UClass* InClass = nullptr,
 	UClass* ClassToUse = InClass ? InClass : T::StaticClass();
 
 	// Factory를 사용하여 생성 시도
-	UFactory* Factory = UFactory::FindFactory(ClassToUse);
+	TObjectPtr<UFactory> FactoryPtr = UFactory::FindFactory(TObjectPtr<UClass>(ClassToUse));
+	UFactory* Factory = FactoryPtr.Get();
 	if (Factory)
 	{
 		UObject* NewObject = Factory->FactoryCreateNew(ClassToUse, InOuter, InName, InFlags);
@@ -66,7 +68,8 @@ T* SpawnActor(ULevel* InLevel, const FTransform& InTransform = FTransform(), con
 	static_assert(is_base_of_v<AActor, T>, "생성할 클래스는 AActor를 반드시 상속 받아야 합니다");
 
 	// ActorFactory를 사용하여 생성 시도
-	UFactory* Factory = UFactory::FindFactory(T::StaticClass());
+	TObjectPtr<UFactory> FactoryPtr = UFactory::FindFactory(TObjectPtr<UClass>(T::StaticClass()));
+	UFactory* Factory = FactoryPtr.Get();
 	if (Factory && Factory->IsActorFactory())
 	{
 		UActorFactory* ActorFactory = static_cast<UActorFactory*>(Factory);

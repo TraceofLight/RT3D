@@ -1,18 +1,18 @@
 #include "pch.h"
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 
 #include "Mesh/Public/VertexDatas.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "DirectXTK/WICTextureLoader.h"
 #include "DirectXTK/DDSTextureLoader.h"
 
-IMPLEMENT_SINGLETON_CLASS_BASE(UResourceManager)
+IMPLEMENT_SINGLETON_CLASS_BASE(UAssetManager)
 
-UResourceManager::UResourceManager() = default;
+UAssetManager::UAssetManager() = default;
 
-UResourceManager::~UResourceManager() = default;
+UAssetManager::~UAssetManager() = default;
 
-void UResourceManager::Initialize()
+void UAssetManager::Initialize()
 {
 	URenderer& Renderer = URenderer::GetInstance();
 
@@ -93,12 +93,12 @@ void UResourceManager::Initialize()
 	VertexShaders.emplace(EShaderType::BatchLine, vertexShader);
 	InputLayouts.emplace(EShaderType::BatchLine, inputLayout);
 
-	ID3D11PixelShader* pixelShader;
-	URenderer::GetInstance().CreatePixelShader(L"Asset/Shader/BatchLinePS.hlsl", &pixelShader);
-	PixelShaders.emplace(EShaderType::BatchLine, pixelShader);
+	ID3D11PixelShader* PixelShader;
+	URenderer::GetInstance().CreatePixelShader(L"Asset/Shader/BatchLinePS.hlsl", &PixelShader);
+	PixelShaders.emplace(EShaderType::BatchLine, PixelShader);
 }
 
-void UResourceManager::Release()
+void UAssetManager::Release()
 {
 	// TMap.Value()
 	for (auto& Pair : Vertexbuffers)
@@ -113,47 +113,37 @@ void UResourceManager::Release()
 	ReleaseAllTextures();
 }
 
-TArray<FVertex>* UResourceManager::GetVertexData(EPrimitiveType InType)
+TArray<FVertex>* UAssetManager::GetVertexData(EPrimitiveType InType)
 {
 	return VertexDatas[InType];
 }
 
-ID3D11Buffer* UResourceManager::GetVertexbuffer(EPrimitiveType InType)
+ID3D11Buffer* UAssetManager::GetVertexbuffer(EPrimitiveType InType)
 {
 	return Vertexbuffers[InType];
 }
 
-uint32 UResourceManager::GetNumVertices(EPrimitiveType InType)
+uint32 UAssetManager::GetNumVertices(EPrimitiveType InType)
 {
 	return NumVertices[InType];
 }
 
-ID3D11VertexShader* UResourceManager::GetVertexShader(EShaderType Type)
+ID3D11VertexShader* UAssetManager::GetVertexShader(EShaderType Type)
 {
 	return VertexShaders[Type];
 }
 
-ID3D11PixelShader* UResourceManager::GetPixelShader(EShaderType Type)
+ID3D11PixelShader* UAssetManager::GetPixelShader(EShaderType Type)
 {
 	return PixelShaders[Type];
 }
 
-ID3D11InputLayout* UResourceManager::GetIputLayout(EShaderType Type)
+ID3D11InputLayout* UAssetManager::GetIputLayout(EShaderType Type)
 {
 	return InputLayouts[Type];
 }
 
-//const FAABB& UResourceManager::GetCubeAABB() const
-//{
-//	return CubeAABB;
-//}
-//
-//const FAABB& UResourceManager::GetSphereAABB() const
-//{
-//	return SphereAABB;
-//}
-
-const FAABB& UResourceManager::GetAABB(EPrimitiveType InType)
+const FAABB& UAssetManager::GetAABB(EPrimitiveType InType)
 {
 	return AABBs[InType];
 }
@@ -164,7 +154,7 @@ const FAABB& UResourceManager::GetAABB(EPrimitiveType InType)
  * @param InFilePath 로드할 텍스처 파일의 경로
  * @return 성공시 ID3D11ShaderResourceView 포인터, 실패시 nullptr
  */
-ID3D11ShaderResourceView* UResourceManager::LoadTexture(const FString& InFilePath)
+ID3D11ShaderResourceView* UAssetManager::LoadTexture(const FString& InFilePath)
 {
 	// 이미 로드된 텍스처가 있는지 확인
 	auto Iter = TextureCache.find(InFilePath);
@@ -189,7 +179,7 @@ ID3D11ShaderResourceView* UResourceManager::LoadTexture(const FString& InFilePat
  * @param InFilePath 가져올 텍스처 파일의 경로
  * @return 캐시에 있으면 ID3D11ShaderResourceView 포인터, 없으면 nullptr
  */
-ID3D11ShaderResourceView* UResourceManager::GetTexture(const FString& InFilePath)
+ID3D11ShaderResourceView* UAssetManager::GetTexture(const FString& InFilePath)
 {
 	auto Iter = TextureCache.find(InFilePath);
 	if (Iter != TextureCache.end())
@@ -205,7 +195,7 @@ ID3D11ShaderResourceView* UResourceManager::GetTexture(const FString& InFilePath
  * DirectX 리소스를 해제하고 캐시에서 제거
  * @param InFilePath 해제할 텍스처 파일의 경로
  */
-void UResourceManager::ReleaseTexture(const FString& InFilePath)
+void UAssetManager::ReleaseTexture(const FString& InFilePath)
 {
 	auto Iter = TextureCache.find(InFilePath);
 	if (Iter != TextureCache.end())
@@ -224,7 +214,7 @@ void UResourceManager::ReleaseTexture(const FString& InFilePath)
  * @param InFilePath 확인할 텍스처 파일의 경로
  * @return 캐시에 있으면 true, 없으면 false
  */
-bool UResourceManager::HasTexture(const FString& InFilePath) const
+bool UAssetManager::HasTexture(const FString& InFilePath) const
 {
 	return TextureCache.find(InFilePath) != TextureCache.end();
 }
@@ -233,7 +223,7 @@ bool UResourceManager::HasTexture(const FString& InFilePath) const
  * @brief 모든 텍스처 리소스를 해제하는 함수
  * 캐시된 모든 텍스처의 DirectX 리소스를 해제하고 캐시를 비움
  */
-void UResourceManager::ReleaseAllTextures()
+void UAssetManager::ReleaseAllTextures()
 {
 	for (auto& Pair : TextureCache)
 	{
@@ -251,7 +241,7 @@ void UResourceManager::ReleaseAllTextures()
  * @param InFilePath 로드할 이미지 파일의 경로
  * @return 성공시 ID3D11ShaderResourceView 포인터, 실패시 nullptr
  */
-ID3D11ShaderResourceView* UResourceManager::CreateTextureFromFile(const FString& InFilePath)
+ID3D11ShaderResourceView* UAssetManager::CreateTextureFromFile(const FString& InFilePath)
 {
 	URenderer& Renderer = URenderer::GetInstance();
 	ID3D11Device* Device = Renderer.GetDevice();
@@ -331,7 +321,7 @@ ID3D11ShaderResourceView* UResourceManager::CreateTextureFromFile(const FString&
  * @note DDS 포맷 감지를 위해 매직 넘버를 확인하고 적절한 로더 선택
  * @note 네트워크에서 다운로드한 이미지나 리소스 팩에서 추출한 데이터 처리에 유용
  */
-ID3D11ShaderResourceView* UResourceManager::CreateTextureFromMemory(const void* InData, size_t InDataSize)
+ID3D11ShaderResourceView* UAssetManager::CreateTextureFromMemory(const void* InData, size_t InDataSize)
 {
 	if (!InData || InDataSize == 0)
 	{

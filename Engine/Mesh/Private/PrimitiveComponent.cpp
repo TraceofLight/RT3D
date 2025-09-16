@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Mesh/Public/PrimitiveComponent.h"
 
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 
 IMPLEMENT_CLASS(UPrimitiveComponent, USceneComponent)
 
@@ -96,7 +96,7 @@ const FMatrix& USceneComponent::GetWorldTransformMatrixInverse() const
 
 const TArray<FVertex>* UPrimitiveComponent::GetVerticesData() const
 {
-	UResourceManager& ResourceManager = UResourceManager::GetInstance();
+	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 	return ResourceManager.GetVertexData(Type);
 }
 
