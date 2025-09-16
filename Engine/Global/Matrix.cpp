@@ -157,12 +157,15 @@ FMatrix FMatrix::RotationMatrix(const FVector& InOtherVector)
 	const float yaw = InOtherVector.Y;
 	const float pitch = InOtherVector.X;
 	const float roll = InOtherVector.Z;
-	return RotationZ(yaw) * RotationY(pitch) * RotationX(roll);
+	//return RotationZ(yaw) * RotationY(pitch) * RotationX(roll);
+	//return RotationX(yaw) * RotationY(roll) * RotationZ(pitch);
+	return RotationX(pitch) * RotationY(yaw) * RotationZ(roll);
 }
 
 FMatrix FMatrix::CreateFromYawPitchRoll(const float yaw, const float pitch, const float roll)
 {	
-	return RotationZ(yaw) * RotationY(pitch)* RotationX(roll);
+	//return RotationZ(yaw) * RotationY(pitch)* RotationX(roll);
+	return RotationX(pitch) * RotationY(yaw) * RotationZ(roll);
 }
 
 FMatrix FMatrix::RotationMatrixInverse(const FVector& InOtherVector)
@@ -170,7 +173,9 @@ FMatrix FMatrix::RotationMatrixInverse(const FVector& InOtherVector)
 	const float yaw = InOtherVector.Y;
 	const float pitch = InOtherVector.X;
 	const float roll = InOtherVector.Z;
-	return RotationX(-yaw) * RotationY(-pitch) * RotationZ(-roll);
+	//return RotationX(-yaw) * RotationY(-pitch) * RotationZ(-roll);
+	return RotationX(-pitch) * RotationY(-yaw) * RotationZ(-roll);
+
 }
 
 /**
@@ -233,7 +238,7 @@ FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FVector& Rotation
 	FMatrix modelMatrix = S * R * T;
 
 	// Dx11 y-up 왼손좌표계에서 정의된 물체의 정점을 UE z-up 왼손좌표계로 변환
-	return  FMatrix::DxToUE * modelMatrix;
+	return  FMatrix::UEToDx * modelMatrix;
 }
 
 FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& Rotation, const FVector& Scale)
@@ -244,7 +249,7 @@ FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& R
 	FMatrix modelMatrixInverse = T * R * S;
 
 	// UE 좌표계로 변환된 물체의 정점을 원래의 Dx 11 왼손좌표계 정점으로 변환
-	return modelMatrixInverse * FMatrix::UEToDx;
+	return modelMatrixInverse * FMatrix::DxToUE;
 }
 
 FVector4 FMatrix::VectorMultiply(const FVector4& v, const FMatrix& m)

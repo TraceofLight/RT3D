@@ -63,7 +63,7 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 
 	URenderer& Renderer = URenderer::GetInstance();
 	const int Mode = static_cast<int>(GizmoMode);
-	auto& P = Primitives[Mode];
+	auto& P = Primitives[Mode]; 
 	P.Location = TargetActor->GetActorLocation();
 
 
@@ -83,20 +83,40 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 
 	P.Scale = FVector(Scale, Scale, Scale);
 
-	// X (Forward)
-	P.Rotation = FVector{0,-89.99f,0} + LocalRotation;
-	P.Color = ColorFor(EGizmoDirection::Forward);
-	Renderer.RenderPrimitive(P, RenderState);
+	//// Y (Right)
+	//P.Rotation = FVector{ 0,0,0 } + LocalRotation;
+	//P.Color = ColorFor(EGizmoDirection::Right);
+	//Renderer.RenderPrimitive(P, RenderState);
+
+	//// Z (Up)
+	//P.Rotation = FVector{ 0, 0, 89.99f } + LocalRotation;
+	//P.Color = ColorFor(EGizmoDirection::Up);
+	//Renderer.RenderPrimitive(P, RenderState);
+
+	//// X (Forward)
+	//P.Rotation = FVector{ 0,-89.99f,0 } + LocalRotation;
+	//P.Color = ColorFor(EGizmoDirection::Forward);
+	//Renderer.RenderPrimitive(P, RenderState);
 
 	// Y (Right)
-	P.Rotation = FVector{ 0,0,0 } + LocalRotation;
+	P.Rotation = FVector{ 0,0,89.99f } + LocalRotation;
 	P.Color = ColorFor(EGizmoDirection::Right);
 	Renderer.RenderPrimitive(P, RenderState);
 
-	// Z (Forward)
-	P.Rotation = FVector{ 0, 0, 89.99f } + LocalRotation;
+	// Z (Up)
+	P.Rotation = FVector{ 0, -89.99f, 0 } + LocalRotation;
 	P.Color = ColorFor(EGizmoDirection::Up);
 	Renderer.RenderPrimitive(P, RenderState);
+
+	// X (Forward)
+	P.Rotation = FVector{ 0,0,0 } + LocalRotation;
+	P.Color = ColorFor(EGizmoDirection::Forward);
+	Renderer.RenderPrimitive(P, RenderState);
+
+	
+
+	
+	
 }
 
 void UGizmo::ChangeGizmoMode()
@@ -137,10 +157,12 @@ void UGizmo::OnMouseDragStart(FVector& CollisionPoint)
 FVector4 UGizmo::ColorFor(EGizmoDirection InAxis) const
 {
 	const int Idx = AxisIndex(InAxis);
+	//UE_LOG("%d", Idx);
 	const FVector4& BaseColor = GizmoColor[Idx];
 	const bool bIsHighlight = (InAxis == GizmoDirection);
 
 	const FVector4 Paint = bIsHighlight ? FVector4(1,1,0,1) : BaseColor;
+	UE_LOG("InAxis: %d, Idx: %d, Dir: %d, base color: %.f, %.f, %.f, bHighLight: %d", InAxis, Idx, GizmoDirection, BaseColor.X, BaseColor.Y, BaseColor.Z, bIsHighlight);
 
 	if (bIsDragging)
 		return BaseColor;
