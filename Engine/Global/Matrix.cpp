@@ -157,12 +157,15 @@ FMatrix FMatrix::RotationMatrix(const FVector& InOtherVector)
 	const float yaw = InOtherVector.Y;
 	const float pitch = InOtherVector.X;
 	const float roll = InOtherVector.Z;
-	return RotationZ(yaw) * RotationY(pitch) * RotationX(roll);
+	//return RotationZ(yaw) * RotationY(pitch) * RotationX(roll);
+	//return RotationX(yaw) * RotationY(roll) * RotationZ(pitch);
+	return RotationX(pitch) * RotationY(yaw) * RotationZ(roll);
 }
 
 FMatrix FMatrix::CreateFromYawPitchRoll(const float yaw, const float pitch, const float roll)
 {	
-	return RotationZ(yaw) * RotationY(pitch)* RotationX(roll);
+	//return RotationZ(yaw) * RotationY(pitch)* RotationX(roll);
+	return RotationX(pitch) * RotationY(yaw) * RotationZ(roll);
 }
 
 FMatrix FMatrix::RotationMatrixInverse(const FVector& InOtherVector)
@@ -170,7 +173,9 @@ FMatrix FMatrix::RotationMatrixInverse(const FVector& InOtherVector)
 	const float yaw = InOtherVector.Y;
 	const float pitch = InOtherVector.X;
 	const float roll = InOtherVector.Z;
-	return RotationX(-yaw) * RotationY(-pitch) * RotationZ(-roll);
+	//return RotationX(-yaw) * RotationY(-pitch) * RotationZ(-roll);
+	return RotationX(-pitch) * RotationY(-yaw) * RotationZ(-roll);
+
 }
 
 /**

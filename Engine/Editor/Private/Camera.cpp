@@ -61,16 +61,17 @@ void UCamera::Update()
 		* @brief 마우스 위치 변화량을 감지하여 카메라의 회전을 담당합니다.
 		*/
 		const FVector MouseDelta = UInputManager::GetInstance().GetMouseDelta();
-		RelativeRotation.Y += MouseDelta.X * KeySensitivityDegPerPixel;
-		RelativeRotation.X += MouseDelta.Y * KeySensitivityDegPerPixel;
-
-		// Pitch 클램프(짐벌 플립 방지)
-		if (RelativeRotation.X > 89.0f) RelativeRotation.X = 89.0f;
-		if (RelativeRotation.X < -89.0f) RelativeRotation.X = -89.0f;
+		RelativeRotation.Z += MouseDelta.X * KeySensitivityDegPerPixel;
+		RelativeRotation.Y += MouseDelta.Y * KeySensitivityDegPerPixel;
+		//UE_LOG("mouse_delta: %.2f, %.2f", MouseDelta.X * KeySensitivityDegPerPixel, MouseDelta.Y * KeySensitivityDegPerPixel);
 
 		// Yaw 래핑(값이 무한히 커지지 않도록)
-		if (RelativeRotation.Y > 180.0f)  RelativeRotation.Y -= 360.0f;
-		if (RelativeRotation.Y < -180.0f) RelativeRotation.Y += 360.0f;
+		if (RelativeRotation.Z > 180.0f) RelativeRotation.Z -= 360.0f;
+		if (RelativeRotation.Z < -180.0f) RelativeRotation.Z += 360.0f;
+		
+		// Pitch 클램프(짐벌 플립 방지)
+		if (RelativeRotation.Y > 89.0f)  RelativeRotation.Y = 89.0f;
+		if (RelativeRotation.Y < -89.0f) RelativeRotation.Y = -89.0f;
 	}
 
 	if (URenderer::GetInstance().GetDeviceResources())
