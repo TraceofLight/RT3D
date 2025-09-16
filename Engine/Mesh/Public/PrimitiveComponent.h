@@ -28,6 +28,8 @@ public:
 	const IBoundingVolume* GetBoundingBox() const { return BoundingBox; }
 	void GetWorldAABB(FVector& OutMin, FVector& OutMax) const;
 
+	EPrimitiveType GetPrimitiveType() const { return Type; }
+
 protected:
 	const TArray<FVertex>* Vertices = nullptr;
 	FVector4 Color = FVector4{ 0.f,0.f,0.f,0.f };

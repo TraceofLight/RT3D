@@ -51,7 +51,14 @@ void UEditor::Update()
 			{
 				FVector WorldMin, WorldMax;
 				PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
-				BatchLines.UpdateBoundingBoxVertices(FAABB(WorldMin, WorldMax));
+				if (ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags() & EEngineShowFlags::SF_Primitives)
+				{
+					BatchLines.UpdateBoundingBoxVertices(FAABB(WorldMin, WorldMax));
+				}
+				else
+				{
+					BatchLines.UpdateBoundingBoxVertices({ { 0.0f,0.0f,0.0f }, { 0.0f, 0.0f, 0.0f } });
+				}
 			}
 		}
 	}
@@ -145,7 +152,12 @@ void UEditor::ProcessMouseInput(ULevel* InLevel)
 		{
 			TArray<UPrimitiveComponent*> Candidate = FindCandidatePrimitives(InLevel);
 
-			UPrimitiveComponent* PrimitiveCollided = ObjectPicker.PickPrimitive(WorldRay, Candidate, &ActorDistance);
+			UPrimitiveComponent* PrimitiveCollided = nullptr;
+			// 만약 Primitive show flag가 꺼져있으면, 오브젝트 피킹이 안되게 함.(단, 이미 피킹이 되있는 경우, 기즈모를 통해 오브젝트 조작가능)
+			if (ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags() & EEngineShowFlags::SF_Primitives)
+			{
+				PrimitiveCollided = ObjectPicker.PickPrimitive(WorldRay, Candidate, &ActorDistance);
+			}
 
 			if (PrimitiveCollided)
 				ActorPicked = PrimitiveCollided->GetOwner();

@@ -38,7 +38,7 @@ struct FRay
 };
 
 /**
- * @brief Render State Settings for Actor's Component
+ * @brief Render State Settings for Actor's Component 
  */
 struct FRenderState
 {

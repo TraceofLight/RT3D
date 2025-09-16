@@ -56,7 +56,41 @@ void USceneHierarchyWidget::RenderWidget()
 	}
 	ImGui::Separator();
 
-	// 옵션 체크박스들
+	// --- Show Flag Selection ---
+	struct FlagEntry
+	{
+		const char* Label;
+		EEngineShowFlags Flag;
+	};
+
+	// 체크박스로 표시할 플래그 목록
+	static const FlagEntry Entries[] = {
+		{ "Primitives",    EEngineShowFlags::SF_Primitives },
+		{ "BillboardText", EEngineShowFlags::SF_BillboardText },
+	};
+
+	uint64 ShowFlags = ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags();
+	size_t Idx = 0;
+	const size_t Count = std::size(Entries);
+	for (auto& Entry : Entries)
+	{
+		uint64 Flag = static_cast<uint64>(Entry.Flag);
+		bool bChecked = (ShowFlags & Flag) != 0;
+
+		if (ImGui::Checkbox(Entry.Label, &bChecked))
+		{
+			if (bChecked)
+				ShowFlags |= Flag;   // 비트 켜기
+			else
+				ShowFlags &= ~Flag;  // 비트 끄기
+		}
+		if (++Idx < Count) // 마지막이 아니면
+			ImGui::SameLine();
+	}
+	ULevelManager::GetInstance().GetCurrentLevel()->SetShowFlags(ShowFlags);
+	ImGui::Separator();
+
+	// --- 옵션 체크박스들 ---
 	ImGui::Checkbox("Show Details", &bShowDetails);
 	ImGui::Separator();
 

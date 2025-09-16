@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Public/Object.h"
 #include "Mesh/Public/SceneComponent.h"
+#include "Mesh/Public/BillBoardComponent.h"
 #include "Factory/Public/NewObject.h"
 
 /**
@@ -45,7 +46,9 @@ public:
 
 private:
 	USceneComponent* RootComponent = nullptr;
+	UBillBoardComponent* BillBoardComponent = nullptr;
 	TArray<UActorComponent*> OwnedComponents;
+	//uint64 ShowFlags;
 };
 
 template <typename T>

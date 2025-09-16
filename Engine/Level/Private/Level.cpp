@@ -95,9 +95,20 @@ void ULevel::AddLevelPrimitiveComponent(AActor* Actor)
 		if (Component->GetComponentType() >= EComponentType::Primitive)
 		{
 			UPrimitiveComponent* PrimitiveComponent = static_cast<UPrimitiveComponent*>(Component);
-			if (PrimitiveComponent->IsVisible())
+			/* 3가지 경우 존재.
+			1: primitive show flag가 꺼져 있으면, 도형, 빌보드 모두 렌더링 안함.
+			2: primitive show flag가 켜져 있고, billboard show flag가 켜져 있으면, 도형, 빌보드 모두 렌더링
+			3: primitive show flag가 켜져 있고, billboard show flag가 꺼져 있으면, 도형은 렌더링 하지만, 빌보드는 렌더링 안함. */
+			if (PrimitiveComponent->IsVisible() && (ShowFlags & EEngineShowFlags::SF_Primitives))
 			{
-				LevelPrimitiveComponents.push_back(PrimitiveComponent);
+				if (PrimitiveComponent->GetPrimitiveType() == EPrimitiveType::BillBoard && (ShowFlags & EEngineShowFlags::SF_BillboardText))
+				{
+					LevelPrimitiveComponents.push_back(PrimitiveComponent);
+				}
+				else
+				{
+					LevelPrimitiveComponents.push_back(PrimitiveComponent);
+				}
 			}
 		}
 	}
