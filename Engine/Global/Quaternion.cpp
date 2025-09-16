@@ -86,3 +86,10 @@ FVector FQuaternion::RotateVector(const FQuaternion& q, const FVector& v)
 	FQuaternion r = q * p * q.Inverse();
 	return FVector(r.X, r.Y, r.Z);
 }
+
+FVector FQuaternion::RotateVector(const FVector& v) const
+{
+	FQuaternion p(v.X, v.Y, v.Z, 0.0f);
+	FQuaternion r = (*this) * p * this->Inverse();
+	return FVector(r.X, r.Y, r.Z);
+}

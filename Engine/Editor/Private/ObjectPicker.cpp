@@ -7,7 +7,7 @@
 #include "Core/Public/AppWindow.h"
 #include "ImGui/imgui.h"
 #include "Level/Public/Level.h"
-
+#include "Global/Quaternion.h"
 
 UObjectPicker::UObjectPicker(UCamera& InCamera)
 	:Camera( InCamera)
@@ -65,16 +65,30 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 	//이 t에 대한 방정식을 풀어서 근의공식 적용하면 됨.
 	
 	FVector GizmoLocation = Gizmo.GetGizmoLocation();
-	FVector GizmoAxises[3] = { {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
+	FVector GizmoAxises[3] = { FVector{1, 0, 0}, FVector{0, 1, 0}, FVector{0, 0, 1} };
 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	/*if (!Gizmo.IsWorld())	
+	if (!Gizmo.IsWorldMode())
 	{
-		for (int a = 0;a < 3;a++)
-			GizmoAxises[a] = FVector4(GizmoAxises[a].X, GizmoAxises[a].Y, GizmoAxises[a].Z, 0.0f) * FMatrix::RotationMatrix(FVector::GetDegreeToRadian(Gizmo.GetActorRotation()));
-	}*/
+		FVector Rad = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
+		FMatrix R = FMatrix::RotationMatrix(Rad);
+		//FQuaternion q = FQuaternion::FromEuler(Rad);
+
+		for (int i = 0; i < 3; i++)
+		{
+			//GizmoAxises[a] = FQuaternion::RotateVector(q, GizmoAxises[a]); // 쿼터니언으로 축 회전
+			//GizmoAxises[a].Normalize();
+			const FVector4 a4(GizmoAxises[i].X, GizmoAxises[i].Y, GizmoAxises[i].Z, 0.0f);
+			FVector4 rotated4 = a4 * R;
+			FVector V(rotated4.X, rotated4.Y, rotated4.Z);
+			V.Normalize();
+			GizmoAxises[i] = V;
+		}
+	}
+
 	FVector WorldRayOrigin{ WorldRay.Origin.X,WorldRay.Origin.Y ,WorldRay.Origin.Z };
 	FVector WorldRayDirection(WorldRay.Direction.X, WorldRay.Direction.Y, WorldRay.Direction.Z);
+	WorldRayDirection.Normalize();
+
 	switch (Gizmo.GetGizmoMode())
 	{
 	case EGizmoMode::Translate:
@@ -123,15 +137,9 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 				{
 					switch (a)
 					{
-					case 0:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Forward);
-						return;
-					case 1:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Right);
-						return;
-					case 2:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Up);
-						return;
+					case 0:	Gizmo.SetGizmoDirection(EGizmoDirection::Forward);	return;
+					case 1:	Gizmo.SetGizmoDirection(EGizmoDirection::Right);	return;
+					case 2:	Gizmo.SetGizmoDirection(EGizmoDirection::Up);		return;
 					}
 				}
 			}
@@ -139,7 +147,7 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 	} break;
 	case EGizmoMode::Rotate:
 	{
-		for (int a = 0;a < 3;a++)
+		for (int a = 0; a < 3; a++)
 		{
 			if (IsRayCollideWithPlane(WorldRay, GizmoLocation, GizmoAxises[a], CollisionPoint))
 			{
@@ -148,20 +156,15 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 				{
 					switch (a)
 					{
-					case 0:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Forward);
-						return;
-					case 1:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Right);
-						return;
-					case 2:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Up);
-						return;
+					case 0:	Gizmo.SetGizmoDirection(EGizmoDirection::Forward);	return;
+					case 1:	Gizmo.SetGizmoDirection(EGizmoDirection::Right);	return;
+					case 2:	Gizmo.SetGizmoDirection(EGizmoDirection::Up);		return;
 					}
 				}
 			}
 		}
-	}
+	} break;
+	default: break;
 	}
 	
 	Gizmo.SetGizmoDirection(EGizmoDirection::None);
