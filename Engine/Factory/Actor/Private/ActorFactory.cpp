@@ -40,7 +40,7 @@ AActor* UActorFactory::CreateActor(UObject* InWorld, ULevel* InLevel,
 		// Transform 적용
 		PostCreateActor(NewActor, InTransform);
 
-		UE_LOG_SUCCESS("ActorFactory: %s에서 Actory를 성공적으로 생성했습니다", GetDescription().data());
+		UE_LOG_SUCCESS("ActorFactory: %s에서 Actor를 성공적으로 생성했습니다", GetDescription().data());
 	}
 
 	return NewActor;

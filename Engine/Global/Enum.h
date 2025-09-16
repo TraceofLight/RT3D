@@ -59,11 +59,11 @@ DECLARE_UINT8_ENUM_REFLECTION(EKeyInput)
 
 enum class EKeyStatus : uint8
 {
-	Up,        // 누려있지 않은 상태 (현재 false)
-	Pressed,   // 이번 프레임에 누림 (이전 false, 현재 true)
-	Down,      // 누려있는 상태 (현재 true)
-	Released,  // 이번 프레임에 떼어짐 (이전 true, 현재 false)
-	Unknown,    // 알 수 없음
+	Up, // 누려있지 않은 상태 (현재 false)
+	Pressed, // 이번 프레임에 누림 (이전 false, 현재 true)
+	Down, // 누려있는 상태 (현재 true)
+	Released, // 이번 프레임에 떼어짐 (이전 true, 현재 false)
+	Unknown, // 알 수 없음
 
 	End
 };
@@ -76,20 +76,20 @@ DECLARE_UINT8_ENUM_REFLECTION(EKeyStatus)
 enum class ELogType : uint8
 {
 	// 기본 로그 타입
-	Info,        // 일반 정보 (흰색)
-	Warning,     // 경고 (노란색)
-	Error,       // 에러 (빨간색)
-	Success,     // 성공 (초록색)
+	Info, // 일반 정보 (흰색)
+	Warning, // 경고 (노란색)
+	Error, // 에러 (빨간색)
+	Success, // 성공 (초록색)
 
 	// 시스템 로그 타입
-	System,      // 시스템 메시지 (회색)
-	Debug,       // 디버그 메시지 (파란색)
+	System, // 시스템 메시지 (회색)
+	Debug, // 디버그 메시지 (파란색)
 
 	// 사용자 정의 로그 타입
-	UELog,       // UE_LOG 명령어 (초록색)
-	Terminal,    // 터미널 명령어 (하늘색)
+	UELog, // UE_LOG 명령어 (초록색)
+	Terminal, // 터미널 명령어 (하늘색)
 	TerminalError, // 터미널 에러 (빨간색)
-	Command,     // 사용자 입력 명령어 (주황색)
+	Command, // 사용자 입력 명령어 (주황색)
 
 	End
 };
@@ -109,13 +109,13 @@ enum class EComponentType : uint8
 	None = 0,
 
 	Actor,
-		//ActorComponent Dervied Type
+	//ActorComponent Dervied Type
 
 	Scene,
-		//SceneComponent Dervied Type
+	//SceneComponent Dervied Type
 
 	Primitive,
-		//PrimitiveComponent Derived Type
+	//PrimitiveComponent Derived Type
 
 	End = 0xFF
 };
@@ -136,6 +136,7 @@ enum class EPrimitiveType : uint8
 	CubeArrow,
 	Ring,
 	Line,
+	BillBoard,
 
 	End = 0xFF
 };
