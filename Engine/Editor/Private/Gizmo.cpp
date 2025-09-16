@@ -119,19 +119,19 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 	FQuaternion LocalRot = bIsWorld ? FQuaternion::Identity()
 									: FQuaternion::FromEuler(TargetActor->GetActorRotation());
 	// X축 (Forward)
-	FQuaternion RotX = LocalRot * FQuaternion::FromAxisAngle(FVector::RightVector(), -90.0f * (PI / 180.0f));
+	FQuaternion RotX = LocalRot * FQuaternion::Identity();
 	P.Rotation = RotX.ToEuler();
 	P.Color = ColorFor(EGizmoDirection::Forward);
 	Renderer.RenderPrimitive(P, RenderState);
 
 	// Y축 (Right)
-	FQuaternion RotY = LocalRot * FQuaternion::Identity();
+	FQuaternion RotY = LocalRot * FQuaternion::FromAxisAngle(FVector::UpVector(), 90.0f * (PI / 180.0f));
 	P.Rotation = RotY.ToEuler();
 	P.Color = ColorFor(EGizmoDirection::Right);
 	Renderer.RenderPrimitive(P, RenderState);
 
 	// Z축 (Up)
-	FQuaternion RotZ = LocalRot * FQuaternion::FromAxisAngle(FVector::UpVector(), 90.0f * (PI / 180.0f));
+	FQuaternion RotZ = LocalRot * FQuaternion::FromAxisAngle(FVector::RightVector(), -90.0f * (PI / 180.0f));
 	P.Rotation = RotZ.ToEuler();
 	P.Color = ColorFor(EGizmoDirection::Up);
 	Renderer.RenderPrimitive(P, RenderState);
