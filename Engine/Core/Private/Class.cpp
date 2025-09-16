@@ -6,7 +6,7 @@
 using std::stringstream;
 
 // 전역 클래스 레지스트리 초기화
-TArray<UClass*> UClass::AllClasses;
+TArray<TObjectPtr<UClass>> UClass::AllClasses;
 
 /**
  * @brief UClass Constructor
@@ -48,7 +48,7 @@ bool UClass::IsChildOf(const UClass* InClass) const
 			return true;
 		}
 
-		CurrentClass = CurrentClass->SuperClass;
+		CurrentClass = CurrentClass->SuperClass.Get();
 	}
 
 	return false;
@@ -90,11 +90,11 @@ UClass* UClass::FindClass(const FString& InClassName)
  * @brief 모든 UClass 등록
  * @param InClass 등록할 UClass
  */
-void UClass::SignUpClass(UClass* InClass)
+void UClass::SignUpClass(TObjectPtr<UClass> InClass)
 {
 	if (InClass)
 	{
-		AllClasses.push_back(InClass);
+		AllClasses.emplace_back(InClass);
 		UE_LOG("UClass: Class registered: %s (Total: %llu)", InClass->GetClass().ToString().data(), AllClasses.size());
 	}
 }

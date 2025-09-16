@@ -13,7 +13,7 @@ UCubeActorFactory::UCubeActorFactory()
 	SupportedClass = ACubeActor::StaticClass();
 	Description = "CubeActor Factory";
 
-	RegisterFactory(this);
+	RegisterFactory(TObjectPtr<UFactory>(this));
 }
 
 /**

@@ -1,5 +1,6 @@
 #pragma once
 #include "Name.h"
+#include "ObjectPtr.h"
 
 class UObject;
 class UClass;
@@ -21,7 +22,7 @@ public:
 	UClass(const FName& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor);
 
 	static UClass* FindClass(const FString& InClassName);
-	static void SignUpClass(UClass* InClass);
+	static void SignUpClass(TObjectPtr<UClass> InClass);
 	static void PrintAllClasses();
 
 	bool IsChildOf(const UClass* InClass) const;
@@ -29,17 +30,17 @@ public:
 
 	// Getter
 	const FName& GetClass() const { return ClassName; }
-	UClass* GetSuperClass() const { return SuperClass; }
+	UClass* GetSuperClass() const { return SuperClass.Get(); }
 	size_t GetClassSize() const { return ClassSize; }
 
 private:
 	FName ClassName;
-	UClass* SuperClass;
+	TObjectPtr<UClass> SuperClass;
 	size_t ClassSize;
 	ClassConstructorType Constructor;
 
 	// Class Registry
-	static TArray<UClass*> AllClasses;
+	static TArray<TObjectPtr<UClass>> AllClasses;
 };
 
 /**
@@ -65,11 +66,11 @@ public: \
     virtual UClass* GetClass() const; \
     static UObject* CreateDefaultObject##ClassName(); \
 private: \
-    static UClass* ClassPrivate;
+    static TObjectPtr<UClass> ClassPrivate;
 
 // 클래스 구현부에 사용하는 매크로
 #define IMPLEMENT_CLASS(ClassName, SuperClassName) \
-    UClass* ClassName::ClassPrivate = nullptr; \
+    TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
     UClass* ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
@@ -82,7 +83,7 @@ private: \
             ); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate; \
+        return ClassPrivate.Get(); \
     } \
     UClass* ClassName::GetClass() const \
     { \
@@ -111,7 +112,7 @@ public: \
     static UObject* CreateDefaultObject##ClassName(); \
     static ClassName& GetInstance(); \
 private: \
-    static UClass* ClassPrivate; \
+    static TObjectPtr<UClass> ClassPrivate; \
     ClassName(); \
     virtual ~ClassName(); \
     ClassName(const ClassName&) = delete; \
@@ -121,7 +122,7 @@ private: \
 
 // 싱글톤 클래스 구현부에 사용하는 매크로
 #define IMPLEMENT_SINGLETON_CLASS(ClassName, SuperClassName) \
-    UClass* ClassName::ClassPrivate = nullptr; \
+    TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
     UClass* ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
@@ -134,7 +135,7 @@ private: \
             ); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate; \
+        return ClassPrivate.Get(); \
     } \
     UClass* ClassName::GetClass() const \
     { \
@@ -152,7 +153,7 @@ private: \
 
 // 싱글톤 베이스 클래스용 매크로 (SuperClass가 nullptr인 경우)
 #define IMPLEMENT_SINGLETON_CLASS_BASE(ClassName) \
-    UClass* ClassName::ClassPrivate = nullptr; \
+    TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
     UClass* ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
@@ -165,7 +166,7 @@ private: \
             ); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate; \
+        return ClassPrivate.Get(); \
     } \
     UClass* ClassName::GetClass() const \
     { \
@@ -183,7 +184,7 @@ private: \
 
 // UObject의 기본 매크로 (Base Class)
 #define IMPLEMENT_CLASS_BASE(ClassName) \
-    UClass* ClassName::ClassPrivate = nullptr; \
+    TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
     UClass* ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
@@ -196,7 +197,7 @@ private: \
             ); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate; \
+        return ClassPrivate.Get(); \
     } \
     UClass* ClassName::GetClass() const \
     { \

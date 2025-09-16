@@ -94,7 +94,7 @@ void USceneHierarchyWidget::RenderWidget()
 	ImGui::Checkbox("Show Details", &bShowDetails);
 	ImGui::Separator();
 
-	const TArray<AActor*>& LevelActors = CurrentLevel->GetLevelActors();
+	const TArray<TObjectPtr<AActor>>& LevelActors = CurrentLevel->GetLevelActors();
 
 	if (LevelActors.empty())
 	{

@@ -4,9 +4,9 @@
 IMPLEMENT_CLASS(UFactory, UObject)
 
 // 정적 팩토리 목록을 안전하게 초기화하는 함수
-static TArray<UFactory*>& GetFactoryListImpl()
+static TArray<TObjectPtr<UFactory>>& GetFactoryListImpl()
 {
-	static TArray<UFactory*> FactoryList;
+	static TArray<TObjectPtr<UFactory>> FactoryList;
 	return FactoryList;
 }
 
@@ -91,7 +91,7 @@ UClass* UFactory::GetSupportedClass() const
 /**
  * @brief 정적 팩토리 목록 반환
  */
-TArray<UFactory*>& UFactory::GetFactoryList()
+TArray<TObjectPtr<UFactory>>& UFactory::GetFactoryList()
 {
 	return GetFactoryListImpl();
 }
@@ -99,7 +99,7 @@ TArray<UFactory*>& UFactory::GetFactoryList()
 /**
  * @brief 팩토리 등록 함수
  */
-void UFactory::RegisterFactory(UFactory* InFactory)
+void UFactory::RegisterFactory(TObjectPtr<UFactory> InFactory)
 {
 	if (InFactory)
 	{
@@ -111,10 +111,10 @@ void UFactory::RegisterFactory(UFactory* InFactory)
 /**
  * @brief 지정된 클래스를 생성할 수 있는 팩토리를 찾는 함수
  */
-UFactory* UFactory::FindFactory(UClass* InClass)
+TObjectPtr<UFactory> UFactory::FindFactory(TObjectPtr<UClass> InClass)
 {
-	TArray<UFactory*>& FactoryList = GetFactoryListImpl();
-	for (UFactory* Factory : FactoryList)
+	TArray<TObjectPtr<UFactory>>& FactoryList = GetFactoryListImpl();
+	for (TObjectPtr<UFactory> Factory : FactoryList)
 	{
 		if (Factory && Factory->DoesSupportClass(InClass))
 		{

@@ -14,7 +14,7 @@ struct FPrimitiveMetadata;
  * @brief Level 직렬화에 관여하는 클래스
  * JSON 기반으로 레벨의 데이터를 Save / Load 처리
  */
-class FLevelSerializer
+class FJsonSerializer
 {
 public:
 	static JSON VectorToJson(const FVector& InVector);

@@ -7,7 +7,7 @@
 #include "Mesh/Public/TriangleActor.h"
 #include "Mesh/Public/SquareActor.h"
 #include "Manager/Path/Public/PathManager.h"
-#include "Utility/Public/LevelSerializer.h"
+#include "Utility/Public/JsonSerializer.h"
 #include "Utility/Public/Metadata.h"
 #include "Editor/Public/Editor.h"
 
@@ -107,7 +107,7 @@ bool ULevelManager::SaveCurrentLevel(const FString& InFilePath) const
 		// 현재 레벨의 메타데이터 생성
 		FLevelMetadata Metadata = ConvertLevelToMetadata(CurrentLevel);
 
-		bool bSuccess = FLevelSerializer::SaveLevelToFile(Metadata, FilePath.string());
+		bool bSuccess = FJsonSerializer::SaveLevelToFile(Metadata, FilePath.string());
 
 		if (bSuccess)
 		{
@@ -142,7 +142,7 @@ bool ULevelManager::LoadLevel(const FString& InLevelName, const FString& InFileP
 	{
 		FLevelMetadata Metadata;
 
-		bool bLoadSuccess = FLevelSerializer::LoadLevelFromFile(Metadata, InFilePath);
+		bool bLoadSuccess = FJsonSerializer::LoadLevelFromFile(Metadata, InFilePath);
 		if (!bLoadSuccess)
 		{
 			UE_LOG("LevelManager: Failed To Load Level From: %s", InFilePath.c_str());
@@ -152,7 +152,7 @@ bool ULevelManager::LoadLevel(const FString& InLevelName, const FString& InFileP
 
 		// 유효성 검사
 		FString ErrorMessage;
-		if (!FLevelSerializer::ValidateLevelData(Metadata, ErrorMessage))
+		if (!FJsonSerializer::ValidateLevelData(Metadata, ErrorMessage))
 		{
 			UE_LOG("LevelManager: Level Validation Failed: %s", ErrorMessage.c_str());
 			delete NewLevel;
@@ -373,10 +373,6 @@ bool ULevelManager::LoadLevelFromMetadata(ULevel* InLevel, const FLevelMetadata&
 		case EPrimitiveType::Square:
 			NewActor = InLevel->SpawnActor<ASquareActor>();
 			break;
-		// TODO(KHJ): TriangleActor 지원 예정
-		// case EPrimitiveType::Triangle:
-		// 	NewActor = InLevel->SpawnActor<ATriangleActor>();
-		// 	break;
 		default:
 			UE_LOG("LevelManager: Unknown Primitive Type: %d", static_cast<int32>(PrimitiveMeta.Type));
 			assert(!"고려하지 않은 Actor 타입");
@@ -392,7 +388,7 @@ bool ULevelManager::LoadLevelFromMetadata(ULevel* InLevel, const FLevelMetadata&
 
 			UE_LOG("LevelManager: (%.2f, %.2f, %.2f) 지점에 %s (을)를 생성했습니다 ",
 			       PrimitiveMeta.Location.X, PrimitiveMeta.Location.Y, PrimitiveMeta.Location.Z,
-			       FLevelSerializer::PrimitiveTypeToWideString(PrimitiveMeta.Type).c_str());
+			       FJsonSerializer::PrimitiveTypeToWideString(PrimitiveMeta.Type).c_str());
 		}
 		else
 		{

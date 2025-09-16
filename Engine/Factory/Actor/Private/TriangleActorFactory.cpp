@@ -13,7 +13,7 @@ UTriangleActorFactory::UTriangleActorFactory()
 	SupportedClass = ATriangleActor::StaticClass();
 	Description = "TriangleActor Factory";
 
-	RegisterFactory(this);
+	RegisterFactory(TObjectPtr<UFactory>(this));
 }
 
 /**

@@ -149,6 +149,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Core\Public\ObjectPtr.h" />
     <ClInclude Include="Editor\Public\BatchLines.h"/>
     <ClInclude Include="Core\Public\Class.h"/>
     <ClInclude Include="Core\Public\Name.h"/>
@@ -245,7 +246,7 @@
     <ClInclude Include="Render\UI\Window\Public\SceneManagerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\UIWindow.h" />
     <ClInclude Include="Resource\Texture\Public\Texture.h" />
-    <ClInclude Include="Utility\Public\LevelSerializer.h" />
+    <ClInclude Include="Utility\Public\JsonSerializer.h" />
     <ClInclude Include="Utility\Public\Metadata.h" />
     <ClInclude Include="Utility\Public\UELogParser.h" />
     <ClInclude Include="Core\Public\EngineStatics.h" />
@@ -340,7 +341,7 @@
     <ClCompile Include="Render\UI\Window\Private\SceneManagerWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\UIWindow.cpp" />
     <ClCompile Include="Resource\Texture\Private\Texture.cpp" />
-    <ClCompile Include="Utility\Private\LevelSerializer.cpp" />
+    <ClCompile Include="Utility\Private\JsonSerializer.cpp" />
     <ClCompile Include="Utility\Private\UELogParser.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

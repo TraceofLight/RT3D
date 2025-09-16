@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Public/Object.h"
+#include "Core/Public/ObjectPtr.h"
 #include "Mesh/Public/SceneComponent.h"
 #include "Mesh/Public/BillBoardComponent.h"
 #include "Factory/Public/NewObject.h"
@@ -35,8 +36,8 @@ public:
 	virtual void Tick();
 
 	// Getter & Setter
-	USceneComponent* GetRootComponent() const { return RootComponent; }
-	TArray<UActorComponent*> GetOwnedComponents() const { return OwnedComponents; }
+	USceneComponent* GetRootComponent() const { return RootComponent.Get(); }
+	TArray<TObjectPtr<UActorComponent>> GetOwnedComponents() const { return OwnedComponents; }
 
 	void SetRootComponent(USceneComponent* InOwnedComponents) { RootComponent = InOwnedComponents; }
 
@@ -45,23 +46,24 @@ public:
 	const FVector& GetActorScale3D() const;
 
 private:
-	USceneComponent* RootComponent = nullptr;
-	UBillBoardComponent* BillBoardComponent = nullptr;
-	TArray<UActorComponent*> OwnedComponents;
+	TObjectPtr<USceneComponent> RootComponent = nullptr;
+	TObjectPtr<UBillBoardComponent> BillBoardComponent = nullptr;
+	TArray<TObjectPtr<UActorComponent>> OwnedComponents;
 	//uint64 ShowFlags;
 };
 
 template <typename T>
 T* AActor::CreateDefaultSubobject(const FName& InName)
 {
-	T* NewComponent = NewObject<T>(this, nullptr, InName);
+	T* RawComponent = NewObject<T>(this, nullptr, InName);
+	TObjectPtr<T> NewComponent = TObjectPtr<T>(RawComponent);
 
 	if (NewComponent)
 	{
 		// Component에 Owner 설정
 		NewComponent->SetOwner(this);
-		OwnedComponents.push_back(NewComponent);
+		OwnedComponents.push_back(TObjectPtr<UActorComponent>(RawComponent));
 	}
 
-	return NewComponent;
+	return RawComponent;
 }

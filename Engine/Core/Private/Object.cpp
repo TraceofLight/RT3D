@@ -4,7 +4,7 @@
 #include "Core/Public/Name.h"
 
 uint32 UEngineStatics::NextUUID = 0;
-TArray<UObject*> GUObjectArray;
+TArray<TObjectPtr<UObject>> GUObjectArray;
 
 IMPLEMENT_CLASS_BASE(UObject)
 
@@ -14,7 +14,7 @@ UObject::UObject()
 	UUID = UEngineStatics::GenUUID();
 	Name = FName("Object_" + to_string(UUID));
 
-	GUObjectArray.push_back(this);
+	GUObjectArray.emplace_back(this);
 	InternalIndex = static_cast<uint32>(GUObjectArray.size()) - 1;
 }
 
@@ -24,7 +24,7 @@ UObject::UObject(const FName& InName)
 {
 	UUID = UEngineStatics::GenUUID();
 
-	GUObjectArray.push_back(this);
+	GUObjectArray.emplace_back(this);
 	InternalIndex = static_cast<uint32>(GUObjectArray.size()) - 1;
 }
 

@@ -59,7 +59,7 @@ void FFactorySystem::Shutdown()
  */
 void FFactorySystem::PrintAllFactories()
 {
-	TArray<UFactory*>& FactoryList = UFactory::GetFactoryList();
+	TArray<TObjectPtr<UFactory>>& FactoryList = UFactory::GetFactoryList();
 
 	UE_LOG("=== Factory System: Registered Factories (%llu) ===", FactoryList.size());
 

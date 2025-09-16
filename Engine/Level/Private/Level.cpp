@@ -94,7 +94,7 @@ void ULevel::AddLevelPrimitiveComponent(AActor* Actor)
 	{
 		if (Component->GetComponentType() >= EComponentType::Primitive)
 		{
-			UPrimitiveComponent* PrimitiveComponent = static_cast<UPrimitiveComponent*>(Component);
+			TObjectPtr<UPrimitiveComponent> PrimitiveComponent = Cast<UPrimitiveComponent>(Component);
 			/* 3가지 경우 존재.
 			1: primitive show flag가 꺼져 있으면, 도형, 빌보드 모두 렌더링 안함.
 			2: primitive show flag가 켜져 있고, billboard show flag가 켜져 있으면, 도형, 빌보드 모두 렌더링
@@ -140,7 +140,7 @@ void ULevel::SetSelectedActor(AActor* InActor)
 		{
 			if (Component->GetComponentType() >= EComponentType::Primitive)
 			{
-				UPrimitiveComponent* PrimitiveComponent = static_cast<UPrimitiveComponent*>(Component);
+				TObjectPtr<UPrimitiveComponent> PrimitiveComponent = Cast<UPrimitiveComponent>(Component);
 				if (PrimitiveComponent->IsVisible())
 				{
 					PrimitiveComponent->SetColor({0.f, 0.f, 0.f, 0.f});
@@ -156,7 +156,7 @@ void ULevel::SetSelectedActor(AActor* InActor)
 		{
 			if (Component->GetComponentType() >= EComponentType::Primitive)
 			{
-				UPrimitiveComponent* PrimitiveComponent = static_cast<UPrimitiveComponent*>(Component);
+				TObjectPtr<UPrimitiveComponent> PrimitiveComponent = Cast<UPrimitiveComponent>(Component);
 				if (PrimitiveComponent->IsVisible())
 				{
 					PrimitiveComponent->SetColor({1.f, 0.8f, 0.2f, 0.4f});

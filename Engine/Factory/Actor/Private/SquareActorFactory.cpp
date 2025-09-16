@@ -13,7 +13,7 @@ USquareActorFactory::USquareActorFactory()
 	SupportedClass = ASquareActor::StaticClass();
 	Description = "SquareActor Factory";
 
-	RegisterFactory(this);
+	RegisterFactory(TObjectPtr<UFactory>(this));
 }
 
 /**
