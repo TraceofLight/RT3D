@@ -216,6 +216,9 @@
     <ClCompile Include="Utility\Private\UELogParser.cpp">
       <Filter>Utility\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh\Private\BillBoardComponent.cpp">
+      <Filter>Mesh\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -486,6 +489,9 @@
     </ClInclude>
     <ClInclude Include="Utility\Public\UELogParser.h">
       <Filter>Utility\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\Public\BillBoardComponent.h">
+      <Filter>Mesh\Public</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
