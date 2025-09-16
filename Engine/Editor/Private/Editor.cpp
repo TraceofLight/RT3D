@@ -51,7 +51,14 @@ void UEditor::Update()
 			{
 				FVector WorldMin, WorldMax;
 				PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
-				BatchLines.UpdateBoundingBoxVertices(FAABB(WorldMin, WorldMax));
+				if (ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags() & EEngineShowFlags::SF_Primitives)
+				{
+					BatchLines.UpdateBoundingBoxVertices(FAABB(WorldMin, WorldMax));
+				}
+				else
+				{
+					BatchLines.UpdateBoundingBoxVertices({ { 0.0f,0.0f,0.0f }, { 0.0f, 0.0f, 0.0f } });
+				}
 			}
 		}
 	}
