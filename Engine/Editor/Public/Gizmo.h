@@ -58,10 +58,9 @@ public:
 	void SetActorRotation(const FVector& Rotation) { TargetActor->SetActorRotation(Rotation); }
 	void SetActorScale(const FVector& Scale) { TargetActor->SetActorScale3D(Scale); }
 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	//void SetWorld() { bIsWorld = true; }
-	//void SetLocal() { bIsWorld = false; }
-	//////////////////
+	void SetWorld() { bIsWorld = true; }
+	void SetLocal() { bIsWorld = false; }
+	bool IsWorldMode() { return bIsWorld; }
 
 	/* *
 	* @brief Getter
@@ -92,9 +91,6 @@ public:
 	*/
 	void EndDrag() { bIsDragging = false; }
 	bool IsDragging() const { return bIsDragging; }
-	 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	//bool IsWorld() const { return bIsWorld; }
 	void OnMouseHovering() {}
 	void OnMouseDragStart(FVector& CollisionPoint);
 	void OnMouseRelease(EGizmoDirection DirectionReleased) {}
@@ -130,9 +126,7 @@ private:
 	const float ScaleFactor = 0.2f;
 	const float MinScaleFactor = 7.0f;
 	bool bIsDragging = false;
-
-	//로컬 기즈모. 쿼터니언 구현 후 사용
-	//bool bIsWorld = true;
+	bool bIsWorld = true;	// Gizmo coordinate mode (true; world)
 
 	FRenderState RenderState;
 
