@@ -2,7 +2,7 @@
 #include "Editor/Public/BatchLines.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Editor/Public/EditorPrimitive.h"
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 
 UBatchLines::UBatchLines()
 	: Grid()
@@ -34,9 +34,9 @@ UBatchLines::UBatchLines()
 	/*Primitive.Location = FVector(0, 0, 0);
 	Primitive.Rotation = FVector(0, 0, 0);
 	Primitive.Scale = FVector(1, 1, 1);*/
-	Primitive.VertexShader = UResourceManager::GetInstance().GetVertexShader(EShaderType::BatchLine);
-	Primitive.InputLayout = UResourceManager::GetInstance().GetIputLayout(EShaderType::BatchLine);
-	Primitive.PixelShader = UResourceManager::GetInstance().GetPixelShader(EShaderType::BatchLine);
+	Primitive.VertexShader = UAssetManager::GetInstance().GetVertexShader(EShaderType::BatchLine);
+	Primitive.InputLayout = UAssetManager::GetInstance().GetIputLayout(EShaderType::BatchLine);
+	Primitive.PixelShader = UAssetManager::GetInstance().GetPixelShader(EShaderType::BatchLine);
 }
 
 UBatchLines::~UBatchLines()

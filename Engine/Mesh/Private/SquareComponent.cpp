@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "Mesh/Public/SquareComponent.h"
 
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 
 IMPLEMENT_CLASS(USquareComponent, UPrimitiveComponent)
 
 USquareComponent::USquareComponent()
 {
-	UResourceManager& ResourceManager = UResourceManager::GetInstance();
+	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 	Type = EPrimitiveType::Square;
 	Vertices = ResourceManager.GetVertexData(Type);
 	Vertexbuffer = ResourceManager.GetVertexbuffer(Type);

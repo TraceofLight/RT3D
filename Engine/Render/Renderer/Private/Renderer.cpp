@@ -1,16 +1,12 @@
 #include "pch.h"
 #include "Render/Renderer/Public/Renderer.h"
 
+#include "Editor/Public/Editor.h"
 #include "Level/Public/Level.h"
-
 #include "Manager/Level/Public/LevelManager.h"
 #include "Manager/UI/Public/UIManager.h"
-#include "Manager/Resource/Public/ResourceManager.h"
-#include "Mesh/Public/Actor.h"
 #include "Mesh/Public/PrimitiveComponent.h"
-#include "Mesh/Public/AABB.h"
 #include "Render/Renderer/Public/Pipeline.h"
-#include "Editor/Public/Editor.h"
 
 IMPLEMENT_SINGLETON_CLASS_BASE(URenderer)
 
@@ -35,6 +31,7 @@ void URenderer::Release()
 	ReleaseConstantBuffer();
 	ReleaseDefaultShader();
 	ReleaseDepthStencilState();
+	ReleaseRasterizerState();
 
 	SafeDelete(Pipeline);
 	SafeDelete(DeviceResources);

@@ -27,5 +27,5 @@ private:
 
 	FTextureRenderProxy* RenderProxy = nullptr;
 
-	friend class UResourceManager;
+	friend class UAssetManager;
 };

@@ -89,6 +89,15 @@ void UDeviceResources::ReleaseDeviceAndSwapChain()
 		SwapChain = nullptr;
 	}
 
+	// DX 메모리 Leak 디버깅용 함수
+	ID3D11Debug* DebugPointer = nullptr;
+	HRESULT Result = GetDevice()->QueryInterface(__uuidof(ID3D11Debug), reinterpret_cast<void**>(&DebugPointer));
+	if (SUCCEEDED(Result))
+	{
+		DebugPointer->ReportLiveDeviceObjects(D3D11_RLDO_DETAIL);
+		DebugPointer->Release();
+	}
+
 	if (Device)
 	{
 		Device->Release();

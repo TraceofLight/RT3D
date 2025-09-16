@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "Mesh/Public/TriangleComponent.h"
 
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 
 IMPLEMENT_CLASS(UTriangleComponent, UPrimitiveComponent)
 
 UTriangleComponent::UTriangleComponent()
 {
-	UResourceManager& ResourceManager = UResourceManager::GetInstance();
+	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 	Type = EPrimitiveType::Triangle;
 	Vertices = ResourceManager.GetVertexData(Type);
 	Vertexbuffer = ResourceManager.GetVertexbuffer(Type);
