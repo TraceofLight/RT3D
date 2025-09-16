@@ -24,7 +24,8 @@ void UCamera::Update()
 	Forward = FVector(Forward4.X, Forward4.Y, Forward4.Z);
 	Forward.Normalize();
 
-	FVector worldUp = FVector(0, 0, 1);
+	FVector4 worldUp4 = FVector4(0, 0, 1, 1) * rotationMatrix;
+	FVector worldUp = { worldUp4.X, worldUp4.Y, worldUp4.Z };
 	Right = Forward.Cross(worldUp);
 	Right.Normalize();
 	Up = Right.Cross(Forward);
