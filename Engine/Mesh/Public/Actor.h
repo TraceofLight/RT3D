@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Public/Object.h"
 #include "Mesh/Public/SceneComponent.h"
+#include "Factory/Public/NewObject.h"
 
 /**
  * @brief Level에서 렌더링되는 UObject 클래스
@@ -16,7 +17,7 @@ class AActor : public UObject
 public:
 	AActor();
 	AActor(UObject* InOuter);
-	virtual ~AActor() override;
+	~AActor() override;
 
 	void SetActorLocation(const FVector& InLocation) const;
 	void SetActorRotation(const FVector& InRotation) const;
@@ -50,12 +51,14 @@ private:
 template <typename T>
 T* AActor::CreateDefaultSubobject(const FName& InName)
 {
-	T* NewComponent = new T();
-	NewComponent->SetOuter(this);
-	NewComponent->SetOwner(this);
+	T* NewComponent = NewObject<T>(this, nullptr, InName);
 
-	NewComponent->SetName(InName);
-	OwnedComponents.push_back(NewComponent);
+	if (NewComponent)
+	{
+		// Component에 Owner 설정
+		NewComponent->SetOwner(this);
+		OwnedComponents.push_back(NewComponent);
+	}
 
 	return NewComponent;
 }

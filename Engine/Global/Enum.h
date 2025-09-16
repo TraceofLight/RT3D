@@ -94,3 +94,69 @@ enum class ELogType : uint8
 	End
 };
 DECLARE_UINT8_ENUM_REFLECTION(ELogType)
+
+enum class EShaderType : uint8
+{
+	Default = 0,
+	BatchLine
+};
+
+/**
+ * @brief Component Type Enum
+ */
+enum class EComponentType : uint8
+{
+	None = 0,
+
+	Actor,
+		//ActorComponent Dervied Type
+
+	Scene,
+		//SceneComponent Dervied Type
+
+	Primitive,
+		//PrimitiveComponent Derived Type
+
+	End = 0xFF
+};
+
+/**
+ * @brief UObject Primitive Type Enum
+ */
+UENUM()
+enum class EPrimitiveType : uint8
+{
+	None = 0,
+	Sphere,
+	Cube,
+	Triangle,
+	Square,
+	Torus,
+	Arrow,
+	CubeArrow,
+	Ring,
+	Line,
+
+	End = 0xFF
+};
+DECLARE_UINT8_ENUM_REFLECTION(EPrimitiveType)
+
+/**
+ * @brief RasterizerState Enum
+ */
+enum class ECullMode : uint8_t
+{
+	Back,
+	Front,
+	None,
+
+	End = 0xFF
+};
+
+enum class EFillMode : uint8_t
+{
+	WireFrame,
+	Solid,
+
+	End = 0xFF
+};

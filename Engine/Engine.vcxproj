@@ -163,6 +163,15 @@
     <ClInclude Include="Editor\Public\Gizmo.h"/>
     <ClInclude Include="Editor\Public\Grid.h"/>
     <ClInclude Include="Editor\Public\ObjectPicker.h"/>
+    <ClInclude Include="Factory\Actor\Public\CubeActorFactory.h" />
+    <ClInclude Include="Factory\Actor\Public\SphereActorFactory.h" />
+    <ClInclude Include="Factory\Actor\Public\SquareActorFactory.h" />
+    <ClInclude Include="Factory\Actor\Public\TriangleActorFactory.h" />
+    <ClInclude Include="Factory\Public\CubeActorFactory.h" />
+    <ClInclude Include="Factory\Public\NewObject.h" />
+    <ClInclude Include="Factory\Public\SphereActorFactory.h" />
+    <ClInclude Include="Factory\Public\SquareActorFactory.h" />
+    <ClInclude Include="Factory\Public\TriangleActorFactory.h" />
     <ClInclude Include="Global\Constant.h"/>
     <ClInclude Include="Global\CoreTypes.h"/>
     <ClInclude Include="Global\Enum.h"/>
@@ -240,6 +249,10 @@
     <ClInclude Include="Utility\Public\Metadata.h" />
     <ClInclude Include="Utility\Public\UELogParser.h" />
     <ClInclude Include="Core\Public\EngineStatics.h" />
+    <ClInclude Include="Factory\Public\Factory.h" />
+    <ClInclude Include="Factory\Public\FactorySystem.h" />
+    <ClInclude Include="Factory\Actor\Public\ActorFactory.h" />
+    <ClInclude Include="Factory\Component\Public\ComponentFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor\Private\BatchLines.cpp" />
@@ -253,6 +266,15 @@
     <ClCompile Include="Editor\Private\Gizmo.cpp" />
     <ClCompile Include="Editor\Private\Grid.cpp" />
     <ClCompile Include="Editor\Private\ObjectPicker.cpp" />
+    <ClCompile Include="Factory\Actor\Private\ActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\CubeActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\SphereActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\SquareActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\TriangleActorFactory.cpp" />
+    <ClCompile Include="Factory\Component\Private\ComponentFactories.cpp" />
+    <ClCompile Include="Factory\Component\Private\ComponentFactory.cpp" />
+    <ClCompile Include="Factory\Private\Factory.cpp" />
+    <ClCompile Include="Factory\Private\FactorySystem.cpp" />
     <ClCompile Include="Global\Matrix.cpp" />
     <ClCompile Include="Global\Memory.cpp" />
     <ClCompile Include="Global\Vector.cpp" />

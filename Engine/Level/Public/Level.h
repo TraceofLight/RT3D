@@ -1,5 +1,7 @@
 #pragma once
 #include "Core/Public/Object.h"
+#include "Factory/Public/FactorySystem.h"
+#include "Factory/Public/NewObject.h"
 
 #include "Editor/Public/Camera.h"
 
@@ -24,17 +26,11 @@ public:
 
 	TArray<AActor*> GetLevelActors() const { return LevelActors; }
 	TArray<UPrimitiveComponent*> GetLevelPrimitiveComponents() const { return LevelPrimitiveComponents; }
-	//Deprecated : EditorPrimitive는 에디터에서 처리
-	//TArray<AActor*> GetEditorActors() const { return EditorActors; }
-	//TArray<UPrimitiveComponent*> GetEditorPrimitiveComponents() const { return EditorPrimitiveComponents; }
 
 	void AddLevelPrimitiveComponent(AActor* Actor);
-	//void AddEditorPrimitiveComponent(AActor* Actor);
 
 	template<typename T, typename... Args>
 	T* SpawnActor(const FName& InName = "");
-	// template<typename T, typename... Args>
-	// T* SpawnEditorActor(Args&&... args);
 
 	// Actor 삭제
 	bool DestroyActor(AActor* InActor);
@@ -50,10 +46,6 @@ public:
 private:
 	TArray<AActor*> LevelActors;
 	TArray<UPrimitiveComponent*> LevelPrimitiveComponents;
-
-	//Deprecated : EditorPrimitive는 에디터에서 처리
-	//TArray<AActor*> EditorActors;
-	//TArray<UPrimitiveComponent*> EditorPrimitiveComponents;
 
 	// 지연 삭제를 위한 리스트
 	TArray<AActor*> ActorsToDelete;
@@ -74,11 +66,22 @@ private:
 template <typename T, typename ... Args>
 T* ULevel::SpawnActor(const FName& InName)
 {
-	T* NewActor = new T();
-	NewActor->SetOuter(this);
+	// Factory 시스템 초기화
+	static bool bFactorySystemInitialized = false;
+	if (!bFactorySystemInitialized)
+	{
+		FFactorySystem::Initialize();
+		bFactorySystemInitialized = true;
+	}
 
-	LevelActors.push_back(NewActor);
-	NewActor->BeginPlay();
+	// NewObject로 Actor 생성
+	T* NewActor = ::SpawnActor<T>(this, FTransform(), InName);
+
+	if (NewActor)
+	{
+		LevelActors.push_back(NewActor);
+		NewActor->BeginPlay();
+	}
 
 	return NewActor;
 }

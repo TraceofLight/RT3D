@@ -13,12 +13,12 @@ namespace Time
 	constexpr int32 FPS_SAMPLE_COUNT = 60;
 }
 
-constexpr float Pi = 3.141592f;
+constexpr float PI = 3.141592f;
 constexpr uint64 KILO = 1024;
 constexpr uint64 MEGA = 1024 * 1024;
 constexpr float MATH_EPSILON = 1e-6f;
-constexpr float ToRad = Pi / 180.0f;
-constexpr float ToDeg = 180.0f / Pi;
+constexpr float ToRad = PI / 180.0f;
+constexpr float ToDeg = 180.0f / PI;
 
 constexpr float CameraSpeed = 6.0f;
 constexpr float KeySensitivityDegPerPixel = 0.05f;
