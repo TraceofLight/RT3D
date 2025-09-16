@@ -4,6 +4,7 @@
 #include "Manager/Resource/Public/ResourceManager.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Mesh/Public/Actor.h"
+#include "Global/Quaternion.h"
 
 UGizmo::UGizmo()
 {
@@ -67,7 +68,7 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 	P.Location = TargetActor->GetActorLocation();
 
 
-	FVector LocalRotation{ 0,0,0 };
+	//FVector LocalRotation{ 0,0,0 };
 	//로컬 기즈모. 쿼터니언 구현후 사용
 	/*if (!bIsWorld && TargetActor)
 	{
@@ -98,25 +99,42 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 	//P.Color = ColorFor(EGizmoDirection::Forward);
 	//Renderer.RenderPrimitive(P, RenderState);
 
-	// Y (Right)
-	P.Rotation = FVector{ 0,0,89.99f } + LocalRotation;
-	P.Color = ColorFor(EGizmoDirection::Right);
-	Renderer.RenderPrimitive(P, RenderState);
+	//// Y (Right)
+	//P.Rotation = FVector{ 0,0,89.99f } + LocalRotation;
+	//P.Color = ColorFor(EGizmoDirection::Right);
+	//Renderer.RenderPrimitive(P, RenderState);
 
-	// Z (Up)
-	P.Rotation = FVector{ 0, -89.99f, 0 } + LocalRotation;
-	P.Color = ColorFor(EGizmoDirection::Up);
-	Renderer.RenderPrimitive(P, RenderState);
+	//// Z (Up)
+	//P.Rotation = FVector{ 0, -89.99f, 0 } + LocalRotation;
+	//P.Color = ColorFor(EGizmoDirection::Up);
+	//Renderer.RenderPrimitive(P, RenderState);
 
-	// X (Forward)
-	P.Rotation = FVector{ 0,0,0 } + LocalRotation;
+	//// X (Forward)
+	//P.Rotation = FVector{ 0,0,0 } + LocalRotation;
+	//P.Color = ColorFor(EGizmoDirection::Forward);
+	//Renderer.RenderPrimitive(P, RenderState);
+
+	
+	// Actor 로컬 회전 쿼터니언
+	FQuaternion LocalRot = bIsWorld ? FQuaternion::Identity()
+									: FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	// X축 (Forward)
+	FQuaternion RotX = LocalRot * FQuaternion::FromAxisAngle(FVector::RightVector(), -90.0f * (PI / 180.0f));
+	P.Rotation = RotX.ToEuler();
 	P.Color = ColorFor(EGizmoDirection::Forward);
 	Renderer.RenderPrimitive(P, RenderState);
 
-	
+	// Y축 (Right)
+	FQuaternion RotY = LocalRot * FQuaternion::Identity();
+	P.Rotation = RotY.ToEuler();
+	P.Color = ColorFor(EGizmoDirection::Right);
+	Renderer.RenderPrimitive(P, RenderState);
 
-	
-	
+	// Z축 (Up)
+	FQuaternion RotZ = LocalRot * FQuaternion::FromAxisAngle(FVector::UpVector(), 90.0f * (PI / 180.0f));
+	P.Rotation = RotZ.ToEuler();
+	P.Color = ColorFor(EGizmoDirection::Up);
+	Renderer.RenderPrimitive(P, RenderState);
 }
 
 void UGizmo::ChangeGizmoMode()

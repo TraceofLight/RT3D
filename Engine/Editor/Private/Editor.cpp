@@ -215,7 +215,8 @@ FVector UEditor::GetGizmoDragLocation(FRay& WorldRay)
 	if (!Gizmo.IsWorldMode())
 	{
 		FVector4 GizmoAxis4{ GizmoAxis.X, GizmoAxis.Y, GizmoAxis.Z, 0.0f };
-		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(Gizmo.GetActorRotation());
+		FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
+		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
 	}
 
 	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin,
@@ -237,7 +238,8 @@ FVector UEditor::GetGizmoDragRotation(FRay& WorldRay)
 	if (!Gizmo.IsWorldMode())
 	{
 		FVector4 GizmoAxis4{ GizmoAxis.X, GizmoAxis.Y, GizmoAxis.Z, 0.0f };
-		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(Gizmo.GetActorRotation());
+		FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
+		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
 	}
 
 	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, GizmoAxis, MouseWorld))
@@ -266,7 +268,8 @@ FVector UEditor::GetGizmoDragScale(FRay& WorldRay)
 	if (!Gizmo.IsWorldMode())
 	{
 		FVector4 GizmoAxis4{ GizmoAxis.X, GizmoAxis.Y, GizmoAxis.Z, 0.0f };
-		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(Gizmo.GetActorRotation());
+		FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
+		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
 	}
 
 	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin,
