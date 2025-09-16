@@ -15,7 +15,7 @@ public:
 	~UPrimitiveSpawnWidget() override;
 
 private:
-	int32 SelectedPrimitiveType = 0;
+	EPrimitiveType SelectedPrimitiveType = EPrimitiveType::None;
 	int32 NumberOfSpawn = 1;
 	float SpawnRangeMin = -5.0f;
 	float SpawnRangeMax = 5.0f;

@@ -5,7 +5,7 @@
 #include "Editor/Public/Grid.h"
 #include "Editor/Public/BoundingBoxLines.h"
 
-class FVertex;
+struct FVertex;
 
 class UBatchLines : UObject
 {

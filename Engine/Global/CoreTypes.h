@@ -37,71 +37,6 @@ struct FRay
 	FVector4 Direction;
 };
 
-enum class EShaderType : uint8
-{
-	Default = 0,
-	BatchLine
-};
-
-/**
- * @brief Component Type Enum
- */
-enum class EComponentType : uint8_t
-{
-	None = 0,
-
-	Actor,
-		//ActorComponent Dervied Type
-
-	Scene,
-		//SceneComponent Dervied Type
-
-	Primitive,
-		//PrimitiveComponent Derived Type
-
-	End = 0xFF
-};
-
-/**
- * @brief UObject Primitive Type Enum
- */
-enum class EPrimitiveType : uint8_t
-{
-	None = 0,
-	Sphere,
-	Cube,
-	Triangle,
-	Square,
-	Torus,
-	Arrow,
-	CubeArrow,
-	Ring,
-	Line,
-	BillBoard,
-
-	End = 0xFF
-};
-
-/**
- * @brief RasterizerState Enum
- */
-enum class ECullMode : uint8_t
-{
-	Back,
-	Front,
-	None,
-
-	End = 0xFF
-};
-
-enum class EFillMode : uint8_t
-{
-	WireFrame,
-	Solid,
-
-	End = 0xFF
-};
-
 /**
  * @brief Render State Settings for Actor's Component 
  */
@@ -109,4 +44,22 @@ struct FRenderState
 {
 	ECullMode CullMode = ECullMode::None;
 	EFillMode FillMode = EFillMode::Solid;
+};
+
+/**
+ * @brief 변환 정보를 담는 구조체
+ */
+struct FTransform
+{
+	FVector Location = FVector(0.0f, 0.0f, 0.0f);
+	FVector Rotation = FVector(0.0f, 0.0f, 0.0f);
+	FVector Scale = FVector(1.0f, 1.0f, 1.0f);
+
+	FTransform() = default;
+
+	FTransform(const FVector& InLocation, const FVector& InRotation = FVector::ZeroVector(),
+			   const FVector& InScale = FVector::OneVector())
+		: Location(InLocation), Rotation(InRotation), Scale(InScale)
+	{
+	}
 };

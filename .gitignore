@@ -526,3 +526,6 @@ WARP.md
 
 # Visual Studio Class Diagram
 *.cd
+
+# editor config
+editor.ini

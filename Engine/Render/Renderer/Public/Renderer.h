@@ -47,76 +47,66 @@ public:
 	void Init(HWND InWindowHandle);
 	void Release();
 
+	// Initialize
 	void CreateRasterizerState();
 	void CreateDepthStencilState();
+	void CreateDefaultShader();
+	void CreateConstantBuffer();
+
+	// Release
+	void ReleaseConstantBuffer();
+	void ReleaseDefaultShader();
+	void ReleaseDepthStencilState();
 	void ReleaseRasterizerState();
 
-	void ReleaseResource();
-
-	void CreateDefaultShader();
-	void ReleaseDefaultShader();
+	// Render
 	void Update();
-	//void Update();
-	void RenderBegin();
+	void RenderBegin() const;
 	void RenderLevel();
-	void RenderLocalOBB(const UPrimitiveComponent* InPrimitive);
-	void RenderWorldAABB(const UPrimitiveComponent* InPrimitive);
 	void RenderEnd() const;
-	void RenderPrimitive(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState);
-	void RenderPrimitiveIndexed(FEditorPrimitive& InPrimitive, struct FRenderState& InRenderState, bool bUseBaseConstantBuffer, uint32 stride, uint32 indexBufferStride);
+	void RenderPrimitive(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState);
+	void RenderPrimitiveIndexed(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState,
+	                            bool bInUseBaseConstantBuffer, uint32 InStride, uint32 InIndexBufferStride);
 
-	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0);
-	bool GetIsResizing() { return bIsResizing; }
-	void SetIsResizing(bool isResizing) { bIsResizing = isResizing; }
+	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0) const;
 
-	//Testing Func
+	// Create function
+	void CreateVertexShaderAndInputLayout(const wstring& InFilePath,
+									  const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescriptions,
+									  ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout);
 	ID3D11Buffer* CreateVertexBuffer(FVertex* InVertices, uint32 InByteWidth) const;
 	ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth, bool bCpuAccess) const;
 	ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth) const;
-	static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
-	void CreateVertexShaderAndInputLayout(const wstring& filePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& inputLayoutDescs, ID3D11VertexShader** outVertexShader, ID3D11InputLayout** outInputLayout);
-	void CreatePixelShader(const wstring& filePath, ID3D11PixelShader** pixelShader);
+	void CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** InPixelShader) const;
 
-	void CreateConstantBuffer();
-	void ReleaseConstantBuffer();
-	void UpdateConstant(const UPrimitiveComponent* Primitive);
+	bool UpdateVertexBuffer(ID3D11Buffer* InVertexBuffer, const TArray<FVector>& InVertices) const;
+	void UpdateConstant(const UPrimitiveComponent* InPrimitive) const;
 	void UpdateConstant(const FVector& InPosition, const FVector& InRotation, const FVector& InScale) const;
 	void UpdateConstant(const FViewProjConstants& InViewProjConstants) const;
 	void UpdateConstant(const FMatrix& InMatrix) const;
-	void UpdateConstant(const FVector4& Color) const;
-	//void UpdateAndSetBatchLineConstant(const BatchLineContants& batchLineConstant) const;
+	void UpdateConstant(const FVector4& InColor) const;
 
-	//template<typename T>
-	//void UpdateConstantGeneralType(const T* constData, ) const
-	//{
-	//	if (constData)
-	//	{
-	//		D3D11_MAPPED_SUBRESOURCE constantbufferMSR;
+	static void ReleaseVertexBuffer(ID3D11Buffer* InVertexBuffer);
 
-	//		GetDeviceContext()->Map(, 0, D3D11_MAP_WRITE_DISCARD, 0, &constantbufferMSR);
-	//		// update constant buffer every frame
-	//		FMatrix* constants = (FMatrix*)constantbufferMSR.pData;
-	//		{
-	//			*constants = FMatrix::GetModelMatrix(Primitive->GetRelativeLocation(), FVector::GetDegreeToRadian(Primitive->GetRelativeRotation()), Primitive->GetRelativeScale3D());
-	//		}
-	//		GetDeviceContext()->Unmap(constData, 0);
-	//	}
-	//}
+	// Helper function
+	static D3D11_CULL_MODE ToD3D11(ECullMode InCull);
+	static D3D11_FILL_MODE ToD3D11(EFillMode InFill);
 
-	bool UpdateVertexBuffer(ID3D11Buffer* vertexBuffer, const std::vector<FVector>& vertices);
-
+	// Getter & Setter
 	ID3D11Device* GetDevice() const { return DeviceResources->GetDevice(); }
 	ID3D11DeviceContext* GetDeviceContext() const { return DeviceResources->GetDeviceContext(); }
 	IDXGISwapChain* GetSwapChain() const { return DeviceResources->GetSwapChain(); }
 	ID3D11RenderTargetView* GetRenderTargetView() const { return DeviceResources->GetRenderTargetView(); }
 	UDeviceResources* GetDeviceResources() const { return DeviceResources; }
+	bool GetIsResizing() const { return bIsResizing; }
+
+	void SetIsResizing(bool isResizing) { bIsResizing = isResizing; }
 
 private:
 	UPipeline* Pipeline = nullptr;
 	UDeviceResources* DeviceResources = nullptr;
 	TArray<UPrimitiveComponent*> PrimitiveComponents;
 
-private:
 	ID3D11DepthStencilState* DefaultDepthStencilState = nullptr;
 	ID3D11DepthStencilState* DisabledDepthStencilState = nullptr;
 	ID3D11Buffer* ConstantBufferModels = nullptr;
@@ -131,7 +121,6 @@ private:
 	ID3D11InputLayout* DefaultInputLayout = nullptr;
 	uint32 Stride = 0;
 
-private:
 	struct FRasterKey
 	{
 		D3D11_FILL_MODE FillMode = {};

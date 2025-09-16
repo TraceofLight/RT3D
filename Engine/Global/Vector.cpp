@@ -52,9 +52,9 @@ FVector FVector::operator-(const FVector& InOther) const
 /**
  * @brief 자신의 벡터에서 배율을 곱한 백테를 반환하는 함수
  */
-FVector FVector::operator*(const float Ratio) const
+FVector FVector::operator*(const float InRatio) const
 {
-	return { X * Ratio, Y * Ratio, Z * Ratio };
+	return { X * InRatio, Y * InRatio, Z * InRatio };
 }
 
 /**
@@ -83,18 +83,18 @@ FVector& FVector::operator-=(const FVector& InOther)
  * @brief 자신의 벡터에서 배율을 곱한 뒤 자신을 반환
  */
 
-FVector& FVector::operator*=(const float Ratio)
+FVector& FVector::operator*=(const float InRatio)
 {
-	X *= Ratio;
-	Y *= Ratio;
-	Z *= Ratio;
+	X *= InRatio;
+	Y *= InRatio;
+	Z *= InRatio;
 
 	return *this;
 }
 
-bool FVector::operator==(const FVector& inOther) const
+bool FVector::operator==(const FVector& InOther) const
 {
-	if (X == inOther.X && Y == inOther.Y && Z == inOther.Z)
+	if (X == InOther.X && Y == InOther.Y && Z == InOther.Z)
 	{
 		return true;
 	}
@@ -131,49 +131,49 @@ FVector4::FVector4(const FVector4& InOther)
 /**
  * @brief 두 벡터를 더한 새로운 벡터를 반환하는 함수
  */
-FVector4 FVector4::operator+(const FVector4& OtherVector) const
+FVector4 FVector4::operator+(const FVector4& InOtherVector) const
 {
 	return FVector4(
-		X + OtherVector.X,
-		Y + OtherVector.Y,
-		Z + OtherVector.Z,
-		W + OtherVector.W
+		X + InOtherVector.X,
+		Y + InOtherVector.Y,
+		Z + InOtherVector.Z,
+		W + InOtherVector.W
 	);
 }
 
-FVector4 FVector4::operator*(const FMatrix& Matrix) const
+FVector4 FVector4::operator*(const FMatrix& InMatrix) const
 {
 	FVector4 Result;
-	Result.X = X * Matrix.Data[0][0] + Y * Matrix.Data[1][0] + Z * Matrix.Data[2][0] + W * Matrix.Data[3][0];
-	Result.Y = X * Matrix.Data[0][1] + Y * Matrix.Data[1][1] + Z * Matrix.Data[2][1] + W * Matrix.Data[3][1];
-	Result.Z = X * Matrix.Data[0][2] + Y * Matrix.Data[1][2] + Z * Matrix.Data[2][2] + W * Matrix.Data[3][2];
-	Result.W = X * Matrix.Data[0][3] + Y * Matrix.Data[1][3] + Z * Matrix.Data[2][3] + W * Matrix.Data[3][3];
+	Result.X = X * InMatrix.Data[0][0] + Y * InMatrix.Data[1][0] + Z * InMatrix.Data[2][0] + W * InMatrix.Data[3][0];
+	Result.Y = X * InMatrix.Data[0][1] + Y * InMatrix.Data[1][1] + Z * InMatrix.Data[2][1] + W * InMatrix.Data[3][1];
+	Result.Z = X * InMatrix.Data[0][2] + Y * InMatrix.Data[1][2] + Z * InMatrix.Data[2][2] + W * InMatrix.Data[3][2];
+	Result.W = X * InMatrix.Data[0][3] + Y * InMatrix.Data[1][3] + Z * InMatrix.Data[2][3] + W * InMatrix.Data[3][3];
 
 	return Result;
 }
 /**
  * @brief 두 벡터를 뺀 새로운 벡터를 반환하는 함수
  */
-FVector4 FVector4::operator-(const FVector4& OtherVector) const
+FVector4 FVector4::operator-(const FVector4& InOtherVector) const
 {
 	return FVector4(
-		X - OtherVector.X,
-		Y - OtherVector.Y,
-		Z - OtherVector.Z,
-		W - OtherVector.W
+		X - InOtherVector.X,
+		Y - InOtherVector.Y,
+		Z - InOtherVector.Z,
+		W - InOtherVector.W
 	);
 }
 
 /**
  * @brief 자신의 벡터에 배율을 곱한 값을 반환하는 함수
  */
-FVector4 FVector4::operator*(const float Ratio) const
+FVector4 FVector4::operator*(const float InRatio) const
 {
 	return FVector4(
-		X * Ratio,
-		Y * Ratio,
-		Z * Ratio,
-		W * Ratio
+		X * InRatio,
+		Y * InRatio,
+		Z * InRatio,
+		W * InRatio
 	);
 }
 
@@ -181,23 +181,23 @@ FVector4 FVector4::operator*(const float Ratio) const
 /**
  * @brief 자신의 벡터에 다른 벡터를 가산하는 함수
  */
-void FVector4::operator+=(const FVector4& OtherVector)
+void FVector4::operator+=(const FVector4& InOtherVector)
 {
-	X += OtherVector.X;
-	Y += OtherVector.Y;
-	Z += OtherVector.Z;
-	W += OtherVector.W;
+	X += InOtherVector.X;
+	Y += InOtherVector.Y;
+	Z += InOtherVector.Z;
+	W += InOtherVector.W;
 }
 
 /**
  * @brief 자신의 벡터에 다른 벡터를 감산하는 함수
  */
-void FVector4::operator-=(const FVector4& OtherVector)
+void FVector4::operator-=(const FVector4& InOtherVector)
 {
-	X -= OtherVector.X;
-	Y -= OtherVector.Y;
-	Z -= OtherVector.Z;
-	W -= OtherVector.W;
+	X -= InOtherVector.X;
+	Y -= InOtherVector.Y;
+	Z -= InOtherVector.Z;
+	W -= InOtherVector.W;
 }
 
 /**

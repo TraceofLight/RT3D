@@ -32,16 +32,22 @@ void UPrimitiveSpawnWidget::RenderWidget()
 
 	// Primitive 타입 선택 DropDown
 	const char* PrimitiveTypes[] = {
-		"Cube",
 		"Sphere",
+		"Cube",
 		"Triangle",
 		"Square"
 	};
 
+	// None을 고려한 Enum 변환 처리
+	int TypeNumber = static_cast<int>(SelectedPrimitiveType) - 1;
+
 	ImGui::Text("Primitive Type:");
 	ImGui::SameLine();
 	ImGui::SetNextItemWidth(120);
-	ImGui::Combo("##PrimitiveType", &SelectedPrimitiveType, PrimitiveTypes, 4);
+	ImGui::Combo("##PrimitiveType", &TypeNumber, PrimitiveTypes, 4);
+
+	// ImGui가 받은 값을 반영
+	SelectedPrimitiveType = static_cast<EPrimitiveType>(TypeNumber + 1);
 
 	// Spawn 버튼과 개수 입력
 	ImGui::Text("Number of Spawn:");
@@ -84,7 +90,7 @@ void UPrimitiveSpawnWidget::SpawnActors() const
 	}
 
 	UE_LOG("ControlPanel: %s 타입의 Actor를 %d개 생성 시도합니다",
-		(SelectedPrimitiveType == 0 ? "Cube" : "Sphere"), NumberOfSpawn);
+		EnumToString(SelectedPrimitiveType), NumberOfSpawn);
 
 	// 지정된 개수만큼 액터 생성
 	for (int32 i = 0; i < NumberOfSpawn; i++)
@@ -92,19 +98,19 @@ void UPrimitiveSpawnWidget::SpawnActors() const
 		AActor* NewActor = nullptr;
 
 		// 타입에 따라 액터 생성
-		if (SelectedPrimitiveType == 0) // Cube
+		if (SelectedPrimitiveType == EPrimitiveType::Cube)
 		{
 			NewActor = CurrentLevel->SpawnActor<ACubeActor>();
 		}
-		else if (SelectedPrimitiveType == 1) // Sphere
+		else if (SelectedPrimitiveType == EPrimitiveType::Sphere)
 		{
 			NewActor = CurrentLevel->SpawnActor<ASphereActor>();
 		}
-		else if (SelectedPrimitiveType == 2)
+		else if (SelectedPrimitiveType == EPrimitiveType::Triangle)
 		{
 			NewActor = CurrentLevel->SpawnActor<ATriangleActor>();
 		}
-		else if (SelectedPrimitiveType == 3)
+		else if (SelectedPrimitiveType == EPrimitiveType::Square)
 		{
 			NewActor = CurrentLevel->SpawnActor<ASquareActor>();
 		}
@@ -122,11 +128,11 @@ void UPrimitiveSpawnWidget::SpawnActors() const
 			float RandomScale = 0.5f + (static_cast<float>(rand()) / RAND_MAX) * 1.5f;
 			NewActor->SetActorScale3D(FVector(RandomScale, RandomScale, RandomScale));
 
-			UE_LOG("ControlPanel: (%.2f, %.2f, %.2f) 지점에 Actor를 생성했습니다", RandomX, RandomY, RandomZ);
+			UE_LOG("ControlPanel: (%.2f, %.2f, %.2f) 지점에 Actor를 배치했습니다", RandomX, RandomY, RandomZ);
 		}
 		else
 		{
-			UE_LOG("ControlPanel: Actor 생성에 실패했습니다 %d", i);
+			UE_LOG("ControlPanel: Actor 배치에 실패했습니다 %d", i);
 		}
 	}
 }

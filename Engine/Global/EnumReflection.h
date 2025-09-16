@@ -19,47 +19,47 @@ using std::make_index_sequence;
 using std::char_traits;
 
 /**
- * @brief compile time enum reflection
+ * @brief Compile time enum reflection
  * __FUNCSIG__를 파싱하여 컴파일 타임에 enum 정보를 생성
  */
 namespace EnumReflection
 {
-	class constexpr_string_view
+	class ConstexprStringView
 	{
 	public:
-		const char* data_;
-		size_t size_;
+		const char* Data;
+		size_t Size;
 
-		constexpr constexpr_string_view() noexcept : data_(nullptr), size_(0)
+		constexpr ConstexprStringView() noexcept : Data(nullptr), Size(0)
 		{
 		}
 
-		constexpr constexpr_string_view(const char* InString, size_t InLength) noexcept : data_(InString),
-			size_(InLength)
+		constexpr ConstexprStringView(const char* InString, size_t InLength) noexcept : Data(InString),
+			Size(InLength)
 		{
 		}
 
-		constexpr constexpr_string_view(const char* InString) noexcept : data_(InString),
-		                                                                 size_(InString
-			                                                                       ? char_traits<char>::length(InString)
-			                                                                       : 0)
+		constexpr ConstexprStringView(const char* InString) noexcept : Data(InString),
+		                                                               Size(InString
+			                                                                    ? char_traits<char>::length(InString)
+			                                                                    : 0)
 		{
 		}
 
-		constexpr const char* data() const noexcept { return data_; }
-		constexpr size_t size() const noexcept { return size_; }
-		constexpr bool empty() const noexcept { return size_ == 0; }
-		constexpr char operator[](size_t pos) const noexcept { return data_[pos]; }
+		constexpr const char* data() const noexcept { return Data; }
+		constexpr size_t size() const noexcept { return Size; }
+		constexpr bool empty() const noexcept { return Size == 0; }
+		constexpr char operator[](size_t InPosition) const noexcept { return Data[InPosition]; }
 
-		constexpr constexpr_string_view substr(size_t InPosition, size_t InLength = string_view::npos) const noexcept
+		constexpr ConstexprStringView substr(size_t InPosition, size_t InLength = string_view::npos) const noexcept
 		{
-			if (InPosition > size_)
+			if (InPosition > Size)
 			{
 				return {};
 			}
-			InLength = std::min(InLength, size_ - InPosition);
+			InLength = std::min(InLength, Size - InPosition);
 
-			return {data_ + InPosition, InLength};
+			return {Data + InPosition, InLength};
 		}
 
 		constexpr size_t find_last_of(char InChar) const noexcept
@@ -69,9 +69,12 @@ namespace EnumReflection
 				return string_view::npos;
 			}
 
-			for (size_t i = size_; i > 0; --i)
+			for (size_t i = Size; i > 0; --i)
 			{
-				if (data_[i - 1] == InChar) return i - 1;
+				if (Data[i - 1] == InChar)
+				{
+					return i - 1;
+				}
 			}
 
 			return string_view::npos;
@@ -79,9 +82,9 @@ namespace EnumReflection
 
 		constexpr size_t find(char InChar, size_t InPosition = 0) const noexcept
 		{
-			for (size_t i = InPosition; i < size_; ++i)
+			for (size_t i = InPosition; i < Size; ++i)
 			{
-				if (data_[i] == InChar)
+				if (Data[i] == InChar)
 				{
 					return i;
 				}
@@ -91,7 +94,7 @@ namespace EnumReflection
 
 		constexpr bool starts_with(char InChar) const noexcept
 		{
-			return !empty() && data_[0] == InChar;
+			return !empty() && Data[0] == InChar;
 		}
 
 		constexpr bool contains(char InChar) const noexcept
@@ -99,24 +102,45 @@ namespace EnumReflection
 			return find(InChar) != string_view::npos;
 		}
 
-		constexpr constexpr_string_view trim() const noexcept
+		constexpr ConstexprStringView trim() const noexcept
 		{
 			size_t Start = 0;
-			size_t End = size_;
+			size_t End = Size;
 
 			// 앞쪽 공백 제거
-			while (Start < End && (data_[Start] == ' ' || data_[Start] == '\t'))
+			while (Start < End && (Data[Start] == ' ' || Data[Start] == '\t'))
 			{
 				++Start;
 			}
 
 			// 뒤쪽 공백 제거
-			while (End > Start && (data_[End - 1] == ' ' || data_[End - 1] == '\t'))
+			while (End > Start && (Data[End - 1] == ' ' || Data[End - 1] == '\t'))
 			{
 				--End;
 			}
 
-			return {data_ + Start, End - Start};
+			return {Data + Start, End - Start};
+		}
+	};
+
+	/**
+	 * 컴파일타임에 null-terminated enum 네임을 생성하는 클래스
+	 */
+	template <typename EnumType, EnumType Value, size_t N>
+	struct EnumNameHolder
+	{
+		// null terminator 위한 +1
+		char data[N + 1] = {};
+
+		constexpr EnumNameHolder(const ConstexprStringView& InName) noexcept
+		{
+			for (size_t i = 0; i < N && i < InName.size(); ++i)
+			{
+				data[i] = InName[i];
+			}
+
+			// null terminator 추가
+			data[N] = '\0';
 		}
 	};
 
@@ -124,17 +148,17 @@ namespace EnumReflection
 	 * 컴파일타임에 enum 값의 이름을 추출하는 함수
 	 */
 	template <typename EnumType, EnumType Value>
-	constexpr constexpr_string_view GetEnumName() noexcept
+	constexpr ConstexprStringView GetEnumNameRaw() noexcept
 	{
 #if defined(_MSC_VER)
-		constexpr_string_view FunctionName = __FUNCSIG__;
+		ConstexprStringView FunctionName = __FUNCSIG__;
 #elif defined(__clang__) || defined(__GNUC__)
-		constexpr_string_view function_name = __PRETTY_FUNCTION__;
+		ConstexprStringView FunctionName = __PRETTY_FUNCTION__;
 #else
 		return {};
 #endif
 
-		// MSVC: "constexpr_string_view __cdecl EnumReflection::GetEnumName<enum EKeyInput,EKeyInput::W>(void)"
+		// MSVC: "constexpr_string_view __cdecl EnumReflection::GetEnumNameRaw<enum EKeyInput,EKeyInput::W>(void)"
 		// 마지막 콤마 뒤부터 > 앞까지가 enum 값
 		auto LastComma = FunctionName.find_last_of(',');
 		if (LastComma == string_view::npos)
@@ -159,12 +183,27 @@ namespace EnumReflection
 	}
 
 	/**
+	 * null-terminated enum 네임 반환
+	 */
+	template <typename EnumType, EnumType Value>
+	constexpr const char* GetEnumName() noexcept
+	{
+		constexpr auto RawName = GetEnumNameRaw<EnumType, Value>();
+		if (RawName.empty()) return "";
+
+		// 정확한 크기 계산
+		constexpr size_t NameSize = RawName.size();
+		static constexpr EnumNameHolder<EnumType, Value, NameSize> holder{RawName};
+		return holder.data;
+	}
+
+	/**
 	 * enum 값이 유효한지 검사
 	 */
 	template <typename EnumType, EnumType Value>
 	constexpr bool IsValidEnum() noexcept
 	{
-		constexpr auto Name = GetEnumName<EnumType, Value>();
+		constexpr auto Name = GetEnumNameRaw<EnumType, Value>();
 		return !Name.empty() &&
 			!Name.contains('(') && // cast 연산자 감지
 			!Name.starts_with('0') && !Name.starts_with('1') && !Name.starts_with('2') &&
@@ -199,9 +238,8 @@ namespace EnumReflection
 			constexpr auto value = static_cast<EnumType>(Is + EnumRange<EnumType>::Min);
 			if constexpr (IsValidEnum<EnumType, value>())
 			{
-				constexpr auto name = GetEnumName<EnumType, value>();
 				Values[ValidCount] = value;
-				Names[ValidCount] = name.data(); // constexpr 데이터
+				Names[ValidCount] = GetEnumName<EnumType, value>(); // null-terminated string
 				++ValidCount;
 			}
 		}()), ...);
@@ -300,8 +338,7 @@ private:
 			{
 				if (InValue == EnumValue)
 				{
-					constexpr auto Name = EnumReflection::GetEnumName<EnumType, EnumValue>();
-					Result = Name.data();
+					Result = EnumReflection::GetEnumName<EnumType, EnumValue>();
 				}
 			}
 		}()), ...);
@@ -323,8 +360,8 @@ private:
 			constexpr auto EnumValue = static_cast<EnumType>(Is + EnumReflection::EnumRange<EnumType>::Min);
 			if constexpr (EnumReflection::IsValidEnum<EnumType, EnumValue>())
 			{
-				constexpr auto EnumName = EnumReflection::GetEnumName<EnumType, EnumValue>();
-				if (StringEqual(InName, EnumName.data()))
+				const char* EnumName = EnumReflection::GetEnumName<EnumType, EnumValue>();
+				if (StringEqual(InName, EnumName))
 				{
 					Result = EnumValue;
 				}
@@ -362,7 +399,7 @@ private:
 	}
 };
 
-// enum에 대해 쓸 수 있는 편의 함수 전역 세팅
+// enum에 대해 사용할 수 있는 편의성 함수 전역 세팅
 template <typename EnumType>
 const char* EnumToString(EnumType InValue) noexcept
 {
