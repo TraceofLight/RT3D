@@ -1,6 +1,7 @@
 #pragma once
 #include "Core/Public/Object.h"
 #include "Mesh/Public/SceneComponent.h"
+#include "Mesh/Public/BillBoardComponent.h"
 
 /**
  * @brief Level에서 렌더링되는 UObject 클래스
@@ -44,7 +45,9 @@ public:
 
 private:
 	USceneComponent* RootComponent = nullptr;
+	UBillBoardComponent* BillBoardComponent = nullptr;
 	TArray<UActorComponent*> OwnedComponents;
+	//uint64 ShowFlags;
 };
 
 template <typename T>

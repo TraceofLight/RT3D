@@ -77,6 +77,7 @@ enum class EPrimitiveType : uint8_t
 	CubeArrow,
 	Ring,
 	Line,
+	BillBoard,
 
 	End = 0xFF
 };

@@ -194,6 +194,9 @@
     <ClInclude Include="Mesh\Public\AABB.h" />
     <ClInclude Include="Mesh\Public\Actor.h" />
     <ClInclude Include="Mesh\Public\ActorComponent.h" />
+    <ClInclude Include="Mesh\Public\BillBoardComponent.h">
+      <DeploymentContent>false</DeploymentContent>
+    </ClInclude>
     <ClInclude Include="Mesh\Public\BoundingSphere.h" />
     <ClInclude Include="Mesh\Public\BoundingVolume.h" />
     <ClInclude Include="Mesh\Public\CubeActor.h" />
@@ -277,6 +280,9 @@
     <ClCompile Include="Mesh\Private\AABB.cpp" />
     <ClCompile Include="Mesh\Private\Actor.cpp" />
     <ClCompile Include="Mesh\Private\ActorComponent.cpp" />
+    <ClCompile Include="Mesh\Private\BillBoardComponent.cpp">
+      <DeploymentContent>false</DeploymentContent>
+    </ClCompile>
     <ClCompile Include="Mesh\Private\BoundingSphere.cpp" />
     <ClCompile Include="Mesh\Private\CubeActor.cpp" />
     <ClCompile Include="Mesh\Private\CubeComponent.cpp" />

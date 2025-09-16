@@ -9,6 +9,25 @@ class AGrid;
 class AActor;
 class UPrimitiveComponent;
 
+/**
+ * @brief Level Show Flag Enum
+ */
+enum class EEngineShowFlags : uint64
+{
+	SF_Primitives = 0x01,
+	SF_BillboardText = 0x10,
+};
+
+inline uint64 operator|(EEngineShowFlags lhs, EEngineShowFlags rhs)
+{
+	return static_cast<uint64>(lhs) | static_cast<uint64>(rhs);
+}
+
+inline uint64 operator&(uint64 lhs, EEngineShowFlags rhs)
+{
+	return lhs & static_cast<uint64>(rhs);
+}
+
 class ULevel :
 	public UObject
 {
@@ -47,6 +66,9 @@ public:
 	void SetCamera(UCamera* InCamera) { CameraPtr = InCamera; }
 	UCamera* GetCamera() const { return CameraPtr; }
 
+	uint64 GetShowFlags() const { return ShowFlags; }
+	void SetShowFlags(uint64 InShowFlags) { ShowFlags = InShowFlags; }
+
 private:
 	TArray<AActor*> LevelActors;
 	TArray<UPrimitiveComponent*> LevelPrimitiveComponents;
@@ -66,6 +88,8 @@ private:
 	// TODO(PYB): Editor 제작되면 해당 클래스에 존재하는 카메라 관련 코드 제거
 	//////////////////////////////////////////////////////////////////////////
 	UCamera* CameraPtr = nullptr;
+
+	uint64 ShowFlags = EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_BillboardText;
 
 	// 지연 삭제 처리 함수
 	void ProcessPendingDeletions();
