@@ -1,516 +1,157 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Core\Private\Name.cpp">
-      <Filter>Core\Private</Filter>
-    </ClCompile>
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Global\Matrix.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Memory.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Global\Vector.cpp">
-      <Filter>Global</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Private\Class.cpp">
-      <Filter>Core\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Private\Name.cpp">
-      <Filter>Core\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Private\Object.cpp">
-      <Filter>Core\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Private\AppWindow.cpp">
-      <Filter>Core\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Core\Private\ClientApp.cpp">
-      <Filter>Core\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager\Input\Private\InputManager.cpp">
-      <Filter>Manager\Input\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager\Level\Private\LevelManager.cpp">
-      <Filter>Manager\Level\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager\Path\Private\PathManager.cpp">
-      <Filter>Manager\Path\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager\Time\Private\TimeManager.cpp">
-      <Filter>Manager\Time\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager\UI\Private\UIManager.cpp">
-      <Filter>Manager\UI\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Manager\Config\Private\ConfigManager.cpp">
-      <Filter>Manager\Config\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\ActorTerminationWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\CameraControlWIdget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\ConsoleWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\FPSWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\InputInformationWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\PrimitiveSpawnWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\SceneHierarchyWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\SceneIOWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\TargetActorTransformWidget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Widget\Private\Widget.cpp">
-      <Filter>Render\UI\Widget\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Window\Private\ConsoleWindow.cpp">
-      <Filter>Render\UI\Window\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Window\Private\ControlPanelWindow.cpp">
-      <Filter>Render\UI\Window\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Window\Private\ExperimentalFeatureWindow.cpp">
-      <Filter>Render\UI\Window\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Window\Private\OutlinerWindow.cpp">
-      <Filter>Render\UI\Window\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Window\Private\SceneManagerWindow.cpp">
-      <Filter>Render\UI\Window\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Window\Private\UIWindow.cpp">
-      <Filter>Render\UI\Window\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\Factory\Private\UIWindowFactory.cpp">
-      <Filter>Render\UI\Factory\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\UI\ImGui\Private\ImGuiHelper.cpp">
-      <Filter>Render\UI\ImGui\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Renderer\Private\DeviceResources.cpp">
-      <Filter>Render\Renderer\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Renderer\Private\Pipeline.cpp">
-      <Filter>Render\Renderer\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Render\Renderer\Private\Renderer.cpp">
-      <Filter>Render\Renderer\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\BatchLines.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\Axis.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\BoundingBoxLines.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\Camera.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\Editor.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\Gizmo.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\Grid.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Editor\Private\ObjectPicker.cpp">
-      <Filter>Editor\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_demo.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_draw.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_dx11.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_impl_win32.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_tables.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="ImGui\imgui_widgets.cpp">
-      <Filter>ImGui</Filter>
-    </ClCompile>
-    <ClCompile Include="Level\Private\Level.cpp">
-      <Filter>Level\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\AABB.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\Actor.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\ActorComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\BoundingSphere.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\CubeActor.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\CubeComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\LineComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\PrimitiveComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\SceneComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\SphereActor.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\SphereComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\SquareActor.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\SquareComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\TriangleActor.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\TriangleComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\VertexDatas.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Utility\Private\UELogParser.cpp">
-      <Filter>Utility\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Mesh\Private\BillBoardComponent.cpp">
-      <Filter>Mesh\Private</Filter>
-    </ClCompile>
-    <ClCompile Include="Factory\Actor\Private\ActorFactory.cpp" />
-    <ClCompile Include="Factory\Actor\Private\CubeActorFactory.cpp" />
-    <ClCompile Include="Factory\Actor\Private\SphereActorFactory.cpp" />
-    <ClCompile Include="Factory\Actor\Private\SquareActorFactory.cpp" />
-    <ClCompile Include="Factory\Actor\Private\TriangleActorFactory.cpp" />
-    <ClCompile Include="Factory\Component\Private\ComponentFactories.cpp" />
-    <ClCompile Include="Factory\Component\Private\ComponentFactory.cpp" />
-    <ClCompile Include="Factory\Private\Factory.cpp" />
-    <ClCompile Include="Factory\Private\FactorySystem.cpp" />
-    <ClCompile Include="Manager\Asset\Private\AssetManger.cpp" />
-    <ClCompile Include="Render\UI\Widget\Private\MainBarWidget.cpp" />
-    <ClCompile Include="Render\UI\Window\Private\MainMenuWindow.cpp" />
-    <ClCompile Include="Resource\Texture\Private\Texture.cpp" />
-    <ClCompile Include="Utility\Private\JsonSerializer.cpp" />
+    <ClCompile Include="Source\Core\Private\AppWindow.cpp" />
+    <ClCompile Include="Source\Core\Private\Class.cpp" />
+    <ClCompile Include="Source\Core\Private\ClientApp.cpp" />
+    <ClCompile Include="Source\Core\Private\Name.cpp" />
+    <ClCompile Include="Source\Core\Private\Object.cpp" />
+    <ClCompile Include="Source\Editor\Private\Axis.cpp" />
+    <ClCompile Include="Source\Editor\Private\BatchLines.cpp" />
+    <ClCompile Include="Source\Editor\Private\BoundingBoxLines.cpp" />
+    <ClCompile Include="Source\Editor\Private\Camera.cpp" />
+    <ClCompile Include="Source\Editor\Private\Editor.cpp" />
+    <ClCompile Include="Source\Editor\Private\Gizmo.cpp" />
+    <ClCompile Include="Source\Editor\Private\Grid.cpp" />
+    <ClCompile Include="Source\Editor\Private\ObjectPicker.cpp" />
+    <ClCompile Include="Source\Factory\Actor\Private\ActorFactory.cpp" />
+    <ClCompile Include="Source\Factory\Actor\Private\CubeActorFactory.cpp" />
+    <ClCompile Include="Source\Factory\Actor\Private\SphereActorFactory.cpp" />
+    <ClCompile Include="Source\Factory\Actor\Private\SquareActorFactory.cpp" />
+    <ClCompile Include="Source\Factory\Actor\Private\TriangleActorFactory.cpp" />
+    <ClCompile Include="Source\Factory\Component\Private\ComponentFactories.cpp" />
+    <ClCompile Include="Source\Factory\Component\Private\ComponentFactory.cpp" />
+    <ClCompile Include="Source\Factory\Private\Factory.cpp" />
+    <ClCompile Include="Source\Factory\Private\FactorySystem.cpp" />
+    <ClCompile Include="Source\Global\Matrix.cpp" />
+    <ClCompile Include="Source\Global\Memory.cpp" />
+    <ClCompile Include="Source\Global\Vector.cpp" />
+    <ClCompile Include="Source\ImGui\imgui.cpp" />
+    <ClCompile Include="Source\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Source\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Source\ImGui\imgui_impl_dx11.cpp" />
+    <ClCompile Include="Source\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Source\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Source\ImGui\imgui_widgets.cpp" />
+    <ClCompile Include="Source\Level\Private\Level.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\AssetManger.cpp" />
+    <ClCompile Include="Source\Manager\Config\Private\ConfigManager.cpp" />
+    <ClCompile Include="Source\Manager\Input\Private\InputManager.cpp" />
+    <ClCompile Include="Source\Manager\Level\Private\LevelManager.cpp" />
+    <ClCompile Include="Source\Manager\Path\Private\PathManager.cpp" />
+    <ClCompile Include="Source\Manager\Time\Private\TimeManager.cpp" />
+    <ClCompile Include="Source\Manager\UI\Private\UIManager.cpp" />
+    <ClCompile Include="Source\Render\Renderer\Private\DeviceResources.cpp" />
+    <ClCompile Include="Source\Render\Renderer\Private\Pipeline.cpp" />
+    <ClCompile Include="Source\Render\Renderer\Private\Renderer.cpp" />
+    <ClCompile Include="Source\Render\UI\Factory\Private\UIWindowFactory.cpp" />
+    <ClCompile Include="Source\Render\UI\ImGui\Private\ImGuiHelper.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\ActorTerminationWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\CameraControlWIdget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\ConsoleWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\FPSWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\InputInformationWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\MainBarWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\PrimitiveSpawnWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\SceneHierarchyWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\SceneIOWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\TargetActorTransformWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\Widget.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\ConsoleWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\ControlPanelWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\ExperimentalFeatureWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\MainMenuWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\OutlinerWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\SceneManagerWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\UIWindow.cpp" />
+    <ClCompile Include="Source\Utility\Private\JsonSerializer.cpp" />
+    <ClCompile Include="Source\Utility\Private\UELogParser.cpp" />
+    <ClCompile Include="Source\Asset\Texture\Private\Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Core\Public\Name.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\ClientApp.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\EnumReflection.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\Axis.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Global\Constant.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\CoreTypes.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Enum.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\EnumReflection.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Function.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Macro.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Matrix.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Memory.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Types.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Global\Vector.h">
-      <Filter>Global</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\Class.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\Name.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\Object.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\AppWindow.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\ClientApp.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\EngineStatics.h">
-      <Filter>Core\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager\Input\Public\InputManager.h">
-      <Filter>Manager\Input\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager\Level\Public\LevelManager.h">
-      <Filter>Manager\Level\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager\Path\Public\PathManager.h">
-      <Filter>Manager\Path\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager\Time\Public\TimeManager.h">
-      <Filter>Manager\Time\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager\UI\Public\UIManager.h">
-      <Filter>Manager\UI\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Manager\Config\Public\ConfigManager.h">
-      <Filter>Manager\Config\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\ActorTerminationWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\CameraControlWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\ConsoleWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\FPSWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\InputInformationWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\PrimitiveSpawnWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\SceneHierarchyWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\SceneIOWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\TargetActorTransformWidget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Widget\Public\Widget.h">
-      <Filter>Render\UI\Widget\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Window\Public\ConsoleWindow.h">
-      <Filter>Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Window\Public\ControlPanelWindow.h">
-      <Filter>Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Window\Public\ExperimentalFeatureWindow.h">
-      <Filter>Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Window\Public\OutlinerWindow.h">
-      <Filter>Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Window\Public\SceneManagerWindow.h">
-      <Filter>Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Window\Public\UIWindow.h">
-      <Filter>Render\UI\Window\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\Factory\Public\UIWindowFactory.h">
-      <Filter>Render\UI\Factory\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\UI\ImGui\Public\ImGuiHelper.h">
-      <Filter>Render\UI\ImGui\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Renderer\Public\DeviceResources.h">
-      <Filter>Render\Renderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Renderer\Public\Pipeline.h">
-      <Filter>Render\Renderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Render\Renderer\Public\Renderer.h">
-      <Filter>Render\Renderer\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\BatchLines.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\Axis.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\BoundingBoxLines.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\Camera.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\Editor.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\EditorPrimitive.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\Gizmo.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\Grid.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Editor\Public\ObjectPicker.h">
-      <Filter>Editor\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imconfig.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_dx11.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_impl_win32.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imgui_internal.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_rectpack.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_textedit.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="ImGui\imstb_truetype.h">
-      <Filter>ImGui</Filter>
-    </ClInclude>
-    <ClInclude Include="Level\Public\Level.h">
-      <Filter>Level\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\AABB.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\Actor.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\ActorComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\BoundingSphere.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\BoundingVolume.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\CubeActor.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\CubeComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\LineComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\PrimitiveComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\SceneComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\SphereActor.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\SphereComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\SquareActor.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\SquareComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\TriangleActor.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\TriangleComponent.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Public\VertexDatas.h">
-      <Filter>Mesh\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Sample\Rectangle.h">
-      <Filter>Mesh\Sample</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Sample\Sphere.h">
-      <Filter>Mesh\Sample</Filter>
-    </ClInclude>
-    <ClInclude Include="Mesh\Sample\Triangle.h">
-      <Filter>Mesh\Sample</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility\Public\Metadata.h">
-      <Filter>Utility\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Utility\Public\UELogParser.h">
-      <Filter>Utility\Public</Filter>
-    </ClInclude>
-    <ClInclude Include="Core\Public\ObjectPtr.h" />
-    <ClInclude Include="Factory\Actor\Public\CubeActorFactory.h" />
-    <ClInclude Include="Factory\Actor\Public\SphereActorFactory.h" />
-    <ClInclude Include="Factory\Actor\Public\SquareActorFactory.h" />
-    <ClInclude Include="Factory\Actor\Public\TriangleActorFactory.h" />
-    <ClInclude Include="Factory\Public\CubeActorFactory.h" />
-    <ClInclude Include="Factory\Public\NewObject.h" />
-    <ClInclude Include="Factory\Public\SphereActorFactory.h" />
-    <ClInclude Include="Factory\Public\SquareActorFactory.h" />
-    <ClInclude Include="Factory\Public\TriangleActorFactory.h" />
-    <ClInclude Include="Manager\Asset\Public\AssetManager.h" />
-    <ClInclude Include="Render\UI\Widget\Public\MainBarWidget.h" />
-    <ClInclude Include="Render\UI\Window\Public\MainMenuWindow.h" />
-    <ClInclude Include="Resource\Texture\Public\Texture.h" />
-    <ClInclude Include="Utility\Public\JsonSerializer.h" />
-    <ClInclude Include="Factory\Public\Factory.h" />
-    <ClInclude Include="Factory\Public\FactorySystem.h" />
-    <ClInclude Include="Factory\Actor\Public\ActorFactory.h" />
-    <ClInclude Include="Factory\Component\Public\ComponentFactory.h" />
+    <ClInclude Include="Source\Core\Public\AppWindow.h" />
+    <ClInclude Include="Source\Core\Public\Class.h" />
+    <ClInclude Include="Source\Core\Public\ClientApp.h" />
+    <ClInclude Include="Source\Core\Public\EngineStatics.h" />
+    <ClInclude Include="Source\Core\Public\Name.h" />
+    <ClInclude Include="Source\Core\Public\Object.h" />
+    <ClInclude Include="Source\Core\Public\ObjectPtr.h" />
+    <ClInclude Include="Source\Editor\Public\Axis.h" />
+    <ClInclude Include="Source\Editor\Public\BatchLines.h" />
+    <ClInclude Include="Source\Editor\Public\BoundingBoxLines.h" />
+    <ClInclude Include="Source\Editor\Public\Camera.h" />
+    <ClInclude Include="Source\Editor\Public\Editor.h" />
+    <ClInclude Include="Source\Editor\Public\EditorPrimitive.h" />
+    <ClInclude Include="Source\Editor\Public\Gizmo.h" />
+    <ClInclude Include="Source\Editor\Public\Grid.h" />
+    <ClInclude Include="Source\Editor\Public\ObjectPicker.h" />
+    <ClInclude Include="Source\Factory\Actor\Public\ActorFactory.h" />
+    <ClInclude Include="Source\Factory\Actor\Public\CubeActorFactory.h" />
+    <ClInclude Include="Source\Factory\Actor\Public\SphereActorFactory.h" />
+    <ClInclude Include="Source\Factory\Actor\Public\SquareActorFactory.h" />
+    <ClInclude Include="Source\Factory\Actor\Public\TriangleActorFactory.h" />
+    <ClInclude Include="Source\Factory\Component\Public\ComponentFactory.h" />
+    <ClInclude Include="Source\Factory\Public\Factory.h" />
+    <ClInclude Include="Source\Factory\Public\FactorySystem.h" />
+    <ClInclude Include="Source\Factory\Public\NewObject.h" />
+    <ClInclude Include="Source\Global\Constant.h" />
+    <ClInclude Include="Source\Global\CoreTypes.h" />
+    <ClInclude Include="Source\Global\Enum.h" />
+    <ClInclude Include="Source\Global\EnumReflection.h" />
+    <ClInclude Include="Source\Global\Function.h" />
+    <ClInclude Include="Source\Global\Macro.h" />
+    <ClInclude Include="Source\Global\Matrix.h" />
+    <ClInclude Include="Source\Global\Memory.h" />
+    <ClInclude Include="Source\Global\Types.h" />
+    <ClInclude Include="Source\Global\Vector.h" />
+    <ClInclude Include="Source\ImGui\imconfig.h" />
+    <ClInclude Include="Source\ImGui\imgui.h" />
+    <ClInclude Include="Source\ImGui\imgui_impl_dx11.h" />
+    <ClInclude Include="Source\ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="Source\ImGui\imgui_internal.h" />
+    <ClInclude Include="Source\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Source\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Source\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Source\Level\Public\Level.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\AssetManager.h" />
+    <ClInclude Include="Source\Manager\Config\Public\ConfigManager.h" />
+    <ClInclude Include="Source\Manager\Input\Public\InputManager.h" />
+    <ClInclude Include="Source\Manager\Level\Public\LevelManager.h" />
+    <ClInclude Include="Source\Manager\Path\Public\PathManager.h" />
+    <ClInclude Include="Source\Manager\Time\Public\TimeManager.h" />
+    <ClInclude Include="Source\Manager\UI\Public\UIManager.h" />
+    <ClInclude Include="Source\Render\Renderer\Public\DeviceResources.h" />
+    <ClInclude Include="Source\Render\Renderer\Public\Pipeline.h" />
+    <ClInclude Include="Source\Render\Renderer\Public\Renderer.h" />
+    <ClInclude Include="Source\Render\UI\Factory\Public\UIWindowFactory.h" />
+    <ClInclude Include="Source\Render\UI\ImGui\Public\ImGuiHelper.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\ActorTerminationWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\CameraControlWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\ConsoleWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\FPSWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\InputInformationWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\MainBarWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\PrimitiveSpawnWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\SceneHierarchyWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\SceneIOWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\TargetActorTransformWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\Widget.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\ConsoleWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\ControlPanelWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\ExperimentalFeatureWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\MainMenuWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\OutlinerWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\SceneManagerWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\UIWindow.h" />
+    <ClInclude Include="Source\Utility\Public\JsonSerializer.h" />
+    <ClInclude Include="Source\Utility\Public\Metadata.h" />
+    <ClInclude Include="Source\Utility\Public\UELogParser.h" />
+    <ClInclude Include="resource.h" />
+    <ClInclude Include="Source\Asset\Texture\Public\Texture.h" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Asset\Shader\SampleShader.hlsl">
