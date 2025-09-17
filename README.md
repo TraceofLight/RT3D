@@ -1,7 +1,7 @@
 # GTL-Week03 Engine
 ### Game Tech Lab 3주차 - 7팀 프로젝트
 
- ![Engine_Editor](Engine_Editor.jpg)
+ ![Engine_Editor](Document/engine_editor.jpg)
 
 <br>
 
