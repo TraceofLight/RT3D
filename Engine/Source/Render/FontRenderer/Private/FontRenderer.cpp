@@ -83,11 +83,11 @@ void UFontRenderer::Release()
     }
 
     // 텍스처 및 샘플러 해제
-    if (FontAtlasTexture)
-    {
-        FontAtlasTexture->Release();
-        FontAtlasTexture = nullptr;
-    }
+    // if (FontAtlasTexture)
+    // {
+    //     FontAtlasTexture->Release();
+    //     FontAtlasTexture = nullptr;
+    // }
 
     if (FontSampler)
     {
@@ -150,7 +150,7 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
     // 텍스트를 위한 새 정점 버퍼 생성
     ID3D11Buffer* tempVertexBuffer = nullptr;
     uint32 tempVertexCount = 0;
-    
+
     // 텍스트 길이 및 정점 개수 계산
     size_t textLength = strlen(Text);
     tempVertexCount = static_cast<uint32>(textLength * 6); // 각 문자당 6개 정점
