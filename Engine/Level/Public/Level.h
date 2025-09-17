@@ -43,13 +43,13 @@ public:
 	virtual void Render();
 	virtual void Cleanup();
 
-	TArray<AActor*> GetLevelActors() const { return LevelActors; }
-	TArray<UPrimitiveComponent*> GetLevelPrimitiveComponents() const { return LevelPrimitiveComponents; }
+	TArray<TObjectPtr<AActor>> GetLevelActors() const { return LevelActors; }
+	TArray<TObjectPtr<UPrimitiveComponent>> GetLevelPrimitiveComponents() const { return LevelPrimitiveComponents; }
 
 	void AddLevelPrimitiveComponent(AActor* Actor);
 
 	template<typename T, typename... Args>
-	T* SpawnActor(const FName& InName = "");
+	TObjectPtr<T> SpawnActor(const FName& InName = "");
 
 	// Actor 삭제
 	bool DestroyActor(AActor* InActor);
@@ -66,8 +66,8 @@ public:
 	void SetShowFlags(uint64 InShowFlags) { ShowFlags = InShowFlags; }
 
 private:
-	TArray<AActor*> LevelActors;
-	TArray<UPrimitiveComponent*> LevelPrimitiveComponents;
+	TArray<TObjectPtr<AActor>> LevelActors;
+	TArray<TObjectPtr<UPrimitiveComponent>> LevelPrimitiveComponents;
 
 	// 지연 삭제를 위한 리스트
 	TArray<AActor*> ActorsToDelete;
@@ -88,7 +88,7 @@ private:
 };
 
 template <typename T, typename ... Args>
-T* ULevel::SpawnActor(const FName& InName)
+TObjectPtr<T> ULevel::SpawnActor(const FName& InName)
 {
 	// Factory 시스템 초기화
 	static bool bFactorySystemInitialized = false;
@@ -98,8 +98,9 @@ T* ULevel::SpawnActor(const FName& InName)
 		bFactorySystemInitialized = true;
 	}
 
-	// NewObject로 Actor 생성
-	T* NewActor = ::SpawnActor<T>(this, FTransform(), InName);
+	// NewObject.h에 정의된 전역 SpawnActor 함수 호출
+	T* RawActor = ::SpawnActor<T>(this, FTransform(), InName);
+	TObjectPtr<T> NewActor = TObjectPtr<T>(RawActor);
 
 	if (NewActor)
 	{

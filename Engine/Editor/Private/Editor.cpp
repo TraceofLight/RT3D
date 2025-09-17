@@ -48,7 +48,7 @@ void UEditor::Update()
 	{
 		for (const auto& Component : SelectedActor->GetOwnedComponents())
 		{
-			if (auto* PrimitiveComponent = dynamic_cast<UPrimitiveComponent*>(Component))
+			if (auto PrimitiveComponent = Cast<UPrimitiveComponent>(Component))
 			{
 				FVector WorldMin, WorldMax;
 				PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
@@ -195,7 +195,7 @@ TArray<UPrimitiveComponent*> UEditor::FindCandidatePrimitives(ULevel* InLevel)
 	{
 		for (auto& ActorComponent : Actor->GetOwnedComponents())
 		{
-			UPrimitiveComponent* Primitive = dynamic_cast<UPrimitiveComponent*>(ActorComponent);
+			TObjectPtr<UPrimitiveComponent> Primitive = Cast<UPrimitiveComponent>(ActorComponent);
 			if (Primitive)
 			{
 				Candidate.push_back(Primitive);

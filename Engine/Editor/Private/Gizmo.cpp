@@ -1,14 +1,14 @@
 #include "pch.h"
 #include "Editor/Public/Gizmo.h"
 
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Mesh/Public/Actor.h"
 #include "Global/Quaternion.h"
 
 UGizmo::UGizmo()
 {
-	UResourceManager& ResourceManager = UResourceManager::GetInstance();
+	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 	Primitives.resize(3);
 	GizmoColor.resize(3);
 
