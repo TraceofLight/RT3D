@@ -219,6 +219,18 @@
     <ClCompile Include="Mesh\Private\BillBoardComponent.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Factory\Actor\Private\ActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\CubeActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\SphereActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\SquareActorFactory.cpp" />
+    <ClCompile Include="Factory\Actor\Private\TriangleActorFactory.cpp" />
+    <ClCompile Include="Factory\Component\Private\ComponentFactories.cpp" />
+    <ClCompile Include="Factory\Component\Private\ComponentFactory.cpp" />
+    <ClCompile Include="Factory\Private\Factory.cpp" />
+    <ClCompile Include="Factory\Private\FactorySystem.cpp" />
+    <ClCompile Include="Global\Quaternion.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
@@ -490,8 +502,22 @@
     <ClInclude Include="Utility\Public\UELogParser.h">
       <Filter>Utility\Public</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh\Public\BillBoardComponent.h">
-      <Filter>Mesh\Public</Filter>
+    <ClInclude Include="Factory\Actor\Public\CubeActorFactory.h" />
+    <ClInclude Include="Factory\Actor\Public\SphereActorFactory.h" />
+    <ClInclude Include="Factory\Actor\Public\SquareActorFactory.h" />
+    <ClInclude Include="Factory\Actor\Public\TriangleActorFactory.h" />
+    <ClInclude Include="Factory\Public\CubeActorFactory.h" />
+    <ClInclude Include="Factory\Public\NewObject.h" />
+    <ClInclude Include="Factory\Public\SphereActorFactory.h" />
+    <ClInclude Include="Factory\Public\SquareActorFactory.h" />
+    <ClInclude Include="Factory\Public\TriangleActorFactory.h" />
+    <ClInclude Include="Resource\Texture\Public\Texture.h" />
+    <ClInclude Include="Factory\Public\Factory.h" />
+    <ClInclude Include="Factory\Public\FactorySystem.h" />
+    <ClInclude Include="Factory\Actor\Public\ActorFactory.h" />
+    <ClInclude Include="Factory\Component\Public\ComponentFactory.h" />
+    <ClInclude Include="Global\Quaternion.h">
+      <Filter>Global</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -507,9 +533,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="ClassDiagram.cd" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Global">
