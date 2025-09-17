@@ -221,9 +221,7 @@ void URenderer::RenderLevel()
 		{
 			continue;
 		}
-
 		FRenderState RenderState = PrimitiveComponent->GetRenderState();
-		ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
 
 		// Get view mode from editor
 		const EViewModeIndex ViewMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
@@ -232,6 +230,9 @@ void URenderer::RenderLevel()
 			RenderState.CullMode = ECullMode::None;
 			RenderState.FillMode = EFillMode::WireFrame;
 		}
+
+		// Get rasterizer state after applying view mode changes
+		ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
 
 		// Update pipeline info
 		FPipelineInfo PipelineInfo = {
