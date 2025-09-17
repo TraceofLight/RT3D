@@ -229,6 +229,7 @@ void URenderer::RenderLevel()
 		return;
 	}
 
+	TObjectPtr<UBillBoardComponent> BillBoard = nullptr;
 	// Render Primitive
 	for (auto& PrimitiveComponent : ULevelManager::GetInstance().GetCurrentLevel()->GetLevelPrimitiveComponents())
 	{
@@ -239,18 +240,7 @@ void URenderer::RenderLevel()
 
 		if (PrimitiveComponent->GetPrimitiveType() == EPrimitiveType::BillBoard)
 		{
-			auto BillBoard = Cast<UBillBoardComponent>(PrimitiveComponent);
-
-			//BillBoard->UpdateRotationMatrix();
-
-			FString UUIDString = "UID: " + std::to_string(BillBoard->GetUUID());
-
-			FMatrix RT = BillBoard->GetRTMatrix();
-			//RT = FMatrix::Identity();
-
-			const FViewProjConstants& viewProjConstData = ULevelManager::GetInstance().GetEditor()->GetViewProjConstData();
-			//const FMatrix viewProjM = viewProjConstData.View * viewProjConstData.Projection;
-			FontRenderer->RenderText(UUIDString.c_str(), RT, viewProjConstData);
+			BillBoard = Cast<UBillBoardComponent>(PrimitiveComponent);
 		}
 		else
 		{
@@ -289,6 +279,20 @@ void URenderer::RenderLevel()
 			Pipeline->SetVertexBuffer(PrimitiveComponent->GetVertexBuffer(), Stride);
 			Pipeline->Draw(static_cast<uint32>(PrimitiveComponent->GetVerticesData()->size()), 0);
 		}
+	}
+
+	if (BillBoard)
+	{
+		//BillBoard->UpdateRotationMatrix();
+
+		FString UUIDString = "UID: " + std::to_string(BillBoard->GetUUID());
+
+		FMatrix RT = BillBoard->GetRTMatrix();
+		//RT = FMatrix::Identity();
+
+		const FViewProjConstants& viewProjConstData = ULevelManager::GetInstance().GetEditor()->GetViewProjConstData();
+		//const FMatrix viewProjM = viewProjConstData.View * viewProjConstData.Projection;
+		FontRenderer->RenderText(UUIDString.c_str(), RT, viewProjConstData);
 	}
 }
 

@@ -320,6 +320,16 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
 	Device->CreateRasterizerState(&rasterDesc, &solidState);
 	DeviceContext->RSSetState(solidState);
 
+	D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+	dsDesc.DepthEnable = FALSE;   // 깊이 검사 끄기
+	dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
+	dsDesc.DepthFunc = D3D11_COMPARISON_ALWAYS;
+
+	ID3D11DepthStencilState* depthDisabledState = nullptr;
+	Device->CreateDepthStencilState(&dsDesc, &depthDisabledState);
+	DeviceContext->OMSetDepthStencilState(depthDisabledState, 1);
+
+
 
 	//FRenderState RenderState = PrimitiveComponent->GetRenderState();
 
@@ -355,6 +365,8 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
     if (tempVertexBuffer) tempVertexBuffer->Release();
     if (viewProjConstantBuffer) viewProjConstantBuffer->Release();
     if (fontDataBuffer) fontDataBuffer->Release();
+	if (solidState) solidState->Release();
+	if (depthDisabledState) depthDisabledState->Release();
 }
 
 /// @brief 텍스트용 정점 버퍼 생성
