@@ -28,6 +28,12 @@ private:
 	// UI 상태
 	bool bShowDetails = true;
 
+	// 검색 기능
+	char SearchBuffer[256] = "";
+	FString SearchFilter;
+	TArray<int32> FilteredIndices; // 필터링된 Actor 인덱스 캐시
+	bool bNeedsFilterUpdate = true; // 필터 업데이트 필요 여부
+
 	// 카메라 참조
 	TObjectPtr<UCamera> Camera = nullptr;
 
@@ -47,4 +53,9 @@ private:
 	void SelectActor(TObjectPtr<AActor> InActor, bool bFocusCamera = false);
 	void FocusOnActor(TObjectPtr<AActor> InActor);
 	void UpdateCameraAnimation();
+
+	// 검색 기능
+	void RenderSearchBar();
+	void UpdateFilteredActors(const TArray<TObjectPtr<AActor>>& InLevelActors);
+	static bool IsActorMatchingSearch(const FString& InActorName, const FString& InSearchTerm);
 };

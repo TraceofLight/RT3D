@@ -42,6 +42,9 @@ void USceneHierarchyWidget::RenderWidget()
 	ImGui::Text("Level: %s", CurrentLevel->GetName().ToString().c_str());
 	ImGui::Separator();
 
+	// 검색창 렌더링
+	RenderSearchBar();
+
 	const TArray<TObjectPtr<AActor>>& LevelActors = CurrentLevel->GetLevelActors();
 
 	if (LevelActors.empty())
@@ -50,18 +53,54 @@ void USceneHierarchyWidget::RenderWidget()
 		return;
 	}
 
+	// 필터링 업데이트
+	if (bNeedsFilterUpdate)
+	{
+		UE_LOG("SceneHierarchy: 필터 업데이트 실행 중...");
+		UpdateFilteredActors(LevelActors);
+		bNeedsFilterUpdate = false;
+	}
+
 	// Actor 개수 표시
-	ImGui::Text("Total Actors: %zu", LevelActors.size());
+	if (SearchFilter.empty())
+	{
+		ImGui::Text("Total Actors: %zu", LevelActors.size());
+	}
+	else
+	{
+		ImGui::Text("%d / %zu actors", static_cast<int32>(FilteredIndices.size()), LevelActors.size());
+	}
 	ImGui::Spacing();
 
 	// Actor 리스트를 스크롤 가능한 영역으로 표시
 	if (ImGui::BeginChild("ActorList", ImVec2(0, 0), true))
 	{
-		for (int32 i = 0; i < static_cast<int32>(LevelActors.size()); ++i)
+		if (SearchFilter.empty())
 		{
-			if (LevelActors[i])
+			// 검색어가 없으면 모든 Actor 표시
+			for (int32 i = 0; i < static_cast<int32>(LevelActors.size()); ++i)
 			{
-				RenderActorInfo(LevelActors[i], i);
+				if (LevelActors[i])
+				{
+					RenderActorInfo(LevelActors[i], i);
+				}
+			}
+		}
+		else
+		{
+			// 필터링된 Actor들만 표시
+			for (int32 FilteredIndex : FilteredIndices)
+			{
+				if (FilteredIndex < LevelActors.size() && LevelActors[FilteredIndex])
+				{
+					RenderActorInfo(LevelActors[FilteredIndex], FilteredIndex);
+				}
+			}
+
+			// 검색 결과가 없으면 메시지 표시
+			if (FilteredIndices.empty())
+			{
+				ImGui::TextColored(ImVec4(0.7f, 0.7f, 0.7f, 1.0f), "검색 결과가 없습니다.");
 			}
 		}
 	}
@@ -158,8 +197,8 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 				}
 			}
 			UE_LOG_INFO("SceneHierarchy: %s의 가시성이 %s로 변경되었습니다",
-			       ActorName.ToString().data(),
-			       bNewVisibility ? "Visible" : "Hidden");
+			            ActorName.ToString().data(),
+			            bNewVisibility ? "Visible" : "Hidden");
 		}
 	}
 	else
@@ -320,4 +359,95 @@ void USceneHierarchyWidget::UpdateCameraAnimation()
 	{
 		UE_LOG("SceneHierarchy: 카메라 포커싱 애니메이션 완료");
 	}
+}
+
+/**
+ * @brief 검색창을 렌더링하는 함수
+ */
+void USceneHierarchyWidget::RenderSearchBar()
+{
+	// 검색 지우기 버튼
+	if (ImGui::SmallButton("X"))
+	{
+		memset(SearchBuffer, 0, sizeof(SearchBuffer));
+		SearchFilter.clear();
+		bNeedsFilterUpdate = true;
+	}
+
+	// 검색창
+	ImGui::SameLine();
+	ImGui::PushItemWidth(-1.0f); // 나머지 너비 모두 사용
+	bool bTextChanged = ImGui::InputTextWithHint("##Search", "검색...", SearchBuffer, sizeof(SearchBuffer));
+	ImGui::PopItemWidth();
+
+	// 검색어가 변경되면 필터 업데이트 플래그 설정
+	if (bTextChanged)
+	{
+		FString NewSearchFilter = FString(SearchBuffer);
+		if (NewSearchFilter != SearchFilter)
+		{
+			UE_LOG("SceneHierarchy: 검색어 변경: '%s' -> '%s'", SearchFilter.c_str(), NewSearchFilter.c_str());
+			SearchFilter = NewSearchFilter;
+			bNeedsFilterUpdate = true;
+		}
+	}
+}
+
+/**
+ * @brief 필터링된 Actor 인덱스 리스트를 업데이트하는 함수
+ * @param InLevelActors 레벨의 모든 Actor 리스트
+ */
+void USceneHierarchyWidget::UpdateFilteredActors(const TArray<TObjectPtr<AActor>>& InLevelActors)
+{
+	FilteredIndices.clear();
+
+	if (SearchFilter.empty())
+	{
+		return; // 검색어가 없으면 모든 Actor 표시
+	}
+
+	// 검색 성능 최적화: 대소문자 변환을 한 번만 수행
+	FString SearchLower = SearchFilter;
+	std::transform(SearchLower.begin(), SearchLower.end(), SearchLower.begin(), ::tolower);
+
+	UE_LOG("SceneHierarchy: 검색어 = '%s', 변환된 검색어 = '%s'", SearchFilter.c_str(), SearchLower.c_str());
+	UE_LOG("SceneHierarchy: Level에 %zu개의 Actor가 있습니다", InLevelActors.size());
+
+	for (int32 i = 0; i < InLevelActors.size(); ++i)
+	{
+		if (InLevelActors[i])
+		{
+			FString ActorName = InLevelActors[i]->GetName().ToString();
+			bool bMatches = IsActorMatchingSearch(ActorName, SearchLower);
+			UE_LOG("SceneHierarchy: Actor[%d] = '%s', 매치 = %s", i, ActorName.c_str(), bMatches ? "Yes" : "No");
+
+			if (bMatches)
+			{
+				FilteredIndices.push_back(i);
+			}
+		}
+	}
+
+	UE_LOG("SceneHierarchy: 필터링 결과: %zu개 찾음", FilteredIndices.size());
+}
+
+/**
+ * @brief Actor 이름이 검색어와 일치하는지 확인
+ * @param InActorName Actor 이름
+ * @param InSearchTerm 검색어 (대소문자를 무시)
+ * @return 일치하면 true
+ */
+bool USceneHierarchyWidget::IsActorMatchingSearch(const FString& InActorName, const FString& InSearchTerm)
+{
+	if (InSearchTerm.empty())
+	{
+		return true;
+	}
+
+	FString ActorNameLower = InActorName;
+	std::transform(ActorNameLower.begin(), ActorNameLower.end(), ActorNameLower.begin(), ::tolower);
+
+	bool bResult = ActorNameLower.find(InSearchTerm) != std::string::npos;
+
+	return bResult;
 }

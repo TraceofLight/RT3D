@@ -67,8 +67,6 @@ void UTargetActorTransformWidget::RenderWidget()
 		ImGui::Separator();
 		ImGui::Text("Transform");
 
-		// Actor 이름 표시
-		ImGui::Text("Name: %s", SelectedActor->GetName().ToString().data());
 		ImGui::Spacing();
 
 		bPositionChanged |= ImGui::DragFloat3("Location", &EditLocation.X, 0.1f);
