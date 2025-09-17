@@ -94,7 +94,7 @@ void UEditor::ProcessMouseInput(ULevel* InLevel)
 	FVector MousePositionNdc = InputManager.GetMouseNDCPosition();
 
 	static EGizmoDirection PreviousGizmoDirection = EGizmoDirection::None;
-	AActor* ActorPicked = InLevel->GetSelectedActor();
+	TObjectPtr<AActor> ActorPicked = InLevel->GetSelectedActor();
 	FVector CollisionPoint;
 	float ActorDistance = -1;
 

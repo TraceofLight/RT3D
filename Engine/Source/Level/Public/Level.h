@@ -60,7 +60,7 @@ public:
 	void MarkActorForDeletion(AActor* InActor); // 지연 삭제를 위한 마킹
 
 	void SetSelectedActor(AActor* InActor);
-	AActor* GetSelectedActor() const { return SelectedActor; }
+	TObjectPtr<AActor> GetSelectedActor() const { return SelectedActor; }
 	AGizmo* GetGizmo() const { return Gizmo; }
 
 	void SetCamera(UCamera* InCamera) { CameraPtr = InCamera; }
@@ -76,10 +76,10 @@ private:
 	// 지연 삭제를 위한 리스트
 	TArray<AActor*> ActorsToDelete;
 
-	AActor* SelectedActor = nullptr;
-	AGizmo* Gizmo = nullptr;
-	AAxis* Axis = nullptr;
-	AGrid* Grid = nullptr;
+	TObjectPtr<AActor> SelectedActor = nullptr;
+	TObjectPtr<AGizmo> Gizmo = nullptr;
+	TObjectPtr<AAxis> Axis = nullptr;
+	TObjectPtr<AGrid> Grid = nullptr;
 	//////////////////////////////////////////////////////////////////////////
 	// TODO(PYB): Editor 제작되면 해당 클래스에 존재하는 카메라 관련 코드 제거
 	//////////////////////////////////////////////////////////////////////////
