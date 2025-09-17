@@ -44,7 +44,7 @@ private:
 
 	// Camera movement
 	void RenderActorInfo(TObjectPtr<AActor> InActor, int32 InIndex);
-	void SelectActor(TObjectPtr<AActor> InActor);
+	void SelectActor(TObjectPtr<AActor> InActor, bool bFocusCamera = false);
 	void FocusOnActor(TObjectPtr<AActor> InActor);
 	void UpdateCameraAnimation();
 };

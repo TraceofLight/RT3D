@@ -46,8 +46,10 @@ void USceneHierarchyWidget::RenderWidget()
 	EViewModeIndex currentMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
 	int modeIndex = static_cast<int>(currentMode);
 
-	ImGui::RadioButton("Lit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Lit)); ImGui::SameLine();
-	ImGui::RadioButton("Unlit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Unlit)); ImGui::SameLine();
+	ImGui::RadioButton("Lit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Lit));
+	ImGui::SameLine();
+	ImGui::RadioButton("Unlit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Unlit));
+	ImGui::SameLine();
 	ImGui::RadioButton("Wireframe", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Wireframe));
 
 	if (modeIndex != static_cast<int>(currentMode))
@@ -65,8 +67,8 @@ void USceneHierarchyWidget::RenderWidget()
 
 	// 체크박스로 표시할 플래그 목록
 	static const FlagEntry Entries[] = {
-		{ "Primitives",    EEngineShowFlags::SF_Primitives },
-		{ "BillboardText", EEngineShowFlags::SF_BillboardText },
+		{"Primitives", EEngineShowFlags::SF_Primitives},
+		{"BillboardText", EEngineShowFlags::SF_BillboardText},
 	};
 
 	uint64 ShowFlags = ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags();
@@ -80,12 +82,20 @@ void USceneHierarchyWidget::RenderWidget()
 		if (ImGui::Checkbox(Entry.Label, &bChecked))
 		{
 			if (bChecked)
-				ShowFlags |= Flag;   // 비트 켜기
+			{
+				ShowFlags |= Flag;
+			}
 			else
-				ShowFlags &= ~Flag;  // 비트 끄기
+			{
+				ShowFlags &= ~Flag;
+			}
 		}
-		if (++Idx < Count) // 마지막이 아니면
+
+		// 마지막이 아니면
+		if (++Idx < Count)
+		{
 			ImGui::SameLine();
+		}
 	}
 	ULevelManager::GetInstance().GetCurrentLevel()->SetShowFlags(ShowFlags);
 	ImGui::Separator();
@@ -168,9 +178,16 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 	FName ActorName = InActor->GetName();
 	FString ActorDisplayName = ActorName.ToString() + " [" + std::to_string(InIndex) + "]";
 
+	// 싱글 클릭: 선택만 수행
 	if (ImGui::Selectable(ActorDisplayName.data(), bIsSelected))
 	{
-		SelectActor(InActor);
+		SelectActor(InActor, false);
+	}
+
+	// 더블 클릭 감지: 카메라 이동 수행
+	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+	{
+		SelectActor(InActor, true);
 	}
 
 	// 트리 노드로 표시 (접을 수 있도록)
@@ -209,18 +226,21 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 /**
  * @brief Actor를 선택하는 함수
  * @param InActor 선택할 Actor
+ * @param bFocusCamera 카메라 포커싱 여부 (더블 클릭 시 true)
  */
-void USceneHierarchyWidget::SelectActor(TObjectPtr<AActor> InActor)
+void USceneHierarchyWidget::SelectActor(TObjectPtr<AActor> InActor, bool bFocusCamera)
 {
 	ULevel* CurrentLevel = ULevelManager::GetInstance().GetCurrentLevel();
 	if (CurrentLevel)
 	{
 		CurrentLevel->SetSelectedActor(InActor);
-		UE_LOG("SceneHierarchy: '%s' 를 선택했습니다", InActor->GetName().ToString().data());
+		UE_LOG("SceneHierarchy: %s를 선택했습니다", InActor->GetName().ToString().data());
 
-		if (InActor)
+		// 카메라 포커싱은 더블 클릭에서만 수행
+		if (InActor && bFocusCamera)
 		{
 			FocusOnActor(InActor);
+			UE_LOG("SceneHierarchy: %s에 카메라 포커싱 (더블 클릭)", InActor->GetName().ToString().data());
 		}
 	}
 }
