@@ -11,7 +11,6 @@
 #include "Utility/Public/Metadata.h"
 #include "Editor/Public/Editor.h"
 
-
 IMPLEMENT_SINGLETON_CLASS_BASE(ULevelManager)
 
 ULevelManager::ULevelManager()
@@ -21,7 +20,7 @@ ULevelManager::ULevelManager()
 
 ULevelManager::~ULevelManager() = default;
 
-void ULevelManager::RegisterLevel(const FName& InName, ULevel* InLevel)
+void ULevelManager::RegisterLevel(const FName& InName, TObjectPtr<ULevel> InLevel)
 {
 	Levels[InName] = InLevel;
 	if (!CurrentLevel)
@@ -135,7 +134,7 @@ bool ULevelManager::LoadLevel(const FString& InLevelName, const FString& InFileP
 	UE_LOG("LevelManager: Loading Level '%s' From: %s", InLevelName.data(), InFilePath.data());
 
 	// Make New Level
-	ULevel* NewLevel = new ULevel(InLevelName);
+	TObjectPtr<ULevel> NewLevel = TObjectPtr<ULevel>(new ULevel(InLevelName));
 
 	// 직접 LevelSerializer를 사용하여 로드
 	try
@@ -240,7 +239,7 @@ bool ULevelManager::CreateNewLevel(const FString& InLevelName)
 	}
 
 	// 새 레벨 생성
-	ULevel* NewLevel = new ULevel(InLevelName);
+	TObjectPtr<ULevel> NewLevel = TObjectPtr<ULevel>(new ULevel(InLevelName));
 
 	// 레벨 등록 및 활성화
 	RegisterLevel(LevelName, NewLevel);
@@ -282,7 +281,7 @@ path ULevelManager::GenerateLevelFilePath(const FString& InLevelName)
 /**
  * @brief ULevel을 FLevelMetadata로 변환
  */
-FLevelMetadata ULevelManager::ConvertLevelToMetadata(ULevel* InLevel)
+FLevelMetadata ULevelManager::ConvertLevelToMetadata(TObjectPtr<ULevel> InLevel)
 {
 	FLevelMetadata Metadata;
 	Metadata.Version = 1;
@@ -343,7 +342,7 @@ FLevelMetadata ULevelManager::ConvertLevelToMetadata(ULevel* InLevel)
 /**
  * @brief FLevelMetadata로부터 ULevel에 Actor Load
  */
-bool ULevelManager::LoadLevelFromMetadata(ULevel* InLevel, const FLevelMetadata& InMetadata)
+bool ULevelManager::LoadLevelFromMetadata(TObjectPtr<ULevel> InLevel, const FLevelMetadata& InMetadata)
 {
 	if (!InLevel)
 	{

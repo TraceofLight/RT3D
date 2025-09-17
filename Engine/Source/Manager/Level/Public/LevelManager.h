@@ -16,12 +16,12 @@ class ULevelManager :
 public:
 	void Update() const;
 	void CreateDefaultLevel();
-	void RegisterLevel(const FName& InName, ULevel* InLevel);
+	void RegisterLevel(const FName& InName, TObjectPtr<ULevel> InLevel);
 	void LoadLevel(const FName& InName);
 	void Shutdown();
 
 	// Getter
-	ULevel* GetCurrentLevel() const { return CurrentLevel; }
+	TObjectPtr<ULevel> GetCurrentLevel() const { return CurrentLevel; }
 
 	// Save & Load System
 	bool SaveCurrentLevel(const FString& InFilePath) const;
@@ -31,18 +31,13 @@ public:
 	static path GenerateLevelFilePath(const FString& InLevelName);
 
 	// Metadata Conversion Functions
-	static FLevelMetadata ConvertLevelToMetadata(ULevel* InLevel);
-	static bool LoadLevelFromMetadata(ULevel* InLevel, const FLevelMetadata& InMetadata);
+	static FLevelMetadata ConvertLevelToMetadata(TObjectPtr<ULevel> InLevel);
+	static bool LoadLevelFromMetadata(TObjectPtr<ULevel> InLevel, const FLevelMetadata& InMetadata);
 
-	UEditor* GetEditor()
-	{
-		return Editor;
-	}
-
-
+	TObjectPtr<UEditor> GetEditor() const { return Editor; }
 
 private:
-	ULevel* CurrentLevel;
-	TMap<FName, ULevel*> Levels;
-	UEditor* Editor;
+	TObjectPtr<ULevel> CurrentLevel;
+	TMap<FName, TObjectPtr<ULevel>> Levels;
+	TObjectPtr<UEditor> Editor;
 };

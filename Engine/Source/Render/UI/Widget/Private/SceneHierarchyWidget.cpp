@@ -20,7 +20,11 @@ void USceneHierarchyWidget::Initialize()
 
 void USceneHierarchyWidget::Update()
 {
-	// 필요한 경우 UI 상태 업데이트
+	// 카메라 애니메이션 업데이트
+	if (bIsCameraAnimating)
+	{
+		UpdateCameraAnimation();
+	}
 }
 
 void USceneHierarchyWidget::RenderWidget()
@@ -144,7 +148,7 @@ void USceneHierarchyWidget::RenderWidget()
  * @param InActor 렌더링할 Actor
  * @param InIndex Actor의 인덱스
  */
-void USceneHierarchyWidget::RenderActorInfo(AActor* InActor, int32 InIndex)
+void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 InIndex)
 {
 	if (!InActor)
 	{
@@ -206,7 +210,7 @@ void USceneHierarchyWidget::RenderActorInfo(AActor* InActor, int32 InIndex)
  * @brief Actor를 선택하는 함수
  * @param InActor 선택할 Actor
  */
-void USceneHierarchyWidget::SelectActor(AActor* InActor)
+void USceneHierarchyWidget::SelectActor(TObjectPtr<AActor> InActor)
 {
 	ULevel* CurrentLevel = ULevelManager::GetInstance().GetCurrentLevel();
 	if (CurrentLevel)
@@ -225,43 +229,81 @@ void USceneHierarchyWidget::SelectActor(AActor* InActor)
  * @brief 카메라를 특정 Actor에 포커스하는 함수
  * @param InActor 포커스할 Actor
  */
-void USceneHierarchyWidget::FocusOnActor(const AActor* InActor) const
+void USceneHierarchyWidget::FocusOnActor(TObjectPtr<AActor> InActor)
 {
 	if (!Camera || !InActor)
 	{
 		return;
 	}
 
+	// 현재 카메라의 위치와 회전을 저장
+	CameraStartLocation = Camera->GetLocation();
+	CameraCurrentRotation = Camera->GetRotation();
+
 	// Actor의 월드 위치를 얻음
 	FVector ActorLocation = InActor->GetActorLocation();
 
-	// 카메라를 Actor로부터 적당한 거리에 배치
-	// 기본적으로 Actor 뒤쪽에서 약간 위에서 바라보도록 설정
-	FVector CameraOffset = FVector(-FOCUS_DISTANCE, 0.0f, FOCUS_HEIGHT_OFFSET);
-	FVector NewCameraLocation = ActorLocation + CameraOffset;
+	// 카메라의 정확한 Forward 벡터를 사용하여 화면 중앙 배치 보정
+	// Camera 클래스에서 이미 계산된 정확한 Forward 벡터 사용
+	FVector CameraForward = Camera->GetForward();
 
-	// 카메라가 Actor를 바라보도록 회전 계산
-	FVector DirectionToActor = ActorLocation - NewCameraLocation;
-	DirectionToActor.Normalize();
+	// Actor를 정확히 화면 중앙에 놓기 위해 Forward 방향의 반대로 거리를 둔 위치에 카메라 배치
+	// 이렇게 하면 카메라 회전 유지 상태에서 Actor가 정확히 화면 중심에 위치함
+	CameraTargetLocation = ActorLocation - (CameraForward * FOCUS_DISTANCE);
 
-	// 엔진 좌표계에 맞는 회전 계산
-	// Z축이 Forward이므로 DirectionToActor가 Z축 양의 방향을 가리키도록 회전 계산
+	// 카메라 애니메이션 시작
+	bIsCameraAnimating = true;
+	CameraAnimationTime = 0.0f;
 
-	// Yaw 계산 (Y축 회전, 좌우)
-	// X-Z 평면에서의 각도 계산
-	float Yaw = FVector::GetRadianToDegree(atan2f(DirectionToActor.X, DirectionToActor.Z));
+	UE_LOG("SceneHierarchy: 카메라를 %s에 포커싱합니다", InActor->GetName().ToString().data());
+}
 
-	// Pitch 계산 (X축 회전, 상하)
-	// Y축 성분을 이용하여 상하 각도 계산
-	float HorizontalLength = sqrtf(DirectionToActor.X * DirectionToActor.X + DirectionToActor.Z * DirectionToActor.Z);
-	float Pitch = FVector::GetRadianToDegree(atan2f(-DirectionToActor.Y, HorizontalLength));
+/**
+ * @brief 카메라 애니메이션을 업데이트하는 함수
+ * 선형 보간을 활용한 부드러운 움직임을 구현함
+ */
+void USceneHierarchyWidget::UpdateCameraAnimation()
+{
+	if (!bIsCameraAnimating || !Camera)
+	{
+		return;
+	}
 
-	// Roll은 0으로 설정
-	float Roll = 0.0f;
+	CameraAnimationTime += DT;
 
-	// 카메라 위치 및 회전 설정
-	Camera->SetLocation(NewCameraLocation);
-	Camera->SetRotation(FVector(Pitch, Yaw, Roll));
+	// 애니메이션 진행 비율 계산
+	float Progress = CameraAnimationTime / CAMERA_ANIMATION_DURATION;
 
-	UE_LOG("SceneHierarchy: 카메라를 '%s' 에 포커싱합니다", InActor->GetName().ToString().data());
+	if (Progress >= 1.0f)
+	{
+		// 애니메이션 완료
+		Progress = 1.0f;
+		bIsCameraAnimating = false;
+	}
+
+	// Easing 함수를 사용하여 부드러운 움직임 확보 (easeInOutQuart)
+	float SmoothProgress;
+	if (Progress < 0.5f)
+	{
+		// 움직인 전반에서는 아주 천천히 가속
+		SmoothProgress = 8.0f * Progress * Progress * Progress * Progress;
+	}
+	else
+	{
+		// 움직인 후반에서는 아주 천천히 감속
+		float ProgressFromEnd = Progress - 1.0f;
+		SmoothProgress = 1.0f - 8.0f * ProgressFromEnd * ProgressFromEnd * ProgressFromEnd * ProgressFromEnd;
+	}
+
+	// Linear interpolation으로 위치 보간
+	FVector CurrentLocation = CameraStartLocation + (CameraTargetLocation - CameraStartLocation) * SmoothProgress;
+
+	// 카메라 위치 설정
+	// 의도가 카메라의 위치만 옮겨서 화면 중앙에 오브젝트를 두는 것이었기 때문에 Rotation은 처리하지 않음
+	Camera->SetLocation(CurrentLocation);
+
+	if (!bIsCameraAnimating)
+	{
+		UE_LOG("SceneHierarchy: 카메라 포커싱 애니메이션 완료");
+	}
 }

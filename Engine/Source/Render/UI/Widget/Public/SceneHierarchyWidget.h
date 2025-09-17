@@ -29,13 +29,22 @@ private:
 	bool bShowDetails = true;
 
 	// 카메라 참조
-	UCamera* Camera = nullptr;
+	TObjectPtr<UCamera> Camera = nullptr;
 
-	// 카메라 이동을 위한 상수값
-	static constexpr float FOCUS_DISTANCE = 5.0f; // Actor로부터의 기본 거리
-	static constexpr float FOCUS_HEIGHT_OFFSET = 2.0f; // 약간 위에서 바라보도록
+	// Camera focus animation
+	bool bIsCameraAnimating = false;
+	float CameraAnimationTime = 0.0f;
+	FVector CameraStartLocation;
+	FVector CameraTargetLocation;
+	FVector CameraCurrentRotation;
 
-	void RenderActorInfo(AActor* InActor, int32 InIndex);
-	void SelectActor(AActor* InActor);
-	void FocusOnActor(const AActor* InActor) const;
+	// Heuristic constant
+	static constexpr float CAMERA_ANIMATION_DURATION = 0.8f;
+	static constexpr float FOCUS_DISTANCE = 5.0f;
+
+	// Camera movement
+	void RenderActorInfo(TObjectPtr<AActor> InActor, int32 InIndex);
+	void SelectActor(TObjectPtr<AActor> InActor);
+	void FocusOnActor(TObjectPtr<AActor> InActor);
+	void UpdateCameraAnimation();
 };
