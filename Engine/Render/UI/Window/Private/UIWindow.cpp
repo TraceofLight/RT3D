@@ -45,40 +45,41 @@ UUIWindow::~UUIWindow()
 /**
  * @brief 뷰포트가 리사이징 되었을 때 앵커/좌상단 기준 상대 위치 비율을 고정하는 로직
  */
-void UUIWindow::OnMainWindowResized()
+void UUIWindow::OnMainWindowResized() const
 {
 	if (!ImGui::GetCurrentContext() || !IsVisible())
 		return;
 
-	const ImGuiViewport* viewport = ImGui::GetMainViewport();
-	const ImVec2 currentViewportSize = viewport->WorkSize;
+	const ImGuiViewport* Viewport = ImGui::GetMainViewport();
+	const ImVec2 CurrentViewportSize = Viewport->WorkSize;
+	float MenuBarOffset = GetMenuBarOffset();
 
-	const ImVec2 anchor = PositionRatio;
-	const ImVec2 pivot = {0.f, 0.f};
+	const ImVec2 Anchor = PositionRatio;
+	const ImVec2 Pivot = {0.f, 0.f};
 
-	ImVec2 responsiveSize(
-		currentViewportSize.x * SizeRatio.x,
-		currentViewportSize.y * SizeRatio.y
+	ImVec2 ResponsiveSize(
+		CurrentViewportSize.x * SizeRatio.x,
+		CurrentViewportSize.y * SizeRatio.y
 	);
 
-	ImVec2 targetPos(
-		viewport->WorkPos.x + currentViewportSize.x * anchor.x,
-		viewport->WorkPos.y + currentViewportSize.y * anchor.y
+	ImVec2 TargetPosition(
+		Viewport->WorkPos.x + CurrentViewportSize.x * Anchor.x,
+		Viewport->WorkPos.y + CurrentViewportSize.y * Anchor.y + MenuBarOffset
 	);
 
-	ImVec2 finalPos(
-		targetPos.x - responsiveSize.x * pivot.x,
-		targetPos.y - responsiveSize.y * pivot.y
+	ImVec2 FinalPosition(
+		TargetPosition.x - ResponsiveSize.x * Pivot.x,
+		TargetPosition.y - ResponsiveSize.y * Pivot.y
 	);
 
-	ImGui::SetWindowSize(responsiveSize, ImGuiCond_Always);
-	ImGui::SetWindowPos(finalPos, ImGuiCond_Always);
+	ImGui::SetWindowSize(ResponsiveSize, ImGuiCond_Always);
+	ImGui::SetWindowPos(FinalPosition, ImGuiCond_Always);
 }
 
 /**
  * @brief 윈도우가 뷰포트 범위 밖으로 나갔을 시 클램프 하는 로직
  */
-void UUIWindow::ClampWindow()
+void UUIWindow::ClampWindow() const
 {
 	if (!IsVisible())
 	{
@@ -86,51 +87,61 @@ void UUIWindow::ClampWindow()
 	}
 
 	const ImGuiViewport* Viewport = ImGui::GetMainViewport();
-	const ImVec2 WorkPos = Viewport->WorkPos;
+	const ImVec2 WorkPosition = Viewport->WorkPos;
 	const ImVec2 WorkSize = Viewport->WorkSize;
+	float MenuBarOffset = GetMenuBarOffset();
 
-	ImVec2 pos = LastWindowPosition;
-	ImVec2 size = LastWindowSize;
+	ImVec2 Position = LastWindowPosition;
+	ImVec2 Size = LastWindowSize;
 
-	bool size_changed = false;
-	if (size.x > WorkSize.x)
+	bool bSizeChanged = false;
+
+	if (Size.x > WorkSize.x)
 	{
-		size.x = WorkSize.x;
-		size_changed = true;
+		Size.x = WorkSize.x;
+		bSizeChanged = true;
 	}
-	if (size.y > WorkSize.y)
+
+	if (Size.y > WorkSize.y)
 	{
-		size.y = WorkSize.y;
-		size_changed = true;
+		Size.y = WorkSize.y;
+		bSizeChanged = true;
 	}
-	if (size_changed)
+
+	if (bSizeChanged)
 	{
-		ImGui::SetWindowSize(size);
+		ImGui::SetWindowSize(Size);
 	}
-	bool pos_changed = false;
-	if (pos.x + size.x > WorkPos.x + WorkSize.x)
+
+	bool bPositionChanged = false;
+
+	if (Position.x + Size.x > WorkPosition.x + WorkSize.x)
 	{
-		pos.x = WorkPos.x + WorkSize.x - size.x;
-		pos_changed = true;
+		Position.x = WorkPosition.x + WorkSize.x - Size.x;
+		bPositionChanged = true;
 	}
-	if (pos.y + size.y > WorkPos.y + WorkSize.y)
+
+	if (Position.y + Size.y > WorkPosition.y + WorkSize.y)
 	{
-		pos.y = WorkPos.y + WorkSize.y - size.y;
-		pos_changed = true;
+		Position.y = WorkPosition.y + WorkSize.y - Size.y;
+		bPositionChanged = true;
 	}
-	if (pos.x < WorkPos.x)
+
+	if (Position.x < WorkPosition.x)
 	{
-		pos.x = WorkPos.x;
-		pos_changed = true;
+		Position.x = WorkPosition.x;
+		bPositionChanged = true;
 	}
-	if (pos.y < WorkPos.y)
+
+	if (Position.y < WorkPosition.y + MenuBarOffset)
 	{
-		pos.y = WorkPos.y;
-		pos_changed = true;
+		Position.y = WorkPosition.y + MenuBarOffset;
+		bPositionChanged = true;
 	}
-	if (pos_changed)
+
+	if (bPositionChanged)
 	{
-		ImGui::SetWindowPos(pos);
+		ImGui::SetWindowPos(Position);
 	}
 }
 
@@ -149,20 +160,29 @@ void UUIWindow::RenderWindow()
 	// 도킹 설정 적용
 	ApplyDockingSettings();
 
+	// 메인 메뉴바 높이 고려용 오프셋 계산
+	float MenuBarOffset = GetMenuBarOffset();
+
+	// FIXME(KHJ): ImGui 윈도우 복원 로직이 잘 작동하지 않음. 중복 코드도 많아 개편 및 작동 수정 필요
 	// ImGui 윈도우 시작
 	// 복원이 필요한 경우 위치와 크기 강제 설정
 	if (bShouldRestorePosition && RestoreFrameCount > 0)
 	{
-		ImGui::SetNextWindowPos(LastWindowPosition, ImGuiCond_Always);
+		ImVec2 AdjustedPosition = LastWindowPosition;
+		AdjustedPosition.y = max(AdjustedPosition.y, MenuBarOffset);
+		ImGui::SetNextWindowPos(AdjustedPosition, ImGuiCond_Always);
 		--RestoreFrameCount;
 		if (RestoreFrameCount <= 0)
 		{
 			bShouldRestorePosition = false;
 		}
 	}
+
 	else if (!bShouldRestorePosition)
 	{
-		ImGui::SetNextWindowPos(Config.DefaultPosition, ImGuiCond_FirstUseEver);
+		ImVec2 AdjustedDefaultPosition = Config.DefaultPosition;
+		AdjustedDefaultPosition.y = max(AdjustedDefaultPosition.y, MenuBarOffset);
+		ImGui::SetNextWindowPos(AdjustedDefaultPosition, ImGuiCond_FirstUseEver);
 	}
 
 	// ImGui의 내부 상태를 무시하고 강제로 적용
@@ -182,6 +202,7 @@ void UUIWindow::RenderWindow()
 			ImGui::SetNextWindowSizeConstraints(ImVec2(0, 0), ImVec2(10000, 10000));
 		}
 	}
+
 	else if (!bShouldRestoreSize)
 	{
 		ImGui::SetNextWindowSize(Config.DefaultSize, ImGuiCond_FirstUseEver);
@@ -221,7 +242,7 @@ void UUIWindow::RenderWindow()
 		// 윈도우 정보 업데이트
 		UpdateWindowInfo();
 	}
-	//ClampWindow();
+
 	if (bIsResized)
 	{
 		OnMainWindowResized();
@@ -231,7 +252,7 @@ void UUIWindow::RenderWindow()
 	ImGui::End();
 
 	// 윈도우가 닫혔는지 확인
-	if (!bIsWindowOpen && bIsWindowOpen)
+	if (bIsWindowOpen)
 	{
 		if (OnWindowClose())
 		{
@@ -251,7 +272,7 @@ void UUIWindow::RenderWidget() const
 	for (auto* Widget : Widgets)
 	{
 		Widget->RenderWidget();
-		Widget->PostProcess(); // 선택
+		Widget->PostProcess();
 	}
 }
 
@@ -272,21 +293,22 @@ void UUIWindow::ApplyDockingSettings() const
 	ImGuiIO& IO = ImGui::GetIO();
 	float ScreenWidth = IO.DisplaySize.x;
 	float ScreenHeight = IO.DisplaySize.y;
+	float menuBarOffset = GetMenuBarOffset();
 
 	switch (Config.DockDirection)
 	{
 	case EUIDockDirection::Left:
-		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(Config.DefaultSize.x, ScreenHeight), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(0, menuBarOffset), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(Config.DefaultSize.x, ScreenHeight - menuBarOffset), ImGuiCond_FirstUseEver);
 		break;
 
 	case EUIDockDirection::Right:
-		ImGui::SetNextWindowPos(ImVec2(ScreenWidth - Config.DefaultSize.x, 0), ImGuiCond_FirstUseEver);
-		ImGui::SetNextWindowSize(ImVec2(Config.DefaultSize.x, ScreenHeight), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(ScreenWidth - Config.DefaultSize.x, menuBarOffset), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowSize(ImVec2(Config.DefaultSize.x, ScreenHeight - menuBarOffset), ImGuiCond_FirstUseEver);
 		break;
 
 	case EUIDockDirection::Top:
-		ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+		ImGui::SetNextWindowPos(ImVec2(0, menuBarOffset), ImGuiCond_FirstUseEver);
 		ImGui::SetNextWindowSize(ImVec2(ScreenWidth, Config.DefaultSize.y), ImGuiCond_FirstUseEver);
 		break;
 
@@ -297,9 +319,11 @@ void UUIWindow::ApplyDockingSettings() const
 
 	case EUIDockDirection::Center:
 		{
-			ImVec2 Center = ImVec2(ScreenWidth * 0.5f, ScreenHeight * 0.5f);
+			ImVec2 Center = ImVec2(ScreenWidth * 0.5f, (ScreenHeight + menuBarOffset) * 0.5f);
 			ImVec2 WindowPosition = ImVec2(Center.x - Config.DefaultSize.x * 0.5f,
 			                               Center.y - Config.DefaultSize.y * 0.5f);
+			// 최소 Y 위치는 메뉴바 아래로 제한
+			WindowPosition.y = max(WindowPosition.y, menuBarOffset);
 			ImGui::SetNextWindowPos(WindowPosition, ImGuiCond_FirstUseEver);
 		}
 		break;
@@ -336,4 +360,31 @@ void UUIWindow::UpdateWindowInfo()
 	// 윈도우 크기와 위치 업데이트
 	LastWindowSize = ImGui::GetWindowSize();
 	LastWindowPosition = ImGui::GetWindowPos();
+}
+
+/**
+ * @brief 메인 메뉴바 높이를 고려한 오프셋을 반환하는 함수
+ * @return 메뉴바 높이 (px)
+ */
+float UUIWindow::GetMenuBarOffset() const
+{
+	if (Config.WindowTitle == "MainMenuBar")
+	{
+		return 0.0f;
+	}
+
+	// ImGui의 메인 뷰포트를 통해 메뉴바 높이 가져오기
+	ImGuiViewport* Viewport = ImGui::GetMainViewport();
+	if (Viewport)
+	{
+		float menuBarHeight = Viewport->WorkPos.y - Viewport->Pos.y;
+
+		if (menuBarHeight > 0)
+		{
+			return menuBarHeight;
+		}
+	}
+
+	// 기본값으로 임의의 표준 메뉴바 높이 반환
+	return 23.0f;
 }

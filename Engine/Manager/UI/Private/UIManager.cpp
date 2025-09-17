@@ -4,6 +4,8 @@
 #include "Render/UI/Window/Public/UIWindow.h"
 #include "Render/UI/ImGui/Public/ImGuiHelper.h"
 #include "Render/UI/Widget/Public/Widget.h"
+#include "Render/UI/Window/Public/MainMenuWindow.h"
+#include "Render/UI/Widget/Public/MainBarWidget.h"
 
 IMPLEMENT_SINGLETON_CLASS_BASE(UUIManager)
 
@@ -115,13 +117,12 @@ void UUIManager::Update()
 
 	// 포커스 상태 업데이트
 	UpdateFocusState();
-
 }
 
 /**
  * @brief 모든 UI 윈도우 렌더링
  */
-void UUIManager::Render() const
+void UUIManager::Render()
 {
 	if (!bIsInitialized)
 	{
@@ -136,13 +137,19 @@ void UUIManager::Render() const
 	// ImGui 프레임 시작
 	ImGuiHelper->BeginFrame();
 
-	// 우선순위에 따라 정렬 (필요한 경우에만 진행)
-	// SortUIWindowsByPriority();
+	// 뷰포트 자동 조정을 위해 메인 메뉴바를 가장 먼저 렌더링
+	if (MainMenuWindow && MainMenuWindow->IsVisible())
+	{
+		MainMenuWindow->RenderWidget();
+	}
 
-	// 모든 UI 윈도우 렌더링
+	// 우선순위에 따라 정렬
+	SortUIWindowsByPriority();
+
+	// 나머지 UI 윈도우 렌더링
 	for (auto* Window : UIWindows)
 	{
-		if (Window)
+		if (Window && Window != MainMenuWindow)
 		{
 			Window->RenderWindow();
 		}
@@ -349,8 +356,15 @@ void UUIManager::SortUIWindowsByPriority()
 	// 우선순위가 낮을수록 먼저 렌더링되고 가려짐
 	std::sort(UIWindows.begin(), UIWindows.end(), [](const UUIWindow* A, const UUIWindow* B)
 	{
-		if (!A) return false;
-		if (!B) return true;
+		if (!A)
+		{
+			return false;
+		}
+		if (!B)
+		{
+			return true;
+		}
+
 		return A->GetPriority() < B->GetPriority();
 	});
 }
@@ -425,10 +439,10 @@ void UUIManager::OnWindowMinimized()
 			SavedState.bWasVisible = Window->IsVisible();
 
 			UE_LOG("UIManager: Saving Window ID=%u, Position=(%.1f,%.1f), Size=(%.1f,%.1f), Visible=%s",
-				SavedState.WindowID,
-				SavedState.SavedPosition.x, SavedState.SavedPosition.y,
-				SavedState.SavedSize.x, SavedState.SavedSize.y,
-				(SavedState.bWasVisible ? "true" : "false"));
+			       SavedState.WindowID,
+			       SavedState.SavedPosition.x, SavedState.SavedPosition.y,
+			       SavedState.SavedSize.x, SavedState.SavedSize.y,
+			       (SavedState.bWasVisible ? "true" : "false"));
 
 			SavedWindowStates.push_back(SavedState);
 		}
@@ -474,7 +488,8 @@ void UUIManager::OnWindowRestored()
 
 			if (FoundState)
 			{
-				UE_LOG("UIManager: Restoring Window ID=%u: Position=(%.1f,%.1f) -> (%.1f,%.1f), Size=(%.1f,%.1f) -> (%.1f,%.1f)",
+				UE_LOG(
+					"UIManager: Restoring Window ID=%u: Position=(%.1f,%.1f) -> (%.1f,%.1f), Size=(%.1f,%.1f) -> (%.1f,%.1f)",
 					CurrentWindowID,
 					Window->GetLastWindowPosition().x, Window->GetLastWindowPosition().y,
 					FoundState->SavedPosition.x, FoundState->SavedPosition.y,
@@ -509,3 +524,33 @@ void UUIManager::OnWindowRestored()
 	SavedWindowStates.clear();
 }
 
+/**
+ * @brief 메인 메뉴바 윈도우를 등록하는 함수
+ */
+void UUIManager::RegisterMainMenuWindow(UMainMenuWindow* InMainMenuWindow)
+{
+	if (MainMenuWindow)
+	{
+		UE_LOG("UIManager: 메인 메뉴바 윈도우가 이미 등록되어 있습니다. 기존 윈도우를 교체합니다.");
+	}
+
+	MainMenuWindow = InMainMenuWindow;
+
+	if (MainMenuWindow)
+	{
+		UE_LOG("UIManager: 메인 메뉴바 윈도우가 등록되었습니다");
+	}
+}
+
+/**
+ * @brief 메인 메뉴바의 높이를 반환하는 함수
+ */
+float UUIManager::GetMainMenuBarHeight() const
+{
+	if (MainMenuWindow)
+	{
+		return MainMenuWindow->GetMenuBarHeight();
+	}
+
+	return 0.0f;
+}

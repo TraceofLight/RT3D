@@ -195,12 +195,16 @@ void URenderer::RenderBegin() const
 	auto* DepthStencilView = DeviceResources->GetDepthStencilView();
 	GetDeviceContext()->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
 
+	// 뷰포트 업데이트
+	float MenuBarHeight = UUIManager::GetInstance().GetMainMenuBarHeight();
+	DeviceResources->UpdateViewport(MenuBarHeight);
+
+	// 업데이트된 뷰포트 적용
 	GetDeviceContext()->RSSetViewports(1, &DeviceResources->GetViewportInfo());
 
 	ID3D11RenderTargetView* rtvs[] = {RenderTargetView}; // 배열 생성
 
 	GetDeviceContext()->OMSetRenderTargets(1, rtvs, DeviceResources->GetDepthStencilView());
-	DeviceResources->UpdateViewport();
 }
 
 /**

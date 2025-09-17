@@ -3,6 +3,7 @@
 
 class UUIWindow;
 class UImGuiHelper;
+class UMainMenuWindow;
 
 /**
  * @brief UI 매니저 클래스
@@ -23,7 +24,7 @@ public:
 	void Initialize(HWND InWindowHandle);
 	void Shutdown();
 	void Update();
-	void Render() const;
+	void Render();
 	bool RegisterUIWindow(UUIWindow* InWindow);
 	bool UnregisterUIWindow(UUIWindow* InWindow);
 	void PrintDebugInfo() const;
@@ -49,6 +50,10 @@ public:
 
 	void RepositionImGuiWindows() const;
 
+	// 메인 메뉴바 관련 메서드
+	void RegisterMainMenuWindow(UMainMenuWindow* InMainMenuWindow);
+	float GetMainMenuBarHeight() const;
+
 private:
 	TArray<UUIWindow*> UIWindows;
 	UUIWindow* FocusedWindow = nullptr;
@@ -69,6 +74,9 @@ private:
 
 	// ImGui Helper
 	UImGuiHelper* ImGuiHelper = nullptr;
+
+	// Main Menu Window
+	UMainMenuWindow* MainMenuWindow = nullptr;
 
 	void SortUIWindowsByPriority();
 	void UpdateFocusState();

@@ -7,6 +7,7 @@ class UPerformanceWindow;
 class UOutlinerWindow;
 class UCameraPanelWindow;
 class USceneManagerWindow;
+class UMainMenuWindow;
 
 /**
  * @brief UI 윈도우 도킹 방향
@@ -28,10 +29,10 @@ class UUIWindowFactory
 {
 public:
 	static void CreateDefaultUILayout();
+	static UMainMenuWindow& CreateMainMenuWindow();
 	static UConsoleWindow* CreateConsoleWindow(EUIDockDirection InDockDirection = EUIDockDirection::Bottom);
 	static UControlPanelWindow* CreateControlPanelWindow(EUIDockDirection InDockDirection = EUIDockDirection::Left);
 	static UOutlinerWindow* CreateOutlinerWindow(EUIDockDirection InDockDirection = EUIDockDirection::Center);
-	static UPerformanceWindow* CreatePerformanceWindow(EUIDockDirection InDockDirection = EUIDockDirection::Right);
 	static USceneManagerWindow* CreateSceneManagerWindow(EUIDockDirection InDockDirection = EUIDockDirection::Right);
 	static UExperimentalFeatureWindow*
 		CreateExperimentalFeatureWindow(EUIDockDirection InDockDirection = EUIDockDirection::Right);

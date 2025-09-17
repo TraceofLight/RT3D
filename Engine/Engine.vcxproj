@@ -234,6 +234,7 @@
     <ClInclude Include="Render\UI\Widget\Public\ConsoleWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\FPSWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\InputInformationWidget.h" />
+    <ClInclude Include="Render\UI\Widget\Public\MainBarWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\PrimitiveSpawnWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\SceneHierarchyWidget.h" />
     <ClInclude Include="Render\UI\Widget\Public\SceneIOWidget.h" />
@@ -242,6 +243,7 @@
     <ClInclude Include="Render\UI\Window\Public\ConsoleWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\ControlPanelWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\ExperimentalFeatureWindow.h" />
+    <ClInclude Include="Render\UI\Window\Public\MainMenuWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\OutlinerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\SceneManagerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\UIWindow.h" />
@@ -329,6 +331,7 @@
     <ClCompile Include="Render\UI\Widget\Private\ConsoleWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\FPSWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\InputInformationWidget.cpp" />
+    <ClCompile Include="Render\UI\Widget\Private\MainBarWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\PrimitiveSpawnWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\SceneHierarchyWidget.cpp" />
     <ClCompile Include="Render\UI\Widget\Private\SceneIOWidget.cpp" />
@@ -337,6 +340,7 @@
     <ClCompile Include="Render\UI\Window\Private\ConsoleWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\ControlPanelWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\ExperimentalFeatureWindow.cpp" />
+    <ClCompile Include="Render\UI\Window\Private\MainMenuWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\OutlinerWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\SceneManagerWindow.cpp" />
     <ClCompile Include="Render\UI\Window\Private\UIWindow.cpp" />

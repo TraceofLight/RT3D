@@ -179,15 +179,25 @@ void UDeviceResources::ReleaseDepthBuffer()
 	}
 }
 
-void UDeviceResources::UpdateViewport()
+void UDeviceResources::UpdateViewport(float InMenuBarHeight)
 {
 	DXGI_SWAP_CHAIN_DESC SwapChainDescription = {};
 	SwapChain->GetDesc(&SwapChainDescription);
 
+	// 전체 화면 크기
+	float FullWidth = static_cast<float>(SwapChainDescription.BufferDesc.Width);
+	float FullHeight = static_cast<float>(SwapChainDescription.BufferDesc.Height);
+
+	// 메뉴바 아래에 위치하도록 뷰포트 조정
 	ViewportInfo = {
-		0.0f, 0.0f, static_cast<float>(SwapChainDescription.BufferDesc.Width),
-		static_cast<float>(SwapChainDescription.BufferDesc.Height), 0.0f, 1.0f
+		0.0f,
+		InMenuBarHeight,
+		FullWidth,
+		FullHeight - InMenuBarHeight,
+		0.0f,
+		1.0f
 	};
+
 	Width = SwapChainDescription.BufferDesc.Width;
 	Height = SwapChainDescription.BufferDesc.Height;
 }

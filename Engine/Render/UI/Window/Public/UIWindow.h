@@ -139,8 +139,9 @@ public:
 	void ToggleVisibility() { SetWindowState(IsVisible() ? EUIWindowState::Hidden : EUIWindowState::Visible); }
 	void AddWidget(UWidget* Widget) { Widgets.push_back(Widget); }
 
-	void OnMainWindowResized();
-	void ClampWindow();
+	void OnMainWindowResized() const;
+	void ClampWindow() const;
+	float GetMenuBarOffset() const;
 
 protected:
 	void ApplyDockingSettings() const;
@@ -152,7 +153,7 @@ protected:
 	void Update() const;
 
 private:
-	static int IssuedWindowID;
+	static int32 IssuedWindowID;
 
 	FUIWindowConfig Config;
 	EUIWindowState CurrentState;

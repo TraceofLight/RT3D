@@ -37,7 +37,7 @@ void UConsoleWindow::Initialize()
 	// ConsoleWidget이 유효한지 확인
 	if (!ConsoleWidget)
 	{
-		// 예외 처리: 싱글톤 인스턴스를 다시 가져오기 시도
+		// 싱글톤 인스턴스를 다시 가져오기 시도
 		try
 		{
 			ConsoleWidget = &UConsoleWidget::GetInstance();

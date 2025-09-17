@@ -7,6 +7,13 @@
 #include "Render/UI/Window/Public/ExperimentalFeatureWindow.h"
 #include "Render/UI/Window/Public/OutlinerWindow.h"
 #include "Render/UI/Window/Public/SceneManagerWindow.h"
+#include "Render/UI/Window/Public/MainMenuWindow.h"
+
+UMainMenuWindow& UUIWindowFactory::CreateMainMenuWindow()
+{
+	UMainMenuWindow& Instance = UMainMenuWindow::GetInstance();
+	return Instance;
+}
 
 UConsoleWindow* UUIWindowFactory::CreateConsoleWindow(EUIDockDirection InDockDirection)
 {
@@ -47,11 +54,16 @@ void UUIWindowFactory::CreateDefaultUILayout()
 {
 	auto& UIManager = UUIManager::GetInstance();
 
+	// 메인 메뉴바 우선 생성 및 등록
+	auto& MainMenu = CreateMainMenuWindow();
+	UIManager.RegisterUIWindow(&MainMenu);
+	UIManager.RegisterMainMenuWindow(&MainMenu);
+
 	// 기본 레이아웃 생성
 	UIManager.RegisterUIWindow(CreateConsoleWindow(EUIDockDirection::Bottom));
 	UIManager.RegisterUIWindow(CreateControlPanelWindow(EUIDockDirection::Left));
 	UIManager.RegisterUIWindow(CreateOutlinerWindow(EUIDockDirection::Center));
 	UIManager.RegisterUIWindow(CreateSceneManagerWindow(EUIDockDirection::Right));
 	UIManager.RegisterUIWindow(CreateExperimentalFeatureWindow(EUIDockDirection::Right));
-	UE_LOG("UIWindowFactory: 기본적인 UI 생성이 성공적으로 완료되었습니다");
+	UE_LOG_SUCCESS("UIWindowFactory: UI 생성이 성공적으로 완료되었습니다");
 }
