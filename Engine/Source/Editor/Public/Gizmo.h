@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Public/EditorPrimitive.h"
 #include "Core/Public/Object.h"
-#include "Asset/Mesh/Public/Actor.h"
+#include "Actor/Public/Actor.h"
 
 class UObjectPicker;
 
@@ -139,3 +139,4 @@ private:
 	EGizmoDirection GizmoDirection = EGizmoDirection::None;
 	EGizmoMode      GizmoMode = EGizmoMode::Translate;
 };
+

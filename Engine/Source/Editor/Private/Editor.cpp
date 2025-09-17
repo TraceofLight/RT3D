@@ -10,7 +10,7 @@
 #include "Manager/Level/Public/LevelManager.h"
 #include "Manager/UI/Public/UIManager.h"
 #include "Manager/Input/Public/InputManager.h"
-#include "Asset/Mesh/Public/PrimitiveComponent.h"
+#include "Component/Public/PrimitiveComponent.h"
 #include "Level/Public/Level.h"
 #include "Render/UI/Widget/Public/CameraControlWidget.h"
 #include "Render/UI/Widget/Public/FPSWidget.h"

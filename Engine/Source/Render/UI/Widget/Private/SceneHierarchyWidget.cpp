@@ -3,11 +3,7 @@
 
 #include "Manager/Level/Public/LevelManager.h"
 #include "Level/Public/Level.h"
-#include "Asset/Mesh/Public/Actor.h"
-#include "Asset/Mesh/Public/CubeActor.h"
-#include "Asset/Mesh/Public/SphereActor.h"
-#include "Asset/Mesh/Public/TriangleActor.h"
-#include "Asset/Mesh/Public/SquareActor.h"
+#include "Actor/Public/Actor.h"
 #include "Editor/Public/Camera.h"
 
 USceneHierarchyWidget::USceneHierarchyWidget()

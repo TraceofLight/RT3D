@@ -3,10 +3,10 @@
 
 #include "Level/Public/Level.h"
 #include "Manager/Level/Public/LevelManager.h"
-#include "Asset/Mesh/Public/CubeActor.h"
-#include "Asset/Mesh/Public/SphereActor.h"
-#include "Asset/Mesh/Public/SquareActor.h"
-#include "Asset/Mesh/Public/TriangleActor.h"
+#include "Actor/Public/CubeActor.h"
+#include "Actor/Public/SphereActor.h"
+#include "Actor/Public/SquareActor.h"
+#include "Actor/Public/TriangleActor.h"
 
 UPrimitiveSpawnWidget::UPrimitiveSpawnWidget()
 	: UWidget("Primitive Spawn Widget")

@@ -1,10 +1,11 @@
 #include "pch.h"
 #include "Manager/Asset/Public/AssetManager.h"
 
-#include "Asset/Mesh/Public/VertexDatas.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "DirectXTK/WICTextureLoader.h"
 #include "DirectXTK/DDSTextureLoader.h"
+#include "Component/Mesh/Public/VertexDatas.h"
+#include "Physics/Public/AABB.h"
 
 IMPLEMENT_SINGLETON_CLASS_BASE(UAssetManager)
 

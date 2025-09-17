@@ -5,11 +5,6 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "imGui/imgui_impl_win32.h"
 
-#include "Manager/Input/Public/InputManager.h"
-#include "Manager/Time/Public/TimeManager.h"
-
-#include "Asset/Mesh/Public/CubeActor.h"
-
 #include "Render/Renderer/Public/Renderer.h"
 
 // 테스트용 Camera
@@ -106,3 +101,4 @@ LRESULT UImGuiHelper::WndProcHandler(HWND hWnd, uint32 msg, WPARAM wParam, LPARA
 {
 	return ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam);
 }
+

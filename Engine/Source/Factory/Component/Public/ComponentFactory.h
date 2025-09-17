@@ -1,6 +1,7 @@
 #pragma once
 #include "Factory/Public/Factory.h"
-#include "Asset/Mesh/Public/ActorComponent.h"
+
+class UActorComponent;
 
 /**
  * @brief ComponentFactory Base Class

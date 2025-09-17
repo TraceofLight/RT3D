@@ -2,7 +2,7 @@
 #include "Editor/Public/ObjectPicker.h"
 #include "Editor/Public/Camera.h"
 #include "Editor/Public/Gizmo.h"
-#include "Asset/Mesh/Public/PrimitiveComponent.h"
+#include "Component/Public/PrimitiveComponent.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Core/Public/AppWindow.h"
 #include "ImGui/imgui.h"
@@ -183,7 +183,7 @@ bool UObjectPicker::IsRayPrimitiveCollided(const FRay& ModelRay, UPrimitiveCompo
 		const FVector& Vertex2 = (*Vertices)[a + 1].Position;
 		const FVector& Vertex3 = (*Vertices)[a + 2].Position;
 
-		if (IsRayTriangleCollided(ModelRay, Vertex1, Vertex2, Vertex3, ModelMatrix, &Distance)) //Ray와 삼각형이 충돌하면 거리 비교 후 최단거리 갱신
+		if (IsRayTriangleCollided(ModelRay, Vertex1, Vertex2, Vertex3, ModelMatrix, &Distance)) //Ray?� ?�각?�이 충돌?�면 거리 비교 ??최단거리 갱신
 
 		{
 			bIsHit = true;
@@ -278,3 +278,4 @@ bool UObjectPicker::IsRayCollideWithPlane(const FRay& WorldRay, FVector PlanePoi
 
 	return true;
 }
+

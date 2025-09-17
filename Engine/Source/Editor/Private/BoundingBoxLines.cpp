@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Editor/Public/BoundingBoxLines.h"
-#include "Asset/Mesh/Public/AABB.h"
+#include "Physics/Public/AABB.h"
 
 UBoundingBoxLines::UBoundingBoxLines()
 	: Vertices(TArray<FVector>())
@@ -69,3 +69,4 @@ void UBoundingBoxLines::UpdateVertices(FAABB boundingBoxInfo)
 
 	RenderedBoxInfo = boundingBoxInfo;
 }
+

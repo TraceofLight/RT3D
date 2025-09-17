@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Public/Object.h"
-#include "Asset/Mesh/Public/AABB.h"
+
+struct FAABB;
 
 /**
  * @brief 전역의 On-Memory Asset을 관리하는 매니저 클래스

@@ -1,13 +1,13 @@
 #include "pch.h"
 #include "Factory/Component/Public/ComponentFactory.h"
 
-#include "Asset/Mesh/Public/CubeComponent.h"
-#include "Asset/Mesh/Public/SphereComponent.h"
-#include "Asset/Mesh/Public/TriangleComponent.h"
-#include "Asset/Mesh/Public/SquareComponent.h"
-#include "Asset/Mesh/Public/LineComponent.h"
-#include "Asset/Mesh/Public/SceneComponent.h"
-#include "Asset/Mesh/Public/PrimitiveComponent.h"
+#include "Component/Mesh/Public/CubeComponent.h"
+#include "Component/Mesh/Public/SphereComponent.h"
+#include "Component/Mesh/Public/TriangleComponent.h"
+#include "Component/Mesh/Public/SquareComponent.h"
+#include "Component/Public/LineComponent.h"
+#include "Component/Public/SceneComponent.h"
+#include "Component/Public/PrimitiveComponent.h"
 
 // 정적 인스턴스
 static TObjectPtr<TComponentFactory<UCubeComponent>> GCubeComponentFactory;

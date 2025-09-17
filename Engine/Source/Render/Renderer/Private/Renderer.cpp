@@ -5,7 +5,7 @@
 #include "Level/Public/Level.h"
 #include "Manager/Level/Public/LevelManager.h"
 #include "Manager/UI/Public/UIManager.h"
-#include "Asset/Mesh/Public/PrimitiveComponent.h"
+#include "Component/Public/PrimitiveComponent.h"
 #include "Render/Renderer/Public/Pipeline.h"
 
 IMPLEMENT_SINGLETON_CLASS_BASE(URenderer)
@@ -227,15 +227,16 @@ void URenderer::RenderLevel()
 		}
 
 		FRenderState RenderState = PrimitiveComponent->GetRenderState();
-		ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
 
-		// Get view mode from editor
+		// Get view mode from editor and apply wireframe settings BEFORE creating rasterizer state
 		const EViewModeIndex ViewMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
 		if (ViewMode == EViewModeIndex::VMI_Wireframe)
 		{
 			RenderState.CullMode = ECullMode::None;
 			RenderState.FillMode = EFillMode::WireFrame;
 		}
+
+		ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
 
 		// Update pipeline info
 		FPipelineInfo PipelineInfo = {

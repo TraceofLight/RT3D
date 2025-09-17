@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Factory/Actor/Public/ActorFactory.h"
-#include "Asset/Mesh/Public/Actor.h"
+#include "Actor/Public/Actor.h"
 #include "Level/Public/Level.h"
 
 IMPLEMENT_CLASS(UActorFactory, UFactory)

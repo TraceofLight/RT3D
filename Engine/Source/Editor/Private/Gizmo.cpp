@@ -3,7 +3,7 @@
 
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Asset/Mesh/Public/Actor.h"
+#include "Actor/Public/Actor.h"
 
 UGizmo::UGizmo()
 {
@@ -169,3 +169,4 @@ FVector4 UGizmo::ColorFor(EGizmoDirection InAxis) const
 	else
 		return Paint;
 }
+

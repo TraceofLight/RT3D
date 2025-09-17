@@ -1,8 +1,8 @@
 #include "pch.h"
 #include "Level/Public/Level.h"
 
-#include "Asset/Mesh/Public/Actor.h"
-#include "Asset/Mesh/Public/PrimitiveComponent.h"
+#include "Actor/Public/Actor.h"
+#include "Component/Public/PrimitiveComponent.h"
 
 ULevel::ULevel() = default;
 

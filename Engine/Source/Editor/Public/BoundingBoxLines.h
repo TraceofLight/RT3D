@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Public/Object.h"
-#include "Asset/Mesh/Public/AABB.h"
+#include "Physics/Public/AABB.h"
 
 class UBoundingBoxLines : UObject
 {
@@ -26,3 +26,4 @@ private:
 	uint32 NumVertices = 8;
 	FAABB RenderedBoxInfo;
 };
+

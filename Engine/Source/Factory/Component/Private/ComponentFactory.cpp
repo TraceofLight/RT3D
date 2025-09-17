@@ -1,5 +1,7 @@
 #include "pch.h"
 #include "Factory/Component/Public/ComponentFactory.h"
+
+#include "Component/Public/ActorComponent.h"
 #include "Core/Public/Class.h"
 
 IMPLEMENT_CLASS(UComponentFactory, UFactory)

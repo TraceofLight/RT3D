@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Factory/Actor/Public/CubeActorFactory.h"
-#include "Asset/Mesh/Public/CubeActor.h"
+#include "Actor/Public/CubeActor.h"
 
 IMPLEMENT_CLASS(UCubeActorFactory, UActorFactory)
 
