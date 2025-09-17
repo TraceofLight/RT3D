@@ -1,8 +1,20 @@
 #pragma once
 #include "Component/Public/PrimitiveComponent.h"
+#include "Global/Matrix.h"
+
+class AActor;
 
 class UBillBoardComponent : public UPrimitiveComponent
 {
 public:
-	UBillBoardComponent();
+	UBillBoardComponent(AActor* InOwnerActor, float InYOffset);
+	~UBillBoardComponent();
+
+	void UpdateRotationMatrix();
+
+	FMatrix GetRTMatrix() const { return RTMatrix; }
+private:
+	FMatrix RTMatrix;
+	AActor* POwnerActor;
+	float ZOffset;
 };

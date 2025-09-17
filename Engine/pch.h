@@ -4,6 +4,7 @@
 
 // Window Library
 #include <windows.h>
+#include <wrl.h>
 
 // D3D Library
 #include <d3d11.h>
@@ -51,6 +52,7 @@ using std::sort;
 using std::shared_ptr;
 using std::unique_ptr;
 using std::streamsize;
+using Microsoft::WRL::ComPtr;
 
 // File System
 namespace filesystem = std::filesystem;

@@ -27,14 +27,14 @@ public:
 	ID3D11InputLayout* GetIputLayout(EShaderType Type);
 
 	// Texture 관련 함수들
-	ID3D11ShaderResourceView* LoadTexture(const FString& InFilePath);
-	ID3D11ShaderResourceView* GetTexture(const FString& InFilePath);
+	ComPtr<ID3D11ShaderResourceView> LoadTexture(const FString& InFilePath, const FName& InName = FName::None);
+	ComPtr<ID3D11ShaderResourceView> GetTexture(const FString& InFilePath);
 	void ReleaseTexture(const FString& InFilePath);
 	bool HasTexture(const FString& InFilePath) const;
 
 	// Create Texture
-	static ID3D11ShaderResourceView* CreateTextureFromFile(const FString& InFilePath);
-	ID3D11ShaderResourceView* CreateTextureFromMemory(const void* InData, size_t InDataSize);
+	static ID3D11ShaderResourceView* CreateTextureFromFile(const path& InFilePath);
+	static ID3D11ShaderResourceView* CreateTextureFromMemory(const void* InData, size_t InDataSize);
 
 	// Bounding Box
 	const FAABB& GetAABB(EPrimitiveType InType);

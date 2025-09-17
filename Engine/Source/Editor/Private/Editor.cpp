@@ -15,6 +15,7 @@
 #include "Render/UI/Widget/Public/CameraControlWidget.h"
 #include "Render/UI/Widget/Public/FPSWidget.h"
 #include "Render/UI/Widget/Public/SceneHierarchyWidget.h"
+#include "Global/Quaternion.h"
 
 UEditor::UEditor()
 	: ObjectPicker(Camera)
@@ -97,14 +98,10 @@ void UEditor::ProcessMouseInput(ULevel* InLevel)
 	FVector CollisionPoint;
 	float ActorDistance = -1;
 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	/*if (InputManager.IsKeyPressed(EKeyInput::Tab))
+	if (InputManager.IsKeyPressed(EKeyInput::Tab))
 	{
-		if (Gizmo.IsWorld())
-			Gizmo.SetLocal();
-		else
-			Gizmo.SetWorld();
-	}*/
+		Gizmo.IsWorldMode() ? Gizmo.SetLocal() : Gizmo.SetWorld();
+	}
 	if (InputManager.IsKeyPressed(EKeyInput::Space))
 	{
 		Gizmo.ChangeGizmoMode();
@@ -216,12 +213,12 @@ FVector UEditor::GetGizmoDragLocation(FRay& WorldRay)
 	FVector PlaneOrigin{Gizmo.GetGizmoLocation()};
 	FVector GizmoAxis = Gizmo.GetGizmoAxis();
 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	//if (!Gizmo.IsWorld())	//local
-	//{
-	//	FVector4 GizmoAxis4{ GizmoAxis.X,GizmoAxis.Y ,GizmoAxis.Z, 0.0f };
-	//	GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(Gizmo.GetActorRotation());
-	//}
+	if (!Gizmo.IsWorldMode())
+	{
+		FVector4 GizmoAxis4{ GizmoAxis.X, GizmoAxis.Y, GizmoAxis.Z, 0.0f };
+		FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
+		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
+	}
 
 	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin,
 	                                       Camera.CalculatePlaneNormal(GizmoAxis).Cross(GizmoAxis), MouseWorld))
@@ -239,12 +236,12 @@ FVector UEditor::GetGizmoDragRotation(FRay& WorldRay)
 	FVector PlaneOrigin{Gizmo.GetGizmoLocation()};
 	FVector GizmoAxis = Gizmo.GetGizmoAxis();
 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	//if (!Gizmo.IsWorld())	//local
-	//{
-	//	FVector4 GizmoAxis4{ GizmoAxis.X,GizmoAxis.Y ,GizmoAxis.Z, 0.0f };
-	//	GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(Gizmo.GetActorRotation());
-	//}
+	if (!Gizmo.IsWorldMode())
+	{
+		FVector4 GizmoAxis4{ GizmoAxis.X, GizmoAxis.Y, GizmoAxis.Z, 0.0f };
+		FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
+		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
+	}
 
 	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, GizmoAxis, MouseWorld))
 	{
@@ -252,12 +249,25 @@ FVector UEditor::GetGizmoDragRotation(FRay& WorldRay)
 		FVector PlaneOriginToMouseStart = Gizmo.GetDragStartMouseLocation() - PlaneOrigin;
 		PlaneOriginToMouse.Normalize();
 		PlaneOriginToMouseStart.Normalize();
-		float Angle = acosf((PlaneOriginToMouseStart).Dot(PlaneOriginToMouse)); //플레인 중심부터 마우스까지 벡터 이용해서 회전각도 구하기
+		float DotResult = (PlaneOriginToMouseStart).Dot(PlaneOriginToMouse);
+		float Angle = acosf(std::max(-1.0f, std::min(1.0f, DotResult))); //플레인 중심부터 마우스까지 벡터 이용해서 회전각도 구하기
 		if ((PlaneOriginToMouse.Cross(PlaneOriginToMouseStart)).Dot(GizmoAxis) < 0) // 회전축 구하기
 		{
 			Angle = -Angle;
 		}
-		return Gizmo.GetDragStartActorRotation() + GizmoAxis * FVector::GetRadianToDegree(Angle);
+		//return Gizmo.GetDragStartActorRotation() + GizmoAxis * FVector::GetRadianToDegree(Angle);
+		FQuaternion StartRotQuat = FQuaternion::FromEuler(Gizmo.GetDragStartActorRotation());
+		FQuaternion DeltaRotQuat = FQuaternion::FromAxisAngle(Gizmo.GetGizmoAxis(), Angle);
+		if (Gizmo.IsWorldMode())
+		{
+			FQuaternion NewRotQuat = DeltaRotQuat * StartRotQuat;
+			return NewRotQuat.ToEuler();
+		}
+		else
+		{
+			FQuaternion NewRotQuat = StartRotQuat * DeltaRotQuat;
+			return NewRotQuat.ToEuler();
+		}
 	}
 	else
 		return Gizmo.GetActorRotation();
@@ -266,23 +276,21 @@ FVector UEditor::GetGizmoDragRotation(FRay& WorldRay)
 FVector UEditor::GetGizmoDragScale(FRay& WorldRay)
 {
 	FVector MouseWorld;
-	FVector PlaneOrigin{Gizmo.GetGizmoLocation()};
+	FVector PlaneOrigin = Gizmo.GetGizmoLocation();
+	FVector CardinalAxis = Gizmo.GetGizmoAxis();
+
+	FVector4 GizmoAxis4{ CardinalAxis.X, CardinalAxis.Y, CardinalAxis.Z, 0.0f };
+	FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
 	FVector GizmoAxis = Gizmo.GetGizmoAxis();
+	GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	//if (!Gizmo.IsWorld())	//local
-	//{
-	//	FVector4 GizmoAxis4{ GizmoAxis.X,GizmoAxis.Y ,GizmoAxis.Z, 0.0f };
-	//	GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(Gizmo.GetActorRotation());
-	//}
-
-	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin,
-	                                       Camera.CalculatePlaneNormal(GizmoAxis).Cross(GizmoAxis), MouseWorld))
+	FVector PlaneNormal = Camera.CalculatePlaneNormal(GizmoAxis).Cross(GizmoAxis);
+	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, PlaneNormal, MouseWorld))
 	{
 		FVector PlaneOriginToMouse = MouseWorld - PlaneOrigin;
 		FVector PlaneOriginToMouseStart = Gizmo.GetDragStartMouseLocation() - PlaneOrigin;
-		float DragStartAxisDistance = PlaneOriginToMouseStart.Dot(GizmoAxis);
-		float DragAxisDistance = PlaneOriginToMouse.Dot(GizmoAxis);
+		float DragStartAxisDistance = PlaneOriginToMouseStart.Dot(GizmoAxis);		// CardinalAxis
+		float DragAxisDistance = PlaneOriginToMouse.Dot(GizmoAxis);		// CardinalAxis?
 		float ScaleFactor = 1.0f;
 		if (abs(DragStartAxisDistance) > 0.1f)
 		{
@@ -294,12 +302,12 @@ FVector UEditor::GetGizmoDragScale(FRay& WorldRay)
 		{
 			if (Gizmo.GetSelectedActor()->IsUniformScale())
 			{
-				float UniformValue = DragStartScale.Dot(GizmoAxis);
+				float UniformValue = DragStartScale.Dot(CardinalAxis);
 				return FVector(UniformValue, UniformValue, UniformValue) + FVector(1, 1, 1) * (ScaleFactor - 1) *
 					UniformValue;
 			}
 			else
-				return DragStartScale + GizmoAxis * (ScaleFactor - 1) * DragStartScale.Dot(GizmoAxis);
+				return DragStartScale + CardinalAxis * (ScaleFactor - 1) * DragStartScale.Dot(CardinalAxis);
 		}
 		else
 			return Gizmo.GetActorScale();

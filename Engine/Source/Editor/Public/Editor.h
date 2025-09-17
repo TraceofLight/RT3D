@@ -26,6 +26,14 @@ public:
 	void SetViewMode(EViewModeIndex InNewViewMode) { CurrentViewMode = InNewViewMode; }
 	EViewModeIndex GetViewMode() const { return CurrentViewMode; }
 
+	FVector& GetCameraLocation() { return Camera.GetLocation(); }
+	FViewProjConstants GetViewProjConstData() const { return Camera.GetFViewProjConstants(); }
+
+	UCamera* GetCamera()
+	{
+		return &Camera;
+	}
+
 private:
 	void ProcessMouseInput(ULevel* InLevel);
 	TArray<UPrimitiveComponent*> FindCandidatePrimitives(ULevel* InLevel);

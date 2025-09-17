@@ -7,7 +7,7 @@
 #include "Core/Public/AppWindow.h"
 #include "ImGui/imgui.h"
 #include "Level/Public/Level.h"
-
+#include "Global/Quaternion.h"
 
 UObjectPicker::UObjectPicker(UCamera& InCamera)
 	:Camera( InCamera)
@@ -37,6 +37,10 @@ UPrimitiveComponent* UObjectPicker::PickPrimitive(const FRay& WorldRay, TArray<U
 
 	for (UPrimitiveComponent* Primitive : Candidate)
 	{
+		if (Primitive->GetPrimitiveType() == EPrimitiveType::BillBoard)
+		{
+			continue;
+		}
 		FMatrix ModelMat = Primitive->GetWorldTransformMatrix();
 		FRay ModelRay = GetModelRay(WorldRay, Primitive);
 		if (IsRayPrimitiveCollided(ModelRay, Primitive, ModelMat, &PrimitiveDistance))
@@ -65,16 +69,30 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 	//이 t에 대한 방정식을 풀어서 근의공식 적용하면 됨.
 
 	FVector GizmoLocation = Gizmo.GetGizmoLocation();
-	FVector GizmoAxises[3] = { {1, 0, 0}, {0, 1, 0}, {0, 0, 1} };
+	FVector GizmoAxises[3] = { FVector{1, 0, 0}, FVector{0, 1, 0}, FVector{0, 0, 1} };
 
-	//로컬 기즈모, 쿼터니언 구현 후 사용
-	/*if (!Gizmo.IsWorld())
+	if (Gizmo.GetGizmoMode() == EGizmoMode::Scale || !Gizmo.IsWorldMode())
 	{
-		for (int a = 0;a < 3;a++)
-			GizmoAxises[a] = FVector4(GizmoAxises[a].X, GizmoAxises[a].Y, GizmoAxises[a].Z, 0.0f) * FMatrix::RotationMatrix(FVector::GetDegreeToRadian(Gizmo.GetActorRotation()));
-	}*/
+		FVector Rad = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
+		FMatrix R = FMatrix::RotationMatrix(Rad);
+		//FQuaternion q = FQuaternion::FromEuler(Rad);
+
+		for (int i = 0; i < 3; i++)
+		{
+			//GizmoAxises[a] = FQuaternion::RotateVector(q, GizmoAxises[a]); // 쿼터니언으로 축 회전
+			//GizmoAxises[a].Normalize();
+			const FVector4 a4(GizmoAxises[i].X, GizmoAxises[i].Y, GizmoAxises[i].Z, 0.0f);
+			FVector4 rotated4 = a4 * R;
+			FVector V(rotated4.X, rotated4.Y, rotated4.Z);
+			V.Normalize();
+			GizmoAxises[i] = V;
+		}
+	}
+
 	FVector WorldRayOrigin{ WorldRay.Origin.X,WorldRay.Origin.Y ,WorldRay.Origin.Z };
 	FVector WorldRayDirection(WorldRay.Direction.X, WorldRay.Direction.Y, WorldRay.Direction.Z);
+	WorldRayDirection.Normalize();
+
 	switch (Gizmo.GetGizmoMode())
 	{
 	case EGizmoMode::Translate:
@@ -123,15 +141,9 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 				{
 					switch (a)
 					{
-					case 0:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Forward);
-						return;
-					case 1:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Right);
-						return;
-					case 2:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Up);
-						return;
+					case 0:	Gizmo.SetGizmoDirection(EGizmoDirection::Forward);	return;
+					case 1:	Gizmo.SetGizmoDirection(EGizmoDirection::Right);	return;
+					case 2:	Gizmo.SetGizmoDirection(EGizmoDirection::Up);		return;
 					}
 				}
 			}
@@ -139,7 +151,7 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 	} break;
 	case EGizmoMode::Rotate:
 	{
-		for (int a = 0;a < 3;a++)
+		for (int a = 0; a < 3; a++)
 		{
 			if (IsRayCollideWithPlane(WorldRay, GizmoLocation, GizmoAxises[a], CollisionPoint))
 			{
@@ -148,20 +160,15 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 				{
 					switch (a)
 					{
-					case 0:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Forward);
-						return;
-					case 1:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Right);
-						return;
-					case 2:
-						Gizmo.SetGizmoDirection(EGizmoDirection::Up);
-						return;
+					case 0:	Gizmo.SetGizmoDirection(EGizmoDirection::Forward);	return;
+					case 1:	Gizmo.SetGizmoDirection(EGizmoDirection::Right);	return;
+					case 2:	Gizmo.SetGizmoDirection(EGizmoDirection::Up);		return;
 					}
 				}
 			}
 		}
-	}
+	} break;
+	default: break;
 	}
 
 	Gizmo.SetGizmoDirection(EGizmoDirection::None);
@@ -183,7 +190,7 @@ bool UObjectPicker::IsRayPrimitiveCollided(const FRay& ModelRay, UPrimitiveCompo
 		const FVector& Vertex2 = (*Vertices)[a + 1].Position;
 		const FVector& Vertex3 = (*Vertices)[a + 2].Position;
 
-		if (IsRayTriangleCollided(ModelRay, Vertex1, Vertex2, Vertex3, ModelMatrix, &Distance)) //Ray?� ?�각?�이 충돌?�면 거리 비교 ??최단거리 갱신
+		if (IsRayTriangleCollided(ModelRay, Vertex1, Vertex2, Vertex3, ModelMatrix, &Distance)) //Ray와 삼각형이 충돌하면 거리 비교 후 최단거리 갱신
 
 		{
 			bIsHit = true;
@@ -278,4 +285,3 @@ bool UObjectPicker::IsRayCollideWithPlane(const FRay& WorldRay, FVector PlanePoi
 
 	return true;
 }
-

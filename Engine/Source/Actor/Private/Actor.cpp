@@ -1,10 +1,16 @@
 #include "pch.h"
-#include "Actor/Public/Actor.h"
-#include "Component/Public/ActorComponent.h"
+#include "Mesh/Public/Actor.h"
+#include "Mesh/Public/SceneComponent.h"
+#include "Mesh/Public/BillBoardComponent.h"
 
 IMPLEMENT_CLASS(AActor, UObject)
 
-AActor::AActor() = default;
+AActor::AActor()
+{
+	// to do: primitive factory로 빌보드 생성
+	BillBoardComponent = new UBillBoardComponent(this, 5.0f);
+	OwnedComponents.push_back(TObjectPtr<UBillBoardComponent>(BillBoardComponent));
+}
 
 AActor::AActor(UObject* InOuter)
 {

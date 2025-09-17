@@ -4,6 +4,7 @@
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Actor/Public/Actor.h"
+#include "Global/Quaternion.h"
 
 UGizmo::UGizmo()
 {
@@ -66,15 +67,6 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 	auto& P = Primitives[Mode];
 	P.Location = TargetActor->GetActorLocation();
 
-
-	FVector LocalRotation{ 0,0,0 };
-	//로컬 기즈모. 쿼터니언 구현후 사용
-	/*if (!bIsWorld && TargetActor)
-	{
-		LocalRotation = TargetActor->GetActorRotation();
-	}*/
-
-
 	float Scale = DistanceToCamera * ScaleFactor;
 	if (DistanceToCamera < MinScaleFactor)
 		Scale = MinScaleFactor * ScaleFactor;
@@ -83,40 +75,70 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 
 	P.Scale = FVector(Scale, Scale, Scale);
 
+	// 오일러 버전
 	//// Y (Right)
-	//P.Rotation = FVector{ 0,0,0 } + LocalRotation;
+	//P.Rotation = FVector{ 0,0,89.99f } + LocalRotation;
 	//P.Color = ColorFor(EGizmoDirection::Right);
 	//Renderer.RenderPrimitive(P, RenderState);
 
 	//// Z (Up)
-	//P.Rotation = FVector{ 0, 0, 89.99f } + LocalRotation;
+	//P.Rotation = FVector{ 0, -89.99f, 0 } + LocalRotation;
 	//P.Color = ColorFor(EGizmoDirection::Up);
 	//Renderer.RenderPrimitive(P, RenderState);
 
 	//// X (Forward)
-	//P.Rotation = FVector{ 0,-89.99f,0 } + LocalRotation;
+	//P.Rotation = FVector{ 0,0,0 } + LocalRotation;
 	//P.Color = ColorFor(EGizmoDirection::Forward);
 	//Renderer.RenderPrimitive(P, RenderState);
 
-	// Y (Right)
-	P.Rotation = FVector{ 0,0,89.99f } + LocalRotation;
-	P.Color = ColorFor(EGizmoDirection::Right);
-	Renderer.RenderPrimitive(P, RenderState);
+	// Actor 로컬 회전 쿼터니언
+	// 1) 드래그 중에 로컬 축 변화되는거 보이는 모드
+	/*FQuaternion LocalRot;
+	if (GizmoMode == EGizmoMode::Scale)
+	{
+		LocalRot = FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	}
+	else if (GizmoMode == EGizmoMode::Rotate)
+	{
+		LocalRot = FQuaternion::Identity();
+	}
+	else
+	{
+		LocalRot = bIsWorld ? FQuaternion::Identity() : FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	}*/
 
-	// Z (Up)
-	P.Rotation = FVector{ 0, -89.99f, 0 } + LocalRotation;
-	P.Color = ColorFor(EGizmoDirection::Up);
-	Renderer.RenderPrimitive(P, RenderState);
+	// 2) 드래그 중에는 나머지 축 유지되는 모드 (회전 후 새로운 로컬 기즈모 보여줌)
+	FQuaternion LocalRot;
+	if (GizmoMode == EGizmoMode::Rotate && !bIsWorld && bIsDragging)
+	{
+		LocalRot = FQuaternion::FromEuler(DragStartActorRotation);
+	}
+	else if (GizmoMode == EGizmoMode::Scale)
+	{
+		LocalRot = FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	}
+	else
+	{
+		LocalRot = bIsWorld ? FQuaternion::Identity() : FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	}
 
-	// X (Forward)
-	P.Rotation = FVector{ 0,0,0 } + LocalRotation;
+	// X축 (Forward) - 빨간색
+	FQuaternion RotX = LocalRot * FQuaternion::Identity();
+	P.Rotation = RotX.ToEuler();
 	P.Color = ColorFor(EGizmoDirection::Forward);
 	Renderer.RenderPrimitive(P, RenderState);
 
+	// Y축 (Right) - 초록색 (Z축 주위로 90도 회전)
+	FQuaternion RotY = LocalRot * FQuaternion::FromAxisAngle(FVector::UpVector(), 90.0f * (PI / 180.0f));
+	P.Rotation = RotY.ToEuler();
+	P.Color = ColorFor(EGizmoDirection::Right);
+	Renderer.RenderPrimitive(P, RenderState);
 
-
-
-
+	// Z축 (Up) - 파란색 (Y축 주위로 -90도 회전)
+	FQuaternion RotZ = LocalRot * FQuaternion::FromAxisAngle(FVector::RightVector(), -90.0f * (PI / 180.0f));
+	P.Rotation = RotZ.ToEuler();
+	P.Color = ColorFor(EGizmoDirection::Up);
+	Renderer.RenderPrimitive(P, RenderState);
 }
 
 void UGizmo::ChangeGizmoMode()
@@ -162,11 +184,10 @@ FVector4 UGizmo::ColorFor(EGizmoDirection InAxis) const
 	const bool bIsHighlight = (InAxis == GizmoDirection);
 
 	const FVector4 Paint = bIsHighlight ? FVector4(1,1,0,1) : BaseColor;
-	UE_LOG("InAxis: %d, Idx: %d, Dir: %d, base color: %.f, %.f, %.f, bHighLight: %d", InAxis, Idx, GizmoDirection, BaseColor.X, BaseColor.Y, BaseColor.Z, bIsHighlight);
+	//UE_LOG("InAxis: %d, Idx: %d, Dir: %d, base color: %.f, %.f, %.f, bHighLight: %d", InAxis, Idx, GizmoDirection, BaseColor.X, BaseColor.Y, BaseColor.Z, bIsHighlight);
 
 	if (bIsDragging)
 		return BaseColor;
 	else
 		return Paint;
 }
-
