@@ -13,8 +13,8 @@ UDetailWindow::UDetailWindow()
 {
 	FUIWindowConfig Config;
 	Config.WindowTitle = "Details";
-	Config.DefaultSize = ImVec2(300, 360);
-	Config.DefaultPosition = ImVec2(1595, 670);
+	Config.DefaultSize = ImVec2(330, 440);
+	Config.DefaultPosition = ImVec2(1565, 590);
 	Config.MinSize = ImVec2(250, 300);
 	Config.DockDirection = EUIDockDirection::Right;
 	Config.Priority = 20;

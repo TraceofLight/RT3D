@@ -161,7 +161,7 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 					PrimComp->SetVisibility(bNewVisibility);
 				}
 			}
-			UE_LOG_INFO("SceneHierarchy: %s 컴포넌트의 가시성이 %s로 변경되었습니다",
+			UE_LOG_INFO("SceneHierarchy: %s의 가시성이 %s로 변경되었습니다",
 			       ActorName.ToString().data(),
 			       bNewVisibility ? "Visible" : "Hidden");
 		}
