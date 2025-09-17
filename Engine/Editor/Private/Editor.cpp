@@ -15,6 +15,7 @@
 #include "Render/UI/Widget/Public/CameraControlWidget.h"
 #include "Render/UI/Widget/Public/FPSWidget.h"
 #include "Render/UI/Widget/Public/SceneHierarchyWidget.h"
+#include "Global/Quaternion.h"
 
 UEditor::UEditor()
 	: ObjectPicker(Camera)
@@ -248,12 +249,25 @@ FVector UEditor::GetGizmoDragRotation(FRay& WorldRay)
 		FVector PlaneOriginToMouseStart = Gizmo.GetDragStartMouseLocation() - PlaneOrigin;
 		PlaneOriginToMouse.Normalize();
 		PlaneOriginToMouseStart.Normalize();
-		float Angle = acosf((PlaneOriginToMouseStart).Dot(PlaneOriginToMouse)); //플레인 중심부터 마우스까지 벡터 이용해서 회전각도 구하기
+		float DotResult = (PlaneOriginToMouseStart).Dot(PlaneOriginToMouse);
+		float Angle = acosf(std::max(-1.0f, std::min(1.0f, DotResult))); //플레인 중심부터 마우스까지 벡터 이용해서 회전각도 구하기
 		if ((PlaneOriginToMouse.Cross(PlaneOriginToMouseStart)).Dot(GizmoAxis) < 0) // 회전축 구하기
 		{
 			Angle = -Angle;
 		}
-		return Gizmo.GetDragStartActorRotation() + GizmoAxis * FVector::GetRadianToDegree(Angle);
+		//return Gizmo.GetDragStartActorRotation() + GizmoAxis * FVector::GetRadianToDegree(Angle);
+		FQuaternion StartRotQuat = FQuaternion::FromEuler(Gizmo.GetDragStartActorRotation());
+		FQuaternion DeltaRotQuat = FQuaternion::FromAxisAngle(Gizmo.GetGizmoAxis(), Angle);
+		if (Gizmo.IsWorldMode())
+		{
+			FQuaternion NewRotQuat = DeltaRotQuat * StartRotQuat;
+			return NewRotQuat.ToEuler();
+		}
+		else
+		{
+			FQuaternion NewRotQuat = StartRotQuat * DeltaRotQuat;
+			return NewRotQuat.ToEuler();
+		}
 	}
 	else
 		return Gizmo.GetActorRotation();
