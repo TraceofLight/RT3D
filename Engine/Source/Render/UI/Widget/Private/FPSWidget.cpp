@@ -10,7 +10,7 @@ constexpr float REFRESH_INTERVAL = 0.1f;
 UFPSWidget::UFPSWidget()
 	: UWidget("FPS Widget")
 {
-	
+
 }
 
 UFPSWidget::~UFPSWidget() = default;
@@ -78,6 +78,11 @@ void UFPSWidget::RenderWidget()
 	// Details
 	if (bShowGraph)
 	{
+		ImGui::Text("동적 할당된 메모리 정보");
+		ImGui::Text("Overall Object Count: %u", TotalAllocationCount);
+		ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
+		ImGui::Separator();
+
 		ImGui::Text("Frame Time History:");
 		ImGui::PlotLines("##FrameTime", FrameTimeHistory, 60, FrameTimeIndex,
 		                 ("Average: " + to_string(AverageFrameTime) + " ms").c_str(),

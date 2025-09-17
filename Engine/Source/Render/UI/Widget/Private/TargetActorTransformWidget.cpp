@@ -56,12 +56,6 @@ void UTargetActorTransformWidget::RenderWidget()
 	// ImGui::Text("Level Memory: %.3f KB", static_cast<float>(LevelMemoryByte) / KILO);
 	// ImGui::Separator();
 
-	// XXX(KHJ): 동적 할당된 메모리 정보 필요하면 다른 곳에 자리 찾을 것
-	// ImGui::Text("동적 할당된 메모리 정보");
-	// ImGui::Text("Overall Object Count: %u", TotalAllocationCount);
-	// ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
-	// ImGui::Separator();
-
 	if (SelectedActor)
 	{
 		ImGui::Separator();
