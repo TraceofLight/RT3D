@@ -23,7 +23,7 @@ void UActorTerminationWidget::Update()
 {
 	// 매 프레임 Level의 선택된 Actor를 확인해서 정보 반영
 	ULevelManager& LevelManager = ULevelManager::GetInstance();
-	ULevel* CurrentLevel = LevelManager.GetCurrentLevel();
+	TObjectPtr<ULevel> CurrentLevel = LevelManager.GetCurrentLevel();
 
 	if (CurrentLevel)
 	{
@@ -52,7 +52,9 @@ void UActorTerminationWidget::RenderWidget()
 		// ImGui::TextColored(ImVec4(1.0f, 0.6f, 0.6f, 1.0f), "Selected: %s (%p)",
 		//                    SelectedActor->GetName().c_str(), SelectedActor);
 
-		if (ImGui::Button("Delete Actor") || InputManager.IsKeyDown(EKeyInput::Delete))
+		// ImGui Deprecated (굳이 명시적인 버튼이 없어도 관용적으로 이해할 수 있는 키 매핑)
+		// if (ImGui::Button("Delete Actor") || InputManager.IsKeyDown(EKeyInput::Delete))
+		if (InputManager.IsKeyDown(EKeyInput::Delete))
 		{
 			DeleteSelectedActor();
 		}
@@ -76,17 +78,16 @@ void UActorTerminationWidget::DeleteSelectedActor()
 	}
 
 	ULevelManager& LevelManager = ULevelManager::GetInstance();
-	ULevel* CurrentLevel = LevelManager.GetCurrentLevel();
+	TObjectPtr<ULevel> CurrentLevel = LevelManager.GetCurrentLevel();
 
 	if (!CurrentLevel)
 	{
-		UE_LOG("ActorTerminationWidget: No Current Level To Delete Actor From");
+		UE_LOG_ERROR("ActorTerminationWidget: No Current Level To Delete Actor From");
 		return;
 	}
 
-	UE_LOG("ActorTerminationWidget: 선택된 Actor를 삭제를 위해 마킹 처리: %s (%p)",
-	       SelectedActor->GetName() == FName::None ? "UnNamed" : SelectedActor->GetName().ToString().data(),
-	       reinterpret_cast<void*>(SelectedActor));
+	UE_LOG_INFO("ActorTerminationWidget: 선택된 Actor를 삭제를 위해 마킹 처리: %s",
+	       SelectedActor->GetName() == FName::None ? "UnNamed" : SelectedActor->GetName().ToString().data());
 
 	// 지연 삭제를 사용하여 안전하게 다음 틱에서 삭제
 	CurrentLevel->MarkActorForDeletion(SelectedActor);

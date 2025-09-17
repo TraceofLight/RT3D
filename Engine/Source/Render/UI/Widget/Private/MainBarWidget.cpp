@@ -281,17 +281,17 @@ void UMainBarWidget::RenderShowFlagsMenu()
 
 		// BillBoard Text 표시 옵션
 		bool bShowBillboardText = (ShowFlags & EEngineShowFlags::SF_BillboardText) != 0;
-		if (ImGui::MenuItem("빌보드 텍스트 표시", nullptr, bShowBillboardText))
+		if (ImGui::MenuItem("빌보드 표시", nullptr, bShowBillboardText))
 		{
 			if (bShowBillboardText)
 			{
 				ShowFlags &= ~static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
-				UE_LOG("MainBarWidget: BillboardText 비표시");
+				UE_LOG("MainBarWidget: 빌보드 비표시");
 			}
 			else
 			{
 				ShowFlags |= static_cast<uint64>(EEngineShowFlags::SF_BillboardText);
-				UE_LOG("MainBarWidget: BillboardText 표시");
+				UE_LOG("MainBarWidget: 빌보드 표시");
 			}
 			CurrentLevel->SetShowFlags(ShowFlags);
 		}

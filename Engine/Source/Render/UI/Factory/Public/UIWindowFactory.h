@@ -6,7 +6,7 @@ class UExperimentalFeatureWindow;
 class UPerformanceWindow;
 class UOutlinerWindow;
 class UCameraPanelWindow;
-class USceneManagerWindow;
+class UDetailWindow;
 class UMainMenuWindow;
 
 /**
@@ -33,7 +33,7 @@ public:
 	static UConsoleWindow* CreateConsoleWindow(EUIDockDirection InDockDirection = EUIDockDirection::Bottom);
 	static UControlPanelWindow* CreateControlPanelWindow(EUIDockDirection InDockDirection = EUIDockDirection::Left);
 	static UOutlinerWindow* CreateOutlinerWindow(EUIDockDirection InDockDirection = EUIDockDirection::Center);
-	static USceneManagerWindow* CreateSceneManagerWindow(EUIDockDirection InDockDirection = EUIDockDirection::Right);
+	static UDetailWindow* CreateDetailWindow(EUIDockDirection InDockDirection = EUIDockDirection::Right);
 	static UExperimentalFeatureWindow*
 		CreateExperimentalFeatureWindow(EUIDockDirection InDockDirection = EUIDockDirection::Right);
 };

@@ -1,15 +1,14 @@
 #include "pch.h"
 #include "Render/UI/Window/Public/OutlinerWindow.h"
 
-#include "Render/UI/Widget/Public/ActorTerminationWidget.h"
-#include "Render/UI/Widget/Public/TargetActorTransformWidget.h"
+#include "Render/UI/Widget/Public/SceneHierarchyWidget.h"
 
 UOutlinerWindow::UOutlinerWindow()
 {
 	FUIWindowConfig Config;
 	Config.WindowTitle = "Outliner";
 	Config.DefaultSize = ImVec2(270, 340);
-	Config.DefaultPosition = ImVec2(1625, 10);
+	Config.DefaultPosition = ImVec2(1625, 33); // 메뉴바만큼 하향 이동
 	Config.MinSize = ImVec2(270, 50);
 	Config.bResizable = true;
 	Config.bMovable = true;
@@ -19,8 +18,7 @@ UOutlinerWindow::UOutlinerWindow()
 	Config.UpdateWindowFlags();
 	SetConfig(Config);
 
-	AddWidget(new UTargetActorTransformWidget);
-	AddWidget(new UActorTerminationWidget);
+	AddWidget(new USceneHierarchyWidget);
 }
 
 void UOutlinerWindow::Initialize()

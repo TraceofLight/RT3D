@@ -61,8 +61,8 @@ void ULevelManager::Shutdown()
  */
 void ULevelManager::CreateDefaultLevel()
 {
-	Levels[FName("Default")] = new ULevel("Default");
-	LoadLevel(FName("Default"));
+	Levels[FName("Untitled")] = new ULevel("Untitled");
+	LoadLevel(FName("Untitled"));
 }
 
 void ULevelManager::Update() const

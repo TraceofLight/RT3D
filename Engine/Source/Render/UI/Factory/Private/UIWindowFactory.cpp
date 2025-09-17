@@ -6,7 +6,7 @@
 #include "Render/UI/Window/Public/ControlPanelWindow.h"
 #include "Render/UI/Window/Public/ExperimentalFeatureWindow.h"
 #include "Render/UI/Window/Public/OutlinerWindow.h"
-#include "Render/UI/Window/Public/SceneManagerWindow.h"
+#include "Render/UI/Window/Public/DetailWindow.h"
 #include "Render/UI/Window/Public/MainMenuWindow.h"
 
 UMainMenuWindow& UUIWindowFactory::CreateMainMenuWindow()
@@ -36,9 +36,9 @@ UOutlinerWindow* UUIWindowFactory::CreateOutlinerWindow(EUIDockDirection InDockD
 	return Window;
 }
 
-USceneManagerWindow* UUIWindowFactory::CreateSceneManagerWindow(EUIDockDirection InDockDirection)
+UDetailWindow* UUIWindowFactory::CreateDetailWindow(EUIDockDirection InDockDirection)
 {
-	auto* Window = new USceneManagerWindow();
+	auto* Window = new UDetailWindow();
 	Window->GetMutableConfig().DockDirection = InDockDirection;
 	return Window;
 }
@@ -63,7 +63,7 @@ void UUIWindowFactory::CreateDefaultUILayout()
 	UIManager.RegisterUIWindow(CreateConsoleWindow(EUIDockDirection::Bottom));
 	UIManager.RegisterUIWindow(CreateControlPanelWindow(EUIDockDirection::Left));
 	UIManager.RegisterUIWindow(CreateOutlinerWindow(EUIDockDirection::Center));
-	UIManager.RegisterUIWindow(CreateSceneManagerWindow(EUIDockDirection::Right));
+	UIManager.RegisterUIWindow(CreateDetailWindow(EUIDockDirection::Right));
 	UIManager.RegisterUIWindow(CreateExperimentalFeatureWindow(EUIDockDirection::Right));
 	UE_LOG_SUCCESS("UIWindowFactory: UI 생성이 성공적으로 완료되었습니다");
 }

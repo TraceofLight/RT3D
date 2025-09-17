@@ -41,68 +41,9 @@ void USceneHierarchyWidget::RenderWidget()
 	ImGui::Text("Level: %s", CurrentLevel->GetName().ToString().c_str());
 	ImGui::Separator();
 
-	// --- View Mode Selection ---
-	ImGui::Text("View Mode");
-	EViewModeIndex currentMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
-	int modeIndex = static_cast<int>(currentMode);
-
-	ImGui::RadioButton("Lit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Lit));
-	ImGui::SameLine();
-	ImGui::RadioButton("Unlit", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Unlit));
-	ImGui::SameLine();
-	ImGui::RadioButton("Wireframe", &modeIndex, static_cast<int>(EViewModeIndex::VMI_Wireframe));
-
-	if (modeIndex != static_cast<int>(currentMode))
-	{
-		ULevelManager::GetInstance().GetEditor()->SetViewMode(static_cast<EViewModeIndex>(modeIndex));
-	}
-	ImGui::Separator();
-
-	// --- Show Flag Selection ---
-	struct FlagEntry
-	{
-		const char* Label;
-		EEngineShowFlags Flag;
-	};
-
-	// 체크박스로 표시할 플래그 목록
-	static const FlagEntry Entries[] = {
-		{"Primitives", EEngineShowFlags::SF_Primitives},
-		{"BillboardText", EEngineShowFlags::SF_BillboardText},
-	};
-
-	uint64 ShowFlags = ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags();
-	size_t Idx = 0;
-	const size_t Count = std::size(Entries);
-	for (auto& Entry : Entries)
-	{
-		uint64 Flag = static_cast<uint64>(Entry.Flag);
-		bool bChecked = (ShowFlags & Flag) != 0;
-
-		if (ImGui::Checkbox(Entry.Label, &bChecked))
-		{
-			if (bChecked)
-			{
-				ShowFlags |= Flag;
-			}
-			else
-			{
-				ShowFlags &= ~Flag;
-			}
-		}
-
-		// 마지막이 아니면
-		if (++Idx < Count)
-		{
-			ImGui::SameLine();
-		}
-	}
-	ULevelManager::GetInstance().GetCurrentLevel()->SetShowFlags(ShowFlags);
-	ImGui::Separator();
-
 	// --- 옵션 체크박스들 ---
-	ImGui::Checkbox("Show Details", &bShowDetails);
-	ImGui::Separator();
+	// ImGui::Checkbox("Show Details", &bShowDetails);
+	// ImGui::Separator();
 
 	const TArray<TObjectPtr<AActor>>& LevelActors = CurrentLevel->GetLevelActors();
 
@@ -130,26 +71,26 @@ void USceneHierarchyWidget::RenderWidget()
 	ImGui::EndChild();
 
 	// 하단 정보
-	AActor* SelectedActor = CurrentLevel->GetSelectedActor();
-	if (SelectedActor)
-	{
-		ImGui::Text("Selected: %s", SelectedActor->GetName().ToString().data());
-
-		if (bShowDetails)
-		{
-			const FVector& Location = SelectedActor->GetActorLocation();
-			const FVector& Rotation = SelectedActor->GetActorRotation();
-			const FVector& Scale = SelectedActor->GetActorScale3D();
-
-			ImGui::Text("Location: (%.2f, %.2f, %.2f)", Location.X, Location.Y, Location.Z);
-			ImGui::Text("Rotation: (%.2f, %.2f, %.2f)", Rotation.X, Rotation.Y, Rotation.Z);
-			ImGui::Text("Scale: (%.2f, %.2f, %.2f)", Scale.X, Scale.Y, Scale.Z);
-		}
-	}
-	else
-	{
-		ImGui::TextUnformatted("No Actor Selected");
-	}
+	// AActor* SelectedActor = CurrentLevel->GetSelectedActor();
+	// if (SelectedActor)
+	// {
+	// 	ImGui::Text("Selected: %s", SelectedActor->GetName().ToString().data());
+	//
+	// 	if (bShowDetails)
+	// 	{
+	// 		const FVector& Location = SelectedActor->GetActorLocation();
+	// 		const FVector& Rotation = SelectedActor->GetActorRotation();
+	// 		const FVector& Scale = SelectedActor->GetActorScale3D();
+	//
+	// 		ImGui::Text("Location: (%.2f, %.2f, %.2f)", Location.X, Location.Y, Location.Z);
+	// 		ImGui::Text("Rotation: (%.2f, %.2f, %.2f)", Rotation.X, Rotation.Y, Rotation.Z);
+	// 		ImGui::Text("Scale: (%.2f, %.2f, %.2f)", Scale.X, Scale.Y, Scale.Z);
+	// 	}
+	// }
+	// else
+	// {
+	// 	ImGui::TextUnformatted("No Actor Selected");
+	// }
 }
 
 /**

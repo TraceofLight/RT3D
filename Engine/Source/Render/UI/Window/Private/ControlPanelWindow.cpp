@@ -4,7 +4,6 @@
 #include "Render/UI/Widget/Public/CameraControlWidget.h"
 #include "Render/UI/Widget/Public/FPSWidget.h"
 #include "Render/UI/Widget/Public/PrimitiveSpawnWidget.h"
-#include "Render/UI/Widget/Public/SceneIOWidget.h"
 
 /**
  * @brief Control Panel Constructor
@@ -15,7 +14,7 @@ UControlPanelWindow::UControlPanelWindow()
 	FUIWindowConfig Config;
 	Config.WindowTitle = "Control Panel";
 	Config.DefaultSize = ImVec2(350, 650);
-	Config.DefaultPosition = ImVec2(10, 10);
+	Config.DefaultPosition = ImVec2(10, 33); // 메뉴바만큼 하향 이동
 	Config.MinSize = ImVec2(350, 200);
 	Config.DockDirection = EUIDockDirection::Left;
 	Config.Priority = 15;
@@ -28,7 +27,6 @@ UControlPanelWindow::UControlPanelWindow()
 
 	AddWidget(new UFPSWidget);
 	AddWidget(new UPrimitiveSpawnWidget);
-	AddWidget(new USceneIOWidget);
 	AddWidget(new UCameraControlWidget);
 }
 

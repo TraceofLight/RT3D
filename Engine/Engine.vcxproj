@@ -247,7 +247,7 @@
     <ClInclude Include="Source\Render\UI\Window\Public\ExperimentalFeatureWindow.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\MainMenuWindow.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\OutlinerWindow.h" />
-    <ClInclude Include="Source\Render\UI\Window\Public\SceneManagerWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\DetailWindow.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\UIWindow.h" />
     <ClInclude Include="Source\Texture\Public\Texture.h" />
     <ClInclude Include="Source\Utility\Public\JsonSerializer.h" />
@@ -339,7 +339,7 @@
     <ClCompile Include="Source\Render\UI\Window\Private\ExperimentalFeatureWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\MainMenuWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\OutlinerWindow.cpp" />
-    <ClCompile Include="Source\Render\UI\Window\Private\SceneManagerWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\DetailWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\UIWindow.cpp" />
     <ClCompile Include="Source\Texture\Private\Texture.cpp" />
     <ClCompile Include="Source\Utility\Private\JsonSerializer.cpp" />
