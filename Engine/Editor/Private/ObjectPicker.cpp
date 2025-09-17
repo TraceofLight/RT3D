@@ -67,7 +67,7 @@ void UObjectPicker::PickGizmo( const FRay& WorldRay, UGizmo& Gizmo, FVector& Col
 	FVector GizmoLocation = Gizmo.GetGizmoLocation();
 	FVector GizmoAxises[3] = { FVector{1, 0, 0}, FVector{0, 1, 0}, FVector{0, 0, 1} };
 
-	if (!Gizmo.IsWorldMode())
+	if (Gizmo.GetGizmoMode() == EGizmoMode::Scale || !Gizmo.IsWorldMode())
 	{
 		FVector Rad = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
 		FMatrix R = FMatrix::RotationMatrix(Rad);
