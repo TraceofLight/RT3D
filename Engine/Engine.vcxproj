@@ -231,6 +231,7 @@
     <ClInclude Include="Source\Render\Renderer\Public\Renderer.h" />
     <ClInclude Include="Source\Render\UI\Factory\Public\UIWindowFactory.h" />
     <ClInclude Include="Source\Render\UI\ImGui\Public\ImGuiHelper.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\ActorDetailWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\ActorTerminationWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\CameraControlWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\ConsoleWidget.h" />
@@ -247,7 +248,7 @@
     <ClInclude Include="Source\Render\UI\Window\Public\ExperimentalFeatureWindow.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\MainMenuWindow.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\OutlinerWindow.h" />
-    <ClInclude Include="Source\Render\UI\Window\Public\SceneManagerWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\DetailWindow.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\UIWindow.h" />
     <ClInclude Include="Source\Texture\Public\Texture.h" />
     <ClInclude Include="Source\Utility\Public\JsonSerializer.h" />
@@ -323,6 +324,7 @@
     <ClCompile Include="Source\Render\FontRenderer\Private\FontRenderer.cpp" />
     <ClCompile Include="Source\Render\UI\Factory\Private\UIWindowFactory.cpp" />
     <ClCompile Include="Source\Render\UI\ImGui\Private\ImGuiHelper.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\ActorDetailWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\ActorTerminationWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\CameraControlWIdget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\ConsoleWidget.cpp" />
@@ -339,7 +341,7 @@
     <ClCompile Include="Source\Render\UI\Window\Private\ExperimentalFeatureWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\MainMenuWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\OutlinerWindow.cpp" />
-    <ClCompile Include="Source\Render\UI\Window\Private\SceneManagerWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\DetailWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\UIWindow.cpp" />
     <ClCompile Include="Source\Texture\Private\Texture.cpp" />
     <ClCompile Include="Source\Utility\Private\JsonSerializer.cpp" />

@@ -34,6 +34,9 @@ public:
 		return std::hash<int32>{}(ComparisonIndex);
 	}
 
+	// Display 이름 변경 함수
+	void SetDisplayName(const FString& InDisplayName) const { DisplayNames[this->DisplayIndex] = InDisplayName; }
+
 private:
 	static TArray<FString> DisplayNames;
 	static TMap<FString, uint32> NameMap;
@@ -47,8 +50,9 @@ private:
 };
 
 // std::hash에 대한 FName 특수화
-namespace std {
-	template<>
+namespace std
+{
+	template <>
 	struct hash<FName>
 	{
 		size_t operator()(const FName& InName) const noexcept

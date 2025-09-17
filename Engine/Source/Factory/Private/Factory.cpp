@@ -35,7 +35,7 @@ TObjectPtr<UObject> UFactory::FactoryCreateNew(TObjectPtr<UClass> InClass, TObje
 	if (!DoesSupportClass(InClass))
 	{
 		UE_LOG("Factory: 이 Factory에서 %s 타입의 클래스 객체를 생성할 수 없습니다",
-		       InClass ? InClass->GetClass().ToString().data() : "nullptr");
+		       InClass ? InClass->GetClassTypeName().ToString().data() : "nullptr");
 		return nullptr;
 	}
 
@@ -58,7 +58,7 @@ TObjectPtr<UObject> UFactory::FactoryCreateNew(TObjectPtr<UClass> InClass, TObje
 
 		UE_LOG("Factory: %s를 통해 %s를 생성했습니다",
 		       Description.data(),
-		       InClass ? InClass->GetClass().ToString().data() : "Unknown");
+		       InClass ? InClass->GetClassTypeName().ToString().data() : "Unknown");
 	}
 
 	return NewObject;

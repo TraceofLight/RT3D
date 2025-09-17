@@ -30,7 +30,7 @@ public:
 	TObjectPtr<UObject> CreateDefaultObject() const;
 
 	// Getter
-	const FName& GetClass() const { return ClassName; }
+	const FName& GetClassTypeName() const { return ClassName; }
 	TObjectPtr<UClass> GetSuperClass() const { return SuperClass; }
 	size_t GetClassSize() const { return ClassSize; }
 

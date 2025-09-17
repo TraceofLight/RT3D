@@ -2,6 +2,7 @@
 #include "Render/UI/Window/Public/ExperimentalFeatureWindow.h"
 
 #include "Render/UI/Widget/Public/InputInformationWidget.h"
+#include "Render/UI/Widget/Public/SceneIOWidget.h"
 
 /**
  * @brief Window Constructor
@@ -11,7 +12,7 @@ UExperimentalFeatureWindow::UExperimentalFeatureWindow()
 	FUIWindowConfig Config;
 	Config.WindowTitle = "Experimental Feature";
 	Config.DefaultSize = ImVec2(350, 230);
-	Config.DefaultPosition = ImVec2(370, 10);
+	Config.DefaultPosition = ImVec2(370, 33); // 메뉴바만큼 하향 이동
 	Config.MinSize = ImVec2(350, 10);
 	Config.DockDirection = EUIDockDirection::Right;
 	Config.Priority = 5;
@@ -23,6 +24,7 @@ UExperimentalFeatureWindow::UExperimentalFeatureWindow()
 	SetConfig(Config);
 
 	AddWidget(new UInputInformationWidget);
+	AddWidget(new USceneIOWidget);
 }
 
 /**
@@ -31,4 +33,7 @@ UExperimentalFeatureWindow::UExperimentalFeatureWindow()
 void UExperimentalFeatureWindow::Initialize()
 {
 	UE_LOG("ExperimentalFeatureWindow: Window가 성공적으로 생성되었습니다");
+
+	// 실험실은 일단 Hidden으로 초기화
+	SetWindowState(EUIWindowState::Hidden);
 }

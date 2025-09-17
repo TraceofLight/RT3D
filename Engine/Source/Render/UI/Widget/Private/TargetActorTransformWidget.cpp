@@ -19,6 +19,7 @@ void UTargetActorTransformWidget::Initialize()
 void UTargetActorTransformWidget::Update()
 {
 	// 매 프레임 Level의 선택된 Actor를 확인해서 정보 반영
+	// TODO(KHJ): 적절한 위치를 찾을 것
 	ULevelManager& LevelManager = ULevelManager::GetInstance();
 	ULevel* CurrentLevel = LevelManager.GetCurrentLevel();
 
@@ -55,17 +56,17 @@ void UTargetActorTransformWidget::RenderWidget()
 	// ImGui::Text("Level Memory: %.3f KB", static_cast<float>(LevelMemoryByte) / KILO);
 	// ImGui::Separator();
 
-	ImGui::Text("동적 할당된 메모리 정보");
-	ImGui::Text("Overall Object Count: %u", TotalAllocationCount);
-	ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
-	ImGui::Separator();
-
-	ImGui::Text("Actor 정보");
+	// XXX(KHJ): 동적 할당된 메모리 정보 필요하면 다른 곳에 자리 찾을 것
+	// ImGui::Text("동적 할당된 메모리 정보");
+	// ImGui::Text("Overall Object Count: %u", TotalAllocationCount);
+	// ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
+	// ImGui::Separator();
 
 	if (SelectedActor)
 	{
-		// Actor 이름 표시
-		ImGui::Text("Name: %s", SelectedActor->GetName().ToString().data());
+		ImGui::Separator();
+		ImGui::Text("Transform");
+
 		ImGui::Spacing();
 
 		bPositionChanged |= ImGui::DragFloat3("Location", &EditLocation.X, 0.1f);
@@ -91,10 +92,6 @@ void UTargetActorTransformWidget::RenderWidget()
 		ImGui::Checkbox("Uniform Scale", &bUniformScale);
 
 		SelectedActor->SetUniformScale(bUniformScale);
-	}
-	else
-	{
-		ImGui::TextUnformatted("선택된 Actor가 존재하지 않습니다");
 	}
 
 	ImGui::Separator();

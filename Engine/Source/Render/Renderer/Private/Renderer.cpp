@@ -234,7 +234,8 @@ void URenderer::RenderLevel()
 	// Render Primitive
 	for (auto& PrimitiveComponent : ULevelManager::GetInstance().GetCurrentLevel()->GetLevelPrimitiveComponents())
 	{
-		if (!PrimitiveComponent)
+		// TODO(KHJ) Visible 여기서 Control 하고 있긴 한데 맞는지 Actor 단위 렌더링 할 때도 이렇게 써야할지 고민 필요
+		if (!PrimitiveComponent || !PrimitiveComponent->IsVisible())
 		{
 			continue;
 		}

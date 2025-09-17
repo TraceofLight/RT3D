@@ -61,7 +61,7 @@ void UCameraControlWidget::RenderWidget()
 
 	auto& Location = Camera->GetLocation();
 	auto& Rotation = Camera->GetRotation();
-	
+
 
 	if (ImGui::DragFloat3("Camera Location", &Location.X, 0.05f))
 	{
@@ -140,9 +140,9 @@ void UCameraControlWidget::PushToCamera()
 	Camera->SetCameraType(CameraModeIndex == 0 ? ECameraType::ECT_Perspective : ECameraType::ECT_Orthographic);
 
 	// 카메라 파라미터 설정
-	UiNearZ = std::max(0.0001f, UiNearZ);
-	UiFarZ = std::max(UiNearZ + 0.0001f, UiFarZ);
-	UiFovY = std::min(170.0f, std::max(1.0f, UiFovY));
+	UiNearZ = max(0.0001f, UiNearZ);
+	UiFarZ = max(UiNearZ + 0.0001f, UiFarZ);
+	UiFovY = min(170.0f, max(1.0f, UiFovY));
 
 	Camera->SetNearZ(UiNearZ);
 	Camera->SetFarZ(UiFarZ);

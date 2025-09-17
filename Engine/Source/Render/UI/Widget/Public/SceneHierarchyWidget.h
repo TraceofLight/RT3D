@@ -28,14 +28,46 @@ private:
 	// UI 상태
 	bool bShowDetails = true;
 
+	// 검색 기능
+	char SearchBuffer[256] = "";
+	FString SearchFilter;
+	TArray<int32> FilteredIndices; // 필터링된 Actor 인덱스 캐시
+	bool bNeedsFilterUpdate = true; // 필터 업데이트 필요 여부
+
+	// 이름 변경 기능
+	TObjectPtr<AActor> RenamingActor = nullptr;
+	char RenameBuffer[256] = "";
+	double LastClickTime = 0.0f;
+	TObjectPtr<AActor> LastClickedActor = nullptr;
+	static constexpr float RENAME_CLICK_DELAY = 0.5f; // 두 번째 클릭 간격
+
 	// 카메라 참조
-	UCamera* Camera = nullptr;
+	TObjectPtr<UCamera> Camera = nullptr;
 
-	// 카메라 이동을 위한 상수값
-	static constexpr float FOCUS_DISTANCE = 5.0f; // Actor로부터의 기본 거리
-	static constexpr float FOCUS_HEIGHT_OFFSET = 2.0f; // 약간 위에서 바라보도록
+	// Camera focus animation
+	bool bIsCameraAnimating = false;
+	float CameraAnimationTime = 0.0f;
+	FVector CameraStartLocation;
+	FVector CameraTargetLocation;
+	FVector CameraCurrentRotation;
 
-	void RenderActorInfo(AActor* InActor, int32 InIndex);
-	void SelectActor(AActor* InActor);
-	void FocusOnActor(const AActor* InActor) const;
+	// Heuristic constant
+	static constexpr float CAMERA_ANIMATION_DURATION = 0.8f;
+	static constexpr float FOCUS_DISTANCE = 5.0f;
+
+	// Camera movement
+	void RenderActorInfo(TObjectPtr<AActor> InActor, int32 InIndex);
+	void SelectActor(TObjectPtr<AActor> InActor, bool bInFocusCamera = false);
+	void FocusOnActor(TObjectPtr<AActor> InActor);
+	void UpdateCameraAnimation();
+
+	// 검색 기능
+	void RenderSearchBar();
+	void UpdateFilteredActors(const TArray<TObjectPtr<AActor>>& InLevelActors);
+	static bool IsActorMatchingSearch(const FString& InActorName, const FString& InSearchTerm);
+
+	// 이름 변경 기능
+	void StartRenaming(TObjectPtr<AActor> InActor);
+	void FinishRenaming(bool bInConfirm);
+	bool IsRenaming() const { return RenamingActor != nullptr; }
 };

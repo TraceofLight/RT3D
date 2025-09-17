@@ -52,7 +52,11 @@ void UEditor::Update()
 			{
 				FVector WorldMin, WorldMax;
 				PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
-				if (ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags() & EEngineShowFlags::SF_Primitives)
+
+				// 프리미티브와 바운딩박스 플래그가 모두 켜져있을 때만 바운딩박스 표시
+				uint64 ShowFlags = ULevelManager::GetInstance().GetCurrentLevel()->GetShowFlags();
+
+				if ((ShowFlags & EEngineShowFlags::SF_Primitives) && (ShowFlags & EEngineShowFlags::SF_Bounds))
 				{
 					BatchLines.UpdateBoundingBoxVertices(FAABB(WorldMin, WorldMax));
 				}
@@ -65,6 +69,7 @@ void UEditor::Update()
 	}
 	else
 	{
+		// 선택된 Actor가 없으면 바운딩박스 비활성화
 		BatchLines.DisableRenderBoundingBox();
 	}
 
@@ -94,7 +99,7 @@ void UEditor::ProcessMouseInput(ULevel* InLevel)
 	FVector MousePositionNdc = InputManager.GetMouseNDCPosition();
 
 	static EGizmoDirection PreviousGizmoDirection = EGizmoDirection::None;
-	AActor* ActorPicked = InLevel->GetSelectedActor();
+	TObjectPtr<AActor> ActorPicked = InLevel->GetSelectedActor();
 	FVector CollisionPoint;
 	float ActorDistance = -1;
 

@@ -20,7 +20,7 @@ UConsoleWindow::UConsoleWindow()
 	FUIWindowConfig Config;
 	Config.WindowTitle = "GTL Console";
 	Config.DefaultSize = ImVec2(1000, 260);
-	Config.DefaultPosition = ImVec2(895, 770);
+	Config.DefaultPosition = ImVec2(10, 770);
 	Config.MinSize = ImVec2(1000, 260);
 	Config.bResizable = true;
 	Config.bMovable = true;
