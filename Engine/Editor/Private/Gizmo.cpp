@@ -116,8 +116,16 @@ void UGizmo::RenderGizmo(AActor* Actor, const FVector& CameraLocation)
 
 	
 	// Actor 로컬 회전 쿼터니언
-	FQuaternion LocalRot = bIsWorld ? FQuaternion::Identity()
-									: FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	FQuaternion LocalRot;
+	if (GizmoMode == EGizmoMode::Scale)
+	{
+		LocalRot = FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	}
+	else
+	{
+		LocalRot = bIsWorld ? FQuaternion::Identity() : FQuaternion::FromEuler(TargetActor->GetActorRotation());
+	}
+
 	// X축 (Forward)
 	FQuaternion RotX = LocalRot * FQuaternion::Identity();
 	P.Rotation = RotX.ToEuler();

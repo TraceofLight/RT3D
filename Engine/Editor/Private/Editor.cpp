@@ -276,23 +276,21 @@ FVector UEditor::GetGizmoDragRotation(FRay& WorldRay)
 FVector UEditor::GetGizmoDragScale(FRay& WorldRay)
 {
 	FVector MouseWorld;
-	FVector PlaneOrigin{Gizmo.GetGizmoLocation()};
+	FVector PlaneOrigin = Gizmo.GetGizmoLocation();
+	FVector CardinalAxis = Gizmo.GetGizmoAxis();
+
+	FVector4 GizmoAxis4{ CardinalAxis.X, CardinalAxis.Y, CardinalAxis.Z, 0.0f };
+	FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
 	FVector GizmoAxis = Gizmo.GetGizmoAxis();
+	GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
 
-	if (!Gizmo.IsWorldMode())
-	{
-		FVector4 GizmoAxis4{ GizmoAxis.X, GizmoAxis.Y, GizmoAxis.Z, 0.0f };
-		FVector RadRotation = FVector::GetDegreeToRadian(Gizmo.GetActorRotation());
-		GizmoAxis = GizmoAxis4 * FMatrix::RotationMatrix(RadRotation);
-	}
-
-	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin,
-	                                       Camera.CalculatePlaneNormal(GizmoAxis).Cross(GizmoAxis), MouseWorld))
+	FVector PlaneNormal = Camera.CalculatePlaneNormal(GizmoAxis).Cross(GizmoAxis);
+	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, PlaneNormal, MouseWorld))
 	{
 		FVector PlaneOriginToMouse = MouseWorld - PlaneOrigin;
 		FVector PlaneOriginToMouseStart = Gizmo.GetDragStartMouseLocation() - PlaneOrigin;
-		float DragStartAxisDistance = PlaneOriginToMouseStart.Dot(GizmoAxis);
-		float DragAxisDistance = PlaneOriginToMouse.Dot(GizmoAxis);
+		float DragStartAxisDistance = PlaneOriginToMouseStart.Dot(GizmoAxis);		// CardinalAxis
+		float DragAxisDistance = PlaneOriginToMouse.Dot(GizmoAxis);		// CardinalAxis?
 		float ScaleFactor = 1.0f;
 		if (abs(DragStartAxisDistance) > 0.1f)
 		{
@@ -304,12 +302,12 @@ FVector UEditor::GetGizmoDragScale(FRay& WorldRay)
 		{
 			if (Gizmo.GetSelectedActor()->IsUniformScale())
 			{
-				float UniformValue = DragStartScale.Dot(GizmoAxis);
+				float UniformValue = DragStartScale.Dot(CardinalAxis);
 				return FVector(UniformValue, UniformValue, UniformValue) + FVector(1, 1, 1) * (ScaleFactor - 1) *
 					UniformValue;
 			}
 			else
-				return DragStartScale + GizmoAxis * (ScaleFactor - 1) * DragStartScale.Dot(GizmoAxis);
+				return DragStartScale + CardinalAxis * (ScaleFactor - 1) * DragStartScale.Dot(CardinalAxis);
 		}
 		else
 			return Gizmo.GetActorScale();
