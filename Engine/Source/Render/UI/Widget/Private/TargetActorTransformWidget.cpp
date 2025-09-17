@@ -62,10 +62,11 @@ void UTargetActorTransformWidget::RenderWidget()
 	// ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
 	// ImGui::Separator();
 
-	ImGui::Text("Transform");
-
 	if (SelectedActor)
 	{
+		ImGui::Separator();
+		ImGui::Text("Transform");
+
 		// Actor 이름 표시
 		ImGui::Text("Name: %s", SelectedActor->GetName().ToString().data());
 		ImGui::Spacing();
@@ -93,10 +94,6 @@ void UTargetActorTransformWidget::RenderWidget()
 		ImGui::Checkbox("Uniform Scale", &bUniformScale);
 
 		SelectedActor->SetUniformScale(bUniformScale);
-	}
-	else
-	{
-		ImGui::TextUnformatted("Detail을 보기 위해 Object를 선택해주세요");
 	}
 
 	ImGui::Separator();

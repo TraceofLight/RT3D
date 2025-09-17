@@ -72,7 +72,7 @@ void FFactorySystem::PrintAllFactories()
 			       i,
 			       Factory->GetDescription().data(),
 			       Factory->GetSupportedClass() ?
-			       Factory->GetSupportedClass()->GetClass().ToString().data() :"Unknown");
+			       Factory->GetSupportedClass()->GetClassTypeName().ToString().data() :"Unknown");
 		}
 	}
 

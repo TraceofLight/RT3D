@@ -73,5 +73,5 @@ void UActorFactory::PostCreateActor(AActor* InActor, const FTransform& InTransfo
 	InActor->SetActorScale3D(InTransform.Scale);
 
 	UE_LOG_SUCCESS("ActorFactory: %s에 대한 PostCreateActor 작업 완료",
-	               InActor->GetClass()->GetClass().ToString().data());
+	               InActor->GetClass()->GetClassTypeName().ToString().data());
 }

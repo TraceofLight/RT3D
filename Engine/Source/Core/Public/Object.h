@@ -24,6 +24,9 @@ public:
 	void SetName(const FName& InName) { Name = InName; }
 	void SetOuter(UObject* InObject);
 
+	// 기본적으로 외부에서는 생성자 제외 DisplayName만 변경할 수 있도록 처리
+	void SetDisplayName(const FString& InName) const { Name.SetDisplayName(InName); }
+
 	// Special Member Function
 	UObject();
 	explicit UObject(const FName& InName);
@@ -126,14 +129,14 @@ T* CastChecked(UObject* InObject)
 {
 	static_assert(std::is_base_of_v<UObject, T>, "CastChecked<T>: T는 UObject를 상속받아야 합니다");
 
-	#ifdef _DEBUG
-		// 디버그 빌드에서는 안전성 체크
-		if (InObject && !InObject->IsA(T::StaticClass()))
-		{
-			// 로그나 assert 추가 가능
-			return nullptr;
-		}
-	#endif
+#ifdef _DEBUG
+	// 디버그 빌드에서는 안전성 체크
+	if (InObject && !InObject->IsA(T::StaticClass()))
+	{
+		// 로그나 assert 추가 가능
+		return nullptr;
+	}
+#endif
 
 	return static_cast<T*>(InObject);
 }

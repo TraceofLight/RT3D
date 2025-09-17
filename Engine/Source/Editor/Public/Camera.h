@@ -15,7 +15,7 @@ public:
 	static constexpr float MIN_SPEED = 10.0f;
 	static constexpr float MAX_SPEED = 50.0f;
 	static constexpr float DEFAULT_SPEED = 20.0f;
-	static constexpr float SPEED_ADJUST_STEP = 0.5f;
+	static constexpr float SPEED_ADJUST_STEP = 1.0f;
 
 	UCamera() :
 		ViewProjConstants(FViewProjConstants()),
@@ -92,7 +92,7 @@ public:
 private:
 	FViewProjConstants ViewProjConstants = {};
 	FVector RelativeLocation = {};
-	FVector RelativeRotation = {};	
+	FVector RelativeRotation = {};
 	FVector Forward = { 1,0,0 };
 	FVector Up = {0,0,1};
 	FVector Right = {0,1,0};

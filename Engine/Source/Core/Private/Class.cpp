@@ -78,7 +78,7 @@ TObjectPtr<UClass> UClass::FindClass(const FString& InClassName)
 {
 	for (TObjectPtr<UClass> Class : AllClasses)
 	{
-		if (Class && Class->GetClass() == InClassName)
+		if (Class && Class->GetClassTypeName() == InClassName)
 		{
 			return Class;
 		}
@@ -96,7 +96,7 @@ void UClass::SignUpClass(TObjectPtr<UClass> InClass)
 	if (InClass)
 	{
 		AllClasses.emplace_back(InClass);
-		UE_LOG("UClass: Class registered: %s (Total: %llu)", InClass->GetClass().ToString().data(), AllClasses.size());
+		UE_LOG("UClass: Class registered: %s (Total: %llu)", InClass->GetClassTypeName().ToString().data(), AllClasses.size());
 	}
 }
 
@@ -113,16 +113,16 @@ void UClass::PrintAllClasses()
 		UClass* Class = AllClasses[i];
 
 		stringstream ss;
-		ss << Class->GetClass().ToString();
+		ss << Class->GetClassTypeName().ToString();
 
 		if (Class)
 		{
-			ss << "[" << i << "] " << Class->GetClass().ToString()
+			ss << "[" << i << "] " << Class->GetClassTypeName().ToString()
 				<< " (Size: " << Class->GetClassSize() << " bytes)";
 
 			if (Class->GetSuperClass())
 			{
-				ss << " -> " << Class->GetSuperClass()->GetClass().ToString();
+				ss << " -> " << Class->GetSuperClass()->GetClassTypeName().ToString();
 			}
 			else
 			{
@@ -144,7 +144,7 @@ void UClass::Shutdown()
 	{
 		if (ClassObject.Get())
 		{
-			FString ClassName = ClassObject->GetClass().ToString();
+			FString ClassName = ClassObject->GetClassTypeName().ToString();
 			UE_LOG_WARNING("System: GC: %s에 해제되지 않은 메모리가 있습니다", ClassName.data());
 			delete ClassObject.Get();
 			UE_LOG_SUCCESS("System: GC: %s에 할당한 메모리를 해제했습니다", ClassName.data());

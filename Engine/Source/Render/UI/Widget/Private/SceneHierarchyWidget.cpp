@@ -108,6 +108,8 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 		return;
 	}
 
+	ImGui::PushID(InIndex);
+
 	// 현재 선택된 Actor인지 확인
 	ULevel* CurrentLevel = ULevelManager::GetInstance().GetCurrentLevel();
 	bool bIsSelected = (CurrentLevel && CurrentLevel->GetSelectedActor() == InActor);
@@ -148,7 +150,6 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 	// PrimitiveComponent가 있는 경우에만 Visibility 버튼 표시
 	if (bHasPrimitive)
 	{
-		ImGui::PushID(InIndex);
 		if (ImGui::SmallButton(bAllVisible ? "[O]" : "[X]"))
 		{
 			// 모든 PrimitiveComponent의 Visibility 토글
@@ -164,7 +165,6 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 			       ActorName.ToString().data(),
 			       bNewVisibility ? "Visible" : "Hidden");
 		}
-		ImGui::PopID();
 	}
 	else
 	{
@@ -219,6 +219,8 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 	{
 		ImGui::PopStyleColor();
 	}
+
+	ImGui::PopID();
 }
 
 /**
@@ -238,7 +240,7 @@ void USceneHierarchyWidget::SelectActor(TObjectPtr<AActor> InActor, bool bFocusC
 		if (InActor && bFocusCamera)
 		{
 			FocusOnActor(InActor);
-			UE_LOG("SceneHierarchy: %s에 카메라 포커싱", InActor->GetName().ToString().data());
+			UE_LOG("SceneHierarchy: %s에 카메라 포커싱 완료", InActor->GetName().ToString().data());
 		}
 	}
 }
@@ -272,8 +274,6 @@ void USceneHierarchyWidget::FocusOnActor(TObjectPtr<AActor> InActor)
 	// 카메라 애니메이션 시작
 	bIsCameraAnimating = true;
 	CameraAnimationTime = 0.0f;
-
-	UE_LOG("SceneHierarchy: 카메라를 '%s' 에 포커싱합니다", InActor->GetName().ToString().data());
 }
 
 /**
