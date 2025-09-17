@@ -89,7 +89,8 @@ void UAssetManager::Initialize()
 	{
 		{"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
 	};
-	URenderer::GetInstance().CreateVertexShaderAndInputLayout(L"Asset/Shader/BatchLineVS.hlsl", layoutDesc, &vertexShader, &inputLayout);
+	URenderer::GetInstance().CreateVertexShaderAndInputLayout(L"Asset/Shader/BatchLineVS.hlsl", layoutDesc,
+	                                                          &vertexShader, &inputLayout);
 	VertexShaders.emplace(EShaderType::BatchLine, vertexShader);
 	InputLayouts.emplace(EShaderType::BatchLine, inputLayout);
 
@@ -154,7 +155,7 @@ const FAABB& UAssetManager::GetAABB(EPrimitiveType InType)
  * @param InFilePath 로드할 텍스처 파일의 경로
  * @return 성공시 ID3D11ShaderResourceView 포인터, 실패시 nullptr
  */
-ID3D11ShaderResourceView* UAssetManager::LoadTexture(const FString& InFilePath)
+ComPtr<ID3D11ShaderResourceView> UResourceManager::LoadTexture(const FString& InFilePath, const FName& InName)
 {
 	// 이미 로드된 텍스처가 있는지 확인
 	auto Iter = TextureCache.find(InFilePath);
@@ -179,7 +180,7 @@ ID3D11ShaderResourceView* UAssetManager::LoadTexture(const FString& InFilePath)
  * @param InFilePath 가져올 텍스처 파일의 경로
  * @return 캐시에 있으면 ID3D11ShaderResourceView 포인터, 없으면 nullptr
  */
-ID3D11ShaderResourceView* UAssetManager::GetTexture(const FString& InFilePath)
+ComPtr<ID3D11ShaderResourceView> UResourceManager::GetTexture(const FString& InFilePath)
 {
 	auto Iter = TextureCache.find(InFilePath);
 	if (Iter != TextureCache.end())
@@ -241,7 +242,7 @@ void UAssetManager::ReleaseAllTextures()
  * @param InFilePath 로드할 이미지 파일의 경로
  * @return 성공시 ID3D11ShaderResourceView 포인터, 실패시 nullptr
  */
-ID3D11ShaderResourceView* UAssetManager::CreateTextureFromFile(const FString& InFilePath)
+ID3D11ShaderResourceView* UResourceManager::CreateTextureFromFile(const path& InFilePath)
 {
 	URenderer& Renderer = URenderer::GetInstance();
 	ID3D11Device* Device = Renderer.GetDevice();
@@ -254,7 +255,7 @@ ID3D11ShaderResourceView* UAssetManager::CreateTextureFromFile(const FString& In
 	}
 
 	// 파일 확장자에 따라 적절한 로더 선택
-	FString FileExtension = InFilePath.substr(InFilePath.find_last_of('.'));
+	FString FileExtension = InFilePath.extension().string();
 	transform(FileExtension.begin(), FileExtension.end(), FileExtension.begin(), ::tolower);
 
 	ID3D11ShaderResourceView* TextureSRV = nullptr;
@@ -268,18 +269,19 @@ ID3D11ShaderResourceView* UAssetManager::CreateTextureFromFile(const FString& In
 			ResultHandle = DirectX::CreateDDSTextureFromFile(
 				Device,
 				DeviceContext,
-				StringToWideString(InFilePath).data(),
+				InFilePath.c_str(),
 				nullptr,
 				&TextureSRV
 			);
 
 			if (SUCCEEDED(ResultHandle))
 			{
-				UE_LOG_SUCCESS("ResourceManager: DDS 텍스처 로드 성공 - %s", InFilePath.data());
+				UE_LOG_SUCCESS("ResourceManager: DDS 텍스처 로드 성공 - %ls", InFilePath.c_str());
 			}
 			else
 			{
-				UE_LOG_ERROR("ResourceManager: DDS 텍스처 로드 실패 - %s (HRESULT: 0x%08lX)", InFilePath.data(), ResultHandle);
+				UE_LOG_ERROR("ResourceManager: DDS 텍스처 로드 실패 - %ls (HRESULT: 0x%08lX)",
+				             InFilePath.c_str(), ResultHandle);
 			}
 		}
 		else
@@ -288,24 +290,25 @@ ID3D11ShaderResourceView* UAssetManager::CreateTextureFromFile(const FString& In
 			ResultHandle = DirectX::CreateWICTextureFromFile(
 				Device,
 				DeviceContext,
-				StringToWideString(InFilePath).data(),
+				InFilePath.c_str(),
 				nullptr, // 텍스처 리소스는 필요 없음
 				&TextureSRV
 			);
 
 			if (SUCCEEDED(ResultHandle))
 			{
-				UE_LOG_SUCCESS("ResourceManager: WIC 텍스처 로드 성공 - %s", InFilePath.data());
+				UE_LOG_SUCCESS("ResourceManager: WIC 텍스처 로드 성공 - %ls", InFilePath.c_str());
 			}
 			else
 			{
-				UE_LOG_ERROR("ResourceManager: WIC 텍스처 로드 실패 - %s (HRESULT: 0x%08lX)", InFilePath.data(), ResultHandle);
+				UE_LOG_ERROR("ResourceManager: WIC 텍스처 로드 실패 - %ls (HRESULT: 0x%08lX)"
+				             , InFilePath.c_str(), ResultHandle);
 			}
 		}
 	}
 	catch (const exception& Exception)
 	{
-		UE_LOG_ERROR("ResourceManager: 텍스처 로드 중 예외 발생 - %s: %s", InFilePath.data(), Exception.what());
+		UE_LOG_ERROR("ResourceManager: 텍스처 로드 중 예외 발생 - %ls: %s", InFilePath.c_str(), Exception.what());
 		return nullptr;
 	}
 
@@ -375,7 +378,7 @@ ID3D11ShaderResourceView* UAssetManager::CreateTextureFromMemory(const void* InD
 			ResultHandle = DirectX::CreateWICTextureFromMemory(
 				Device,
 				DeviceContext,
-				reinterpret_cast<const uint8*>(InData),
+				static_cast<const uint8*>(InData),
 				InDataSize,
 				nullptr, // 텍스처 리소스는 필요 없음
 				&TextureSRV

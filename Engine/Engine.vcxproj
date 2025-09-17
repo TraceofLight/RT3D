@@ -25,7 +25,7 @@
     <RootNamespace>UnlearnEngine</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props"/>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
@@ -52,24 +52,24 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props"/>
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform"/>
   </ImportGroup>
-  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Label="UserMacros"/>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
@@ -164,15 +164,15 @@
     <ClInclude Include="Editor\Public\Gizmo.h"/>
     <ClInclude Include="Editor\Public\Grid.h"/>
     <ClInclude Include="Editor\Public\ObjectPicker.h"/>
-    <ClInclude Include="Factory\Actor\Public\CubeActorFactory.h" />
-    <ClInclude Include="Factory\Actor\Public\SphereActorFactory.h" />
-    <ClInclude Include="Factory\Actor\Public\SquareActorFactory.h" />
-    <ClInclude Include="Factory\Actor\Public\TriangleActorFactory.h" />
-    <ClInclude Include="Factory\Public\CubeActorFactory.h" />
-    <ClInclude Include="Factory\Public\NewObject.h" />
-    <ClInclude Include="Factory\Public\SphereActorFactory.h" />
-    <ClInclude Include="Factory\Public\SquareActorFactory.h" />
-    <ClInclude Include="Factory\Public\TriangleActorFactory.h" />
+    <ClInclude Include="Factory\Actor\Public\ActorFactory.h"/>
+    <ClInclude Include="Factory\Actor\Public\CubeActorFactory.h"/>
+    <ClInclude Include="Factory\Actor\Public\SphereActorFactory.h"/>
+    <ClInclude Include="Factory\Actor\Public\SquareActorFactory.h"/>
+    <ClInclude Include="Factory\Actor\Public\TriangleActorFactory.h"/>
+    <ClInclude Include="Factory\Component\Public\ComponentFactory.h"/>
+    <ClInclude Include="Factory\Public\Factory.h"/>
+    <ClInclude Include="Factory\Public\FactorySystem.h"/>
+    <ClInclude Include="Factory\Public\NewObject.h"/>
     <ClInclude Include="Global\Constant.h"/>
     <ClInclude Include="Global\CoreTypes.h"/>
     <ClInclude Include="Global\Enum.h"/>
@@ -245,6 +245,7 @@
     <ClInclude Include="Render\UI\Window\Public\OutlinerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\SceneManagerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\UIWindow.h" />
+    <ClInclude Include="Render\FontRenderer\Public\FontRenderer.h" />
     <ClInclude Include="Resource\Texture\Public\Texture.h" />
     <ClInclude Include="Utility\Public\JsonSerializer.h" />
     <ClInclude Include="Utility\Public\Metadata.h" />
@@ -343,8 +344,9 @@
     <ClCompile Include="Resource\Texture\Private\Texture.cpp" />
     <ClCompile Include="Utility\Private\JsonSerializer.cpp" />
     <ClCompile Include="Utility\Private\UELogParser.cpp" />
+    <ClCompile Include="Render\FontRenderer\Private\FontRenderer.cpp" />
   </ItemGroup>
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
   <ItemGroup>
@@ -368,6 +370,6 @@
     </FxCompile>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="Engine.rc" />
+    <ResourceCompile Include="Engine.rc"/>
   </ItemGroup>
 </Project>

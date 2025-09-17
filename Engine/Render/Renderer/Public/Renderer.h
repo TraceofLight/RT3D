@@ -10,6 +10,7 @@ class UPrimitiveComponent;
 class AActor;
 class AGizmo;
 class UEditor;
+class UFontRenderer;
 
 /**
  * @brief Rendering Pipeline 전반을 처리하는 클래스
@@ -63,6 +64,7 @@ public:
 	void Update();
 	void RenderBegin() const;
 	void RenderLevel();
+	void RenderFont();
 	void RenderEnd() const;
 	void RenderPrimitive(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState);
 	void RenderPrimitiveIndexed(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState,
@@ -105,6 +107,7 @@ public:
 private:
 	UPipeline* Pipeline = nullptr;
 	UDeviceResources* DeviceResources = nullptr;
+	UFontRenderer* FontRenderer = nullptr;
 	TArray<UPrimitiveComponent*> PrimitiveComponents;
 
 	ID3D11DepthStencilState* DefaultDepthStencilState = nullptr;

@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Render/Renderer/Public/Renderer.h"
+#include "Render/FontRenderer/Public/FontRenderer.h"
 
 #include "Editor/Public/Editor.h"
 #include "Level/Public/Level.h"
@@ -24,6 +25,14 @@ void URenderer::Init(HWND InWindowHandle)
 	CreateDepthStencilState();
 	CreateDefaultShader();
 	CreateConstantBuffer();
+
+	// FontRenderer 초기화
+	FontRenderer = new UFontRenderer();
+	if (!FontRenderer->Initialize())
+	{
+		UE_LOG("FontRenderer 초기화 실패");
+		SafeDelete(FontRenderer);
+	}
 }
 
 void URenderer::Release()
@@ -32,6 +41,9 @@ void URenderer::Release()
 	ReleaseDefaultShader();
 	ReleaseDepthStencilState();
 	ReleaseRasterizerState();
+
+	// FontRenderer 해제
+	SafeDelete(FontRenderer);
 
 	SafeDelete(Pipeline);
 	SafeDelete(DeviceResources);
@@ -178,6 +190,9 @@ void URenderer::Update()
 	// TODO(KHJ): 여기 묶어낼 수 없을까?
 	RenderLevel();
 	ULevelManager::GetInstance().GetEditor()->RenderEditor();
+
+	// 폰트 렌더링
+	RenderFont();
 
 	// ImGui 자체 Render 처리가 진행되어야 하므로 따로 처리
 	UUIManager::GetInstance().Render();
@@ -796,4 +811,40 @@ D3D11_FILL_MODE URenderer::ToD3D11(EFillMode InFill)
 	default:
 		return D3D11_FILL_SOLID;
 	}
+}
+
+/**
+ * @brief 폰트 렌더링 함수 - FontRenderer를 사용하여 텍스트 렌더링
+ */
+void URenderer::RenderFont()
+{
+	if (!FontRenderer)
+	{
+		return;
+	}
+
+	// 단순한 직교 투영을 사용하여 테스트 (-100~100 좌표계)
+	FMatrix WorldMatrix = FMatrix::Identity();
+	
+	// 직교 투영 행렬 생성 (2D 화면에 맞게)
+	float left = -100.0f, right = 100.0f;
+	float bottom = -100.0f, top = 100.0f;
+	float nearPlane = -1.0f, farPlane = 1.0f;
+	
+	FMatrix OrthoMatrix;
+	OrthoMatrix.Data[0][0] = 2.0f / (right - left);
+	OrthoMatrix.Data[1][1] = 2.0f / (top - bottom);
+	OrthoMatrix.Data[2][2] = -2.0f / (farPlane - nearPlane);
+	OrthoMatrix.Data[3][0] = -(right + left) / (right - left);
+	OrthoMatrix.Data[3][1] = -(top + bottom) / (top - bottom);
+	OrthoMatrix.Data[3][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+	OrthoMatrix.Data[0][1] = OrthoMatrix.Data[0][2] = OrthoMatrix.Data[0][3] = 0.0f;
+	OrthoMatrix.Data[1][0] = OrthoMatrix.Data[1][2] = OrthoMatrix.Data[1][3] = 0.0f;
+	OrthoMatrix.Data[2][0] = OrthoMatrix.Data[2][1] = OrthoMatrix.Data[2][3] = 0.0f;
+	OrthoMatrix.Data[3][3] = 1.0f;
+	
+	FMatrix ViewProjMatrix = OrthoMatrix; // 단순히 직교 투영만 사용
+
+	// FontRenderer를 사용하여 "Hello, World!" 텍스트 렌더링
+	FontRenderer->RenderHelloWorld(WorldMatrix, ViewProjMatrix);
 }
