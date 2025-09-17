@@ -150,11 +150,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Public\ObjectPtr.h" />
-    <ClInclude Include="Editor\Public\BatchLines.h"/>
-    <ClInclude Include="Core\Public\Class.h"/>
-    <ClInclude Include="Core\Public\Name.h"/>
-    <ClInclude Include="Core\Public\Object.h"/>
-    <ClInclude Include="Editor\Public\Axis.h"/>
+    <ClInclude Include="Editor\Public\BatchLines.h" />
+    <ClInclude Include="Core\Public\Class.h" />
+    <ClInclude Include="Core\Public\Name.h" />
+    <ClInclude Include="Core\Public\Object.h" />
+    <ClInclude Include="Editor\Public\Axis.h" />
     <ClInclude Include="Editor\Public\BoundingBoxLines.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
@@ -164,15 +164,15 @@
     <ClInclude Include="Editor\Public\Gizmo.h" />
     <ClInclude Include="Editor\Public\Grid.h" />
     <ClInclude Include="Editor\Public\ObjectPicker.h" />
+    <ClInclude Include="Factory\Actor\Public\ActorFactory.h" />
     <ClInclude Include="Factory\Actor\Public\CubeActorFactory.h" />
     <ClInclude Include="Factory\Actor\Public\SphereActorFactory.h" />
     <ClInclude Include="Factory\Actor\Public\SquareActorFactory.h" />
     <ClInclude Include="Factory\Actor\Public\TriangleActorFactory.h" />
-    <ClInclude Include="Factory\Public\CubeActorFactory.h" />
+    <ClInclude Include="Factory\Component\Public\ComponentFactory.h" />
+    <ClInclude Include="Factory\Public\Factory.h" />
+    <ClInclude Include="Factory\Public\FactorySystem.h" />
     <ClInclude Include="Factory\Public\NewObject.h" />
-    <ClInclude Include="Factory\Public\SphereActorFactory.h" />
-    <ClInclude Include="Factory\Public\SquareActorFactory.h" />
-    <ClInclude Include="Factory\Public\TriangleActorFactory.h" />
     <ClInclude Include="Global\Constant.h" />
     <ClInclude Include="Global\CoreTypes.h" />
     <ClInclude Include="Global\Enum.h" />
@@ -181,7 +181,6 @@
     <ClInclude Include="Global\Macro.h" />
     <ClInclude Include="Global\Matrix.h" />
     <ClInclude Include="Global\Memory.h" />
-    <ClInclude Include="Global\Quaternion.h" />
     <ClInclude Include="Global\Types.h" />
     <ClInclude Include="Global\Vector.h" />
     <ClInclude Include="ImGui\imconfig.h" />
@@ -196,15 +195,16 @@
     <ClInclude Include="Manager\Config\Public\ConfigManager.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
-    <ClInclude Include="Manager\Input\Public\InputManager.h"/>
-    <ClInclude Include="Manager\Level\Public\LevelManager.h"/>
-    <ClInclude Include="Manager\Path\Public\PathManager.h"/>
+    <ClInclude Include="Manager\Input\Public\InputManager.h" />
+    <ClInclude Include="Manager\Level\Public\LevelManager.h" />
+    <ClInclude Include="Manager\Path\Public\PathManager.h" />
     <ClInclude Include="Manager\Asset\Public\AssetManager.h" />
     <ClInclude Include="Manager\Time\Public\TimeManager.h" />
     <ClInclude Include="Manager\UI\Public\UIManager.h" />
     <ClInclude Include="Mesh\Public\AABB.h" />
     <ClInclude Include="Mesh\Public\Actor.h" />
     <ClInclude Include="Mesh\Public\ActorComponent.h" />
+    <ClInclude Include="Mesh\Public\BillBoardComponent.h" />
     <ClInclude Include="Mesh\Public\BoundingSphere.h" />
     <ClInclude Include="Mesh\Public\BoundingVolume.h" />
     <ClInclude Include="Mesh\Public\CubeActor.h" />
@@ -246,15 +246,12 @@
     <ClInclude Include="Render\UI\Window\Public\OutlinerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\SceneManagerWindow.h" />
     <ClInclude Include="Render\UI\Window\Public\UIWindow.h" />
+    <ClInclude Include="Render\FontRenderer\Public\FontRenderer.h" />
     <ClInclude Include="Resource\Texture\Public\Texture.h" />
     <ClInclude Include="Utility\Public\JsonSerializer.h" />
     <ClInclude Include="Utility\Public\Metadata.h" />
     <ClInclude Include="Utility\Public\UELogParser.h" />
     <ClInclude Include="Core\Public\EngineStatics.h" />
-    <ClInclude Include="Factory\Public\Factory.h" />
-    <ClInclude Include="Factory\Public\FactorySystem.h" />
-    <ClInclude Include="Factory\Actor\Public\ActorFactory.h" />
-    <ClInclude Include="Factory\Component\Public\ComponentFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor\Private\BatchLines.cpp" />
@@ -345,6 +342,7 @@
     <ClCompile Include="Resource\Texture\Private\Texture.cpp" />
     <ClCompile Include="Utility\Private\JsonSerializer.cpp" />
     <ClCompile Include="Utility\Private\UELogParser.cpp" />
+    <ClCompile Include="Render\FontRenderer\Private\FontRenderer.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -367,6 +365,12 @@
     <FxCompile Include="Asset\Shader\BatchLineVS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </FxCompile>
+    <FxCompile Include="Asset\Shader\ShaderFont.hlsl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">mainVS</EntryPointName>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <EntryPointName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">mainVS</EntryPointName>
     </FxCompile>
   </ItemGroup>
   <ItemGroup>

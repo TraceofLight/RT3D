@@ -3,6 +3,7 @@
 
 #include "Mesh/Public/Actor.h"
 #include "Mesh/Public/PrimitiveComponent.h"
+#include "Manager/Level/Public/LevelManager.h"
 
 ULevel::ULevel() = default;
 
@@ -99,14 +100,17 @@ void ULevel::AddLevelPrimitiveComponent(AActor* Actor)
 			1: primitive show flag가 꺼져 있으면, 도형, 빌보드 모두 렌더링 안함.
 			2: primitive show flag가 켜져 있고, billboard show flag가 켜져 있으면, 도형, 빌보드 모두 렌더링
 			3: primitive show flag가 켜져 있고, billboard show flag가 꺼져 있으면, 도형은 렌더링 하지만, 빌보드는 렌더링 안함. */
+			// 빌보드는 무조건 피킹이 된 actor의 빌보드여야 렌더링 가능
 			if (PrimitiveComponent->IsVisible() && (ShowFlags & EEngineShowFlags::SF_Primitives))
 			{
-				if (PrimitiveComponent->GetPrimitiveType() == EPrimitiveType::BillBoard && (ShowFlags & EEngineShowFlags::SF_BillboardText))
+				if (PrimitiveComponent->GetPrimitiveType() != EPrimitiveType::BillBoard)
 				{
 					LevelPrimitiveComponents.push_back(PrimitiveComponent);
 				}
-				else
+				else if (PrimitiveComponent->GetPrimitiveType() == EPrimitiveType::BillBoard && (ShowFlags & EEngineShowFlags::SF_BillboardText) && (ULevelManager::GetInstance().GetCurrentLevel()->GetSelectedActor() == Actor))
 				{
+					TObjectPtr<UBillBoardComponent> BillBoard = Cast<UBillBoardComponent>(PrimitiveComponent);
+					BillBoard->UpdateRotationMatrix();
 					LevelPrimitiveComponents.push_back(PrimitiveComponent);
 				}
 			}

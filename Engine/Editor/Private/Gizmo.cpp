@@ -184,7 +184,7 @@ FVector4 UGizmo::ColorFor(EGizmoDirection InAxis) const
 	const bool bIsHighlight = (InAxis == GizmoDirection);
 
 	const FVector4 Paint = bIsHighlight ? FVector4(1,1,0,1) : BaseColor;
-	UE_LOG("InAxis: %d, Idx: %d, Dir: %d, base color: %.f, %.f, %.f, bHighLight: %d", InAxis, Idx, GizmoDirection, BaseColor.X, BaseColor.Y, BaseColor.Z, bIsHighlight);
+	//UE_LOG("InAxis: %d, Idx: %d, Dir: %d, base color: %.f, %.f, %.f, bHighLight: %d", InAxis, Idx, GizmoDirection, BaseColor.X, BaseColor.Y, BaseColor.Z, bIsHighlight);
 
 	if (bIsDragging)
 		return BaseColor;

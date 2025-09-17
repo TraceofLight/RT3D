@@ -145,6 +145,54 @@ struct FVector
 	[[nodiscard]] static FVector UnitZ() { return ZAxisVector(); }
 };
 
+struct FVector2
+{
+	float X;
+	float Y;
+
+	/**
+	 * @brief FVector2 기본 생성자
+	 */
+	FVector2();
+
+	/**
+	 * @brief FVector2의 멤버값을 Param으로 넘기는 생성자
+	 */
+	FVector2(float InX, float InY);
+
+	/**
+	 * @brief FVector2를 Param으로 넘기는 생성자
+	 */
+	FVector2(const FVector2& InOther);
+
+	/**
+	 * @brief 두 벡터를 더한 새로운 벡터를 반환하는 함수
+	 */
+	FVector2 operator+(const FVector2& InOther) const;
+
+	/**
+	 * @brief 두 벡터를 뺀 새로운 벡터를 반환하는 함수
+	 */
+	FVector2 operator-(const FVector2& InOther) const;
+
+	/**
+	 * @brief 자신의 벡터에서 배율을 곱한 백터를 반환하는 함수
+	 */
+	FVector2 operator*(const float Ratio) const;
+
+	/**
+	 * @brief 벡터의 길이 연산 함수
+	 * @return 벡터의 길이
+	 */
+	inline float Length() const { return sqrtf(X * X + Y * Y); }
+
+	/**
+	 * @brief 자신의 벡터의 각 성분을 제곱하여 더한 값을 반환하는 함수 (루트 사용 X)
+	 */
+	inline float LengthSquared() const { return (X * X) + (Y * Y); }
+};
+
+
 struct FVector4
 {
 	float X;
