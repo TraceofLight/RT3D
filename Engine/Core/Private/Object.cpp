@@ -87,7 +87,7 @@ void UObject::PropagateMemoryChange(uint64 InBytesDelta, uint32 InCountDelta)
  * @param InClass 판정할 Class
  * @return 판정 결과
  */
-bool UObject::IsA(const UClass* InClass) const
+bool UObject::IsA(TObjectPtr<UClass> InClass) const
 {
 	if (!InClass)
 	{

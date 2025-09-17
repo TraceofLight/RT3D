@@ -15,7 +15,8 @@ TArray<TObjectPtr<UClass>> UClass::AllClasses;
  * @param InClassSize Class Size
  * @param InConstructor 생성자 함수 포인터
  */
-UClass::UClass(const FName& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor)
+UClass::UClass(const FName& InName, TObjectPtr<UClass> InSuperClass, size_t InClassSize,
+               ClassConstructorType InConstructor)
 	: ClassName(InName), SuperClass(InSuperClass), ClassSize(InClassSize), Constructor(InConstructor)
 {
 	UE_LOG("UClass: 클래스 등록: %s", ClassName.ToString().data());
@@ -26,7 +27,7 @@ UClass::UClass(const FName& InName, UClass* InSuperClass, size_t InClassSize, Cl
  * @param InClass 확인할 클래스
  * @return 하위 클래스이거나 같은 클래스면 true
  */
-bool UClass::IsChildOf(const UClass* InClass) const
+bool UClass::IsChildOf(const TObjectPtr<UClass> InClass) const
 {
 	if (!InClass)
 	{
@@ -58,7 +59,7 @@ bool UClass::IsChildOf(const UClass* InClass) const
  * @brief 새로운 인스턴스 생성
  * @return 생성된 객체 포인터
  */
-UObject* UClass::CreateDefaultObject() const
+TObjectPtr<UObject> UClass::CreateDefaultObject() const
 {
 	if (Constructor)
 	{
@@ -73,9 +74,9 @@ UObject* UClass::CreateDefaultObject() const
  * @param InClassName 찾을 클래스 이름
  * @return 찾은 UClass 포인터 (없으면 nullptr)
  */
-UClass* UClass::FindClass(const FString& InClassName)
+TObjectPtr<UClass> UClass::FindClass(const FString& InClassName)
 {
-	for (UClass* Class : AllClasses)
+	for (TObjectPtr<UClass> Class : AllClasses)
 	{
 		if (Class && Class->GetClass() == InClassName)
 		{
@@ -132,4 +133,23 @@ void UClass::PrintAllClasses()
 	}
 
 	UE_LOG("================================");
+}
+
+/**
+ * @brief 안전하게 종료 전 ClassObject에 할당한 메모리를 free하는 함수
+ */
+void UClass::Shutdown()
+{
+	for (TObjectPtr<UClass>& ClassObject : AllClasses)
+	{
+		if (ClassObject.Get())
+		{
+			FString ClassName = ClassObject->GetClass().ToString();
+			UE_LOG_WARNING("System: GC: %s에 해제되지 않은 메모리가 있습니다", ClassName.data());
+			delete ClassObject.Get();
+			UE_LOG_SUCCESS("System: GC: %s에 할당한 메모리를 해제했습니다", ClassName.data());
+		}
+	}
+
+	(void)AllClasses.empty();
 }

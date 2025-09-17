@@ -15,7 +15,7 @@ public:
 	UComponentFactory();
 	~UComponentFactory() override = default;
 
-	UObject* CreateNew() override;
+	TObjectPtr<UObject> CreateNew() override;
 
 protected:
 	virtual UActorComponent* CreateComponent();

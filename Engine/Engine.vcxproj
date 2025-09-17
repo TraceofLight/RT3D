@@ -118,6 +118,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -141,6 +142,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -150,20 +152,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Core\Public\ObjectPtr.h" />
-    <ClInclude Include="Editor\Public\BatchLines.h"/>
-    <ClInclude Include="Core\Public\Class.h"/>
-    <ClInclude Include="Core\Public\Name.h"/>
-    <ClInclude Include="Core\Public\Object.h"/>
-    <ClInclude Include="Editor\Public\Axis.h"/>
+    <ClInclude Include="Editor\Public\BatchLines.h" />
+    <ClInclude Include="Core\Public\Class.h" />
+    <ClInclude Include="Core\Public\Name.h" />
+    <ClInclude Include="Core\Public\Object.h" />
+    <ClInclude Include="Editor\Public\Axis.h" />
     <ClInclude Include="Editor\Public\BoundingBoxLines.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
-    <ClInclude Include="Editor\Public\Camera.h"/>
-    <ClInclude Include="Editor\Public\Editor.h"/>
-    <ClInclude Include="Editor\Public\EditorPrimitive.h"/>
-    <ClInclude Include="Editor\Public\Gizmo.h"/>
-    <ClInclude Include="Editor\Public\Grid.h"/>
-    <ClInclude Include="Editor\Public\ObjectPicker.h"/>
+    <ClInclude Include="Editor\Public\Camera.h" />
+    <ClInclude Include="Editor\Public\Editor.h" />
+    <ClInclude Include="Editor\Public\EditorPrimitive.h" />
+    <ClInclude Include="Editor\Public\Gizmo.h" />
+    <ClInclude Include="Editor\Public\Grid.h" />
+    <ClInclude Include="Editor\Public\ObjectPicker.h" />
     <ClInclude Include="Factory\Actor\Public\CubeActorFactory.h" />
     <ClInclude Include="Factory\Actor\Public\SphereActorFactory.h" />
     <ClInclude Include="Factory\Actor\Public\SquareActorFactory.h" />
@@ -173,31 +175,31 @@
     <ClInclude Include="Factory\Public\SphereActorFactory.h" />
     <ClInclude Include="Factory\Public\SquareActorFactory.h" />
     <ClInclude Include="Factory\Public\TriangleActorFactory.h" />
-    <ClInclude Include="Global\Constant.h"/>
-    <ClInclude Include="Global\CoreTypes.h"/>
-    <ClInclude Include="Global\Enum.h"/>
-    <ClInclude Include="Global\EnumReflection.h"/>
-    <ClInclude Include="Global\Function.h"/>
-    <ClInclude Include="Global\Macro.h"/>
-    <ClInclude Include="Global\Matrix.h"/>
-    <ClInclude Include="Global\Memory.h"/>
-    <ClInclude Include="Global\Types.h"/>
-    <ClInclude Include="Global\Vector.h"/>
-    <ClInclude Include="ImGui\imconfig.h"/>
-    <ClInclude Include="ImGui\imgui.h"/>
-    <ClInclude Include="ImGui\imgui_impl_dx11.h"/>
-    <ClInclude Include="ImGui\imgui_impl_win32.h"/>
-    <ClInclude Include="ImGui\imgui_internal.h"/>
-    <ClInclude Include="ImGui\imstb_rectpack.h"/>
-    <ClInclude Include="ImGui\imstb_textedit.h"/>
-    <ClInclude Include="ImGui\imstb_truetype.h"/>
-    <ClInclude Include="Level\Public\Level.h"/>
+    <ClInclude Include="Global\Constant.h" />
+    <ClInclude Include="Global\CoreTypes.h" />
+    <ClInclude Include="Global\Enum.h" />
+    <ClInclude Include="Global\EnumReflection.h" />
+    <ClInclude Include="Global\Function.h" />
+    <ClInclude Include="Global\Macro.h" />
+    <ClInclude Include="Global\Matrix.h" />
+    <ClInclude Include="Global\Memory.h" />
+    <ClInclude Include="Global\Types.h" />
+    <ClInclude Include="Global\Vector.h" />
+    <ClInclude Include="ImGui\imconfig.h" />
+    <ClInclude Include="ImGui\imgui.h" />
+    <ClInclude Include="ImGui\imgui_impl_dx11.h" />
+    <ClInclude Include="ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="ImGui\imgui_internal.h" />
+    <ClInclude Include="ImGui\imstb_rectpack.h" />
+    <ClInclude Include="ImGui\imstb_textedit.h" />
+    <ClInclude Include="ImGui\imstb_truetype.h" />
+    <ClInclude Include="Level\Public\Level.h" />
     <ClInclude Include="Manager\Config\Public\ConfigManager.h">
       <DeploymentContent>false</DeploymentContent>
     </ClInclude>
-    <ClInclude Include="Manager\Input\Public\InputManager.h"/>
-    <ClInclude Include="Manager\Level\Public\LevelManager.h"/>
-    <ClInclude Include="Manager\Path\Public\PathManager.h"/>
+    <ClInclude Include="Manager\Input\Public\InputManager.h" />
+    <ClInclude Include="Manager\Level\Public\LevelManager.h" />
+    <ClInclude Include="Manager\Path\Public\PathManager.h" />
     <ClInclude Include="Manager\Asset\Public\AssetManager.h" />
     <ClInclude Include="Manager\Time\Public\TimeManager.h" />
     <ClInclude Include="Manager\UI\Public\UIManager.h" />

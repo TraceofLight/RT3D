@@ -20,8 +20,8 @@ USphereActorFactory::USphereActorFactory()
  * @brief SphereActor 인스턴스를 생성합니다
  * @return 생성된 SphereActor
  */
-AActor* USphereActorFactory::CreateNewActor()
+TObjectPtr<AActor> USphereActorFactory::CreateNewActor()
 {
 	UE_LOG_SUCCESS("SphereActorFactory: Creating new SphereActor instance");
-	return new ASphereActor();
+	return TObjectPtr<AActor>(new ASphereActor);
 }

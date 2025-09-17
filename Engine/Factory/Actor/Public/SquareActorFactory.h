@@ -18,5 +18,5 @@ public:
 	~USquareActorFactory() override = default;
 
 protected:
-	AActor* CreateNewActor() override;
+	TObjectPtr<AActor> CreateNewActor() override;
 };

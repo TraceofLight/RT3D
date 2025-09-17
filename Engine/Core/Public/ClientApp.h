@@ -21,7 +21,7 @@ public:
     ~FClientApp();
 
 private:
-    int InitializeSystem();
+    int InitializeSystem() const;
     void UpdateSystem() const;
     void MainLoop();
 	void ShutdownSystem() const;

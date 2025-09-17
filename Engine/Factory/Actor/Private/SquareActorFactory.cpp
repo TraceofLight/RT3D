@@ -20,8 +20,8 @@ USquareActorFactory::USquareActorFactory()
  * @brief SquareActor 인스턴스를 생성합니다
  * @return 생성된 SquareActor
  */
-AActor* USquareActorFactory::CreateNewActor()
+TObjectPtr<AActor> USquareActorFactory::CreateNewActor()
 {
 	UE_LOG_SUCCESS("SquareActorFactory: Creating new SquareActor instance");
-	return new ASquareActor();
+	return TObjectPtr<AActor>(new ASquareActor);
 }

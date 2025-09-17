@@ -29,7 +29,18 @@ private:
 	float MenuBarHeight = 0.0f;
 	TObjectPtr<UUIManager> UIManager = nullptr;
 
-	static void RenderFileMenu();
 	void RenderWindowsMenu() const;
+
+	static void RenderFileMenu();
+	static void RenderViewMenu();
+	static void RenderShowFlagsMenu();
 	static void RenderHelpMenu();
+
+	static void SaveCurrentLevel();
+	static void LoadLevel();
+	static void CreateNewLevel();
+
+	static path OpenSaveFileDialog();
+	static path OpenLoadFileDialog();
+
 };

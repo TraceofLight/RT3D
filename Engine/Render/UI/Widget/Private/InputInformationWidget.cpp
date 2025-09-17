@@ -26,7 +26,7 @@ void UInputInformationWidget::Update()
 	LastMousePosition = CurrentMousePosition;
 
 	// 새로운 키 입력 확인 및 히스토리에 추가
-	TArray<EKeyInput> PressedKeys = InputManager.GetPressedKeys();
+	auto& PressedKeys = InputManager.GetPressedKeys();
 	for (const auto& Key : PressedKeys)
 	{
 		FString KeyName = UInputManager::GetInstance().KeyInputToString(Key);
@@ -49,7 +49,7 @@ void UInputInformationWidget::Update()
 void UInputInformationWidget::RenderWidget()
 {
 	auto& InputManager = UInputManager::GetInstance();
-	TArray<EKeyInput> PressedKeys = InputManager.GetPressedKeys();
+	auto& PressedKeys = InputManager.GetPressedKeys();
 
 	// 탭으로 구분
 	if (ImGui::BeginTabBar("InputTabs"))

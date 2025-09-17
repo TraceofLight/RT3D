@@ -17,20 +17,21 @@ class UClass
 {
 public:
 	// 생성자 함수 포인터 타입 정의
-	typedef UObject* (*ClassConstructorType)();
+	typedef TObjectPtr<UObject> (*ClassConstructorType)();
 
-	UClass(const FName& InName, UClass* InSuperClass, size_t InClassSize, ClassConstructorType InConstructor);
+	UClass(const FName& InName, TObjectPtr<UClass> InSuperClass, size_t InClassSize, ClassConstructorType InConstructor);
 
-	static UClass* FindClass(const FString& InClassName);
+	static TObjectPtr<UClass> FindClass(const FString& InClassName);
 	static void SignUpClass(TObjectPtr<UClass> InClass);
 	static void PrintAllClasses();
+	static void Shutdown();
 
-	bool IsChildOf(const UClass* InClass) const;
-	UObject* CreateDefaultObject() const;
+	bool IsChildOf(TObjectPtr<UClass> InClass) const;
+	TObjectPtr<UObject> CreateDefaultObject() const;
 
 	// Getter
 	const FName& GetClass() const { return ClassName; }
-	UClass* GetSuperClass() const { return SuperClass.Get(); }
+	TObjectPtr<UClass> GetSuperClass() const { return SuperClass; }
 	size_t GetClassSize() const { return ClassSize; }
 
 private:
@@ -62,36 +63,36 @@ public: \
 public: \
     typedef ClassName ThisClass; \
     typedef SuperClassName Super; \
-    static UClass* StaticClass(); \
-    virtual UClass* GetClass() const; \
-    static UObject* CreateDefaultObject##ClassName(); \
+    static TObjectPtr<UClass> StaticClass(); \
+    virtual TObjectPtr<UClass> GetClass() const; \
+    static TObjectPtr<UObject> CreateDefaultObject##ClassName(); \
 private: \
     static TObjectPtr<UClass> ClassPrivate;
 
 // 클래스 구현부에 사용하는 매크로
 #define IMPLEMENT_CLASS(ClassName, SuperClassName) \
     TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
-    UClass* ClassName::StaticClass() \
+    TObjectPtr<UClass> ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
         { \
-            ClassPrivate = new UClass( \
+            ClassPrivate = TObjectPtr<UClass>(new UClass( \
                 FString(#ClassName), \
                 SuperClassName::StaticClass(), \
                 sizeof(ClassName), \
                 &ClassName::CreateDefaultObject##ClassName \
-            ); \
+            )); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate.Get(); \
+        return ClassPrivate; \
     } \
-    UClass* ClassName::GetClass() const \
+    TObjectPtr<UClass> ClassName::GetClass() const \
     { \
         return ClassName::StaticClass(); \
     } \
-    UObject* ClassName::CreateDefaultObject##ClassName() \
+    TObjectPtr<UObject> ClassName::CreateDefaultObject##ClassName() \
     { \
-        return new ClassName(); \
+        return TObjectPtr<UObject>(new ClassName()); \
     }
 
 /**
@@ -107,9 +108,9 @@ private: \
 public: \
     typedef ClassName ThisClass; \
     typedef SuperClassName Super; \
-    static UClass* StaticClass(); \
-    virtual UClass* GetClass() const; \
-    static UObject* CreateDefaultObject##ClassName(); \
+    static TObjectPtr<UClass> StaticClass(); \
+    virtual TObjectPtr<UClass> GetClass() const; \
+    static TObjectPtr<UObject> CreateDefaultObject##ClassName(); \
     static ClassName& GetInstance(); \
 private: \
     static TObjectPtr<UClass> ClassPrivate; \
@@ -123,27 +124,27 @@ private: \
 // 싱글톤 클래스 구현부에 사용하는 매크로
 #define IMPLEMENT_SINGLETON_CLASS(ClassName, SuperClassName) \
     TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
-    UClass* ClassName::StaticClass() \
+    TObjectPtr<UClass> ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
         { \
-            ClassPrivate = new UClass( \
+            ClassPrivate = TObjectPtr<UClass>(new UClass( \
                 FString(#ClassName), \
                 SuperClassName::StaticClass(), \
                 sizeof(ClassName), \
                 &ClassName::CreateDefaultObject##ClassName \
-            ); \
+            )); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate.Get(); \
+        return ClassPrivate; \
     } \
-    UClass* ClassName::GetClass() const \
+    TObjectPtr<UClass> ClassName::GetClass() const \
     { \
         return ClassName::StaticClass(); \
     } \
-    UObject* ClassName::CreateDefaultObject##ClassName() \
+    TObjectPtr<UObject> ClassName::CreateDefaultObject##ClassName() \
     { \
-        return &ClassName::GetInstance(); \
+        return TObjectPtr<UObject>(&ClassName::GetInstance()); \
     } \
     ClassName& ClassName::GetInstance() \
     { \
@@ -154,27 +155,27 @@ private: \
 // 싱글톤 베이스 클래스용 매크로 (SuperClass가 nullptr인 경우)
 #define IMPLEMENT_SINGLETON_CLASS_BASE(ClassName) \
     TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
-    UClass* ClassName::StaticClass() \
+    TObjectPtr<UClass> ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
         { \
-            ClassPrivate = new UClass( \
+            ClassPrivate = TObjectPtr<UClass>(new UClass( \
                 FString(#ClassName), \
                 nullptr, \
                 sizeof(ClassName), \
                 &ClassName::CreateDefaultObject##ClassName \
-            ); \
+            )); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate.Get(); \
+        return ClassPrivate; \
     } \
-    UClass* ClassName::GetClass() const \
+    TObjectPtr<UClass> ClassName::GetClass() const \
     { \
         return ClassName::StaticClass(); \
     } \
-    UObject* ClassName::CreateDefaultObject##ClassName() \
+    TObjectPtr<UObject> ClassName::CreateDefaultObject##ClassName() \
     { \
-        return &ClassName::GetInstance(); \
+        return TObjectPtr<UObject>(&ClassName::GetInstance()); \
     } \
     ClassName& ClassName::GetInstance() \
     { \
@@ -185,25 +186,25 @@ private: \
 // UObject의 기본 매크로 (Base Class)
 #define IMPLEMENT_CLASS_BASE(ClassName) \
     TObjectPtr<UClass> ClassName::ClassPrivate = nullptr; \
-    UClass* ClassName::StaticClass() \
+    TObjectPtr<UClass> ClassName::StaticClass() \
     { \
         if (!ClassPrivate) \
         { \
-            ClassPrivate = new UClass( \
+            ClassPrivate = TObjectPtr<UClass>(new UClass( \
                 FString(#ClassName), \
                 nullptr, \
                 sizeof(ClassName), \
                 &ClassName::CreateDefaultObject##ClassName \
-            ); \
+            )); \
             UClass::SignUpClass(ClassPrivate); \
         } \
-        return ClassPrivate.Get(); \
+        return ClassPrivate; \
     } \
-    UClass* ClassName::GetClass() const \
+    TObjectPtr<UClass> ClassName::GetClass() const \
     { \
         return ClassName::StaticClass(); \
     } \
-    UObject* ClassName::CreateDefaultObject##ClassName() \
+    TObjectPtr<UObject> ClassName::CreateDefaultObject##ClassName() \
     { \
-        return new ClassName(); \
+        return TObjectPtr<UObject>(new ClassName()); \
     }

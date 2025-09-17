@@ -29,7 +29,7 @@ public:
 	bool IsUniformScale() const;
 
 	template <typename T>
-	T* CreateDefaultSubobject(const FName& InName);
+	TObjectPtr<T> CreateDefaultSubobject(const FName& InName);
 
 	virtual void BeginPlay();
 	virtual void EndPlay();
@@ -37,7 +37,7 @@ public:
 
 	// Getter & Setter
 	USceneComponent* GetRootComponent() const { return RootComponent.Get(); }
-	TArray<TObjectPtr<UActorComponent>> GetOwnedComponents() const { return OwnedComponents; }
+	const TArray<TObjectPtr<UActorComponent>>& GetOwnedComponents() const { return OwnedComponents; }
 
 	void SetRootComponent(USceneComponent* InOwnedComponents) { RootComponent = InOwnedComponents; }
 
@@ -49,21 +49,19 @@ private:
 	TObjectPtr<USceneComponent> RootComponent = nullptr;
 	TObjectPtr<UBillBoardComponent> BillBoardComponent = nullptr;
 	TArray<TObjectPtr<UActorComponent>> OwnedComponents;
-	//uint64 ShowFlags;
 };
 
 template <typename T>
-T* AActor::CreateDefaultSubobject(const FName& InName)
+TObjectPtr<T> AActor::CreateDefaultSubobject(const FName& InName)
 {
-	T* RawComponent = NewObject<T>(this, nullptr, InName);
-	TObjectPtr<T> NewComponent = TObjectPtr<T>(RawComponent);
+	TObjectPtr<T> NewComponent = NewObject<T>(TObjectPtr<UObject>(this), nullptr, InName);
 
 	if (NewComponent)
 	{
 		// Component에 Owner 설정
 		NewComponent->SetOwner(this);
-		OwnedComponents.push_back(TObjectPtr<UActorComponent>(RawComponent));
+		OwnedComponents.push_back(NewComponent);
 	}
 
-	return RawComponent;
+	return NewComponent;
 }

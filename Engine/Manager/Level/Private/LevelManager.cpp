@@ -132,7 +132,7 @@ bool ULevelManager::SaveCurrentLevel(const FString& InFilePath) const
  */
 bool ULevelManager::LoadLevel(const FString& InLevelName, const FString& InFilePath)
 {
-	UE_LOG("LevelManager: Loading Level '%s' From: %s", InLevelName.c_str(), InFilePath.c_str());
+	UE_LOG("LevelManager: Loading Level '%s' From: %s", InLevelName.data(), InFilePath.data());
 
 	// Make New Level
 	ULevel* NewLevel = new ULevel(InLevelName);

@@ -2,6 +2,7 @@
 #include "Factory/Public/Factory.h"
 
 class AActor;
+class ULevel;
 
 /**
  * @brief Actor Factory
@@ -14,7 +15,7 @@ class UActorFactory :
 	DECLARE_CLASS(UActorFactory, UFactory)
 
 public:
-	virtual AActor* CreateActor(UObject* InWorld, class ULevel* InLevel,
+	virtual TObjectPtr<AActor> CreateActor(TObjectPtr<UObject> InWorld, TObjectPtr<ULevel> InLevel,
 	                            const FTransform& InTransform = FTransform(), uint32 InObjectFlags = 0);
 
 	bool IsActorFactory() const override { return true; }
@@ -25,8 +26,8 @@ public:
 
 protected:
 	// Inheritable function
-	virtual AActor* CreateNewActor() { return nullptr; }
-	UObject* CreateNew() override;
+	virtual TObjectPtr<AActor> CreateNewActor() { return nullptr; }
+	TObjectPtr<UObject> CreateNew() override;
 
 	virtual void PostCreateActor(AActor* InActor, const FTransform& InTransform);
 };

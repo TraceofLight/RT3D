@@ -15,22 +15,21 @@ using std::is_base_of_v;
  * @return 생성된 객체
  */
 template <typename T>
-T* NewObject(UObject* InOuter = nullptr, UClass* InClass = nullptr,
+TObjectPtr<T> NewObject(TObjectPtr<UObject> InOuter = nullptr, TObjectPtr<UClass> InClass = nullptr,
              const FName& InName = FName::None, uint32 InFlags = 0)
 {
 	static_assert(is_base_of_v<UObject, T>, "생성할 클래스는 UObject를 반드시 상속 받아야 합니다");
 
-	UClass* ClassToUse = InClass ? InClass : T::StaticClass();
+	TObjectPtr<UClass> ClassToUse = InClass ? InClass : T::StaticClass();
 
 	// Factory를 사용하여 생성 시도
-	TObjectPtr<UFactory> FactoryPtr = UFactory::FindFactory(TObjectPtr<UClass>(ClassToUse));
-	UFactory* Factory = FactoryPtr.Get();
+	TObjectPtr<UFactory> Factory = UFactory::FindFactory(ClassToUse);
 	if (Factory)
 	{
-		UObject* NewObject = Factory->FactoryCreateNew(ClassToUse, InOuter, InName, InFlags);
+		TObjectPtr<UObject> NewObject = Factory->FactoryCreateNew(ClassToUse, InOuter, InName, InFlags);
 		if (NewObject)
 		{
-			return static_cast<T*>(NewObject);
+			return Cast<T>(NewObject);
 		}
 	}
 
@@ -38,7 +37,7 @@ T* NewObject(UObject* InOuter = nullptr, UClass* InClass = nullptr,
 	UE_LOG_WARNING("NewObject: %s를 생성할 Factory를 찾지 못해, new를 통한 폴백 생성으로 처리합니다",
 	               ClassToUse->GetClass().ToString().data());
 
-	T* NewObject = new T();
+	TObjectPtr<T> NewObject = TObjectPtr<T>(new T());
 	if (NewObject)
 	{
 		if (InName != FName::None)
@@ -63,20 +62,19 @@ T* NewObject(UObject* InOuter = nullptr, UClass* InClass = nullptr,
  * @return 생성된 Actor
  */
 template <typename T>
-T* SpawnActor(ULevel* InLevel, const FTransform& InTransform = FTransform(), const FName& InName = FName::None)
+TObjectPtr<T> SpawnActor(TObjectPtr<ULevel> InLevel, const FTransform& InTransform = FTransform(), const FName& InName = FName::None)
 {
 	static_assert(is_base_of_v<AActor, T>, "생성할 클래스는 AActor를 반드시 상속 받아야 합니다");
 
 	// ActorFactory를 사용하여 생성 시도
-	TObjectPtr<UFactory> FactoryPtr = UFactory::FindFactory(TObjectPtr<UClass>(T::StaticClass()));
-	UFactory* Factory = FactoryPtr.Get();
+	TObjectPtr<UFactory> Factory = UFactory::FindFactory(TObjectPtr<UClass>(T::StaticClass()));
 	if (Factory && Factory->IsActorFactory())
 	{
-		UActorFactory* ActorFactory = static_cast<UActorFactory*>(Factory);
-		AActor* NewActor = ActorFactory->CreateActor(nullptr, InLevel, InTransform);
+		TObjectPtr<UActorFactory> ActorFactory = Cast<UActorFactory>(Factory);
+		TObjectPtr<AActor> NewActor = ActorFactory->CreateActor(nullptr, InLevel, InTransform);
 		if (NewActor)
 		{
-			return static_cast<T*>(NewActor);
+			return Cast<T>(NewActor);
 		}
 	}
 

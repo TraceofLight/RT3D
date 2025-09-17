@@ -22,7 +22,7 @@ UActorFactory::UActorFactory()
  * @param InObjectFlags 객체 플래그
  * @return 생성된 액터 포인터
  */
-AActor* UActorFactory::CreateActor(UObject* InWorld, ULevel* InLevel,
+TObjectPtr<AActor> UActorFactory::CreateActor(TObjectPtr<UObject> InWorld, TObjectPtr<ULevel> InLevel,
                                    const FTransform& InTransform, uint32 InObjectFlags)
 {
 	if (!InLevel)
@@ -32,7 +32,7 @@ AActor* UActorFactory::CreateActor(UObject* InWorld, ULevel* InLevel,
 	}
 
 	// UFactory의 FactoryCreateNew를 사용하여 생성
-	AActor* NewActor = static_cast<AActor*>(
+	TObjectPtr<AActor> NewActor = Cast<AActor>(
 		FactoryCreateNew(GetSupportedClass(), InLevel, FName::None, InObjectFlags));
 
 	if (NewActor)
@@ -50,7 +50,7 @@ AActor* UActorFactory::CreateActor(UObject* InWorld, ULevel* InLevel,
  * @brief UFactory::CreateNew 구현
  * @return 생성된 객체
  */
-UObject* UActorFactory::CreateNew()
+TObjectPtr<UObject> UActorFactory::CreateNew()
 {
 	return CreateNewActor();
 }

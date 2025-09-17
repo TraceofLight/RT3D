@@ -168,7 +168,7 @@ void USceneHierarchyWidget::RenderActorInfo(AActor* InActor, int32 InIndex)
 	FName ActorName = InActor->GetName();
 	FString ActorDisplayName = ActorName.ToString() + " [" + std::to_string(InIndex) + "]";
 
-	if (ImGui::Selectable(ActorDisplayName.c_str(), bIsSelected))
+	if (ImGui::Selectable(ActorDisplayName.data(), bIsSelected))
 	{
 		SelectActor(InActor);
 	}

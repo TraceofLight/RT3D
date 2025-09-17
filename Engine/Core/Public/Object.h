@@ -10,7 +10,7 @@ class UObject
 	DECLARE_CLASS(UObject, UObject)
 
 public:
-	bool IsA(const UClass* InClass) const;
+	bool IsA(TObjectPtr<UClass> InClass) const;
 	void AddMemoryUsage(uint64 InBytes, uint32 InCount);
 	void RemoveMemoryUsage(uint64 InBytes, uint32 InCount);
 

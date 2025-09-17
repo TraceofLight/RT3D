@@ -25,6 +25,7 @@ void* operator new(size_t InSize)
 
 	AllocHeader* MemoryHeader = static_cast<AllocHeader*>(malloc(sizeof(AllocHeader) + InSize));
 	MemoryHeader->size = InSize;
+	MemoryHeader->bIsAligned = false;
 
 	return MemoryHeader + 1;
 }
@@ -65,7 +66,14 @@ void operator delete(void* InMemory) noexcept
 		assert(!u8"allocation 처리한 메모리보다 더 많은 양의 메모리를 해제할 수 없음");
 	}
 
-	free(MemoryHeader);
+	if (MemoryHeader->bIsAligned)
+	{
+		_aligned_free(MemoryHeader);
+	}
+	else
+	{
+		free(MemoryHeader);
+	}
 }
 
 /**
@@ -112,27 +120,13 @@ void* operator new(size_t InSize, align_val_t InAlignment)
 #endif
 
 	// 실제 할당된 크기를 저장
-	MemoryHeader->size = AlignedTotalSize;
+	MemoryHeader->size = InSize;
+	MemoryHeader->bIsAligned = true;
 
 	return MemoryHeader + 1;
 }
 
 void operator delete(void* InMemory, align_val_t InAlignment) noexcept
 {
-	if (!InMemory)
-	{
-		return;
-	}
-
-	AllocHeader* MemoryHeader = static_cast<AllocHeader*>(InMemory) - 1;
-	size_t MemoryAllocSize = MemoryHeader->size;
-
-	--TotalAllocationCount;
-	TotalAllocationBytes -= static_cast<uint32>(MemoryAllocSize);
-
-#ifdef _MSC_VER
-	_aligned_free(MemoryHeader);
-#else
-	free(MemoryHeader);
-#endif
+	::operator delete(InMemory);
 }

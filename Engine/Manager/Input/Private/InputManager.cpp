@@ -343,20 +343,20 @@ void UInputManager::ProcessKeyMessage(uint32 InMessage, WPARAM WParam, LPARAM LP
 	}
 }
 
-TArray<EKeyInput> UInputManager::GetKeysByStatus(EKeyStatus InStatus) const
+const TArray<EKeyInput>& UInputManager::GetKeysByStatus(EKeyStatus InStatus)
 {
-	TArray<EKeyInput> Keys;
+	KeysInStatus.clear();
 
 	for (int32 i = 0; i < static_cast<int32>(EKeyInput::End); ++i)
 	{
 		EKeyInput Key = static_cast<EKeyInput>(i);
 		if (GetKeyStatus(Key) == InStatus)
 		{
-			Keys.push_back(Key);
+			KeysInStatus.push_back(Key);
 		}
 	}
 
-	return Keys;
+	return KeysInStatus;
 }
 
 EKeyStatus UInputManager::GetKeyStatus(EKeyInput InKey) const
@@ -385,18 +385,18 @@ EKeyStatus UInputManager::GetKeyStatus(EKeyInput InKey) const
 	return EKeyStatus::Up;
 }
 
-TArray<EKeyInput> UInputManager::GetPressedKeys() const
+const TArray<EKeyInput>& UInputManager::GetPressedKeys()
 {
 	return GetKeysByStatus(EKeyStatus::Down);
 }
 
-TArray<EKeyInput> UInputManager::GetNewlyPressedKeys() const
+const TArray<EKeyInput>& UInputManager::GetNewlyPressedKeys()
 {
 	// Pressed 상태의 키들을 반환
 	return GetKeysByStatus(EKeyStatus::Pressed);
 }
 
-TArray<EKeyInput> UInputManager::GetReleasedKeys() const
+const TArray<EKeyInput>& UInputManager::GetReleasedKeys()
 {
 	// Released 상태의 키들을 반환
 	return GetKeysByStatus(EKeyStatus::Released);

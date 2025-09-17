@@ -14,9 +14,9 @@ UComponentFactory::UComponentFactory()
  * Factory 기본 규격을 맞추기 위한 함수
  * @return CreateComponent 호출
  */
-UObject* UComponentFactory::CreateNew()
+TObjectPtr<UObject> UComponentFactory::CreateNew()
 {
-    return CreateComponent();
+    return TObjectPtr<UObject>(CreateComponent());
 }
 
 /**

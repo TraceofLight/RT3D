@@ -20,8 +20,8 @@ UCubeActorFactory::UCubeActorFactory()
  * @brief CubeActor 인스턴스를 생성합니다
  * @return 생성된 CubeActor
  */
-AActor* UCubeActorFactory::CreateNewActor()
+TObjectPtr<AActor> UCubeActorFactory::CreateNewActor()
 {
 	UE_LOG_SUCCESS("CubeActorFactory: Creating new CubeActor instance");
-	return new ACubeActor();
+	return TObjectPtr<AActor>(new ACubeActor);
 }

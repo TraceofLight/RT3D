@@ -6,5 +6,6 @@ extern uint32 TotalAllocationCount;
 struct AllocHeader
 {
 	size_t size;
+	bool bIsAligned;
 };
 

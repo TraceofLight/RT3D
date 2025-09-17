@@ -29,8 +29,8 @@ UFactory::UFactory()
  * @param InWarning 경고 출력용 (현재는 미사용)
  * @return 생성된 객체 포인터
  */
-UObject* UFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, const FName& InName,
-                                    uint32 InFlags, UObject* InContext, void* InWarning)
+TObjectPtr<UObject> UFactory::FactoryCreateNew(TObjectPtr<UClass> InClass, TObjectPtr<UObject> InParent, const FName& InName,
+                                    uint32 InFlags, TObjectPtr<UObject> InContext, void* InWarning)
 {
 	if (!DoesSupportClass(InClass))
 	{
@@ -40,7 +40,7 @@ UObject* UFactory::FactoryCreateNew(UClass* InClass, UObject* InParent, const FN
 	}
 
 	// 새 객체 생성
-	UObject* NewObject = CreateNew();
+	TObjectPtr<UObject> NewObject = CreateNew();
 
 	if (NewObject)
 	{
@@ -83,7 +83,7 @@ bool UFactory::DoesSupportClass(UClass* InClass)
  * @brief 이 팩토리가 생성하는 클래스를 반환
  * @return 지원하는 클래스
  */
-UClass* UFactory::GetSupportedClass() const
+TObjectPtr<UClass> UFactory::GetSupportedClass() const
 {
 	return SupportedClass;
 }

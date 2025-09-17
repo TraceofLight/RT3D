@@ -21,11 +21,11 @@ public:
 
 	// Key Status
 	EKeyStatus GetKeyStatus(EKeyInput InKey) const;
-	TArray<EKeyInput> GetKeysByStatus(EKeyStatus InStatus) const;
+	const TArray<EKeyInput>& GetKeysByStatus(EKeyStatus InStatus);
 
-	TArray<EKeyInput> GetPressedKeys() const;
-	TArray<EKeyInput> GetNewlyPressedKeys() const;
-	TArray<EKeyInput> GetReleasedKeys() const;
+	const TArray<EKeyInput>& GetPressedKeys();
+	const TArray<EKeyInput>& GetNewlyPressedKeys();
+	const TArray<EKeyInput>& GetReleasedKeys();
 
 	// Window Focus Management
 	void SetWindowFocus(bool bInFocused);
@@ -50,6 +50,7 @@ private:
 	TMap<EKeyInput, bool> CurrentKeyState;
 	TMap<EKeyInput, bool> PreviousKeyState;
 	TMap<int32, EKeyInput> VirtualKeyMap;
+	TArray<EKeyInput> KeysInStatus;
 
 	// Mouse Position
 	FVector CurrentMousePosition;

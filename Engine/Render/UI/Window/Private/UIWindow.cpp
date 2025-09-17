@@ -368,7 +368,7 @@ void UUIWindow::UpdateWindowInfo()
  */
 float UUIWindow::GetMenuBarOffset() const
 {
-	if (Config.WindowTitle == "MainMenuBar")
+	if (Config.WindowTitle.ToString() == "MainMenuBar")
 	{
 		return 0.0f;
 	}

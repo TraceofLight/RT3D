@@ -13,8 +13,6 @@
 
 #include "Render/UI/Window/Public/ConsoleWindow.h"
 
-#include "Manager/Config/Public/ConfigManager.h"
-
 FClientApp::FClientApp() = default;
 
 FClientApp::~FClientApp() = default;
@@ -31,10 +29,10 @@ FClientApp::~FClientApp() = default;
 int FClientApp::Run(HINSTANCE InInstanceHandle, int InCmdShow)
 {
 	// Memory Leak Detection & Report
-	#ifdef _DEBUG
-		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-		_CrtSetBreakAlloc(0);
-	#endif
+#ifdef _DEBUG
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	_CrtSetBreakAlloc(0);
+#endif
 
 	// Window Object Initialize
 	Window = new FAppWindow(this);
@@ -72,7 +70,7 @@ int FClientApp::Run(HINSTANCE InInstanceHandle, int InCmdShow)
 /**
  * @brief Initialize System For Game Execution
  */
-int FClientApp::InitializeSystem()
+int FClientApp::InitializeSystem() const
 {
 	// Initialize By Get Instance
 	UTimeManager::GetInstance();
@@ -91,9 +89,6 @@ int FClientApp::InitializeSystem()
 	// Create Default Level
 	// TODO(KHJ): 나중에 Init에서 처리하도록 하는 게 맞을 듯
 	ULevelManager::GetInstance().CreateDefaultLevel();
-
-	// Initialize Editor
-	//Editor = new UEditor;
 
 	return S_OK;
 }
@@ -159,8 +154,9 @@ void FClientApp::ShutdownSystem() const
 	ULevelManager::GetInstance().Shutdown();
 	UAssetManager::GetInstance().Release();
 
-	// 레벨 매니저 정리
-	// ULevelManager::GetInstance().Release();
-	//delete Editor;
+	// Release되지 않은 UObject의 메모리 할당 해제
+	// 추후 GC가 처리할 것
+	UClass::Shutdown();
+
 	delete Window;
 }

@@ -20,8 +20,8 @@ UTriangleActorFactory::UTriangleActorFactory()
  * @brief TriangleActor 인스턴스를 생성합니다
  * @return 생성된 TriangleActor
  */
-AActor* UTriangleActorFactory::CreateNewActor()
+TObjectPtr<AActor> UTriangleActorFactory::CreateNewActor()
 {
 	UE_LOG_SUCCESS("TriangleActorFactory: Creating new TriangleActor instance");
-	return new ATriangleActor();
+	return TObjectPtr<AActor>(new ATriangleActor);
 }
