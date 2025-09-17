@@ -24,15 +24,15 @@
 #include <sstream>
 
 // Global Included
-#include "Global/Types.h"
-#include "Global/Memory.h"
-#include "Global/Constant.h"
-#include "Global/Enum.h"
-#include "Global/Matrix.h"
-#include "Global/Vector.h"
-#include "Global/CoreTypes.h"
-#include "Global/Macro.h"
-#include "Global/Function.h"
+#include "Source/Global/Types.h"
+#include "Source/Global/Memory.h"
+#include "Source/Global/Constant.h"
+#include "Source/Global/Enum.h"
+#include "Source/Global/Matrix.h"
+#include "Source/Global/Vector.h"
+#include "Source/Global/CoreTypes.h"
+#include "Source/Global/Macro.h"
+#include "Source/Global/Function.h"
 
 using std::clamp;
 using std::unordered_map;
@@ -61,10 +61,10 @@ using filesystem::exists;
 using filesystem::create_directories;
 
 #define IMGUI_DEFINE_MATH_OPERATORS
-#include "Render/UI/Window/Public/ConsoleWindow.h"
+#include "Source/Render/UI/Window/Public/ConsoleWindow.h"
 
 // DT Include
-#include "Manager/Time/Public/TimeManager.h"
+#include "Source/Manager/Time/Public/TimeManager.h"
 
 // 빌드 조건에 따른 Library 분류
 #ifdef _DEBUG

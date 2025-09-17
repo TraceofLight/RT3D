@@ -1,8 +1,6 @@
 #pragma once
 #include "Global/Vector.h"
 #include "Global/Matrix.h"
-#include "Global/Types.h"
-#include <cstdint>
 
 //struct BatchLineContants
 //{
@@ -38,7 +36,7 @@ struct FRay
 };
 
 /**
- * @brief Render State Settings for Actor's Component 
+ * @brief Render State Settings for Actor's Component
  */
 struct FRenderState
 {

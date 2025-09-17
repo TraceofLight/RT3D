@@ -1,5 +1,4 @@
 #pragma once
-#include "pch.h"
 
 /// @brief 폰트 아틀라스를 사용한 텍스트 렌더링 클래스
 /// DejaVu Sans Mono.png 512x512 아틀라스에서 16x16 픽셀 글자를 렌더링

@@ -2,6 +2,7 @@
 #include "Level/Public/Level.h"
 
 #include "Actor/Public/Actor.h"
+#include "Component/Public/BillBoardComponent.h"
 #include "Component/Public/PrimitiveComponent.h"
 #include "Manager/Level/Public/LevelManager.h"
 

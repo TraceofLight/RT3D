@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "Mesh/Public/Actor.h"
-#include "Mesh/Public/SceneComponent.h"
-#include "Mesh/Public/BillBoardComponent.h"
+#include "Actor/Public/Actor.h"
+#include "Component/Public/SceneComponent.h"
+#include "Component/Public/BillBoardComponent.h"
 
 IMPLEMENT_CLASS(AActor, UObject)
 

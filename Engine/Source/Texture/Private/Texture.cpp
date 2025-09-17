@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Asset/Texture/Public/Texture.h"
+#include "Texture/Public/Texture.h"
 
 IMPLEMENT_CLASS(UTexture, UObject)
 

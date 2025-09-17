@@ -1,12 +1,13 @@
 #include "pch.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/FontRenderer/Public/FontRenderer.h"
 
+#include "Component/Public/BillBoardComponent.h"
 #include "Editor/Public/Editor.h"
 #include "Level/Public/Level.h"
 #include "Manager/Level/Public/LevelManager.h"
 #include "Manager/UI/Public/UIManager.h"
 #include "Component/Public/PrimitiveComponent.h"
+#include "Render/FontRenderer/Public/FontRenderer.h"
 #include "Render/Renderer/Public/Pipeline.h"
 
 IMPLEMENT_SINGLETON_CLASS_BASE(URenderer)
