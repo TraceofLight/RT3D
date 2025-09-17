@@ -85,5 +85,7 @@ struct FMatrix
 
 	static FVector4 VectorMultiply(const FVector4&, const FMatrix&);
 
+	static FVector VectorMultiply(const FVector& v, const FMatrix& m);
+
 	FMatrix Transpose() const;
 };

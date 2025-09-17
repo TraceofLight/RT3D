@@ -39,6 +39,8 @@ public:
 		return Editor;
 	}
 
+
+
 private:
 	ULevel* CurrentLevel;
 	TMap<FName, ULevel*> Levels;

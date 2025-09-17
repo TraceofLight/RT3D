@@ -1,12 +1,13 @@
 // 상수 버퍼 정의
 cbuffer WorldMatrixBuffer : register(b0)
 {
-    matrix WorldMatrix;
+	row_major matrix WorldMatrix;
 };
 
 cbuffer ViewProjectionBuffer : register(b1)
 {
-    matrix ViewProjectionMatrix;
+	row_major float4x4 View; // View Matrix Calculation of MVP Matrix
+	row_major float4x4 Projection; // Projection Matrix Calculation of MVP Matrix
 };
 
 cbuffer FontDataBuffer : register(b2)
@@ -45,7 +46,8 @@ PSInput mainVS(VSInput Input)
 	float4 worldPos = mul(float4(Input.position, 1.0f), WorldMatrix);
 	
 	// 뷰-프로젝션 변환
-	Output.position = mul(worldPos, ViewProjectionMatrix);
+	Output.position = mul(worldPos, View);
+	Output.position = mul(Output.position, Projection);
 	
 	// ASCII 문자를 16x16 그리드로 매핑 (범용적 처리)
 	// ASCII 코드를 기반으로 그리드 위치 계산

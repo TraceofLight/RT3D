@@ -192,7 +192,7 @@ void URenderer::Update()
 	ULevelManager::GetInstance().GetEditor()->RenderEditor();
 
 	// 폰트 렌더링
-	RenderFont();
+	//RenderFont();
 
 	// ImGui 자체 Render 처리가 진행되어야 하므로 따로 처리
 	UUIManager::GetInstance().Render();
@@ -237,40 +237,58 @@ void URenderer::RenderLevel()
 			continue;
 		}
 
-		FRenderState RenderState = PrimitiveComponent->GetRenderState();
-		ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
-
-		// Get view mode from editor
-		const EViewModeIndex ViewMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
-		if (ViewMode == EViewModeIndex::VMI_Wireframe)
+		if (PrimitiveComponent->GetPrimitiveType() == EPrimitiveType::BillBoard)
 		{
-			RenderState.CullMode = ECullMode::None;
-			RenderState.FillMode = EFillMode::WireFrame;
+			auto BillBoard = Cast<UBillBoardComponent>(PrimitiveComponent);
+
+			//BillBoard->UpdateRotationMatrix();
+
+			FString UUIDString = "UID: " + std::to_string(BillBoard->GetUUID());
+
+			FMatrix RT = BillBoard->GetRTMatrix();
+			//RT = FMatrix::Identity();
+
+			const FViewProjConstants& viewProjConstData = ULevelManager::GetInstance().GetEditor()->GetViewProjConstData();
+			//const FMatrix viewProjM = viewProjConstData.View * viewProjConstData.Projection;
+			FontRenderer->RenderText(UUIDString.c_str(), RT, viewProjConstData);
 		}
+		else
+		{
+			FRenderState RenderState = PrimitiveComponent->GetRenderState();
+			ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
 
-		// Update pipeline info
-		FPipelineInfo PipelineInfo = {
-			DefaultInputLayout,
-			DefaultVertexShader,
-			LoadedRasterizerState,
-			DefaultDepthStencilState,
-			DefaultPixelShader,
-			nullptr,
-		};
-		Pipeline->UpdatePipeline(PipelineInfo);
+			// Get view mode from editor
+			const EViewModeIndex ViewMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
+			if (ViewMode == EViewModeIndex::VMI_Wireframe)
+			{
+				RenderState.CullMode = ECullMode::None;
+				RenderState.FillMode = EFillMode::WireFrame;
+			}
 
-		// Update pipeline buffers
-		Pipeline->SetConstantBuffer(0, true, ConstantBufferModels);
-		UpdateConstant(
-			PrimitiveComponent->GetRelativeLocation(),
-			PrimitiveComponent->GetRelativeRotation(),
-			PrimitiveComponent->GetRelativeScale3D());
+			// Update pipeline info
+			FPipelineInfo PipelineInfo = {
+				DefaultInputLayout,
+				DefaultVertexShader,
+				LoadedRasterizerState,
+				DefaultDepthStencilState,
+				DefaultPixelShader,
+				nullptr,
+			};
+			Pipeline->UpdatePipeline(PipelineInfo);
 
-		Pipeline->SetConstantBuffer(2, true, ConstantBufferColor);
-		UpdateConstant(PrimitiveComponent->GetColor());
+			// Update pipeline buffers
+			Pipeline->SetConstantBuffer(0, true, ConstantBufferModels);
+			UpdateConstant(
+				PrimitiveComponent->GetRelativeLocation(),
+				PrimitiveComponent->GetRelativeRotation(),
+				PrimitiveComponent->GetRelativeScale3D());
 
-		Pipeline->SetVertexBuffer(PrimitiveComponent->GetVertexBuffer(), Stride);
-		Pipeline->Draw(static_cast<uint32>(PrimitiveComponent->GetVerticesData()->size()), 0);
+			Pipeline->SetConstantBuffer(2, true, ConstantBufferColor);
+			UpdateConstant(PrimitiveComponent->GetColor());
+
+			Pipeline->SetVertexBuffer(PrimitiveComponent->GetVertexBuffer(), Stride);
+			Pipeline->Draw(static_cast<uint32>(PrimitiveComponent->GetVerticesData()->size()), 0);
+		}
 	}
 }
 
@@ -816,35 +834,35 @@ D3D11_FILL_MODE URenderer::ToD3D11(EFillMode InFill)
 /**
  * @brief 폰트 렌더링 함수 - FontRenderer를 사용하여 텍스트 렌더링
  */
-void URenderer::RenderFont()
-{
-	if (!FontRenderer)
-	{
-		return;
-	}
-
-	// 단순한 직교 투영을 사용하여 테스트 (-100~100 좌표계)
-	FMatrix WorldMatrix = FMatrix::Identity();
-	
-	// 직교 투영 행렬 생성 (2D 화면에 맞게)
-	float left = -100.0f, right = 100.0f;
-	float bottom = -100.0f, top = 100.0f;
-	float nearPlane = -1.0f, farPlane = 1.0f;
-	
-	FMatrix OrthoMatrix;
-	OrthoMatrix.Data[0][0] = 2.0f / (right - left);
-	OrthoMatrix.Data[1][1] = 2.0f / (top - bottom);
-	OrthoMatrix.Data[2][2] = -2.0f / (farPlane - nearPlane);
-	OrthoMatrix.Data[3][0] = -(right + left) / (right - left);
-	OrthoMatrix.Data[3][1] = -(top + bottom) / (top - bottom);
-	OrthoMatrix.Data[3][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
-	OrthoMatrix.Data[0][1] = OrthoMatrix.Data[0][2] = OrthoMatrix.Data[0][3] = 0.0f;
-	OrthoMatrix.Data[1][0] = OrthoMatrix.Data[1][2] = OrthoMatrix.Data[1][3] = 0.0f;
-	OrthoMatrix.Data[2][0] = OrthoMatrix.Data[2][1] = OrthoMatrix.Data[2][3] = 0.0f;
-	OrthoMatrix.Data[3][3] = 1.0f;
-	
-	FMatrix ViewProjMatrix = OrthoMatrix; // 단순히 직교 투영만 사용
-
-	// FontRenderer를 사용하여 "Hello, World!" 텍스트 렌더링
-	FontRenderer->RenderHelloWorld(WorldMatrix, ViewProjMatrix);
-}
+//void URenderer::RenderFont()
+//{
+//	if (!FontRenderer)
+//	{
+//		return;
+//	}
+//
+//	// 단순한 직교 투영을 사용하여 테스트 (-100~100 좌표계)
+//	FMatrix WorldMatrix = FMatrix::Identity();
+//	
+//	// 직교 투영 행렬 생성 (2D 화면에 맞게)
+//	float left = -100.0f, right = 100.0f;
+//	float bottom = -100.0f, top = 100.0f;
+//	float nearPlane = -1.0f, farPlane = 1.0f;
+//	
+//	FMatrix OrthoMatrix;
+//	OrthoMatrix.Data[0][0] = 2.0f / (right - left);
+//	OrthoMatrix.Data[1][1] = 2.0f / (top - bottom);
+//	OrthoMatrix.Data[2][2] = -2.0f / (farPlane - nearPlane);
+//	OrthoMatrix.Data[3][0] = -(right + left) / (right - left);
+//	OrthoMatrix.Data[3][1] = -(top + bottom) / (top - bottom);
+//	OrthoMatrix.Data[3][2] = -(farPlane + nearPlane) / (farPlane - nearPlane);
+//	OrthoMatrix.Data[0][1] = OrthoMatrix.Data[0][2] = OrthoMatrix.Data[0][3] = 0.0f;
+//	OrthoMatrix.Data[1][0] = OrthoMatrix.Data[1][2] = OrthoMatrix.Data[1][3] = 0.0f;
+//	OrthoMatrix.Data[2][0] = OrthoMatrix.Data[2][1] = OrthoMatrix.Data[2][3] = 0.0f;
+//	OrthoMatrix.Data[3][3] = 1.0f;
+//	
+//	FMatrix ViewProjMatrix = OrthoMatrix; // 단순히 직교 투영만 사용
+//
+//	// FontRenderer를 사용하여 "Hello, World!" 텍스트 렌더링
+//	FontRenderer->RenderHelloWorld(WorldMatrix, ViewProjMatrix);
+//}

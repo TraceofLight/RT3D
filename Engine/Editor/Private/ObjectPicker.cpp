@@ -37,6 +37,10 @@ UPrimitiveComponent* UObjectPicker::PickPrimitive(const FRay& WorldRay, TArray<U
 	
 	for (UPrimitiveComponent* Primitive : Candidate)
 	{
+		if (Primitive->GetPrimitiveType() == EPrimitiveType::BillBoard)
+		{
+			continue;
+		}
 		FMatrix ModelMat = Primitive->GetWorldTransformMatrix();
 		FRay ModelRay = GetModelRay(WorldRay, Primitive);
 		if (IsRayPrimitiveCollided(ModelRay, Primitive, ModelMat, &PrimitiveDistance))

@@ -118,15 +118,15 @@ void UFontRenderer::Release()
 /// @brief Hello World 렌더링 (호환성을 위해 유지)
 /// @param WorldMatrix 월드 변환 행렬
 /// @param ViewProjectionMatrix 뷰-프로젝션 변환 행렬
-void UFontRenderer::RenderHelloWorld(const FMatrix& WorldMatrix, const FMatrix& ViewProjectionMatrix)
-{
-    // "Hello, World!" 텍스트 렌더링
-    RenderText("Hello, World!", WorldMatrix, ViewProjectionMatrix);
-}
+//void UFontRenderer::RenderHelloWorld(const FMatrix& WorldMatrix, const FMatrix& ViewProjectionMatrix)
+//{
+//    // "Hello, World!" 텍스트 렌더링
+//    RenderText("Hello, World!", WorldMatrix, ViewProjectionMatrix);
+//}
 
 /// @brief 임의의 텍스트 렌더링
-void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, const FMatrix& ViewProjectionMatrix,
-                               float StartX, float StartY, float CharWidth, float CharHeight)
+void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, const FViewProjConstants& ViewProjectionCostants,
+	float CenterY, float StartZ, float CharWidth, float CharHeight)
 {
     if (!Text || strlen(Text) == 0)
     {
@@ -159,6 +159,8 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
     TArray<FFontVertex> vertices;
     vertices.reserve(tempVertexCount);
 
+	float StartY = CenterY - (textLength * CharWidth) / 2.0f;
+
     // 각 문자에 대해 쿼드 생성
     for (size_t i = 0; i < textLength; ++i)
     {
@@ -172,14 +174,19 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
         FVector2 uv_bottomRight(1.0f, 1.0f);
 
         // 문자의 월드 좌표 계산
-        float x = StartX + i * CharWidth;
-        float y = StartY;
+        float y = StartY + i * CharWidth;
+        float z = StartZ;
 
         // 쿼드의 4개 모서리 좌표
-        FVector topLeft(x, y + CharHeight, 0.0f);
+        /*FVector topLeft(x, y + CharHeight, 0.0f);
         FVector topRight(x + CharWidth, y + CharHeight, 0.0f);
         FVector bottomLeft(x, y, 0.0f);
-        FVector bottomRight(x + CharWidth, y, 0.0f);
+        FVector bottomRight(x + CharWidth, y, 0.0f);*/
+
+		FVector topLeft(0.0f, y, z + CharHeight);
+		FVector topRight(0.0f, y + CharWidth, z + CharHeight);
+		FVector bottomLeft(0.0f, y, z);
+		FVector bottomRight(0.0f, y + CharWidth, z);
 
         // 첫 번째 삼각형 (왼쪽 위, 오른쪽 위, 왼쪽 아래)
         FFontVertex vertex1 = { topLeft, uv_topLeft, asciiCode };
@@ -222,17 +229,17 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
     } worldBuffer;
     worldBuffer.World = WorldMatrix;
 
-    struct ViewProjectionBuffer
+    /*struct ViewProjectionBuffer
     {
         FMatrix ViewProjection;
     } viewProjBuffer;
-    viewProjBuffer.ViewProjection = ViewProjectionMatrix;
+    viewProjBuffer.ViewProjection = ViewProjectionMatrix;*/
 
     // ViewProjection 상수 버퍼 생성 (슬롯 1)
     ID3D11Buffer* viewProjConstantBuffer = nullptr;
     D3D11_BUFFER_DESC viewProjBufferDesc = {};
     viewProjBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
-    viewProjBufferDesc.ByteWidth = sizeof(ViewProjectionBuffer);
+    viewProjBufferDesc.ByteWidth = sizeof(ViewProjectionCostants);
     viewProjBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     viewProjBufferDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
 
@@ -241,7 +248,7 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
         D3D11_MAPPED_SUBRESOURCE mappedResource;
         if (SUCCEEDED(DeviceContext->Map(viewProjConstantBuffer, 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource)))
         {
-            memcpy(mappedResource.pData, &viewProjBuffer, sizeof(viewProjBuffer));
+            memcpy(mappedResource.pData, &ViewProjectionCostants, sizeof(ViewProjectionCostants));
             DeviceContext->Unmap(viewProjConstantBuffer, 0);
         }
     }

@@ -29,6 +29,8 @@ public:
 	explicit UObject(const FName& InName);
 	virtual ~UObject() = default;
 
+	uint32 GetUUID() const { return UUID; }
+
 private:
 	uint32 UUID;
 	uint32 InternalIndex;

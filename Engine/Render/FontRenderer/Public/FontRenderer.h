@@ -36,18 +36,18 @@ public:
     /// @brief "Hello, World!" 텍스트를 화면에 렌더링 (호환성을 위해 유지)
     /// @param WorldMatrix 월드 변환 행렬
     /// @param ViewProjectionMatrix 뷰-프로젝션 변환 행렬
-    void RenderHelloWorld(const FMatrix& WorldMatrix, const FMatrix& ViewProjectionMatrix);
+    //void RenderHelloWorld(const FMatrix& WorldMatrix, const FMatrix& ViewProjectionMatrix);
 
     /// @brief 임의의 텍스트를 화면에 렌더링
     /// @param Text 렌더링할 텍스트 문자열
     /// @param WorldMatrix 월드 변환 행렬
     /// @param ViewProjectionMatrix 뷰-프로젝션 변환 행렬
-    /// @param StartX 시작 X 좌표 (월드 좌표계)
-    /// @param StartY 시작 Y 좌표 (월드 좌표계)
+    /// @param CenterY 중앙 Y 좌표 (모델 좌표계)
+    /// @param StartZ시작 Z 좌표 (모델 좌표계)
     /// @param CharWidth 문자 너비
     /// @param CharHeight 문자 높이
-    void RenderText(const char* Text, const FMatrix& WorldMatrix, const FMatrix& ViewProjectionMatrix,
-                    float StartX = -100.0f, float StartY = 0.0f, float CharWidth = 10.0f, float CharHeight = 10.0f);
+    void RenderText(const char* Text, const FMatrix& WorldMatrix, const FViewProjConstants& ViewProjectionCostants,
+                    float CenterY = 0.0f, float StartZ = -2.5f, float CharWidth = 1.0f, float CharHeight = 2.0f);
 
 private:
     /// @brief 텍스트를 위한 정점 버퍼 생성
