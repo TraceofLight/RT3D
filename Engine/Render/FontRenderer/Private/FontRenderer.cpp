@@ -310,6 +310,28 @@ void UFontRenderer::RenderText(const char* Text, const FMatrix& WorldMatrix, con
 
     DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
+	D3D11_RASTERIZER_DESC rasterDesc = {};
+	rasterDesc.FillMode = D3D11_FILL_SOLID;   // ← 와이어프레임 대신 Solid
+	rasterDesc.CullMode = D3D11_CULL_BACK;    // 보통은 Back-face culling
+	rasterDesc.FrontCounterClockwise = FALSE;
+	rasterDesc.DepthClipEnable = TRUE;
+
+	ID3D11RasterizerState* solidState = nullptr;
+	Device->CreateRasterizerState(&rasterDesc, &solidState);
+	DeviceContext->RSSetState(solidState);
+
+
+	//FRenderState RenderState = PrimitiveComponent->GetRenderState();
+
+	//// Get view mode from editor
+	//const EViewModeIndex ViewMode = ULevelManager::GetInstance().GetEditor()->GetViewMode();
+	//if (ViewMode == EViewModeIndex::VMI_Wireframe)
+	//{
+	//	RenderState.CullMode = ECullMode::None;
+	//	RenderState.FillMode = EFillMode::WireFrame;
+	//}
+	//ID3D11RasterizerState* LoadedRasterizerState = GetRasterizerState(RenderState);
+
     // 4. 셰이더 설정
     DeviceContext->VSSetShader(FontVertexShader, nullptr, 0);
     DeviceContext->PSSetShader(FontPixelShader, nullptr, 0);
