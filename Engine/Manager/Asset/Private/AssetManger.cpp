@@ -155,7 +155,7 @@ const FAABB& UAssetManager::GetAABB(EPrimitiveType InType)
  * @param InFilePath 로드할 텍스처 파일의 경로
  * @return 성공시 ID3D11ShaderResourceView 포인터, 실패시 nullptr
  */
-ComPtr<ID3D11ShaderResourceView> UResourceManager::LoadTexture(const FString& InFilePath, const FName& InName)
+ComPtr<ID3D11ShaderResourceView> UAssetManager::LoadTexture(const FString& InFilePath, const FName& InName)
 {
 	// 이미 로드된 텍스처가 있는지 확인
 	auto Iter = TextureCache.find(InFilePath);
@@ -180,7 +180,7 @@ ComPtr<ID3D11ShaderResourceView> UResourceManager::LoadTexture(const FString& In
  * @param InFilePath 가져올 텍스처 파일의 경로
  * @return 캐시에 있으면 ID3D11ShaderResourceView 포인터, 없으면 nullptr
  */
-ComPtr<ID3D11ShaderResourceView> UResourceManager::GetTexture(const FString& InFilePath)
+ComPtr<ID3D11ShaderResourceView> UAssetManager::GetTexture(const FString& InFilePath)
 {
 	auto Iter = TextureCache.find(InFilePath);
 	if (Iter != TextureCache.end())
@@ -242,7 +242,7 @@ void UAssetManager::ReleaseAllTextures()
  * @param InFilePath 로드할 이미지 파일의 경로
  * @return 성공시 ID3D11ShaderResourceView 포인터, 실패시 nullptr
  */
-ID3D11ShaderResourceView* UResourceManager::CreateTextureFromFile(const path& InFilePath)
+ID3D11ShaderResourceView* UAssetManager::CreateTextureFromFile(const path& InFilePath)
 {
 	URenderer& Renderer = URenderer::GetInstance();
 	ID3D11Device* Device = Renderer.GetDevice();

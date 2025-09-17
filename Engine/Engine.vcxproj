@@ -251,10 +251,6 @@
     <ClInclude Include="Utility\Public\Metadata.h" />
     <ClInclude Include="Utility\Public\UELogParser.h" />
     <ClInclude Include="Core\Public\EngineStatics.h" />
-    <ClInclude Include="Factory\Public\Factory.h" />
-    <ClInclude Include="Factory\Public\FactorySystem.h" />
-    <ClInclude Include="Factory\Actor\Public\ActorFactory.h" />
-    <ClInclude Include="Factory\Component\Public\ComponentFactory.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Editor\Private\BatchLines.cpp" />

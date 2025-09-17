@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Render/FontRenderer/Public/FontRenderer.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Manager/Resource/Public/ResourceManager.h"
+#include "Manager/Asset/Public/AssetManager.h"
 
 UFontRenderer::UFontRenderer()
 {
@@ -473,7 +473,7 @@ bool UFontRenderer::CreateShaders()
 /// @brief 폰트 텍스처 로드
 bool UFontRenderer::LoadFontTexture()
 {
-    UResourceManager& ResourceManager = UResourceManager::GetInstance();
+    UAssetManager& ResourceManager = UAssetManager::GetInstance();
 
     // DejaVu Sans Mono.png 폰트 아틀라스 로드
     UE_LOG("FontRenderer: 폰트 텍스처 로드 시도: Asset/Texture/DejaVu Sans Mono.png");
