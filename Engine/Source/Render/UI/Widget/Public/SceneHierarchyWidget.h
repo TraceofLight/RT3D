@@ -34,6 +34,13 @@ private:
 	TArray<int32> FilteredIndices; // 필터링된 Actor 인덱스 캐시
 	bool bNeedsFilterUpdate = true; // 필터 업데이트 필요 여부
 
+	// 이름 변경 기능
+	TObjectPtr<AActor> RenamingActor = nullptr;
+	char RenameBuffer[256] = "";
+	double LastClickTime = 0.0f;
+	TObjectPtr<AActor> LastClickedActor = nullptr;
+	static constexpr float RENAME_CLICK_DELAY = 0.5f; // 두 번째 클릭 간격
+
 	// 카메라 참조
 	TObjectPtr<UCamera> Camera = nullptr;
 
@@ -50,7 +57,7 @@ private:
 
 	// Camera movement
 	void RenderActorInfo(TObjectPtr<AActor> InActor, int32 InIndex);
-	void SelectActor(TObjectPtr<AActor> InActor, bool bFocusCamera = false);
+	void SelectActor(TObjectPtr<AActor> InActor, bool bInFocusCamera = false);
 	void FocusOnActor(TObjectPtr<AActor> InActor);
 	void UpdateCameraAnimation();
 
@@ -58,4 +65,9 @@ private:
 	void RenderSearchBar();
 	void UpdateFilteredActors(const TArray<TObjectPtr<AActor>>& InLevelActors);
 	static bool IsActorMatchingSearch(const FString& InActorName, const FString& InSearchTerm);
+
+	// 이름 변경 기능
+	void StartRenaming(TObjectPtr<AActor> InActor);
+	void FinishRenaming(bool bInConfirm);
+	bool IsRenaming() const { return RenamingActor != nullptr; }
 };

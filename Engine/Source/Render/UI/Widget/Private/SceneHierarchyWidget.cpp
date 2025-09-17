@@ -211,16 +211,72 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 
 	// 이름 클릭 감지 (오른쪽)
 	ImGui::SameLine();
-	if (ImGui::Selectable(ActorDisplayName.data(), bIsSelected, ImGuiSelectableFlags_SpanAllColumns))
-	{
-		// 싱글 클릭: 선택만 수행
-		SelectActor(InActor, false);
-	}
 
-	// 더블 클릭 감지: 카메라 이동 수행
-	if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+	// 이름 변경 모드인지 확인
+	if (RenamingActor == InActor)
 	{
-		SelectActor(InActor, true);
+		// 이름 변경 입력창
+		ImGui::PushItemWidth(-1.0f);
+		bool bEnterPressed = ImGui::InputText("##Rename", RenameBuffer, sizeof(RenameBuffer),
+		                                      ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll);
+		ImGui::PopItemWidth();
+
+		// Enter 키로 확인
+		if (bEnterPressed)
+		{
+			FinishRenaming(true);
+		}
+		// ESC 키로 취소
+		else if (ImGui::IsKeyPressed(ImGuiKey_Escape))
+		{
+			FinishRenaming(false);
+		}
+		// 다른 곳 클릭으로 취소
+		else if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && !ImGui::IsItemHovered())
+		{
+			FinishRenaming(false);
+		}
+
+		// 포커스 설정 (첫 렌더링에서만)
+		if (ImGui::IsWindowFocused() && !ImGui::IsAnyItemActive())
+		{
+			ImGui::SetKeyboardFocusHere(-1);
+		}
+	}
+	else
+	{
+		// 일반 선택 모드
+		bool bClicked = ImGui::Selectable(ActorDisplayName.data(), bIsSelected, ImGuiSelectableFlags_SpanAllColumns);
+
+		if (bClicked)
+		{
+			double CurrentTime = ImGui::GetTime();
+
+			// 이미 선택된 Actor를 2초 이내 다시 클릭한 경우
+			if (bIsSelected && LastClickedActor == InActor &&
+				(CurrentTime - LastClickTime) > RENAME_CLICK_DELAY &&
+				(CurrentTime - LastClickTime) < 2.0f)
+			{
+				// 이름 변경 모드 시작
+				StartRenaming(InActor);
+			}
+			else
+			{
+				// 일반 선택
+				SelectActor(InActor, false);
+			}
+
+			LastClickTime = CurrentTime;
+			LastClickedActor = InActor;
+		}
+
+		// 더블 클릭 감지: 카메라 이동 수행
+		if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
+		{
+			SelectActor(InActor, true);
+			// 더블클릭 시 이름변경 모드 비활성화
+			FinishRenaming(false);
+		}
 	}
 
 	// 트리 노드로 표시 (접을 수 있도록)
@@ -261,21 +317,21 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 /**
  * @brief Actor를 선택하는 함수
  * @param InActor 선택할 Actor
- * @param bFocusCamera 카메라 포커싱 여부 (더블 클릭 시 true)
+ * @param bInFocusCamera 카메라 포커싱 여부 (더블 클릭 시 true)
  */
-void USceneHierarchyWidget::SelectActor(TObjectPtr<AActor> InActor, bool bFocusCamera)
+void USceneHierarchyWidget::SelectActor(TObjectPtr<AActor> InActor, bool bInFocusCamera)
 {
-	ULevel* CurrentLevel = ULevelManager::GetInstance().GetCurrentLevel();
+	TObjectPtr<ULevel> CurrentLevel = ULevelManager::GetInstance().GetCurrentLevel();
 	if (CurrentLevel)
 	{
 		CurrentLevel->SetSelectedActor(InActor);
 		UE_LOG("SceneHierarchy: %s를 선택했습니다", InActor->GetName().ToString().data());
 
 		// 카메라 포커싱은 더블 클릭에서만 수행
-		if (InActor && bFocusCamera)
+		if (InActor && bInFocusCamera)
 		{
 			FocusOnActor(InActor);
-			UE_LOG("SceneHierarchy: %s에 카메라 포커싱 완료", InActor->GetName().ToString().data());
+			UE_LOG_SUCCESS("SceneHierarchy: %s에 카메라 포커싱 완료", InActor->GetName().ToString().data());
 		}
 	}
 }
@@ -357,7 +413,7 @@ void USceneHierarchyWidget::UpdateCameraAnimation()
 
 	if (!bIsCameraAnimating)
 	{
-		UE_LOG("SceneHierarchy: 카메라 포커싱 애니메이션 완료");
+		UE_LOG_SUCCESS("SceneHierarchy: 카메라 포커싱 애니메이션 완료");
 	}
 }
 
@@ -386,7 +442,7 @@ void USceneHierarchyWidget::RenderSearchBar()
 		FString NewSearchFilter = FString(SearchBuffer);
 		if (NewSearchFilter != SearchFilter)
 		{
-			UE_LOG("SceneHierarchy: 검색어 변경: '%s' -> '%s'", SearchFilter.c_str(), NewSearchFilter.c_str());
+			UE_LOG("SceneHierarchy: 검색어 변경: '%s' -> '%s'", SearchFilter.data(), NewSearchFilter.data());
 			SearchFilter = NewSearchFilter;
 			bNeedsFilterUpdate = true;
 		}
@@ -410,8 +466,8 @@ void USceneHierarchyWidget::UpdateFilteredActors(const TArray<TObjectPtr<AActor>
 	FString SearchLower = SearchFilter;
 	std::transform(SearchLower.begin(), SearchLower.end(), SearchLower.begin(), ::tolower);
 
-	UE_LOG("SceneHierarchy: 검색어 = '%s', 변환된 검색어 = '%s'", SearchFilter.c_str(), SearchLower.c_str());
-	UE_LOG("SceneHierarchy: Level에 %zu개의 Actor가 있습니다", InLevelActors.size());
+	// UE_LOG("SceneHierarchy: 검색어 = '%s', 변환된 검색어 = '%s'", SearchFilter.data(), SearchLower.data());
+	// UE_LOG("SceneHierarchy: Level에 %zu개의 Actor가 있습니다", InLevelActors.size());
 
 	for (int32 i = 0; i < InLevelActors.size(); ++i)
 	{
@@ -419,7 +475,7 @@ void USceneHierarchyWidget::UpdateFilteredActors(const TArray<TObjectPtr<AActor>
 		{
 			FString ActorName = InLevelActors[i]->GetName().ToString();
 			bool bMatches = IsActorMatchingSearch(ActorName, SearchLower);
-			UE_LOG("SceneHierarchy: Actor[%d] = '%s', 매치 = %s", i, ActorName.c_str(), bMatches ? "Yes" : "No");
+			// UE_LOG("SceneHierarchy: Actor[%d] = '%s', 매치 = %s", i, ActorName.c_str(), bMatches ? "Yes" : "No");
 
 			if (bMatches)
 			{
@@ -450,4 +506,64 @@ bool USceneHierarchyWidget::IsActorMatchingSearch(const FString& InActorName, co
 	bool bResult = ActorNameLower.find(InSearchTerm) != std::string::npos;
 
 	return bResult;
+}
+
+/**
+ * @brief 이름 변경 모드를 시작하는 함수
+ * @param InActor 이름을 변경할 Actor
+ */
+void USceneHierarchyWidget::StartRenaming(TObjectPtr<AActor> InActor)
+{
+	if (!InActor)
+	{
+		return;
+	}
+
+	RenamingActor = InActor;
+	FString CurrentName = InActor->GetName().ToString();
+
+	// 현재 이름을 버퍼에 복사 - Detail 패널과 동일한 방식 사용
+	strncpy_s(RenameBuffer, CurrentName.data(), sizeof(RenameBuffer) - 1);
+	RenameBuffer[sizeof(RenameBuffer) - 1] = '\0';
+
+	UE_LOG("SceneHierarchy: '%s' 에 대한 이름 변경 시작", CurrentName.data());
+}
+
+/**
+ * @brief 이름 변경을 완료하는 함수
+ * @param bInConfirm true면 적용, false면 취소
+ */
+void USceneHierarchyWidget::FinishRenaming(bool bInConfirm)
+{
+	if (!RenamingActor)
+	{
+		return;
+	}
+
+	if (bInConfirm)
+	{
+		FString NewName = FString(RenameBuffer);
+		// 빈 이름 방지 및 이름 변경 여부 확인
+		if (!NewName.empty() && NewName != RenamingActor->GetName().ToString())
+		{
+			// Detail 패널과 동일한 방식 사용
+			RenamingActor->SetDisplayName(NewName);
+			UE_LOG_SUCCESS("SceneHierarchy: Actor의 이름을 '%s' (으)로 변경하였습니다", NewName.c_str());
+
+			// 검색 필터를 업데이트해야 할 수도 있음
+			bNeedsFilterUpdate = true;
+		}
+		else if (NewName.empty())
+		{
+			UE_LOG_WARNING("SceneHierarchy: 빈 이름으로 인해 이름 변경 취소됨");
+		}
+	}
+	else
+	{
+		UE_LOG_WARNING("SceneHierarchy: 이름 변경 취소");
+	}
+
+	// 상태 초기화
+	RenamingActor = nullptr;
+	RenameBuffer[0] = '\0';
 }
