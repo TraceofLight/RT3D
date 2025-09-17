@@ -56,12 +56,13 @@ void UTargetActorTransformWidget::RenderWidget()
 	// ImGui::Text("Level Memory: %.3f KB", static_cast<float>(LevelMemoryByte) / KILO);
 	// ImGui::Separator();
 
-	ImGui::Text("동적 할당된 메모리 정보");
-	ImGui::Text("Overall Object Count: %u", TotalAllocationCount);
-	ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
-	ImGui::Separator();
+	// XXX(KHJ): 동적 할당된 메모리 정보 필요하면 다른 곳에 자리 찾을 것
+	// ImGui::Text("동적 할당된 메모리 정보");
+	// ImGui::Text("Overall Object Count: %u", TotalAllocationCount);
+	// ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
+	// ImGui::Separator();
 
-	ImGui::Text("Actor 정보");
+	ImGui::Text("Transform");
 
 	if (SelectedActor)
 	{
@@ -95,7 +96,7 @@ void UTargetActorTransformWidget::RenderWidget()
 	}
 	else
 	{
-		ImGui::TextUnformatted("선택된 Actor가 존재하지 않습니다");
+		ImGui::TextUnformatted("Detail을 보기 위해 Object를 선택해주세요");
 	}
 
 	ImGui::Separator();

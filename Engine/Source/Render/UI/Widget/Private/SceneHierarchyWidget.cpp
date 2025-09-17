@@ -5,6 +5,7 @@
 #include "Level/Public/Level.h"
 #include "Actor/Public/Actor.h"
 #include "Editor/Public/Camera.h"
+#include "Component/Public/PrimitiveComponent.h"
 
 USceneHierarchyWidget::USceneHierarchyWidget()
 	: UWidget("Scene Hierarchy Widget")
@@ -58,7 +59,7 @@ void USceneHierarchyWidget::RenderWidget()
 	ImGui::Spacing();
 
 	// Actor 리스트를 스크롤 가능한 영역으로 표시
-	if (ImGui::BeginChild("ActorList", ImVec2(0, -80), true))
+	if (ImGui::BeginChild("ActorList", ImVec2(0, 0), true))
 	{
 		for (int32 i = 0; i < static_cast<int32>(LevelActors.size()); ++i)
 		{
@@ -95,12 +96,13 @@ void USceneHierarchyWidget::RenderWidget()
 
 /**
  * @brief Actor 정보를 렌더링하는 헬퍼 함수
- * TODO(KHJ): 컴포넌트 정보 탐색을 위한 트리 노드를 작업 후 남겨두었음, 필요하다면 사용할 것
  * @param InActor 렌더링할 Actor
  * @param InIndex Actor의 인덱스
  */
 void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 InIndex)
 {
+	// TODO(KHJ): 컴포넌트 정보 탐색을 위한 트리 노드를 작업 후 남겨두었음, 필요하다면 사용할 것
+
 	if (!InActor)
 	{
 		return;
@@ -117,11 +119,66 @@ void USceneHierarchyWidget::RenderActorInfo(TObjectPtr<AActor> InActor, int32 In
 	}
 
 	FName ActorName = InActor->GetName();
-	FString ActorDisplayName = ActorName.ToString() + " [" + std::to_string(InIndex) + "]";
+	FString ActorDisplayName = ActorName.ToString();
 
-	// 싱글 클릭: 선택만 수행
-	if (ImGui::Selectable(ActorDisplayName.data(), bIsSelected))
+	// Actor의 PrimitiveComponent들의 Visibility 체크
+	bool bHasPrimitive = false;
+	bool bAllVisible = true;
+	TObjectPtr<UPrimitiveComponent> FirstPrimitive = nullptr;
+
+	// Actor의 모든 Component 중에서 PrimitiveComponent 찾기
+	for (auto& Component : InActor->GetOwnedComponents())
 	{
+		if (TObjectPtr<UPrimitiveComponent> PrimitiveComponent = Cast<UPrimitiveComponent>(Component))
+		{
+			bHasPrimitive = true;
+
+			if (!FirstPrimitive)
+			{
+				FirstPrimitive = PrimitiveComponent;
+			}
+
+			if (!PrimitiveComponent->IsVisible())
+			{
+				bAllVisible = false;
+			}
+		}
+	}
+
+	// PrimitiveComponent가 있는 경우에만 Visibility 버튼 표시
+	if (bHasPrimitive)
+	{
+		ImGui::PushID(InIndex);
+		if (ImGui::SmallButton(bAllVisible ? "[O]" : "[X]"))
+		{
+			// 모든 PrimitiveComponent의 Visibility 토글
+			bool bNewVisibility = !bAllVisible;
+			for (auto& Component : InActor->GetOwnedComponents())
+			{
+				if (UPrimitiveComponent* PrimComp = Cast<UPrimitiveComponent>(Component))
+				{
+					PrimComp->SetVisibility(bNewVisibility);
+				}
+			}
+			UE_LOG_INFO("SceneHierarchy: %s 컴포넌트의 가시성이 %s로 변경되었습니다",
+			       ActorName.ToString().data(),
+			       bNewVisibility ? "Visible" : "Hidden");
+		}
+		ImGui::PopID();
+	}
+	else
+	{
+		// PrimitiveComponent가 없는 경우 비활성화된 버튼 표시
+		ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.5f);
+		ImGui::SmallButton("[-]");
+		ImGui::PopStyleVar();
+	}
+
+	// 이름 클릭 감지 (오른쪽)
+	ImGui::SameLine();
+	if (ImGui::Selectable(ActorDisplayName.data(), bIsSelected, ImGuiSelectableFlags_SpanAllColumns))
+	{
+		// 싱글 클릭: 선택만 수행
 		SelectActor(InActor, false);
 	}
 
@@ -181,7 +238,7 @@ void USceneHierarchyWidget::SelectActor(TObjectPtr<AActor> InActor, bool bFocusC
 		if (InActor && bFocusCamera)
 		{
 			FocusOnActor(InActor);
-			UE_LOG("SceneHierarchy: %s에 카메라 포커싱 (더블 클릭)", InActor->GetName().ToString().data());
+			UE_LOG("SceneHierarchy: %s에 카메라 포커싱", InActor->GetName().ToString().data());
 		}
 	}
 }
@@ -216,7 +273,7 @@ void USceneHierarchyWidget::FocusOnActor(TObjectPtr<AActor> InActor)
 	bIsCameraAnimating = true;
 	CameraAnimationTime = 0.0f;
 
-	UE_LOG("SceneHierarchy: 카메라를 %s에 포커싱합니다", InActor->GetName().ToString().data());
+	UE_LOG("SceneHierarchy: 카메라를 '%s' 에 포커싱합니다", InActor->GetName().ToString().data());
 }
 
 /**
