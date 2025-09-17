@@ -38,7 +38,7 @@ void UActorDetailWidget::RenderWidget()
 	TObjectPtr<AActor> SelectedActor = CurrentLevel->GetSelectedActor();
 	if (!SelectedActor)
 	{
-		ImGui::TextUnformatted("No Actor Selected");
+		ImGui::TextUnformatted("No Object Selected");
 		ImGui::TextColored(ImVec4(0.6f, 0.6f, 0.6f, 1.0f), "Detail 확인을 위해 Object를 선택해주세요");
 		return;
 	}

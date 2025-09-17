@@ -33,4 +33,7 @@ UExperimentalFeatureWindow::UExperimentalFeatureWindow()
 void UExperimentalFeatureWindow::Initialize()
 {
 	UE_LOG("ExperimentalFeatureWindow: Window가 성공적으로 생성되었습니다");
+
+	// 실험실은 일단 Hidden으로 초기화
+	SetWindowState(EUIWindowState::Hidden);
 }

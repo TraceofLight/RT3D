@@ -18,6 +18,7 @@ enum class EEngineShowFlags : uint64
 {
 	SF_Primitives = 0x01,
 	SF_BillboardText = 0x10,
+	SF_Bounds = 0x20,
 };
 
 inline uint64 operator|(EEngineShowFlags lhs, EEngineShowFlags rhs)
@@ -85,7 +86,9 @@ private:
 	//////////////////////////////////////////////////////////////////////////
 	UCamera* CameraPtr = nullptr;
 
-	uint64 ShowFlags = EEngineShowFlags::SF_Primitives | EEngineShowFlags::SF_BillboardText;
+	uint64 ShowFlags = static_cast<uint64>(EEngineShowFlags::SF_Primitives) |
+					   static_cast<uint64>(EEngineShowFlags::SF_BillboardText) |
+					   static_cast<uint64>(EEngineShowFlags::SF_Bounds);
 
 	// 지연 삭제 처리 함수
 	void ProcessPendingDeletions();

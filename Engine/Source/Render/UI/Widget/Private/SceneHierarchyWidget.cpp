@@ -42,10 +42,6 @@ void USceneHierarchyWidget::RenderWidget()
 	ImGui::Text("Level: %s", CurrentLevel->GetName().ToString().c_str());
 	ImGui::Separator();
 
-	// --- 옵션 체크박스들 ---
-	// ImGui::Checkbox("Show Details", &bShowDetails);
-	// ImGui::Separator();
-
 	const TArray<TObjectPtr<AActor>>& LevelActors = CurrentLevel->GetLevelActors();
 
 	if (LevelActors.empty())

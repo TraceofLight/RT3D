@@ -296,6 +296,23 @@ void UMainBarWidget::RenderShowFlagsMenu()
 			CurrentLevel->SetShowFlags(ShowFlags);
 		}
 
+		// Bounds 표시 옵션
+		bool bShowBounds = (ShowFlags & EEngineShowFlags::SF_Bounds) != 0;
+		if (ImGui::MenuItem("바운딩박스 표시", nullptr, bShowBounds))
+		{
+			if (bShowBounds)
+			{
+				ShowFlags &= ~static_cast<uint64>(EEngineShowFlags::SF_Bounds);
+				UE_LOG("MainBarWidget: 바운딩박스 비표시");
+			}
+			else
+			{
+				ShowFlags |= static_cast<uint64>(EEngineShowFlags::SF_Bounds);
+				UE_LOG("MainBarWidget: 바운딩박스 표시");
+			}
+			CurrentLevel->SetShowFlags(ShowFlags);
+		}
+
 		ImGui::EndMenu();
 	}
 }
