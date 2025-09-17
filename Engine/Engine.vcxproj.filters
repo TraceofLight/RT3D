@@ -252,6 +252,9 @@
     <ClCompile Include="Mesh\Private\VertexDatas.cpp">
       <Filter>Mesh\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Global\Quaternion.cpp">
+      <Filter>Global</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />

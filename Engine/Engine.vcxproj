@@ -276,6 +276,7 @@
     <ClCompile Include="Factory\Private\FactorySystem.cpp" />
     <ClCompile Include="Global\Matrix.cpp" />
     <ClCompile Include="Global\Memory.cpp" />
+    <ClCompile Include="Global\Quaternion.cpp" />
     <ClCompile Include="Global\Vector.cpp" />
     <ClCompile Include="ImGui\imgui.cpp" />
     <ClCompile Include="ImGui\imgui_demo.cpp" />
