@@ -7,6 +7,10 @@
 #include "UI/UIManager.h"
 #include "MemoryManager.h"
 
+// FWindowsPlatformTime static 변수 초기화
+double FWindowsPlatformTime::GSecondsPerCycle = 0.0;
+bool FWindowsPlatformTime::bInitialized = false;
+
 #pragma comment(lib, "d2d1")
 #pragma comment(lib, "dwrite")
 
@@ -94,13 +98,50 @@ void UStatsOverlayD2D::UpdateRenderingStats(uint32 InDrawCalls, uint32 InMateria
     MaterialChangesHistory[StatsHistoryIndex] = InMaterialChanges;
     TextureChangesHistory[StatsHistoryIndex] = InTextureChanges;
     ShaderChangesHistory[StatsHistoryIndex] = InShaderChanges;
+    
+    // 추가 성능 지표 히스토리 업데이트
+    PickingTimeHistory[StatsHistoryIndex] = CurrentPickingTime;
+    AttemptsHistory[StatsHistoryIndex] = CurrentAttempts;
+    AccumulatedTimeHistory[StatsHistoryIndex] = CurrentAccumulatedTime;
+    
     StatsHistoryIndex = (StatsHistoryIndex + 1) % STATS_HISTORY_SIZE;
+}
+
+void UStatsOverlayD2D::UpdatePickingTime(double PickingTimeMs)
+{
+    CurrentPickingTime = PickingTimeMs;
+    UpdateAccumulatedTime(PickingTimeMs);
+}
+
+void UStatsOverlayD2D::IncrementAttempts()
+{
+    ++CurrentAttempts;
+}
+
+void UStatsOverlayD2D::UpdateAccumulatedTime(double AccumTimeMs)
+{
+    CurrentAccumulatedTime += AccumTimeMs;
 }
 
 void UStatsOverlayD2D::Draw()
 {
     if (!bInitialized || (!bShowFPS && !bShowMemory && !bShowRenderStats) || !SwapChain)
         return;
+    
+    // FWindowsPlatformTime 초기화 및 고성능 FPS 계산
+    FWindowsPlatformTime::InitTiming();
+    
+    CurrentFrameTime = FPlatformTime::Cycles64();
+    if (LastFrameTime != 0)
+    {
+        uint64_t CycleDiff = CurrentFrameTime - LastFrameTime;
+        PreciseFrameTime = FPlatformTime::ToMilliseconds(CycleDiff);
+        PreciseFPS = PreciseFrameTime > 0.0 ? (1000.0 / PreciseFrameTime) : 0.0;
+
+        FPSHistory[FPSHistoryIndex] = PreciseFPS;
+        FPSHistoryIndex = (FPSHistoryIndex + 1) % FPS_HISTORY_SIZE;
+    }
+    LastFrameTime = CurrentFrameTime;
 
     ID2D1Factory1* d2dFactory = nullptr;
     D2D1_FACTORY_OPTIONS opts{};
@@ -184,20 +225,57 @@ void UStatsOverlayD2D::Draw()
 
     if (bShowFPS)
     {
-        float dt = UUIManager::GetInstance().GetDeltaTime();
-        float fps = dt > 0.0f ? (1.0f / dt) : 0.0f;
-        float ms = dt * 1000.0f;
+        // FPS 히스토리에서 평균 계산 (더 안정적인 표시)
+        double AvgFPS = 0.0;
+        int ValidSamples = 0;
+        for (int i = 0; i < FPS_HISTORY_SIZE; ++i)
+        {
+            if (FPSHistory[i] > 0.0)
+            {
+                AvgFPS += FPSHistory[i];
+                ValidSamples++;
+            }
+        }
+        if (ValidSamples > 0)
+        {
+            AvgFPS /= ValidSamples;
+        }
+        else
+        {
+            AvgFPS = PreciseFPS;
+        }
+        
+        // 성능 지표 평균값 계산
+        double AvgPickingTime = 0.0;
+        uint32 AvgAttempts = 0;
+        double AvgAccumulatedTime = 0.0;
+        
+        for (int i = 0; i < STATS_HISTORY_SIZE; ++i)
+        {
+            AvgPickingTime += PickingTimeHistory[i];
+            AvgAttempts += AttemptsHistory[i];
+            AvgAccumulatedTime += AccumulatedTimeHistory[i];
+        }
+        AvgPickingTime /= STATS_HISTORY_SIZE;
+        AvgAttempts /= STATS_HISTORY_SIZE;
+        AvgAccumulatedTime /= STATS_HISTORY_SIZE;
 
-        wchar_t buf[128];
-        swprintf_s(buf, L"FPS: %.1f\nFrame time: %.2f ms", fps, ms);
+        // 스크린샷과 같은 형식으로 표시
+        wchar_t buf[512];
+        swprintf_s(buf, L"FPS : %.0f (%.0f ms)\nPicking Time %.0f ms : Num Attempts %u : Accumulated Time %.0f ms",
+                  AvgFPS, PreciseFrameTime, AvgPickingTime, AvgAttempts, AvgAccumulatedTime);
 
-        D2D1_RECT_F rc = D2D1::RectF(margin, nextY, margin + panelWidth, nextY + panelHeight);
+        // 더 큰 패널 크기 (더 많은 정보 표시)
+        const float extendedPanelWidth = 600.0f;
+        const float extendedPanelHeight = 45.0f;
+        
+        D2D1_RECT_F rc = D2D1::RectF(margin, nextY, margin + extendedPanelWidth, nextY + extendedPanelHeight);
         DrawTextBlock(
             d2dCtx, dwrite, buf, rc, 16.0f,
-            D2D1::ColorF(0, 0, 0, 0.6f),
-            D2D1::ColorF(D2D1::ColorF::Yellow));
+            D2D1::ColorF(0, 0, 0, 0.7f),    // 약간 더 진한 배경
+            D2D1::ColorF(0.0f, 1.0f, 0.0f, 1.0f));  // 밝은 녹색 텍스트 (스크린샷과 동일)
 
-        nextY += panelHeight + 8.0f;
+        nextY += extendedPanelHeight + 8.0f;
     }
 
     if (bShowMemory)

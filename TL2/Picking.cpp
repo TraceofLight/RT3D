@@ -1,6 +1,7 @@
 ﻿#include "pch.h"
 
 #include "Picking.h"
+#include "UI/StatsOverlayD2D.h"
 #include "Actor.h"
 #include "StaticMeshActor.h"
 #include "StaticMeshComponent.h"
@@ -238,6 +239,12 @@ AActor* CPickingSystem::PerformPicking(const TArray<AActor*>& Actors, ACameraAct
     int pickedIndex = -1;
     float pickedT = 1e9f;
 
+    // Picking 성능 측정 시작 (Referenced)
+    TStatId PickingStatId;
+    FScopeCycleCounter PickingCounter(PickingStatId);
+    UStatsOverlayD2D& StatsOverlay = UStatsOverlayD2D::Get();
+    StatsOverlay.IncrementAttempts(); // 피킹 시도 횟수 증가
+    
     // 모든 액터에 대해 피킹 테스트
     for (int i = 0; i < Actors.Num(); ++i)
     {
@@ -257,6 +264,11 @@ AActor* CPickingSystem::PerformPicking(const TArray<AActor*>& Actors, ACameraAct
             }
         }
     }
+    
+    // Picking 성능 측정 종료 (Referenced)
+    uint64_t PickingCycles = PickingCounter.Finish();
+    double PickingTimeMs = FPlatformTime::ToMilliseconds(PickingCycles);
+    StatsOverlay.UpdatePickingTime(PickingTimeMs);
 
     if (pickedIndex >= 0)
     {
@@ -294,7 +306,13 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
     int pickedIndex = -1;
     float pickedT = 1e9f;
 
-    // 모든 액터에 대해 피킹 테스트
+    // === 피킹 성능 측정 시작 ===
+    TStatId PickingStatId2;
+    FScopeCycleCounter PickingCounter2(PickingStatId2);
+    UStatsOverlayD2D& StatsOverlay2 = UStatsOverlayD2D::Get();
+    StatsOverlay2.IncrementAttempts(); // 피킹 시도 횟수 증가
+    
+    // 모든 액터에 대해 피킹 테스트 (실제 알고리즘 부분)
     for (int i = 0; i < Actors.Num(); ++i)
     {
         AActor* Actor = Actors[i];
@@ -313,6 +331,11 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
             }
         }
     }
+    
+    // === 피킹 성능 측정 종료 ===
+    uint64_t PickingCycles2 = PickingCounter2.Finish();
+    double PickingTimeMs2 = FPlatformTime::ToMilliseconds(PickingCycles2);
+    StatsOverlay2.UpdatePickingTime(PickingTimeMs2);
 
     if (pickedIndex >= 0)
     {
@@ -351,7 +374,13 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
     int pickedIndex = -1;
     float pickedT = 1e9f;
 
-    // 모든 액터에 대해 피킹 테스트
+    // === 피킹 성능 측정 시작 ===
+    TStatId PickingStatId3;
+    FScopeCycleCounter PickingCounter3(PickingStatId3);
+    UStatsOverlayD2D& StatsOverlay3 = UStatsOverlayD2D::Get();
+    StatsOverlay3.IncrementAttempts(); // 피킹 시도 횟수 증가
+    
+    // 모든 액터에 대해 피킹 테스트 (실제 알고리즘 부분)
     for (int i = 0; i < Actors.Num(); ++i)
     {
         AActor* Actor = Actors[i];
@@ -370,6 +399,11 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
             }
         }
     }
+    
+    // === 피킹 성능 측정 종료 ===
+    uint64_t PickingCycles3 = PickingCounter3.Finish();
+    double PickingTimeMs3 = FPlatformTime::ToMilliseconds(PickingCycles3);
+    StatsOverlay3.UpdatePickingTime(PickingTimeMs3);
 
     if (pickedIndex >= 0)
     {
