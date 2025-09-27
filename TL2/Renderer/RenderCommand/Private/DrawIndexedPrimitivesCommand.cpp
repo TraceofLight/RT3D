@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "RenderCommand/Public/DrawIndexedPrimitivesCommand.h"
+#include "Renderer/RenderCommand/Public/DrawIndexedPrimitivesCommand.h"
 
 /**
  * @brief Primitive Render 명령을 실행 

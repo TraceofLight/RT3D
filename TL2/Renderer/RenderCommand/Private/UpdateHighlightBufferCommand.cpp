@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "RenderCommand/Public/UpdateHighlightBufferCommand.h"
+#include "Renderer/RenderCommand/Public/UpdateHighlightBufferCommand.h"
 
 /**
  * @brief Highlight Buffer Command를 실행하는 함수
