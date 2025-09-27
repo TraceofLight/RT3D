@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "SceneView/Public/SceneView.h"
+#include "Renderer/SceneView/Public/SceneView.h"
 
 #include "CameraActor.h"
 #include "CameraComponent.h"

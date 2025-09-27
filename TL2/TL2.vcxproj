@@ -200,6 +200,7 @@
     <ClCompile Include="Renderer\RenderCommand\Private\SetViewModeCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\UpdateConstantBufferCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\UpdateHighlightBufferCommand.cpp" />
+    <ClCompile Include="Renderer\SceneView\Private\SceneView.cpp" />
     <ClCompile Include="RenderingStats.cpp" />
     <ClCompile Include="RenderViewportSwitcherWidget.cpp" />
     <ClCompile Include="ResourceBase.cpp" />
@@ -374,6 +375,7 @@
     <ClInclude Include="Renderer\RenderCommand\Public\SetViewModeCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\UpdateConstantBufferCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\UpdateHighlightBufferCommand.h" />
+    <ClInclude Include="Renderer\SceneView\Public\SceneView.h" />
     <ClInclude Include="RenderingStats.h" />
     <ClInclude Include="RenderViewportSwitcherWidget.h" />
     <ClInclude Include="ResourceBase.h" />
