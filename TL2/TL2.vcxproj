@@ -356,6 +356,7 @@
     <ClInclude Include="Object.h" />
     <ClInclude Include="PrimitiveComponent.h" />
     <ClInclude Include="RenderingStats.h" />
+    <ClInclude Include="RenderCommand.h" />
     <ClInclude Include="RenderViewportSwitcherWidget.h" />
     <ClInclude Include="ResourceBase.h" />
     <ClInclude Include="SceneComponent.h" />
