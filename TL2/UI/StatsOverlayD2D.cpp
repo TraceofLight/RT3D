@@ -81,9 +81,25 @@ static void DrawTextBlock(
     SafeRelease(brushFill);
 }
 
+void UStatsOverlayD2D::UpdateRenderingStats(uint32 InDrawCalls, uint32 InMaterialChanges, uint32 InTextureChanges, uint32 InShaderChanges)
+{
+    // 현재 데이터 업데이트
+    CurrentDrawCalls = InDrawCalls;
+    CurrentMaterialChanges = InMaterialChanges;
+    CurrentTextureChanges = InTextureChanges;
+    CurrentShaderChanges = InShaderChanges;
+    
+    // 히스토리에 추가
+    DrawCallsHistory[StatsHistoryIndex] = InDrawCalls;
+    MaterialChangesHistory[StatsHistoryIndex] = InMaterialChanges;
+    TextureChangesHistory[StatsHistoryIndex] = InTextureChanges;
+    ShaderChangesHistory[StatsHistoryIndex] = InShaderChanges;
+    StatsHistoryIndex = (StatsHistoryIndex + 1) % STATS_HISTORY_SIZE;
+}
+
 void UStatsOverlayD2D::Draw()
 {
-    if (!bInitialized || (!bShowFPS && !bShowMemory) || !SwapChain)
+    if (!bInitialized || (!bShowFPS && !bShowMemory && !bShowRenderStats) || !SwapChain)
         return;
 
     ID2D1Factory1* d2dFactory = nullptr;
@@ -196,6 +212,35 @@ void UStatsOverlayD2D::Draw()
             d2dCtx, dwrite, buf, rc, 16.0f,
             D2D1::ColorF(0, 0, 0, 0.6f),
             D2D1::ColorF(D2D1::ColorF::LightGreen));
+            
+        nextY += panelHeight + 8.0f;
+    }
+    
+    if (bShowRenderStats)
+    {
+        uint32 AvgDrawCalls = 0, AvgMaterialChanges = 0, AvgTextureChanges = 0, AvgShaderChanges = 0;
+        
+        for (int i = 0; i < STATS_HISTORY_SIZE; ++i)
+        {
+            AvgDrawCalls += DrawCallsHistory[i];
+            AvgMaterialChanges += MaterialChangesHistory[i];
+            AvgTextureChanges += TextureChangesHistory[i];
+            AvgShaderChanges += ShaderChangesHistory[i];
+        }
+        AvgDrawCalls /= STATS_HISTORY_SIZE;
+        AvgMaterialChanges /= STATS_HISTORY_SIZE;
+        AvgTextureChanges /= STATS_HISTORY_SIZE;
+        AvgShaderChanges /= STATS_HISTORY_SIZE;
+        
+        wchar_t Buffer[256];
+        swprintf_s(Buffer, L"DrawCalls: %u\nMaterials: %u\nTextures: %u\nShaders: %u", 
+                  AvgDrawCalls, AvgMaterialChanges, AvgTextureChanges, AvgShaderChanges);
+
+        D2D1_RECT_F rc = D2D1::RectF(margin, nextY, margin + panelWidth, nextY + panelHeight * 1.5f);
+        DrawTextBlock(
+            d2dCtx, dwrite, Buffer, rc, 14.0f,
+            D2D1::ColorF(0, 0, 0, 0.6f),
+            D2D1::ColorF(D2D1::ColorF::Cyan));
     }
 
     d2dCtx->EndDraw();
@@ -220,6 +265,11 @@ void UStatsOverlayD2D::SetShowMemory(bool b)
     bShowMemory = b;
 }
 
+void UStatsOverlayD2D::SetShowRenderStats(bool b)
+{
+    bShowRenderStats = b;
+}
+
 void UStatsOverlayD2D::ToggleFPS()
 {
     bShowFPS = !bShowFPS;
@@ -228,4 +278,9 @@ void UStatsOverlayD2D::ToggleFPS()
 void UStatsOverlayD2D::ToggleMemory()
 {
     bShowMemory = !bShowMemory;
+}
+
+void UStatsOverlayD2D::ToggleRenderStats()
+{
+    bShowRenderStats = !bShowRenderStats;
 }

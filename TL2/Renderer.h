@@ -66,7 +66,13 @@ private:
     UShader* LineShader = nullptr;
     bool bLineBatchActive = false;
     static const uint32 MAX_LINES = 10000;  // Maximum lines per batch
+    
+    // 렌더링 통계를 위한 상태 추적
+    UMaterial* LastMaterial = nullptr;
+    UShader* LastShader = nullptr;
+    UTexture* LastTexture = nullptr;
 
     void InitializeLineBatch();
+    void ResetRenderStateTracking();
 };
 

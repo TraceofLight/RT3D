@@ -4,6 +4,8 @@
 #include "StaticMesh.h"
 #include "TextQuad.h"
 #include "StaticMeshComponent.h"
+#include "RenderingStats.h"
+#include "UI/StatsOverlayD2D.h"
 
 
 URenderer::URenderer(URHIDevice* InDevice) : RHIDevice(InDevice)
@@ -21,6 +23,12 @@ URenderer::~URenderer()
 
 void URenderer::BeginFrame()
 {
+    // 렌더링 통계 수집 시작
+    URenderingStatsCollector::GetInstance().BeginFrame();
+    
+    // 상태 추적 리셋
+    ResetRenderStateTracking();
+    
     // 백버퍼/깊이버퍼를 클리어
     RHIDevice->ClearBackBuffer();  // 배경색
     RHIDevice->ClearDepthBuffer(1.0f, 0);                 // 깊이값 초기화
@@ -43,6 +51,13 @@ void URenderer::PrepareShader(FShader& InShader)
 
 void URenderer::PrepareShader(UShader* InShader)
 {
+    // 셰이더 변경 추적
+    if (LastShader != InShader)
+    {
+        URenderingStatsCollector::GetInstance().IncrementShaderChanges();
+        LastShader = InShader;
+    }
+    
     RHIDevice->GetDeviceContext()->VSSetShader(InShader->GetVertexShader(), nullptr, 0);
     RHIDevice->GetDeviceContext()->PSSetShader(InShader->GetPixelShader(), nullptr, 0);
     RHIDevice->GetDeviceContext()->IASetInputLayout(InShader->GetInputLayout());
@@ -97,6 +112,10 @@ void URenderer::UpdateUVScroll(const FVector2D& Speed, float TimeSec)
 
 void URenderer::DrawIndexedPrimitiveComponent(UStaticMesh* InMesh, D3D11_PRIMITIVE_TOPOLOGY InTopology, const TArray<FMaterialSlot>& InComponentMaterialSlots)
 {
+    URenderingStatsCollector& StatsCollector = URenderingStatsCollector::GetInstance();
+    
+    // 디버그: StaticMesh 렌더링 통계
+    
     UINT stride = 0;
     switch (InMesh->GetVertexType())
     {
@@ -141,14 +160,36 @@ void URenderer::DrawIndexedPrimitiveComponent(UStaticMesh* InMesh, D3D11_PRIMITI
             const UMaterial* const Material = UResourceManager::GetInstance().Get<UMaterial>(InComponentMaterialSlots[i].MaterialName);
             const FObjMaterialInfo& MaterialInfo = Material->GetMaterialInfo();
             bool bHasTexture = !(MaterialInfo.DiffuseTextureFileName.empty());
+            
+            // 재료 변경 추적
+            if (LastMaterial != Material)
+            {
+                StatsCollector.IncrementMaterialChanges();
+                LastMaterial = const_cast<UMaterial*>(Material);
+            }
+            
+            FTextureData* TextureData = nullptr;
             if (bHasTexture)
             {
                 FWideString WTextureFileName(MaterialInfo.DiffuseTextureFileName.begin(), MaterialInfo.DiffuseTextureFileName.end()); // 단순 ascii라고 가정
-                FTextureData* TextureData = UResourceManager::GetInstance().CreateOrGetTextureData(WTextureFileName);
+                TextureData = UResourceManager::GetInstance().CreateOrGetTextureData(WTextureFileName);
+                
+                // 텍스처 변경 추적 (임시로 FTextureData*를 UTexture*로 캠스트)
+                UTexture* CurrentTexture = reinterpret_cast<UTexture*>(TextureData);
+                if (LastTexture != CurrentTexture)
+                {
+                    StatsCollector.IncrementTextureChanges();
+                    LastTexture = CurrentTexture;
+                }
+                
                 RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &(TextureData->TextureSRV));
             }
+            
             RHIDevice->UpdatePixelConstantBuffers(MaterialInfo, true, bHasTexture); // PSSet도 해줌
+            
+            // DrawCall 수실행 및 통계 추가
             RHIDevice->GetDeviceContext()->DrawIndexed(MeshGroupInfos[i].IndexCount, MeshGroupInfos[i].StartIndex, 0);
+            StatsCollector.IncrementDrawCalls();
         }
     }
     else
@@ -156,16 +197,37 @@ void URenderer::DrawIndexedPrimitiveComponent(UStaticMesh* InMesh, D3D11_PRIMITI
         FObjMaterialInfo ObjMaterialInfo;
         RHIDevice->UpdatePixelConstantBuffers(ObjMaterialInfo, false, false); // PSSet도 해줌
         RHIDevice->GetDeviceContext()->DrawIndexed(IndexCount, 0, 0);
+        StatsCollector.IncrementDrawCalls();
     }
 }
 
 void URenderer::DrawIndexedPrimitiveComponent(UTextRenderComponent* Comp, D3D11_PRIMITIVE_TOPOLOGY InTopology)
 {
+    URenderingStatsCollector& StatsCollector = URenderingStatsCollector::GetInstance();
+    
+    // 디버그: TextRenderComponent 렌더링 통계
+    
     UINT Stride = sizeof(FBillboardVertexInfo_GPU);
     ID3D11Buffer* VertexBuff = Comp->GetStaticMesh()->GetVertexBuffer();
     ID3D11Buffer* IndexBuff = Comp->GetStaticMesh()->GetIndexBuffer();
 
-    RHIDevice->GetDeviceContext()->IASetInputLayout(Comp->GetMaterial()->GetShader()->GetInputLayout());
+    // 매테리얼 변경 추적
+    UMaterial* CompMaterial = Comp->GetMaterial();
+    if (LastMaterial != CompMaterial)
+    {
+        StatsCollector.IncrementMaterialChanges();
+        LastMaterial = CompMaterial;
+    }
+    
+    UShader* CompShader = CompMaterial->GetShader();
+    // 셰이더 변경 추적
+    if (LastShader != CompShader)
+    {
+        StatsCollector.IncrementShaderChanges();
+        LastShader = CompShader;
+    }
+    
+    RHIDevice->GetDeviceContext()->IASetInputLayout(CompShader->GetInputLayout());
 
     
     UINT offset = 0;
@@ -176,11 +238,20 @@ void URenderer::DrawIndexedPrimitiveComponent(UTextRenderComponent* Comp, D3D11_
         IndexBuff, DXGI_FORMAT_R32_UINT, 0
     );
 
-    ID3D11ShaderResourceView* TextureSRV = Comp->GetMaterial()->GetTexture()->GetShaderResourceView();
+    // 텍스처 변경 추적 (텍스처 비교)
+    UTexture* CompTexture = CompMaterial->GetTexture();
+    if (LastTexture != CompTexture)
+    {
+        StatsCollector.IncrementTextureChanges();
+        LastTexture = CompTexture;
+    }
+    
+    ID3D11ShaderResourceView* TextureSRV = CompTexture->GetShaderResourceView();
     RHIDevice->PSSetDefaultSampler(0);
     RHIDevice->GetDeviceContext()->PSSetShaderResources(0, 1, &TextureSRV);
     RHIDevice->GetDeviceContext()->IASetPrimitiveTopology(InTopology);
     RHIDevice->GetDeviceContext()->DrawIndexed(Comp->GetStaticMesh()->GetIndexCount(), 0, 0);
+    StatsCollector.IncrementDrawCalls();
 }
 
 void URenderer::SetViewModeType(EViewModeIndex ViewModeIndex)
@@ -194,6 +265,22 @@ void URenderer::SetViewModeType(EViewModeIndex ViewModeIndex)
 
 void URenderer::EndFrame()
 {
+    // 렌더링 통계 수집 종료
+    URenderingStatsCollector& StatsCollector = URenderingStatsCollector::GetInstance();
+    StatsCollector.EndFrame();
+    
+    // 현재 프레임 통계를 업데이트
+    const FRenderingStats& CurrentStats = StatsCollector.GetCurrentFrameStats();
+    StatsCollector.UpdateFrameStats(CurrentStats);
+    
+    // 평균 통계를 얻어서 오버레이에 업데이트
+    const FRenderingStats& AvgStats = StatsCollector.GetAverageStats();
+    UStatsOverlayD2D::Get().UpdateRenderingStats(
+        AvgStats.TotalDrawCalls,
+        AvgStats.MaterialChanges,
+        AvgStats.TextureChanges,
+        AvgStats.ShaderChanges
+    );
     
     RHIDevice->Present();
 }
@@ -318,9 +405,19 @@ void URenderer::EndLineBatch(const FMatrix& ModelMatrix, const FMatrix& ViewMatr
         RHIDevice->GetDeviceContext()->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
         RHIDevice->GetDeviceContext()->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
         RHIDevice->GetDeviceContext()->DrawIndexed(DynamicLineMesh->GetCurrentIndexCount(), 0, 0);
+        
+        // 라인 렌더링에 대한 DrawCall 통계 추가
+        URenderingStatsCollector::GetInstance().IncrementDrawCalls();
     }
     
     bLineBatchActive = false;
+}
+
+void URenderer::ResetRenderStateTracking()
+{
+    LastMaterial = nullptr;
+    LastShader = nullptr;
+    LastTexture = nullptr;
 }
 
 void URenderer::ClearLineBatch()
