@@ -32,6 +32,7 @@ public:
     virtual ~IRHICommand() = default;
 
     virtual void Execute() = 0;
+    virtual ERHICommandType GetCommandType() const = 0;
 
     // XXX(KHJ): FName_None 처리하고 싶은데 없고 귀찮으니 어차피 직접 호출할 일 없어야 하니까 적당한 값으로 처리
     virtual const FName& GetName() const { return FName{""}; }

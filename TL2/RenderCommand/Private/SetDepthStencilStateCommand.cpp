@@ -1,0 +1,15 @@
+#include "pch.h"
+#include "RenderCommand/Public/SetDepthStencilStateCommand.h"
+
+/**
+ * @brief Depth Stencil State 설정을 실행하는 함수
+ */
+void FRHISetDepthStencilStateCommand::Execute()
+{
+    if (!Renderer)
+    {
+        return;
+    }
+
+    Renderer->OMSetDepthStencilState(CompareFunction);
+}
