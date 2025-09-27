@@ -253,6 +253,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RHIDevice.cpp" />
+    <ClCompile Include="SceneView\Private\SceneView.cpp" />
     <ClCompile Include="SControlPanel.cpp" />
     <ClCompile Include="SDetailsWindow.cpp" />
     <ClCompile Include="ShapeComponent.cpp" />
@@ -395,6 +396,7 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="RHIDevice.h" />
     <ClInclude Include="SceneRotationUtils.h" />
+    <ClInclude Include="SceneView\Public\SceneView.h" />
     <ClInclude Include="SControlPanel.h" />
     <ClInclude Include="SDetailsWindow.h" />
     <ClInclude Include="Shader.h" />
