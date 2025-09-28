@@ -7,6 +7,7 @@
 #include "RenderPass/Public/RenderPass.h"
 #include "SceneView/Public/SceneView.h"
 #include "SceneViewFamily/Public/SceneViewFamily.h"
+#include "RenderCommand/Public/RHICommandList.h"
 
 // 전역 RHI 인스턴스
 D3D11RHI* FSceneRenderer::GlobalRHI = nullptr;
@@ -18,7 +19,14 @@ FSceneRenderer* FSceneRenderer::CreateSceneRenderer(const FSceneViewFamily& InVi
 
 FSceneRenderer::FSceneRenderer(const FSceneViewFamily& InViewFamily)
     : ViewFamily(&InViewFamily)
+    , CommandList(nullptr)
 {
+    // RenderCommandList 생성
+    if (GlobalRHI)
+    {
+        CommandList = new FRHICommandList(GlobalRHI);
+    }
+    
     CreateDefaultRenderPasses();
 }
 
@@ -48,11 +56,14 @@ void FSceneRenderer::Render()
 
 void FSceneRenderer::RenderView(const FSceneView* InSceneView)
 {
-    if (!InSceneView)
+    if (!InSceneView || !CommandList)
     {
         return;
     }
 
+    // CommandList 초기화
+    CommandList->Clear();
+    
     // 각 렌더 패스 실행
     for (IRenderPass* Pass : RenderPasses)
     {
@@ -61,6 +72,9 @@ void FSceneRenderer::RenderView(const FSceneView* InSceneView)
             Pass->Execute(InSceneView, this);
         }
     }
+    
+    // 모든 Command 실행
+    CommandList->Execute();
 }
 
 void FSceneRenderer::Cleanup()
@@ -75,6 +89,13 @@ void FSceneRenderer::Cleanup()
     }
 
     RenderPasses.Empty();
+    
+    // CommandList 정리
+    if (CommandList)
+    {
+        delete CommandList;
+        CommandList = nullptr;
+    }
 }
 
 void FSceneRenderer::CreateDefaultRenderPasses()

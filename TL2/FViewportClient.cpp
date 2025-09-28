@@ -21,9 +21,7 @@ FViewportClient::FViewportClient()
     SetupCameraMode();
 }
 
-FViewportClient::~FViewportClient()
-{
-}
+FViewportClient::~FViewportClient() = default;
 
 void FViewportClient::Tick(float DeltaTime)
 {
@@ -36,61 +34,12 @@ void FViewportClient::Tick(float DeltaTime)
 
 void FViewportClient::Draw(FViewport* Viewport)
 {
-    // TODO(KHJ): SceneRenderer 사용 전 코드. 필요 없으면 제거할 것
-    // if (!Viewport || !World) return;
-    //
-    // // 뷰포트의 실제 크기로 aspect ratio 계산
-    // float ViewportAspectRatio = static_cast<float>(Viewport->GetSizeX()) / static_cast<float>(Viewport->GetSizeY());
-    // if (Viewport->GetSizeY() == 0) ViewportAspectRatio = 1.0f; // 0으로 나누기 방지
-    //
-    // switch (ViewportType)
-    // {
-    // case EViewportType::Perspective:
-    // {
-    //     ACameraActor* MainCamera = World->GetCameraActor();
-    //     MainCamera->GetCameraComponent()->SetProjectionMode(ECameraProjectionMode::Perspective);
-    //     if (Viewport->GetMainViewport()) {
-    //         Camera = MainCamera;
-    //     }
-    //     Camera->GetCameraComponent()->SetProjectionMode(ECameraProjectionMode::Perspective);
-    //     PerspectiveCameraPosition = Camera->GetActorLocation();
-    //     PerspectiveCameraRotation = Camera->GetActorRotation();
-    //     PerspectiveCameraFov = Camera->GetCameraComponent()->GetFOV();
-    //       if (World)
-    //       {
-    //           World->SetViewModeIndex(ViewModeIndex);
-    //           World->RenderViewports(Camera, Viewport);
-    //           World->GetGizmoActor()->Render(Camera, Viewport);
-    //       }
-    //     break;
-    // }
-    // case EViewportType::Orthographic_Top:
-    // case EViewportType::Orthographic_Front:
-    // case EViewportType::Orthographic_Left:
-    // case EViewportType::Orthographic_Back:
-    // case EViewportType::Orthographic_Bottom:
-    // case EViewportType::Orthographic_Right:
-    // {
-    //     Camera = ViewPortCamera;
-    //     Camera->GetCameraComponent()->SetProjectionMode(ECameraProjectionMode::Orthographic);
-    //     SetupCameraMode();
-    //     // 월드의 모든 액터들을 렌더링
-    //     if (World)
-    //     {
-    //         World->SetViewModeIndex(ViewModeIndex);
-    //         World->RenderViewports(Camera, Viewport);
-    //         
-    //         World->GetGizmoActor()->Render(Camera, Viewport);
-    //     }
-    //     break;
-    // }
-    // }
-
-    // RHI에서 렌더링 시작
+    // RHI 가져오기
     URHIDevice* RHI = FSceneRenderer::GetGlobalRHI();
-    if (!RHI) return;
-
-    RHI->BeginRender();
+    if (!RHI)
+    {
+        return;
+    }
 
     try
     {
@@ -99,7 +48,6 @@ void FViewportClient::Draw(FViewport* Viewport)
 
         if (!Camera)
         {
-            RHI->EndRender();
             return;
         }
 
@@ -140,11 +88,9 @@ void FViewportClient::Draw(FViewport* Viewport)
     {
         // 예외 발생 시도 리소스 정리 보장
     }
-
-    // RHI에서 렌더링 종료
-    RHI->EndRender();
 }
 
+// 레거시 지원
 void FViewportClient::SetupCameraMode()
 {
     Camera = ViewPortCamera;
@@ -194,23 +140,23 @@ void FViewportClient::SetupCameraMode()
 
 void FViewportClient::SetupCameraForViewportType()
 {
-    if (!Camera || !ViewPortCamera) return;
-
-    // 뷰포트 카메라를 현재 카메라로 설정
     Camera = ViewPortCamera;
 
     switch (ViewportType)
     {
     case EViewportType::Perspective:
-        // 원근 투영 - 저장된 원근 카메라 설정 사용
-        Camera->SetActorLocation(PerspectiveCameraPosition);
-        Camera->SetActorRotation(PerspectiveCameraRotation);
-        Camera->GetCameraComponent()->SetFOV(PerspectiveCameraFov);
         Camera->GetCameraComponent()->SetProjectionMode(ECameraProjectionMode::Perspective);
+        // 현재 카메라 상태를 저장
+        PerspectiveCameraPosition = Camera->GetActorLocation();
+        PerspectiveCameraRotation = Camera->GetActorRotation();
+        PerspectiveCameraFov = Camera->GetCameraComponent()->GetFOV();
+        // 플래그 동기화
+        if (PerspectiveCameraInput) {
+            Camera->SetPerspectiveCameraInput(true);
+        }
         break;
 
     case EViewportType::Orthographic_Top:
-        // 상단 직교 뷰
         Camera->SetActorLocation({CameraAddPosition.X, CameraAddPosition.Y, 1000});
         Camera->SetActorRotation(FQuat::MakeFromEuler({0, 90, 0}));
         Camera->GetCameraComponent()->SetFOV(OrthographicZoom);

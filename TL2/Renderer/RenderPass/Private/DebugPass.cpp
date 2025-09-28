@@ -15,7 +15,6 @@
 #include "Renderer\RenderCommand\Public\SetBlendStateCommand.h"
 #include "LineComponent.h"
 
-
 FDebugPass::~FDebugPass()
 {
     // Debug Pass 소멸자 - 필요한 경우 리소스 정리
@@ -248,9 +247,120 @@ void FDebugPass::RenderActorLines(AActor* Actor, const FSceneView* View, FSceneR
                 
                 LineComp->GetWorldLineData(StartPoints, EndPoints, Colors);
                 
-                // TODO: RHI를 사용해서 라인들을 렌더링
-                // 예: RHI->DrawLines(StartPoints, EndPoints, Colors, ViewMatrix, ProjectionMatrix);
+                // RHI를 사용해서 라인들을 렌더링 (구 Renderer 방식)
+                RenderLines(StartPoints, EndPoints, Colors, ViewMatrix, ProjectionMatrix);
             }
         }
+    }
+}
+
+void FDebugPass::RenderLines(const TArray<FVector>& StartPoints, const TArray<FVector>& EndPoints, 
+                             const TArray<FVector4>& Colors, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
+{
+    if (StartPoints.empty() || EndPoints.empty() || Colors.empty()) return;
+    if (StartPoints.size() != EndPoints.size() || StartPoints.size() != Colors.size()) return;
+    
+    URHIDevice* RHI = FSceneRenderer::GetGlobalRHI();
+    if (!RHI) return;
+    
+    
+    // 구 Renderer Line 배치 방식을 RHI로 직접 구현
+    // 1. 라인 셸이더 로드 및 바인드
+    UShader* LineShader = UResourceManager::GetInstance().Load<UShader>("ShaderLine.hlsl", EVertexLayoutType::PositionColor);
+    if (!LineShader) 
+    {
+        return;
+    }
+    
+    ID3D11DeviceContext* DeviceContext = RHI->GetDeviceContext();
+    DeviceContext->VSSetShader(LineShader->GetVertexShader(), nullptr, 0);
+    DeviceContext->PSSetShader(LineShader->GetPixelShader(), nullptr, 0);
+    DeviceContext->IASetInputLayout(LineShader->GetInputLayout());
+    
+    // 2. 상수 버퍼 업데이트
+    RHI->UpdateConstantBuffers(FMatrix::Identity(), ViewMatrix, ProjectionMatrix);
+    
+    // 3. 라인 데이터를 정점 버퍼로 생성
+    std::vector<FVertexSimple> vertices;
+    std::vector<uint32> indices;
+    
+    vertices.reserve(StartPoints.size() * 2);
+    indices.reserve(StartPoints.size() * 2);
+    
+    for (size_t i = 0; i < StartPoints.size(); ++i)
+    {
+        uint32 startIndex = static_cast<uint32>(vertices.size());
+        
+        // 시작점과 끝점을 정점으로 추가
+        FVertexSimple startVertex, endVertex;
+        startVertex.Position = StartPoints[i];
+        startVertex.Color = Colors[i];
+        endVertex.Position = EndPoints[i];
+        endVertex.Color = Colors[i];
+        
+        vertices.push_back(startVertex);
+        vertices.push_back(endVertex);
+        
+        // 라인 인덱스 추가
+        indices.push_back(startIndex);
+        indices.push_back(startIndex + 1);
+    }
+    
+    // 4. 동적 버퍼 생성 및 데이터 업로드
+    ID3D11Buffer* vertexBuffer = nullptr;
+    ID3D11Buffer* indexBuffer = nullptr;
+    
+    // 정점 버퍼 생성
+    D3D11_BUFFER_DESC vbd = {};
+    vbd.Usage = D3D11_USAGE_DYNAMIC;
+    vbd.ByteWidth = static_cast<UINT>(sizeof(FVertexSimple) * vertices.size());
+    vbd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vbd.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+    
+    D3D11_SUBRESOURCE_DATA vinitData = {};
+    vinitData.pSysMem = vertices.data();
+    
+    HRESULT hr = RHI->GetDevice()->CreateBuffer(&vbd, &vinitData, &vertexBuffer);
+    if (FAILED(hr) || !vertexBuffer)
+    {
+        return;
+    }
+    
+    // 인덱스 버퍼 생성
+    D3D11_BUFFER_DESC ibd = {};
+    ibd.Usage = D3D11_USAGE_DEFAULT;
+    ibd.ByteWidth = static_cast<UINT>(sizeof(uint32) * indices.size());
+    ibd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+    ibd.CPUAccessFlags = 0;
+    
+    D3D11_SUBRESOURCE_DATA iinitData = {};
+    iinitData.pSysMem = indices.data();
+    
+    hr = RHI->GetDevice()->CreateBuffer(&ibd, &iinitData, &indexBuffer);
+    if (FAILED(hr) || !indexBuffer)
+    {
+        if (vertexBuffer) vertexBuffer->Release();
+        return;
+    }
+    
+    // 5. 버퍼 바인드 및 렌더링
+    UINT stride = sizeof(FVertexSimple);
+    UINT offset = 0;
+    
+    DeviceContext->IASetVertexBuffers(0, 1, &vertexBuffer, &stride, &offset);
+    DeviceContext->IASetIndexBuffer(indexBuffer, DXGI_FORMAT_R32_UINT, 0);
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    
+    // 6. DrawCall 실행!
+    DeviceContext->DrawIndexed(static_cast<UINT>(indices.size()), 0, 0);
+    
+    // 7. 리소스 정리
+    if (vertexBuffer)
+    {
+        vertexBuffer->Release();
+    }
+    if (indexBuffer)
+    {
+        indexBuffer->Release();
     }
 }

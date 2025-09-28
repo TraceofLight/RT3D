@@ -6,6 +6,7 @@
 #include "../Public/RenderPass.h"
 #include "../../SceneView/Public/SceneView.h"
 #include "../../SceneRenderer.h"
+#include "../../RenderCommand/Public/RHICommandList.h"
 #include "../../../World.h"
 #include "../../../RHIDevice.h"
 #include "../../../SelectionManager.h"
@@ -37,10 +38,13 @@ void FBasePass::Execute(const FSceneView* View, FSceneRenderer* SceneRenderer)
     if (!View || !SceneRenderer) return;
 
     UWorld* World = View->GetWorld();
-    if (!World) return;
+    if (!World) {
+        printf("[BasePass] World is null!\n");
+        return;
+    }
 
-    URHIDevice* RHI = FSceneRenderer::GetGlobalRHI();
-    if (!RHI) return;
+    FRHICommandList* RHICmdList = SceneRenderer->GetCommandList();
+    if (!RHICmdList) return;
 
     // 뷰 매트릭스 계산
     ACameraActor* Camera = View->GetCamera();
@@ -55,10 +59,10 @@ void FBasePass::Execute(const FSceneView* View, FSceneRenderer* SceneRenderer)
     FMatrix ViewMatrix = Camera->GetViewMatrix();
     FMatrix ProjectionMatrix = Camera->GetProjectionMatrix(ViewportAspectRatio, Viewport);
 
-    // 뷰 모드 설정
+    // 뷰 모드 설정 (CommandList로 처리)
     EViewModeIndex ViewModeIndex = View->GetViewModeIndex();
-    RHI->RSSetState(ViewModeIndex);
-
+    // TODO: ViewMode Command 추가 예정
+    
     FVector HighlightColor(1.0f, 1.0f, 1.0f);
 
     // === 라인 배치 시작 ===
@@ -79,7 +83,7 @@ void FBasePass::Execute(const FSceneView* View, FSceneRenderer* SceneRenderer)
                 EEngineShowFlags::SF_StaticMeshes))
                 continue;
 
-            RenderActor(Actor, View, SceneRenderer, ViewMatrix, ProjectionMatrix, HighlightColor);
+            RenderActor(Actor, View, RHICmdList, ViewMatrix, ProjectionMatrix, HighlightColor);
         }
     }
 
@@ -92,26 +96,30 @@ void FBasePass::Execute(const FSceneView* View, FSceneRenderer* SceneRenderer)
 
         // Grid Show Flag 체크
         if (Cast<AGridActor>(EngineActor) && !World->IsShowFlagEnabled(EEngineShowFlags::SF_Grid))
+        {
             continue;
+        }
 
-        RenderActor(EngineActor, View, SceneRenderer, ViewMatrix, ProjectionMatrix, HighlightColor);
+        RenderActor(EngineActor, View, RHICmdList, ViewMatrix, ProjectionMatrix, HighlightColor);
     }
 }
 
-void FBasePass::RenderActor(AActor* Actor, const FSceneView* View, FSceneRenderer* SceneRenderer,
+void FBasePass::RenderActor(AActor* Actor, const FSceneView* View, FRHICommandList* RHICmdList,
                             const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix,
                             const FVector& HighlightColor)
 {
-    if (!Actor || !View) return;
+    if (!Actor || !View || !RHICmdList)
+    {
+        return;
+    }
 
-    URHIDevice* RHI = FSceneRenderer::GetGlobalRHI();
     UWorld* World = View->GetWorld();
 
     // 선택 상태 확인
     bool bIsSelected = USelectionManager::GetInstance().IsActorSelected(Actor);
 
-    // 하이라이트 상수 버퍼 업데이트
-    RHI->UpdateHighLightConstantBuffers(bIsSelected ? 1 : 0, HighlightColor, 0, 0, 0, 0);
+    // 하이라이트 상수 버퍼 업데이트 (CommandList로 처리)
+    // TODO: UpdateHighlightBuffers Command 추가
 
     // 액터의 모든 컴포넌트 렌더링
     for (USceneComponent* Component : Actor->GetComponents())
@@ -135,33 +143,29 @@ void FBasePass::RenderActor(AActor* Actor, const FSceneView* View, FSceneRendere
 
         if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Component))
         {
-            RenderPrimitiveComponent(Primitive, View, SceneRenderer, ViewMatrix, ProjectionMatrix);
+            RenderPrimitiveComponent(Primitive, View, RHICmdList, ViewMatrix, ProjectionMatrix);
         }
     }
 
-    // 블렌드 스테이트 종료
-    RHI->OMSetBlendState(false);
+    // 블렌드 스테이트 종료 (CommandList로 처리)
+    RHICmdList->SetBlendState(false);
 }
 
 void FBasePass::RenderPrimitiveComponent(UPrimitiveComponent* Component, const FSceneView* View,
-                                         FSceneRenderer* SceneRenderer, const FMatrix& ViewMatrix,
+                                         FRHICommandList* RHICmdList, const FMatrix& ViewMatrix,
                                          const FMatrix& ProjectionMatrix)
 {
-    if (!Component || !View) return;
+    if (!Component || !View || !RHICmdList)
+    {
+        return;
+    }
 
-    URHIDevice* RHI = FSceneRenderer::GetGlobalRHI();
-    if (!RHI) return;
+    // 뷰 모드 설정 (CommandList로 처리)
+    // TODO: ViewMode Command 추가
 
-    // 뷰 모드 설정
-    EViewModeIndex ViewModeIndex = View->GetViewModeIndex();
-    RHI->RSSetState(ViewModeIndex);
+    // Primitive Component 렌더링 (CommandList로 처리)
+    RHICmdList->DrawIndexedPrimitive(Component, ViewMatrix, ProjectionMatrix);
 
-    // 기존 URenderer::Render 방식을 유지하되 RHI를 전달
-    // TODO: 나중에 Component 인터페이스를 RHI 기반으로 대체
-
-    // 임시로 전역 RHI를 사용하여 렌더링
-    // Component->RenderWithRHI(RHI, ViewMatrix, ProjectionMatrix);
-
-    // 깊이 스텐실 상태 복원
-    RHI->OmSetDepthStencilState(EComparisonFunc::LessEqual);
+    // 깊이 스텐실 상태 복원 (CommandList로 처리)
+    RHICmdList->SetDepthStencilState(EComparisonFunc::LessEqual);
 }

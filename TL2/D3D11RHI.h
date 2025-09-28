@@ -19,8 +19,8 @@ public:
 
     void Release() override;
 
-    void BeginRender() override;
-    void EndRender() override;
+    void BeginFrame() override;
+    void EndFrame() override;
 
 public:
     // clear
@@ -164,6 +164,11 @@ private:
     ID3D11Buffer* ConstantBuffer{};
 
     ID3D11SamplerState* DefaultSamplerState = nullptr;
+    
+    // 기본 셔이더들
+    ID3D11VertexShader* DefaultVertexShader = nullptr;
+    ID3D11PixelShader* DefaultPixelShader = nullptr;
+    ID3D11InputLayout* DefaultInputLayout = nullptr;
 };
 
 

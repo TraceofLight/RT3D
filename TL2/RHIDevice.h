@@ -61,7 +61,7 @@ public:
     virtual void Present() = 0;
     virtual void PSSetDefaultSampler(UINT StartSlot) = 0;
 
-    virtual void BeginRender() = 0;
-    virtual void EndRender() = 0;
+    virtual void BeginFrame() = 0;
+    virtual void EndFrame() = 0;
 };
 

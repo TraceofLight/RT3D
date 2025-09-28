@@ -97,9 +97,6 @@ public:
 
     /** === 렌더 === */
     void Render();
-    void RenderViewports(ACameraActor* Camera, FViewport* Viewport);
-    //void GameRender(ACameraActor* Camera, FViewport* Viewport);
-
 
     /** === 필요한 엑터 게터 === */
     const TArray<AActor*>& GetActors() { return Actors; }

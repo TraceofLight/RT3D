@@ -194,6 +194,7 @@
     <ClCompile Include="Renderer\RenderCommand\Private\BeginLineBatchCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\DrawIndexedPrimitivesCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\EndLineBatchCommand.cpp" />
+    <ClCompile Include="Renderer\RenderCommand\Private\RHICommandList.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\SetBlendStateCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\SetDepthStencilStateCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\SetRenderTargetCommand.cpp" />
@@ -373,6 +374,7 @@
     <ClInclude Include="Renderer\RenderCommand\Public\DrawIndexedPrimitivesCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\EndLineBatchCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\RenderCommand.h" />
+    <ClInclude Include="Renderer\RenderCommand\Public\RHICommandList.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\SetBlendStateCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\SetDepthStencilStateCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\SetRenderTargetCommand.h" />

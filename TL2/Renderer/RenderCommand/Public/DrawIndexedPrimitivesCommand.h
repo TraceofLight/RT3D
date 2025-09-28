@@ -1,6 +1,8 @@
 #pragma once
 #include "RenderCommand.h"
 
+#include "SetRenderTargetCommand.h"
+
 /**
  * @brief 메시 렌더링 Command를 정의한 함수
  */
@@ -16,6 +18,8 @@ public:
     }
 
     void Execute() override;
+
+    void SetupShaderForComponent(UPrimitiveComponent* InComponent);
 
     ERHICommandType GetCommandType() const override
     {

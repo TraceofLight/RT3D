@@ -4,6 +4,7 @@ class IRHICommand;
 class IRenderPass;
 class FSceneView;
 class FSceneViewFamily;
+class FRHICommandList;
 
 enum class ERenderPassType : uint8;
 
@@ -27,10 +28,14 @@ public:
     // RHI 접근자
     static D3D11RHI* GetGlobalRHI() { return GlobalRHI; }
     static void SetGlobalRHI(D3D11RHI* InRHI) { GlobalRHI = InRHI; }
+    
+    // RenderCommandList 접근자
+    FRHICommandList* GetCommandList() const { return CommandList; }
 
 private:
     const FSceneViewFamily* ViewFamily;
     TArray<IRenderPass*> RenderPasses;
+    FRHICommandList* CommandList;
     
     static D3D11RHI* GlobalRHI;
     

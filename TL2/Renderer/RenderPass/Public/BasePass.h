@@ -19,8 +19,8 @@ public:
     void Cleanup() override;
 
 private:
-    void RenderActor(AActor* Actor, const FSceneView* View, FSceneRenderer* SceneRenderer,
+    void RenderActor(AActor* Actor, const FSceneView* View, class FRHICommandList* RHICmdList,
                      const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix, const FVector& HighlightColor);
     void RenderPrimitiveComponent(UPrimitiveComponent* Component, const FSceneView* View,
-                                  FSceneRenderer* SceneRenderer, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix);
+                                  class FRHICommandList* RHICmdList, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix);
 };

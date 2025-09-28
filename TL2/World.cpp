@@ -117,7 +117,6 @@ void UWorld::Initialize()
 
 void UWorld::InitializeMainCamera()
 {
-
 	MainCameraActor = NewObject<ACameraActor>();
 
 	DebugRTTI_UObject(MainCameraActor, "MainCameraActor");
@@ -131,10 +130,8 @@ void UWorld::InitializeGrid()
 	GridActor = NewObject<AGridActor>();
 	GridActor->Initialize();
 
-
 	// Add GridActor to Actors array so it gets rendered in the main loop
 	EngineActors.push_back(GridActor);
-	//EngineActors.push_back(GridActor);
 }
 
 void UWorld::InitializeGizmo()
@@ -156,7 +153,7 @@ void UWorld::InitializeGizmo()
 void UWorld::Render()
 {
 	URHIDevice* RHIDevice = FSceneRenderer::GetGlobalRHI();
-	RHIDevice->BeginRender();
+	RHIDevice->BeginFrame();
 
 	UIManager.Render();
 	
@@ -166,98 +163,10 @@ void UWorld::Render()
 		MultiViewport->OnRender();
 	}
 	
+	RHIDevice->OMSetRenderTargets();
 	UIManager.EndFrame();
 	
-	RHIDevice->EndRender();
-}
-
-void UWorld::RenderViewports(ACameraActor* Camera, FViewport* Viewport)
-{
-	// // 뷰포트의 실제 크기로 aspect ratio 계산
-	// float ViewportAspectRatio = static_cast<float>(Viewport->GetSizeX()) / static_cast<float>(Viewport->GetSizeY());
-	// if (Viewport->GetSizeY() == 0) ViewportAspectRatio = 1.0f; // 0으로 나누기 방지
-	//
-	// FMatrix ViewMatrix = Camera->GetViewMatrix();
-	// FMatrix ProjectionMatrix = Camera->GetProjectionMatrix(ViewportAspectRatio, Viewport);
-	//
-	// if (!Renderer) return;
-	// FVector rgb(1.0f, 1.0f, 1.0f);
-	//
-	// // === Begin Line Batch for all actors ===
-	// Renderer->BeginLineBatch();
-	//
-	// // === Draw Actors with Show Flag checks ===
-	// Renderer->SetViewModeType(ViewModeIndex);
-	//
-	// // 일반 액터들 렌더링
-	// if (IsShowFlagEnabled(EEngineShowFlags::SF_Primitives))
-	// {
-	// 	for (AActor* Actor : Actors)
-	// 	{
-	// 		if (!Actor) continue;
-	// 		if (Actor->GetActorHiddenInGame()) continue;
-	//
-	// 		if (Cast<AStaticMeshActor>(Actor) && !IsShowFlagEnabled(EEngineShowFlags::SF_StaticMeshes))
-	// 			continue;
-	//
-	// 		bool bIsSelected = SelectionManager.IsActorSelected(Actor);
-	// 		/*if (bIsSelected)
-	// 			Renderer->OMSetDepthStencilState(EComparisonFunc::Always);*/ // 이렇게 하면, 같은 메시에 속한 정점끼리도 뒤에 있는게 앞에 그려지는 경우가 발생해, 이상하게 렌더링 됨.
-	//
-	// 		Renderer->UpdateHighLightConstantBuffer(bIsSelected, rgb, 0, 0, 0, 0);
-	//
-	// 		for (USceneComponent* Component : Actor->GetComponents())
-	// 		{
-	// 			if (!Component) continue;
-	// 			if (UActorComponent* ActorComp = Cast<UActorComponent>(Component))
-	// 				if (!ActorComp->IsActive()) continue;
-	//
-	//
-	// 				if (Cast<UTextRenderComponent>(Component) && !IsShowFlagEnabled(EEngineShowFlags::SF_BillboardText))
-	// 					continue;
-	//
-	// 				if (Cast<UAABoundingBoxComponent>(Component) && !IsShowFlagEnabled(EEngineShowFlags::SF_BoundingBoxes))
-	// 					continue;
-	// 			if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Component))
-	// 			{
-	// 				Renderer->SetViewModeType(ViewModeIndex);
-	// 				Primitive->Render(Renderer, ViewMatrix, ProjectionMatrix);
-	// 			//	Renderer->OMSetDepthStencilState(EComparisonFunc::LessEqual);
-	// 			}
-	// 		}
-	// 		Renderer->OMSetBlendState(false);
-	// 	}
-	// }
-	//
-	// // 엔진 액터들 (그리드 등)
-	// for (AActor* EngineActor : EngineActors)
-	// {
-	// 	if (!EngineActor) continue;
-	// 	if (EngineActor->GetActorHiddenInGame()) continue;
-	//
-	// 	if (Cast<AGridActor>(EngineActor) && !IsShowFlagEnabled(EEngineShowFlags::SF_Grid))
-	// 		continue;
-	//
-	// 	for (USceneComponent* Component : EngineActor->GetComponents())
-	// 	{
-	// 		if (!Component) continue;
-	// 		if (UActorComponent* ActorComp = Cast<UActorComponent>(Component))
-	// 			if (!ActorComp->IsActive()) continue;
-	//
-	// 		if (UPrimitiveComponent* Primitive = Cast<UPrimitiveComponent>(Component))
-	// 		{
-	// 			Renderer->SetViewModeType(ViewModeIndex);
-	// 			Primitive->Render(Renderer, ViewMatrix, ProjectionMatrix);
-	// 			Renderer->OMSetDepthStencilState(EComparisonFunc::LessEqual);
-	// 		}
-	// 	}
-	// 	Renderer->OMSetBlendState(false);
-	// }
-	//
-	// Renderer->EndLineBatch(FMatrix::Identity(), ViewMatrix, ProjectionMatrix);
-	//
-	//
-	// Renderer->UpdateHighLightConstantBuffer(false, rgb, 0, 0, 0, 0);
+	RHIDevice->EndFrame();
 }
 
 void UWorld::Tick(float DeltaSeconds)

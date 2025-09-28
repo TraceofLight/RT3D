@@ -25,4 +25,5 @@ private:
     void RenderGrid(const FSceneView* View, FSceneRenderer* SceneRenderer);
     void RenderGizmos(const FSceneView* View, FSceneRenderer* SceneRenderer);
     void RenderActorLines(AActor* Actor, const FSceneView* View, FSceneRenderer* SceneRenderer);
+    void RenderLines(const TArray<FVector>& StartPoints, const TArray<FVector>& EndPoints, const TArray<FVector4>& Colors, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix);
 };
