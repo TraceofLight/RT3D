@@ -1,6 +1,7 @@
 #pragma once
 
 class FSceneView;
+class FSceneRenderer;
 
 enum class ERenderPassType : uint8
 {
@@ -27,7 +28,7 @@ public:
 
     virtual ~IRenderPass() = default;
 
-    virtual void Execute(const FSceneView* View, URenderer* Renderer) = 0;
+    virtual void Execute(const FSceneView* View, FSceneRenderer* SceneRenderer) = 0;
 
     virtual void Initialize()
     {
