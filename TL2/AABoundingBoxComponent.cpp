@@ -2,9 +2,10 @@
 #include "AABoundingBoxComponent.h"
 #include "SelectionManager.h"
 #include "Line.h"   
+#include"OBoundingBoxComponent.h"
 
 UAABoundingBoxComponent::UAABoundingBoxComponent()
-    : LocalMin(FVector{}), LocalMax(FVector{})
+    : LocalMin(FVector{}), LocalMax(FVector{}), LineColor(0.0f, 0.0f, 0.0f, 1.0f) // 노란색
 {
 }
 
@@ -21,6 +22,7 @@ void UAABoundingBoxComponent::SetFromVertices(const TArray<FVector>& Verts)
         LocalMin = LocalMin.ComponentMin(v);
         LocalMax = LocalMax.ComponentMax(v);
     }
+    Bound = GetWorldBoundFromCube();
 }
 
 void UAABoundingBoxComponent::SetFromVertices(const TArray<FNormalVertex>& Verts)
@@ -33,6 +35,13 @@ void UAABoundingBoxComponent::SetFromVertices(const TArray<FNormalVertex>& Verts
         LocalMin = LocalMin.ComponentMin(v.pos);
         LocalMax = LocalMax.ComponentMax(v.pos);
     }
+    Bound = GetWorldBoundFromCube();
+}
+
+void UAABoundingBoxComponent::SetMinMax(const FBound& Bound)
+{
+    LocalMin = Bound.Min;
+    LocalMax = Bound.Max;
 }
 
 void UAABoundingBoxComponent::Render(URHIDevice* RHI, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
@@ -43,10 +52,8 @@ void UAABoundingBoxComponent::Render(URHIDevice* RHI, const FMatrix& ViewMatrix,
         TArray<FVector> End;
         TArray<FVector4> Color;
 
-        FBound WorldBound = GetWorldBoundFromCube();
-        CreateLineData(WorldBound.Min, WorldBound.Max, Start, End, Color);
-    // TODO: DebugPass에서 처리
-    // Renderer->AddLine(P1, P2, Color);
+        Bound = GetWorldBoundFromCube();
+        CreateLineData(Bound.Min, Bound.Max, Start, End, Color);
     }
 }
 
@@ -54,7 +61,10 @@ FBound UAABoundingBoxComponent::GetWorldBoundFromCube() const
 {
     auto corners = GetLocalCorners();
 
-    FMatrix WorldMat = GetOwner()->GetWorldMatrix();
+    FMatrix WorldMat=FMatrix::Identity();
+    if (GetOwner()) {
+        WorldMat = GetOwner()->GetWorldMatrix();
+    }
     FVector4 MinW = corners[0] * WorldMat;
     FVector4 MaxW = MinW;
 
@@ -98,6 +108,44 @@ FBound UAABoundingBoxComponent::GetWorldBoundFromSphere() const
     return FBound(Min, Max);
 }
 
+const FBound* UAABoundingBoxComponent::GetFBound() const
+{
+    return &Bound;
+}
+
+FOrientedBound UAABoundingBoxComponent::GetWorldOrientedBound() const
+{
+    FMatrix WorldMat = FMatrix::Identity();
+    if (GetOwner()) {
+        WorldMat = GetOwner()->GetWorldMatrix();
+    }
+
+    FVector LocalCenter = (LocalMin + LocalMax) * 0.5f;
+    FVector LocalExtents = (LocalMax - LocalMin) * 0.5f;
+
+    FVector4 WorldCenter4 = FVector4(LocalCenter.X, LocalCenter.Y, LocalCenter.Z, 1.0f) * WorldMat;
+    FVector WorldCenter = FVector(WorldCenter4.X, WorldCenter4.Y, WorldCenter4.Z);
+
+    FVector WorldExtents;
+    WorldExtents.X = std::abs(WorldMat.M[0][0] * LocalExtents.X) +
+                     std::abs(WorldMat.M[0][1] * LocalExtents.Y) +
+                     std::abs(WorldMat.M[0][2] * LocalExtents.Z);
+    WorldExtents.Y = std::abs(WorldMat.M[1][0] * LocalExtents.X) +
+                     std::abs(WorldMat.M[1][1] * LocalExtents.Y) +
+                     std::abs(WorldMat.M[1][2] * LocalExtents.Z);
+    WorldExtents.Z = std::abs(WorldMat.M[2][0] * LocalExtents.X) +
+                     std::abs(WorldMat.M[2][1] * LocalExtents.Y) +
+                     std::abs(WorldMat.M[2][2] * LocalExtents.Z);
+
+    return FOrientedBound(WorldCenter, WorldExtents, WorldMat);
+}
+
+bool UAABoundingBoxComponent::RayIntersectsOBB(const FVector& Origin, const FVector& Direction, float& Distance) const
+{
+    FOrientedBound WorldOBB = GetWorldOrientedBound();
+    return WorldOBB.RayIntersects(Origin, Direction, Distance);
+}
+
 TArray<FVector4> UAABoundingBoxComponent::GetLocalCorners() const
 {
     return 
@@ -130,7 +178,7 @@ void UAABoundingBoxComponent::CreateLineData(
     const FVector v7(Min.X, Max.Y, Max.Z);
 
     // 선 색상 정의
-    const FVector4 LineColor(1.0f, 1.0f, 0.0f, 1.0f); // 노란색
+  
 
     // --- 아래쪽 면 ---
     Start.Add(v0); End.Add(v1); Color.Add(LineColor);

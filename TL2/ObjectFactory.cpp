@@ -2,7 +2,7 @@
 #include "ObjectFactory.h"
 // 전역 오브젝트 배열 정의 (한 번만!)
 TArray<UObject*> GUObjectArray;
-
+TArray<int32>    GFreeIndices; // 빈 슬롯 목록
 namespace ObjectFactory
 {
     TMap<UClass*, ConstructFunc>& GetRegistry()
@@ -29,31 +29,29 @@ namespace ObjectFactory
         UObject* Obj = ConstructObject(Class);
         if (!Obj) return nullptr;
 
-        // 배열에 등록: 빈 슬롯 재사용
         int32 idx = -1;
-      /*  GUObjectArray.Num();
-     
-            
-                idx = i;
-                break;
-            
-        }*/
-        /*if (idx >= 0)
+        if (GFreeIndices.Num() > 0)
         {
+            // 빈 슬롯 재사용
+            idx = GFreeIndices.Last();
+            GFreeIndices.Pop();
             GUObjectArray[idx] = Obj;
         }
         else
-        {*/
+        {
+            // 빈 슬롯 없으면 새로 push
             idx = GUObjectArray.Add(Obj);
-        //}
+        }
+
         Obj->InternalIndex = static_cast<uint32>(idx);
 
+        // 고유 이름 부여
         static TMap<UClass*, int> NameCounters;
         int Count = ++NameCounters[Class];
 
-        const std::string base = Class->Name; // FName -> string
+        const std::string base = Class->Name;
         std::string unique;
-        unique.reserve(base.size() + 1 + 12);            // "_" + 최대 10~12자리 여유
+        unique.reserve(base.size() + 12);
         unique.append(base);
         unique.push_back('_');
         unique.append(std::to_string(Count));

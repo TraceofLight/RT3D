@@ -10,9 +10,9 @@ AStaticMeshActor::AStaticMeshActor()
     AddComponent(StaticMeshComponent);
     StaticMeshComponent->SetupAttachment(RootComponent);
 
- //   CollisionComponent = CreateDefaultSubobject<UAABoundingBoxComponent>(FName("CollisionBox"));
- //   AddComponent(CollisionComponent);
-	//CollisionComponent->SetupAttachment(RootComponent);
+    CollisionComponent = CreateDefaultSubobject<UAABoundingBoxComponent>(FName("CollisionBox"));
+    AddComponent(CollisionComponent);
+	CollisionComponent->SetupAttachment(RootComponent);
 }
 
 void AStaticMeshActor::Tick(float DeltaTime)

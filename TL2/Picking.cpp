@@ -1,7 +1,6 @@
 ﻿#include "pch.h"
 
 #include "Picking.h"
-#include "UI/StatsOverlayD2D.h"
 #include "Actor.h"
 #include "StaticMeshActor.h"
 #include "StaticMeshComponent.h"
@@ -19,6 +18,10 @@
 #include "UI/GlobalConsole.h"
 #include "ObjManager.h"
 #include"stdio.h"
+#include "AABoundingBoxComponent.h"
+#include "PickingTimer.h"
+#include "Octree.h"
+#include "BVH.h"
 
 FRay MakeRayFromMouse(const FMatrix& InView,
                       const FMatrix& InProj)
@@ -222,9 +225,85 @@ bool IntersectRayTriangleMT(const FRay& InRay,
     return false;
 }
 
+// slab method - check intersect between Ray and AABB - 미완성
+bool IntersectRayBound(const FRay& InRay, const FBound& InBound, float* OutT)
+{
+  
+    //float TMin = -FLT_MAX;
+    //float TMax = FLT_MAX;
+
+    //FVector p = InBound.GetCenter() - InRay.Origin;
+    //// OBB 세 로컬 축(u,v,w)에 대해 test 수행
+    //for (int i = 0;i < 3;++i)
+    //{
+    //    //float e = InBound.
+    //}
+
+    //// X축 슬랩(Slab)과의 교차 시간 계산
+    //if (abs(InRay.Direction.X) < KINDA_SMALL_NUMBER) // 레이가 X축과 평행한 경우
+    //{
+    //    if (InRay.Origin.X < InBound.Min.X || InRay.Origin.X > InBound.Max.X)
+    //        return false;
+    //}
+    //else
+    //{
+    //    float t1 = (InBox.Min.X - InRay.Origin.X) / InRay.Direction.X;
+    //    float t2 = (InBox.Max.X - InRay.Origin.X) / InRay.Direction.X;
+    //    if (t1 > t2) std::swap(t1, t2); // t1이 항상 작은 값이 되도록 보장
+    //    tmin = std::max(tmin, t1);
+    //    tmax = std::min(tmax, t2);
+    //}
+
+    //// Y축 슬랩과의 교차 시간 계산
+    //if (abs(InRay.Direction.Y) < KINDA_SMALL_NUMBER)
+    //{
+    //    if (InRay.Origin.Y < InBox.Min.Y || InRay.Origin.Y > InBox.Max.Y)
+    //        return false;
+    //}
+    //else
+    //{
+    //    float t1 = (InBox.Min.Y - InRay.Origin.Y) / InRay.Direction.Y;
+    //    float t2 = (InBox.Max.Y - InRay.Origin.Y) / InRay.Direction.Y;
+    //    if (t1 > t2) std::swap(t1, t2);
+    //    tmin = std::max(tmin, t1);
+    //    tmax = std::min(tmax, t2);
+    //}
+
+    //// Z축 슬랩과의 교차 시간 계산
+    //if (abs(InRay.Direction.Z) < KINDA_SMALL_NUMBER)
+    //{
+    //    if (InRay.Origin.Z < InBox.Min.Z || InRay.Origin.Z > InBox.Max.Z)
+    //        return false;
+    //}
+    //else
+    //{
+    //    float t1 = (InBox.Min.Z - InRay.Origin.Z) / InRay.Direction.Z;
+    //    float t2 = (InBox.Max.Z - InRay.Origin.Z) / InRay.Direction.Z;
+    //    if (t1 > t2) std::swap(t1, t2);
+    //    tmin = std::max(tmin, t1);
+    //    tmax = std::min(tmax, t2);
+    //}
+
+    //// 모든 축에서 겹치는 구간이 있어야 교차 성공
+    //bool bIntersects = tmax >= tmin && tmax >= 0.0f;
+
+    //if (bIntersects && OutT)
+    //{
+    //    *OutT = tmin > 0 ? tmin : tmax;
+    //}
+
+    //return bIntersects;
+    return true;
+}
+
+
+
 // PickingSystem 구현
 AActor* CPickingSystem::PerformPicking(const TArray<AActor*>& Actors, ACameraActor* Camera)
 {
+    TStatId PickingStatId;
+    FScopeCycleCounter PickingTimer(PickingStatId);
+
     if (!Camera) return nullptr;
 
     // 레이 생성 - 카메라 위치와 방향을 직접 전달
@@ -239,12 +318,6 @@ AActor* CPickingSystem::PerformPicking(const TArray<AActor*>& Actors, ACameraAct
     int pickedIndex = -1;
     float pickedT = 1e9f;
 
-    // Picking 성능 측정 시작 (Referenced)
-    TStatId PickingStatId;
-    FScopeCycleCounter PickingCounter(PickingStatId);
-    UStatsOverlayD2D& StatsOverlay = UStatsOverlayD2D::Get();
-    StatsOverlay.IncrementAttempts(); // 피킹 시도 횟수 증가
-    
     // 모든 액터에 대해 피킹 테스트
     for (int i = 0; i < Actors.Num(); ++i)
     {
@@ -264,22 +337,22 @@ AActor* CPickingSystem::PerformPicking(const TArray<AActor*>& Actors, ACameraAct
             }
         }
     }
-    
-    // Picking 성능 측정 종료 (Referenced)
-    uint64_t PickingCycles = PickingCounter.Finish();
-    double PickingTimeMs = FPlatformTime::ToMilliseconds(PickingCycles);
-    StatsOverlay.UpdatePickingTime(PickingTimeMs);
+
+    uint64_t CycleDiff = PickingTimer.Finish();
+    double PickingTimeMs = FPlatformTime::ToMilliseconds(CycleDiff);
 
     if (pickedIndex >= 0)
     {
-        char buf[160];
-        sprintf_s(buf, "[Pick] Hit primitive %d at t=%.3f (Speed=NORMAL)\n", pickedIndex, pickedT);
+        char buf[256];
+        sprintf_s(buf, "[Pick] Hit primitive %d at t=%.3f (Time: %.3fms)\n", pickedIndex, pickedT, PickingTimeMs);
         UE_LOG(buf);
         return Actors[pickedIndex];
     }
     else
     {
-        UE_LOG("[Pick] No hit (Speed=FAST)\n");
+        char buf[256];
+        sprintf_s(buf, "[Pick] No hit (Time: %.3fms)\n", PickingTimeMs);
+        UE_LOG(buf);
         return nullptr;
     }
 }
@@ -290,6 +363,8 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
                                                const FVector2D& ViewportSize,
                                                const FVector2D& ViewportOffset)
 {
+
+
     if (!Camera) return nullptr;
 
     // 뷰포트별 레이 생성 - 각 뷰포트의 로컬 마우스 좌표와 크기, 오프셋 사용
@@ -305,14 +380,9 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
 
     int pickedIndex = -1;
     float pickedT = 1e9f;
-
-    // === 피킹 성능 측정 시작 ===
-    TStatId PickingStatId2;
-    FScopeCycleCounter PickingCounter2(PickingStatId2);
-    UStatsOverlayD2D& StatsOverlay2 = UStatsOverlayD2D::Get();
-    StatsOverlay2.IncrementAttempts(); // 피킹 시도 횟수 증가
-    
-    // 모든 액터에 대해 피킹 테스트 (실제 알고리즘 부분)
+    TStatId ViewportPickingStatId;
+    FScopeCycleCounter ViewportPickingTimer(ViewportPickingStatId);
+    // 모든 액터에 대해 피킹 테스트
     for (int i = 0; i < Actors.Num(); ++i)
     {
         AActor* Actor = Actors[i];
@@ -331,22 +401,22 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
             }
         }
     }
-    
-    // === 피킹 성능 측정 종료 ===
-    uint64_t PickingCycles2 = PickingCounter2.Finish();
-    double PickingTimeMs2 = FPlatformTime::ToMilliseconds(PickingCycles2);
-    StatsOverlay2.UpdatePickingTime(PickingTimeMs2);
+
+    uint64_t ViewportCycleDiff = ViewportPickingTimer.Finish();
+    double ViewportPickingTimeMs = FPlatformTime::ToMilliseconds(ViewportCycleDiff);
 
     if (pickedIndex >= 0)
     {
-        char buf[160];
-        sprintf_s(buf, "[Viewport Pick] Hit primitive %d at t=%.3f\n", pickedIndex, pickedT);
+        char buf[256];
+        sprintf_s(buf, "[Viewport Pick] Hit primitive %d at t=%.3f (Time: %.3fms)\n", pickedIndex, pickedT, ViewportPickingTimeMs);
         UE_LOG(buf);
         return Actors[pickedIndex];
     }
     else
     {
-        UE_LOG("[Viewport Pick] No hit\n");
+        char buf[256];
+        sprintf_s(buf, "[Viewport Pick] No hit (Time: %.3fms)\n", ViewportPickingTimeMs);
+        UE_LOG(buf);
         return nullptr;
     }
 }
@@ -356,8 +426,11 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
                                                const FVector2D& ViewportMousePos,
                                                const FVector2D& ViewportSize,
                                                const FVector2D& ViewportOffset,
-                                               float ViewportAspectRatio, FViewport* Viewport)
+                                               float ViewportAspectRatio, FViewport*  Viewport)
 {
+    TStatId ViewportAspectPickingStatId;
+    FScopeCycleCounter ViewportAspectPickingTimer(ViewportAspectPickingStatId);
+
     if (!Camera) return nullptr;
 
     // 뷰포트별 레이 생성 - 커스텀 aspect ratio 사용
@@ -374,16 +447,74 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
     int pickedIndex = -1;
     float pickedT = 1e9f;
 
-    // === 피킹 성능 측정 시작 ===
-    TStatId PickingStatId3;
-    FScopeCycleCounter PickingCounter3(PickingStatId3);
-    UStatsOverlayD2D& StatsOverlay3 = UStatsOverlayD2D::Get();
-    StatsOverlay3.IncrementAttempts(); // 피킹 시도 횟수 증가
-    
-    // 모든 액터에 대해 피킹 테스트 (실제 알고리즘 부분)
-    for (int i = 0; i < Actors.Num(); ++i)
+    // 하이브리드 방식: Octree(Per-Leaf 마이크로 BVH) 우선 사용
+    UOctree* Octree = UWorld::GetInstance().GetOctree();
+    if (Octree)
     {
-        AActor* Actor = Actors[i];
+        // Octree + Per-Leaf 마이크로 BVH를 통한 하이브리드 피킹
+        TArray<AActor*> HitActors;
+        Octree->Query(ray, HitActors);
+
+        if (HitActors.Num() > 0)
+        {
+            AActor* closestActor = nullptr;
+            float closestDistance = FLT_MAX;
+
+            for (AActor* HitActor : HitActors)
+            {
+                if (!HitActor || HitActor->GetActorHiddenInGame()) continue;
+
+                float hitDistance;
+                if (CheckActorPicking(HitActor, ray, hitDistance) && hitDistance < closestDistance)
+                {
+                    closestDistance = hitDistance;
+                    closestActor = HitActor;
+
+                    if (closestActor)
+                    {
+                        char buf[256];
+                        sprintf_s(buf, "[Hybrid Pick] Hit actor at distance %.3f\n", closestDistance);
+                        UE_LOG(buf);
+                        uint64_t ViewportAspectCycleDiff = ViewportAspectPickingTimer.Finish();
+                        double ViewportAspectPickingTimeMs = FPlatformTime::ToMilliseconds(ViewportAspectCycleDiff);
+                        sprintf_s(buf, "[Viewport Pick with AspectRatio] Hit primitive %d at t=%.3f (Time: %.3fms)\n", pickedIndex, pickedT, ViewportAspectPickingTimeMs);
+                        UE_LOG(buf);
+                        return closestActor;
+                    }
+                }
+            }
+
+        }
+
+        UE_LOG("[Hybrid Pick] No hit found\n");
+        return nullptr;
+    }
+
+    // 백업: 글로벌 BVH 사용
+    FBVH* BVH = UWorld::GetInstance().GetBVH();
+    if (BVH)
+    {
+        float hitDistance;
+        AActor* HitActor = BVH->Intersect(ray.Origin, ray.Direction, hitDistance);
+
+        if (HitActor && !HitActor->GetActorHiddenInGame())
+        {
+            char buf[256];
+            sprintf_s(buf, "[Fallback BVH Pick] Hit actor at distance %.3f\n", hitDistance);
+            UE_LOG(buf);
+
+            return HitActor;
+        }
+    }
+
+    // 최후의 백업: 전체 액터 검사
+    TArray<AActor*> CandidateActors = Actors;
+   
+
+    // 후보군 액터에 대해 피킹 테스트
+    for (int i = 0; i < CandidateActors.Num(); ++i)
+    {
+        AActor* Actor = CandidateActors[i];
         if (!Actor) continue;
 
         // Skip hidden actors for picking
@@ -399,22 +530,22 @@ AActor* CPickingSystem::PerformViewportPicking(const TArray<AActor*>& Actors,
             }
         }
     }
-    
-    // === 피킹 성능 측정 종료 ===
-    uint64_t PickingCycles3 = PickingCounter3.Finish();
-    double PickingTimeMs3 = FPlatformTime::ToMilliseconds(PickingCycles3);
-    StatsOverlay3.UpdatePickingTime(PickingTimeMs3);
+
+    uint64_t ViewportAspectCycleDiff = ViewportAspectPickingTimer.Finish();
+    double ViewportAspectPickingTimeMs = FPlatformTime::ToMilliseconds(ViewportAspectCycleDiff);
 
     if (pickedIndex >= 0)
     {
-        char buf[160];
-        sprintf_s(buf, "[Viewport Pick with AspectRatio] Hit primitive %d at t=%.3f\n", pickedIndex, pickedT);
+        char buf[256];
+        sprintf_s(buf, "[Viewport Pick with AspectRatio] Hit primitive %d at t=%.3f (Time: %.3fms)\n", pickedIndex, pickedT, ViewportAspectPickingTimeMs);
         UE_LOG(buf);
-        return Actors[pickedIndex];
+        return CandidateActors[pickedIndex];
     }
     else
     {
-        UE_LOG("[Viewport Pick with AspectRatio] No hit\n");
+        char buf[256];
+        sprintf_s(buf, "[Viewport Pick with AspectRatio] No hit (Time: %.3fms)\n", ViewportAspectPickingTimeMs);
+        UE_LOG(buf);
         return nullptr;
     }
 }
@@ -845,6 +976,29 @@ bool CPickingSystem::CheckGizmoComponentPicking(const UStaticMeshComponent* Comp
 bool CPickingSystem::CheckActorPicking(const AActor* Actor, const FRay& Ray, float& OutDistance)
 {
     if (!Actor) return false;
+
+    // 스태틱 메시 액터인 경우 AABB 컬리전 검사 우선 수행
+    if (const AStaticMeshActor* StaticMeshActor = Cast<const AStaticMeshActor>(Actor))
+    {
+        // AABB 컴포넌트 찾기
+        for (auto Component : StaticMeshActor->GetComponents())
+        {
+            if (UAABoundingBoxComponent* AABBComponent = Cast<UAABoundingBoxComponent>(Component))
+            {
+                // AABB 검사
+                FBound WorldBound = AABBComponent->GetWorldBoundFromCube();
+                float distance;
+                if (WorldBound.RayIntersects(Ray.Origin, Ray.Direction, distance))
+                {
+                    OutDistance = distance;
+                    //return true;
+                }
+                break; // AABB 컴포넌트를 찾았으면 더 이상 찾지 않음
+            }
+        }
+        // AABB 검사에서 히트되지 않으면 false 반환 (메시 검사는 하지 않음)
+      //  return false;
+    }
 
     // 액터의 모든 SceneComponent 순회
     for (auto SceneComponent : Actor->GetComponents())

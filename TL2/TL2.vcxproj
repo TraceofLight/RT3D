@@ -160,6 +160,8 @@
     <ClCompile Include="ActorComponent.cpp" />
     <ClCompile Include="AllClassesRegistration.cpp" />
     <ClCompile Include="AABoundingBoxComponent.cpp" />
+    <ClCompile Include="BVH.cpp" />
+    <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="FViewportClient.cpp" />
     <ClCompile Include="MenuBarWidget.cpp" />
     <ClCompile Include="ObjManager.cpp" />
@@ -190,7 +192,9 @@
     <ClCompile Include="Actor.cpp" />
     <ClCompile Include="MeshComponent.cpp" />
     <ClCompile Include="Object.cpp" />
+    <ClCompile Include="PickingTimer.cpp" />
     <ClCompile Include="PrimitiveComponent.cpp" />
+    <ClCompile Include="RenderingStats.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\BeginLineBatchCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\DrawIndexedPrimitivesCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\EndLineBatchCommand.cpp" />
@@ -342,6 +346,8 @@
     <ClInclude Include="ActorComponent.h" />
     <ClInclude Include="AABoundingBoxComponent.h" />
     <ClInclude Include="Archive.h" />
+    <ClInclude Include="BVH.h" />
+    <ClInclude Include="Frustum.h" />
     <ClInclude Include="FViewportClient.h" />
     <ClInclude Include="MenuBarWidget.h" />
     <ClInclude Include="ObjManager.h" />
@@ -370,6 +376,7 @@
     <ClInclude Include="MeshComponent.h" />
     <ClInclude Include="Object.h" />
     <ClInclude Include="PrimitiveComponent.h" />
+    <ClInclude Include="RenderingStats.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\BeginLineBatchCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\DrawIndexedPrimitivesCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\EndLineBatchCommand.h" />

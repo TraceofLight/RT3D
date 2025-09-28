@@ -9,6 +9,7 @@ class AGizmoActor;
 // Forward Declarations
 class AActor;
 class ACameraActor;
+struct FBound;
 
 // Unreal-style simple ray type
 struct alignas(16) FRay
@@ -54,6 +55,7 @@ bool IntersectRayTriangleMT(const FRay& InRay,
                             const FVector& InC,
                             float& OutT);
 
+bool IntersectRayBound(const FRay& InRay, const FBound& InBound, float* OutT = nullptr);
 /**
  * PickingSystem
  * - 액터 피킹 관련 로직을 담당하는 클래스
