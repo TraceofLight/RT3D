@@ -6,11 +6,11 @@
  */
 void FRHIUpdateConstantBufferCommand::Execute()
 {
-    if (!Renderer)
+    if (!RHIDevice)
     {
         return;
     }
 
-    Renderer->UpdateConstantBuffer(ModelMatrix, ViewMatrix, ProjMatrix);
+    RHIDevice->UpdateConstantBuffers(ModelMatrix, ViewMatrix, ProjMatrix);
 }
 

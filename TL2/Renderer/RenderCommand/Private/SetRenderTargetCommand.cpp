@@ -1,16 +1,20 @@
 #include "pch.h"
 #include "Renderer/RenderCommand/Public/SetRenderTargetCommand.h"
 
+#include "FViewport.h"
+#include "Renderer/SceneRenderer.h"
+#include "Renderer/SceneView/Public/SceneView.h"
+
 void FRHISetRenderTargetCommand::Execute()
 {
-    if (!Renderer || !View)
+    if (!View)
         return;
 
     // 뷰포트의 렌더 타겟을 설정
     FViewport* Viewport = View->GetViewport();
     if (Viewport)
     {
-        URHIDevice* RHI = Renderer->GetRHIDevice();
+        URHIDevice* RHI = FSceneRenderer::GetGlobalRHI();
 
         // D3D11 뷰포트 설정
         D3D11_VIEWPORT D3DViewport = {};

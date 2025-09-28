@@ -8,8 +8,8 @@ class FRHISetViewModeCommand :
     public IRHICommand
 {
 public:
-    FRHISetViewModeCommand(URenderer* InRenderer, EViewModeIndex InViewMode)
-        : Renderer(InRenderer), ViewMode(InViewMode)
+    FRHISetViewModeCommand(URHIDevice* InRHIDevice, EViewModeIndex InViewMode)
+        : RHIDevice(InRHIDevice), ViewMode(InViewMode)
     {
     }
 
@@ -21,6 +21,6 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
     EViewModeIndex ViewMode;
 };

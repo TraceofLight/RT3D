@@ -14,7 +14,7 @@ public:
 	TArray<FBillboardVertexInfo_GPU> CreateVerticesForString(const FString& text,const FVector& StartPos);
 	//FResourceData* GetResourceData() { return ResourceData; }
 	//FTextureData* GetTextureData() { return TextureData; }
-	virtual void Render(URenderer* Renderer, const FMatrix& View, const FMatrix& Proj) override;
+	virtual void Render(URHIDevice* RHI, const FMatrix& View, const FMatrix& Proj) override;
 	// void SetText(FString Txt);
 
 	UTextQuad* GetStaticMesh() const { return TextQuad; }

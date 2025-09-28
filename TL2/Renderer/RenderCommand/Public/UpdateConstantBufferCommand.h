@@ -8,9 +8,9 @@ class FRHIUpdateConstantBufferCommand :
     public IRHICommand
 {
 public:
-    FRHIUpdateConstantBufferCommand(URenderer* InRenderer, const FMatrix& InModelMatrix,
+    FRHIUpdateConstantBufferCommand(URHIDevice* InRHIDevice, const FMatrix& InModelMatrix,
                                     const FMatrix& InViewMatrix, const FMatrix& InProjMatrix)
-        : Renderer(InRenderer), ModelMatrix(InModelMatrix), ViewMatrix(InViewMatrix),
+        : RHIDevice(InRHIDevice), ModelMatrix(InModelMatrix), ViewMatrix(InViewMatrix),
           ProjMatrix(InProjMatrix)
     {
     }
@@ -23,7 +23,7 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
     FMatrix ModelMatrix;
     FMatrix ViewMatrix;
     FMatrix ProjMatrix;

@@ -5,6 +5,7 @@
 #include "SSplitterH.h"
 #include "SSplitterV.h"
 #include "SMultiViewportWindow.h"
+#include "Renderer/SceneRenderer.h"
 // TODO: Delete it, just Test
 
 float CLIENTWIDTH = 1024.0f;
@@ -97,19 +98,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             if (sizeType != SIZE_MINIMIZED)
             {
                 GetViewportSize(hWnd); // 창 크기 바뀔 때 전역 갱신
-             
-                // Renderer의 뷰포트 갱신
-                if (auto world = UUIManager::GetInstance().GetWorld())
+
+                // RHI Device size 갱신
+                if (UUIManager::GetInstance().GetWorld())
                 {
-                    if (auto renderer = world->GetRenderer())
-                    {
-                        UINT newWidth = static_cast<UINT>(CLIENTWIDTH);
-                        UINT newHeight = static_cast<UINT>(CLIENTHEIGHT);
-                        // Single, consistent resize path (handles RTV/DSV + viewport)
-                        static_cast<D3D11RHI*>(renderer->GetRHIDevice())->ResizeSwapChain(newWidth, newHeight);
-                        EditorINI["WindowWidth"] = std::to_string(newWidth);
-                        EditorINI["WindowHeight"] = std::to_string(newHeight);
-                    }
+                    UINT NewWidth = static_cast<UINT>(CLIENTWIDTH);
+                    UINT NewHeight = static_cast<UINT>(CLIENTHEIGHT);
+
+                    D3D11RHI* RHIDevice = FSceneRenderer::GetGlobalRHI();
+                    RHIDevice->ResizeSwapChain(NewWidth, NewHeight);
+                    
                     // ImGui DisplaySize가 유효할 때만 UI 윈도우 재배치
                     ImGuiIO& io = ImGui::GetIO();
                     if (io.DisplaySize.x > 0 && io.DisplaySize.y > 0)
@@ -155,7 +153,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     WCHAR Title[] = L"Game Tech Lab";
 
     // 각종 메시지를 처리할 함수인 WndProc의 함수 포인터를 WindowClass 구조체에 넣는다.
-    WNDCLASSW wndclass = { 0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass };
+    WNDCLASSW wndclass = {0, WndProc, 0, 0, 0, 0, 0, 0, 0, WindowClass};
 
     // 윈도우 클래스 등록
     RegisterClassW(&wndclass);
@@ -186,39 +184,41 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     // 윈도우 생성
     HWND hWnd = CreateWindowExW(0, WindowClass, Title, WS_POPUP | WS_VISIBLE | WS_OVERLAPPEDWINDOW,
-        CW_USEDEFAULT, CW_USEDEFAULT, windowWidth, windowHeight,
-        nullptr, nullptr, hInstance, nullptr);
+                                CW_USEDEFAULT, CW_USEDEFAULT, windowWidth, windowHeight,
+                                nullptr, nullptr, hInstance, nullptr);
 
     //종횡비 계산
     GetViewportSize(hWnd);
 
     {
-        D3D11RHI d3d11RHI;
-        d3d11RHI.Initialize(hWnd);
-        URenderer renderer(&d3d11RHI); //렌더러 생성이 가장 먼저 되어야 합니다.
+        D3D11RHI RHIDevice;
+        RHIDevice.Initialize(hWnd);
+        FSceneRenderer::SetGlobalRHI(&RHIDevice);
 
-    //UResourceManager::GetInstance().Initialize(d3d11RHI.GetDevice(),d3d11RHI.GetDeviceContext()); //리소스매니저 이니셜라이즈
-    // UI Manager Initialize
-    UUIManager::GetInstance().Initialize(hWnd, d3d11RHI.GetDevice(), d3d11RHI.GetDeviceContext()); //유아이매니저 이니셜라이즈
-    UUIWindowFactory::CreateDefaultUILayout();
-    
-    // InputManager 초기화 (TUUIManager 이후)
-    UInputManager::GetInstance().Initialize(hWnd); //인풋 매니저 이니셜라이즈
+        //UResourceManager::GetInstance().Initialize(d3d11RHI.GetDevice(),d3d11RHI.GetDeviceContext()); //리소스매니저 이니셜라이즈
+        // UI Manager Initialize
+        UUIManager::GetInstance().Initialize(hWnd, RHIDevice.GetDevice(),
+                                             RHIDevice.GetDeviceContext()); //유아이매니저 이니셜라이즈
+        UUIWindowFactory::CreateDefaultUILayout();
+
+        // InputManager 초기화 (TUUIManager 이후)
+        UInputManager::GetInstance().Initialize(hWnd); //인풋 매니저 이니셜라이즈
 
         //======================================================================================================================
         //월드 생성
         UWorld* World = &UWorld::GetInstance();
-        World->SetRenderer(&renderer);//렌더러 설정
-        World->Initialize(); 
+        World->Initialize();
 
         //메인 뷰포트 생성
         SViewportWindow* MainViewport = new SViewportWindow();
-        MainViewport->Initialize(0, 0, 1000, 1000, World, renderer.GetRHIDevice()->GetDevice(), EViewportType::Perspective);
+        MainViewport->Initialize(0, 0, 1000, 1000, World, RHIDevice.GetDevice(),
+                                 EViewportType::Perspective);
         // 멀티 뷰포트 생성
         SMultiViewportWindow* MultiViewportWindow = nullptr;
         MultiViewportWindow = new SMultiViewportWindow();
         FRect ScreenRect(0, 0, static_cast<float>(windowWidth), static_cast<float>(windowHeight));
-        MultiViewportWindow->Initialize(renderer.GetRHIDevice()->GetDevice(),World, ScreenRect,MainViewport);
+        MultiViewportWindow->Initialize(RHIDevice.GetDevice(), World, ScreenRect,
+                                        MainViewport);
         //월드에 뷰포드 설정
         World->SetMultiViewportWindow(MultiViewportWindow);
         World->SetMainViewport(MainViewport);
@@ -231,10 +231,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
         LARGE_INTEGER PrevTime, CurrTime;
         QueryPerformanceCounter(&PrevTime);
-
-        FVector CameraLocation{ 0, 0, -10.f };
-
-
+    
         bool bUVScrollPaused = true;
         float UVScrollTime = 0.0f;
         FVector2D UVScrollSpeed = FVector2D(0.5f, 0.5f);
@@ -251,9 +248,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             // 프레임 간 시간 (초 단위)
             float DeltaSeconds = static_cast<float>(
                 (CurrTime.QuadPart - PrevTime.QuadPart) / double(Frequency.QuadPart)
-                );
+            );
             PrevTime = CurrTime;
-
 
 
             if (InputMgr.IsKeyPressed('T'))
@@ -263,7 +259,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 {
                     // reset when paused
                     UVScrollTime = 0.0f;
-                    renderer.UpdateUVScroll(UVScrollSpeed, UVScrollTime);
+                    // renderer.UpdateUVScroll(UVScrollSpeed, UVScrollTime);
                 }
             }
 
@@ -272,9 +268,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             {
                 UVScrollTime += DeltaSeconds;
             }
-
-
-            renderer.UpdateUVScroll(UVScrollSpeed, UVScrollTime);
+            
+            // renderer.UpdateUVScroll(UVScrollSpeed, UVScrollTime);
 
             // 이제 Tick 호출
             World->Tick(DeltaSeconds);
@@ -312,7 +307,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
 
         delete MultiViewportWindow;
-     
+
         UUIManager::GetInstance().Release();
         ObjectFactory::DeleteAll(true);
     }

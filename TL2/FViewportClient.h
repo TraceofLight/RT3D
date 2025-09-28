@@ -52,12 +52,9 @@ public:
     void SetCamera(ACameraActor* InCamera) { Camera = InCamera; }
     ACameraActor* GetCamera() const { return Camera; }
 
-    // 카메라 매트릭스 계산
-    FMatrix GetViewMatrix() const;
-
-
     // 뷰포트별 카메라 설정
     void SetupCameraMode();
+    void SetupCameraForViewportType();
     void SetViewModeIndex(EViewModeIndex InViewModeIndex) { ViewModeIndex = InViewModeIndex; }
 
     EViewModeIndex GetViewModeIndex() { return ViewModeIndex;}

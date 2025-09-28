@@ -9,7 +9,6 @@ class ACameraActor;
 class USelectionManager;
 class UInputManager;
 class UUIManager;
-class URenderer;
 class CPickingSystem;
 class FViewport;
 class AGizmoActor : public AActor
@@ -53,6 +52,9 @@ public:
 
     void NextMode(EGizmoMode GizmoMode);
     TArray<USceneComponent*>* GetGizmoComponents();
+    
+    // Get current active gizmo axis (1=X, 2=Y, 3=Z, 0=none)
+    uint32 GetGizmoAxis() const { return GizmoAxis; }
 
     
     EGizmoMode GetGizmoMode() const;

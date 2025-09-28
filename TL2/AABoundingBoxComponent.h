@@ -25,7 +25,7 @@ public:
     void SetFromVertices(const TArray<FVector>& Verts);
     void SetFromVertices(const TArray<FNormalVertex>& Verts);
 
-    void Render(URenderer* Renderer, const FMatrix& View, const FMatrix& Proj) override;
+    void Render(URHIDevice* RHI, const FMatrix& View, const FMatrix& Proj) override;
 
     // 월드 좌표계에서의 AABB 반환
     FBound GetWorldBoundFromCube() const;

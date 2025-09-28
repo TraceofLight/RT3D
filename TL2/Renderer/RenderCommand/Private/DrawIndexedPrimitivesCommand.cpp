@@ -6,11 +6,11 @@
  */
 void FRHIDrawIndexedPrimitivesCommand::Execute()
 {
-    if (!Renderer || !Component)
+    if (!RHIDevice || !Component)
     {
         return;
     }
 
     // 컴포넌트 렌더링 실행
-    Component->Render(Renderer, ViewMatrix, ProjMatrix);
+    Component->Render(RHIDevice, ViewMatrix, ProjMatrix);
 }

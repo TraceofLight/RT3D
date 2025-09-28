@@ -17,11 +17,12 @@ UStaticMeshComponent::~UStaticMeshComponent()
 
 }
 
-void UStaticMeshComponent::Render(URenderer* Renderer, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
+void UStaticMeshComponent::Render(URHIDevice* RHI, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
 {
-    Renderer->UpdateConstantBuffer(GetWorldMatrix(), ViewMatrix, ProjectionMatrix);
-    Renderer->PrepareShader(GetMaterial()->GetShader());
-    Renderer->DrawIndexedPrimitiveComponent(GetStaticMesh(), D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST, MaterailSlots);
+    // TODO: DebugPass 또는 기본 렌더링 패스에서 처리
+    // Renderer->UpdateConstantBuffer(GetWorldMatrix(), ViewMatrix, ProjectionMatrix);
+    // Renderer->PrepareShader(GetMaterial()->GetShader());
+    // Renderer->DrawIndexedPrimitiveComponent(GetStaticMesh(), D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST, MaterailSlots);
 }
 
 void UStaticMeshComponent::SetStaticMesh(const FString& PathFileName)

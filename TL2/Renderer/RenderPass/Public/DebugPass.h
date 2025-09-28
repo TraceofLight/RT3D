@@ -24,4 +24,5 @@ private:
     void EndLineBatch(const FMatrix& ModelMatrix, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix);
     void RenderGrid(const FSceneView* View, FSceneRenderer* SceneRenderer);
     void RenderGizmos(const FSceneView* View, FSceneRenderer* SceneRenderer);
+    void RenderActorLines(AActor* Actor, const FSceneView* View, FSceneRenderer* SceneRenderer);
 };

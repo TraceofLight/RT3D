@@ -84,9 +84,9 @@ void D3D11RHI::Initialize(HWND hWindow)
     CreateRasterizerState();
     CreateBlendState();
     CreateConstantBuffer();
-	CreateDepthStencilState();
-	CreateSamplerState();
-    UResourceManager::GetInstance().Initialize(Device,DeviceContext);
+    CreateDepthStencilState();
+    CreateSamplerState();
+    UResourceManager::GetInstance().Initialize(Device, DeviceContext);
 
     // Initialize Direct2D overlay after device/swapchain ready
     UStatsOverlayD2D::Get().Initialize(Device, DeviceContext, SwapChain);
@@ -109,26 +109,94 @@ void D3D11RHI::Release()
     ReleaseSamplerState();
 
     // 상수버퍼
-    if (HighLightCB) { HighLightCB->Release(); HighLightCB = nullptr; }
-    if (ModelCB) { ModelCB->Release(); ModelCB = nullptr; }
-    if (ColorCB) { ColorCB->Release(); ColorCB = nullptr; }
-    if (ViewProjCB) { ViewProjCB->Release(); ViewProjCB = nullptr; }
-    if (BillboardCB) { BillboardCB->Release(); BillboardCB = nullptr; }
-    if (PixelConstCB) { PixelConstCB->Release(); PixelConstCB = nullptr; }
-    if (UVScrollCB) { UVScrollCB->Release(); UVScrollCB = nullptr; }
-    if (ConstantBuffer) { ConstantBuffer->Release(); ConstantBuffer = nullptr; }
+    if (HighLightCB)
+    {
+        HighLightCB->Release();
+        HighLightCB = nullptr;
+    }
+    if (ModelCB)
+    {
+        ModelCB->Release();
+        ModelCB = nullptr;
+    }
+    if (ColorCB)
+    {
+        ColorCB->Release();
+        ColorCB = nullptr;
+    }
+    if (ViewProjCB)
+    {
+        ViewProjCB->Release();
+        ViewProjCB = nullptr;
+    }
+    if (BillboardCB)
+    {
+        BillboardCB->Release();
+        BillboardCB = nullptr;
+    }
+    if (PixelConstCB)
+    {
+        PixelConstCB->Release();
+        PixelConstCB = nullptr;
+    }
+    if (UVScrollCB)
+    {
+        UVScrollCB->Release();
+        UVScrollCB = nullptr;
+    }
+    if (ConstantBuffer)
+    {
+        ConstantBuffer->Release();
+        ConstantBuffer = nullptr;
+    }
 
     // 상태 객체
-    if (DepthStencilState) { DepthStencilState->Release(); DepthStencilState = nullptr; }
-    if (DepthStencilStateLessEqualWrite) { DepthStencilStateLessEqualWrite->Release(); DepthStencilStateLessEqualWrite = nullptr; }
-    if (DepthStencilStateLessEqualReadOnly) { DepthStencilStateLessEqualReadOnly->Release(); DepthStencilStateLessEqualReadOnly = nullptr; }
-    if (DepthStencilStateAlwaysNoWrite) { DepthStencilStateAlwaysNoWrite->Release(); DepthStencilStateAlwaysNoWrite = nullptr; }
-    if (DepthStencilStateDisable) { DepthStencilStateDisable->Release(); DepthStencilStateDisable = nullptr; }
-    if (DepthStencilStateGreaterEqualWrite) { DepthStencilStateGreaterEqualWrite->Release(); DepthStencilStateGreaterEqualWrite = nullptr; }
+    if (DepthStencilState)
+    {
+        DepthStencilState->Release();
+        DepthStencilState = nullptr;
+    }
+    if (DepthStencilStateLessEqualWrite)
+    {
+        DepthStencilStateLessEqualWrite->Release();
+        DepthStencilStateLessEqualWrite = nullptr;
+    }
+    if (DepthStencilStateLessEqualReadOnly)
+    {
+        DepthStencilStateLessEqualReadOnly->Release();
+        DepthStencilStateLessEqualReadOnly = nullptr;
+    }
+    if (DepthStencilStateAlwaysNoWrite)
+    {
+        DepthStencilStateAlwaysNoWrite->Release();
+        DepthStencilStateAlwaysNoWrite = nullptr;
+    }
+    if (DepthStencilStateDisable)
+    {
+        DepthStencilStateDisable->Release();
+        DepthStencilStateDisable = nullptr;
+    }
+    if (DepthStencilStateGreaterEqualWrite)
+    {
+        DepthStencilStateGreaterEqualWrite->Release();
+        DepthStencilStateGreaterEqualWrite = nullptr;
+    }
 
-    if (DefaultRasterizerState) { DefaultRasterizerState->Release();   DefaultRasterizerState = nullptr; }
-    if (WireFrameRasterizerState) { WireFrameRasterizerState->Release();   WireFrameRasterizerState = nullptr; }
-    if (BlendState) { BlendState->Release();        BlendState = nullptr; }
+    if (DefaultRasterizerState)
+    {
+        DefaultRasterizerState->Release();
+        DefaultRasterizerState = nullptr;
+    }
+    if (WireFrameRasterizerState)
+    {
+        WireFrameRasterizerState->Release();
+        WireFrameRasterizerState = nullptr;
+    }
+    if (BlendState)
+    {
+        BlendState->Release();
+        BlendState = nullptr;
+    }
 
     // RTV/DSV/FrameBuffer
     ReleaseFrameBuffer();
@@ -137,16 +205,35 @@ void D3D11RHI::Release()
     ReleaseDeviceAndSwapChain();
 }
 
+void D3D11RHI::BeginRender()
+{
+    // 프레임 시작 시 수행할 작업들
+    // 렌더 타겟 설정
+    DeviceContext->OMSetRenderTargets(1, &RenderTargetView, DepthStencilView);
+
+    // 배경 버퍼 클리어
+    ClearBackBuffer();
+    ClearDepthBuffer(1.0f, 0);
+
+    // 기본 렌더 상태 설정
+    DeviceContext->RSSetViewports(1, &ViewportInfo);
+    DeviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+}
+
+void D3D11RHI::EndRender()
+{
+}
+
 void D3D11RHI::ClearBackBuffer()
 {
-    float ClearColor[4] = { 0.025f, 0.025f, 0.025f, 1.0f };
+    float ClearColor[4] = {0.025f, 0.025f, 0.025f, 1.0f};
     DeviceContext->ClearRenderTargetView(RenderTargetView, ClearColor);
 }
 
 void D3D11RHI::ClearDepthBuffer(float Depth, UINT Stencil)
 {
-    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, Depth, Stencil);
-
+    DeviceContext->ClearDepthStencilView(DepthStencilView, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL,
+                                         Depth, Stencil);
 }
 
 void D3D11RHI::CreateBlendState()
@@ -158,8 +245,8 @@ void D3D11RHI::CreateBlendState()
     D3D11_BLEND_DESC bd = {};
     auto& rt = bd.RenderTarget[0];
     rt.BlendEnable = TRUE;
-    rt.SrcBlend = D3D11_BLEND_SRC_ALPHA;      // 스트레이트 알파
-    rt.DestBlend = D3D11_BLEND_INV_SRC_ALPHA;  // (프리멀티면 ONE / INV_SRC_ALPHA)
+    rt.SrcBlend = D3D11_BLEND_SRC_ALPHA; // 스트레이트 알파
+    rt.DestBlend = D3D11_BLEND_INV_SRC_ALPHA; // (프리멀티면 ONE / INV_SRC_ALPHA)
     rt.BlendOp = D3D11_BLEND_OP_ADD;
     rt.SrcBlendAlpha = D3D11_BLEND_ONE;
     rt.DestBlendAlpha = D3D11_BLEND_ZERO;
@@ -211,10 +298,11 @@ void D3D11RHI::CreateSamplerState()
     SampleDesc.MinLOD = 0;
     SampleDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-	HRESULT HR = Device->CreateSamplerState(&SampleDesc, &DefaultSamplerState);
+    HRESULT HR = Device->CreateSamplerState(&SampleDesc, &DefaultSamplerState);
 }
 
-HRESULT D3D11RHI::CreateIndexBuffer(ID3D11Device* device, const FMeshData* meshData, ID3D11Buffer** outBuffer)
+HRESULT D3D11RHI::CreateIndexBuffer(ID3D11Device* device, const FMeshData* meshData,
+                                    ID3D11Buffer** outBuffer)
 {
     if (!meshData || meshData->Indices.empty())
         return E_FAIL;
@@ -231,7 +319,8 @@ HRESULT D3D11RHI::CreateIndexBuffer(ID3D11Device* device, const FMeshData* meshD
     return device->CreateBuffer(&ibd, &iinitData, outBuffer);
 }
 
-HRESULT D3D11RHI::CreateIndexBuffer(ID3D11Device* device, const FStaticMesh* mesh, ID3D11Buffer** outBuffer)
+HRESULT D3D11RHI::CreateIndexBuffer(ID3D11Device* device, const FStaticMesh* mesh,
+                                    ID3D11Buffer** outBuffer)
 {
     if (!mesh || mesh->Indices.empty())
         return E_FAIL;
@@ -249,14 +338,12 @@ HRESULT D3D11RHI::CreateIndexBuffer(ID3D11Device* device, const FStaticMesh* mes
 }
 
 //이거 두개를 나눔
-void D3D11RHI::UpdateConstantBuffers(const FMatrix& ModelMatrix, const FMatrix& ViewMatrix, const FMatrix& ProjMatrix)
+void D3D11RHI::UpdateConstantBuffers(const FMatrix& ModelMatrix, const FMatrix& ViewMatrix,
+                                     const FMatrix& ProjMatrix)
 {
-   
     UpdateModelConstantBuffers(ModelMatrix);
-   
+
     UpdateViewConstantBuffers(ViewMatrix, ProjMatrix);
-    
- 
 }
 
 void D3D11RHI::UpdateViewConstantBuffers(const FMatrix& ViewMatrix, const FMatrix& ProjMatrix)
@@ -276,7 +363,6 @@ void D3D11RHI::UpdateViewConstantBuffers(const FMatrix& ViewMatrix, const FMatri
 
         DeviceContext->Unmap(ViewProjCB, 0);
         DeviceContext->VSSetConstantBuffers(1, 1, &ViewProjCB); // b1 슬롯
-       
     }
 }
 
@@ -284,7 +370,6 @@ void D3D11RHI::UpdateModelConstantBuffers(const FMatrix& ModelMatrix)
 {
     // b0 : 모델 행렬
     {
-
         D3D11_MAPPED_SUBRESOURCE mapped;
         DeviceContext->Map(ModelCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
         auto* dataPtr = reinterpret_cast<ModelBufferType*>(mapped.pData);
@@ -297,10 +382,10 @@ void D3D11RHI::UpdateModelConstantBuffers(const FMatrix& ModelMatrix)
     }
 }
 
-void D3D11RHI::UpdateBillboardConstantBuffers(const FVector& pos, const FMatrix& ViewMatrix, const FMatrix& ProjMatrix,
-    const FVector& CameraRight, const FVector& CameraUp)
+void D3D11RHI::UpdateBillboardConstantBuffers(const FVector& pos, const FMatrix& ViewMatrix,
+                                              const FMatrix& ProjMatrix,
+                                              const FVector& CameraRight, const FVector& CameraUp)
 {
-    
     D3D11_MAPPED_SUBRESOURCE mapped;
     DeviceContext->Map(BillboardCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
     auto* dataPtr = reinterpret_cast<BillboardBufferType*>(mapped.pData);
@@ -317,7 +402,8 @@ void D3D11RHI::UpdateBillboardConstantBuffers(const FVector& pos, const FMatrix&
     DeviceContext->VSSetConstantBuffers(0, 1, &BillboardCB); // b0 슬롯
 }
 
-void D3D11RHI::UpdatePixelConstantBuffers(const FObjMaterialInfo& InMaterialInfo, bool bHasMaterial, bool bHasTexture)
+void D3D11RHI::UpdatePixelConstantBuffers(const FObjMaterialInfo& InMaterialInfo, bool bHasMaterial,
+                                          bool bHasTexture)
 {
     D3D11_MAPPED_SUBRESOURCE mapped;
     DeviceContext->Map(PixelConstCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped);
@@ -333,7 +419,9 @@ void D3D11RHI::UpdatePixelConstantBuffers(const FObjMaterialInfo& InMaterialInfo
     DeviceContext->PSSetConstantBuffers(4, 1, &PixelConstCB); // b4 슬롯
 }
 
-void D3D11RHI::UpdateHighLightConstantBuffers(const uint32 InPicked, const FVector& InColor, const uint32 X, const uint32 Y, const uint32 Z, const uint32 Gizmo)
+void D3D11RHI::UpdateHighLightConstantBuffers(const uint32 InPicked, const FVector& InColor,
+                                              const uint32 X, const uint32 Y, const uint32 Z,
+                                              const uint32 Gizmo)
 {
     // b2 : 색 강조
     {
@@ -398,7 +486,7 @@ void D3D11RHI::OMSetBlendState(bool bIsBlendMode)
 {
     if (bIsBlendMode == true)
     {
-        float blendFactor[4] = { 0,0,0,0 };
+        float blendFactor[4] = {0, 0, 0, 0};
         DeviceContext->OMSetBlendState(BlendState, blendFactor, 0xffffffff);
     }
     else
@@ -417,7 +505,7 @@ void D3D11RHI::Present()
 void D3D11RHI::CreateDeviceAndSwapChain(HWND hWindow)
 {
     // 지원하는 Direct3D 기능 레벨을 정의
-    D3D_FEATURE_LEVEL featurelevels[] = { D3D_FEATURE_LEVEL_11_0 };
+    D3D_FEATURE_LEVEL featurelevels[] = {D3D_FEATURE_LEVEL_11_0};
 
     // 스왑 체인 설정 구조체 초기화
     DXGI_SWAP_CHAIN_DESC swapchaindesc = {};
@@ -438,14 +526,19 @@ void D3D11RHI::CreateDeviceAndSwapChain(HWND hWindow)
 #endif
 
     HRESULT hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, nullptr,
-        createDeviceFlags,
-        featurelevels, ARRAYSIZE(featurelevels), D3D11_SDK_VERSION,
-        &swapchaindesc, &SwapChain, &Device, nullptr, &DeviceContext);
+                                               createDeviceFlags,
+                                               featurelevels, ARRAYSIZE(featurelevels),
+                                               D3D11_SDK_VERSION,
+                                               &swapchaindesc, &SwapChain, &Device, nullptr,
+                                               &DeviceContext);
     // 생성된 스왑 체인의 정보 가져오기
     SwapChain->GetDesc(&swapchaindesc);
 
     // 뷰포트 정보 설정
-    ViewportInfo = { 0.0f, 0.0f, (float)swapchaindesc.BufferDesc.Width, (float)swapchaindesc.BufferDesc.Height, 0.0f, 1.0f };
+    ViewportInfo = {
+        0.0f, 0.0f, (float)swapchaindesc.BufferDesc.Width, (float)swapchaindesc.BufferDesc.Height,
+        0.0f, 1.0f
+    };
 }
 
 void D3D11RHI::CreateFrameBuffer()
@@ -569,7 +662,7 @@ void D3D11RHI::CreateConstantBuffer()
         D3D11_MAPPED_SUBRESOURCE mapped{};
         if (SUCCEEDED(DeviceContext->Map(UVScrollCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
         {
-            float init[4] = { 0,0,0,0 };
+            float init[4] = {0, 0, 0, 0};
             memcpy(mapped.pData, init, sizeof(init));
             DeviceContext->Unmap(UVScrollCB, 0);
         }
@@ -581,7 +674,13 @@ void D3D11RHI::UpdateUVScrollConstantBuffers(const FVector2D& Speed, float TimeS
 {
     if (!UVScrollCB) return;
 
-    struct { float x; float y; float t; float pad; } data { Speed.X, Speed.Y, TimeSec, 0.0f };
+    struct
+    {
+        float x;
+        float y;
+        float t;
+        float pad;
+    } data{Speed.X, Speed.Y, TimeSec, 0.0f};
 
     D3D11_MAPPED_SUBRESOURCE mapped;
     if (SUCCEEDED(DeviceContext->Map(UVScrollCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &mapped)))
@@ -599,7 +698,7 @@ void D3D11RHI::ReleaseSamplerState()
     {
         DefaultSamplerState->Release();
         DefaultSamplerState = nullptr;
-	}
+    }
 }
 
 void D3D11RHI::ReleaseBlendState()
@@ -665,7 +764,6 @@ void D3D11RHI::ReleaseDeviceAndSwapChain()
         Device->Release();
         Device = nullptr;
     }
-
 }
 
 void D3D11RHI::OmSetDepthStencilState(EComparisonFunc Func)
@@ -684,30 +782,38 @@ void D3D11RHI::OmSetDepthStencilState(EComparisonFunc Func)
     }
 }
 
-void D3D11RHI::CreateShader(ID3D11InputLayout** SimpleInputLayout, ID3D11VertexShader** SimpleVertexShader, ID3D11PixelShader** SimplePixelShader)
+void D3D11RHI::CreateShader(ID3D11InputLayout** SimpleInputLayout,
+                            ID3D11VertexShader** SimpleVertexShader,
+                            ID3D11PixelShader** SimplePixelShader)
 {
     ID3DBlob* vertexshaderCSO;
     ID3DBlob* pixelshaderCSO;
 
-    D3DCompileFromFile(L"ShaderW0.hlsl", nullptr, nullptr, "mainVS", "vs_5_0", 0, 0, &vertexshaderCSO, nullptr);
+    D3DCompileFromFile(L"ShaderW0.hlsl", nullptr, nullptr, "mainVS", "vs_5_0", 0, 0,
+                       &vertexshaderCSO, nullptr);
 
-    Device->CreateVertexShader(vertexshaderCSO->GetBufferPointer(), vertexshaderCSO->GetBufferSize(), nullptr, SimpleVertexShader);
+    Device->CreateVertexShader(vertexshaderCSO->GetBufferPointer(),
+                               vertexshaderCSO->GetBufferSize(), nullptr, SimpleVertexShader);
 
-    D3DCompileFromFile(L"ShaderW0.hlsl", nullptr, nullptr, "mainPS", "ps_5_0", 0, 0, &pixelshaderCSO, nullptr);
+    D3DCompileFromFile(L"ShaderW0.hlsl", nullptr, nullptr, "mainPS", "ps_5_0", 0, 0,
+                       &pixelshaderCSO, nullptr);
 
-    Device->CreatePixelShader(pixelshaderCSO->GetBufferPointer(), pixelshaderCSO->GetBufferSize(), nullptr, SimplePixelShader);
+    Device->CreatePixelShader(pixelshaderCSO->GetBufferPointer(), pixelshaderCSO->GetBufferSize(),
+                              nullptr, SimplePixelShader);
 
     D3D11_INPUT_ELEMENT_DESC layout[] =
     {
-        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
-        { "COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+        {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
     };
 
-    Device->CreateInputLayout(layout, ARRAYSIZE(layout), vertexshaderCSO->GetBufferPointer(), vertexshaderCSO->GetBufferSize(), SimpleInputLayout);
+    Device->CreateInputLayout(layout, ARRAYSIZE(layout), vertexshaderCSO->GetBufferPointer(),
+                              vertexshaderCSO->GetBufferSize(), SimpleInputLayout);
 
     vertexshaderCSO->Release();
     pixelshaderCSO->Release();
 }
+
 void D3D11RHI::OnResize(UINT NewWidth, UINT NewHeight)
 {
     if (!Device || !DeviceContext || !SwapChain)
@@ -718,7 +824,7 @@ void D3D11RHI::OnResize(UINT NewWidth, UINT NewHeight)
 
     // 스왑체인 버퍼 리사이즈
     HRESULT hr = SwapChain->ResizeBuffers(
-        0,                 // 버퍼 개수 (0 = 기존 유지)
+        0, // 버퍼 개수 (0 = 기존 유지)
         NewWidth,
         NewHeight,
         DXGI_FORMAT_UNKNOWN, // 기존 포맷 유지
@@ -743,16 +849,27 @@ void D3D11RHI::OnResize(UINT NewWidth, UINT NewHeight)
 
     DeviceContext->RSSetViewports(1, &ViewportInfo);
 }
+
 void D3D11RHI::CreateBackBufferAndDepthStencil(UINT width, UINT height)
 {
     // 기존 바인딩 해제 후 뷰 해제
-    if (RenderTargetView) { DeviceContext->OMSetRenderTargets(0, nullptr, nullptr); RenderTargetView->Release(); RenderTargetView = nullptr; }
-    if (DepthStencilView) { DepthStencilView->Release(); DepthStencilView = nullptr; }
+    if (RenderTargetView)
+    {
+        DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
+        RenderTargetView->Release();
+        RenderTargetView = nullptr;
+    }
+    if (DepthStencilView)
+    {
+        DepthStencilView->Release();
+        DepthStencilView = nullptr;
+    }
 
     // 1) 백버퍼에서 RTV 생성
     ID3D11Texture2D* backBuffer = nullptr;
     HRESULT hr = SwapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&backBuffer);
-    if (FAILED(hr) || !backBuffer) {
+    if (FAILED(hr) || !backBuffer)
+    {
         UE_LOG("GetBuffer(0) failed.\n");
         return;
     }
@@ -762,7 +879,8 @@ void D3D11RHI::CreateBackBufferAndDepthStencil(UINT width, UINT height)
     framebufferRTVdesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     hr = Device->CreateRenderTargetView(backBuffer, &framebufferRTVdesc, &RenderTargetView);
     backBuffer->Release();
-    if (FAILED(hr) || !RenderTargetView) {
+    if (FAILED(hr) || !RenderTargetView)
+    {
         UE_LOG("CreateRenderTargetView failed.\n");
         return;
     }
@@ -775,13 +893,14 @@ void D3D11RHI::CreateBackBufferAndDepthStencil(UINT width, UINT height)
     depthDesc.MipLevels = 1;
     depthDesc.ArraySize = 1;
     depthDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthDesc.SampleDesc.Count = 1;               // 멀티샘플링 끄는 경우
+    depthDesc.SampleDesc.Count = 1; // 멀티샘플링 끄는 경우
     depthDesc.SampleDesc.Quality = 0;
     depthDesc.Usage = D3D11_USAGE_DEFAULT;
     depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 
     hr = Device->CreateTexture2D(&depthDesc, nullptr, &depthTex);
-    if (FAILED(hr) || !depthTex) {
+    if (FAILED(hr) || !depthTex)
+    {
         UE_LOG("CreateTexture2D(depth) failed.\n");
         return;
     }
@@ -793,7 +912,8 @@ void D3D11RHI::CreateBackBufferAndDepthStencil(UINT width, UINT height)
 
     hr = Device->CreateDepthStencilView(depthTex, &dsvDesc, &DepthStencilView);
     depthTex->Release();
-    if (FAILED(hr) || !DepthStencilView) {
+    if (FAILED(hr) || !DepthStencilView)
+    {
         UE_LOG("CreateDepthStencilView failed.\n");
         return;
     }
@@ -827,28 +947,47 @@ void D3D11RHI::setviewort(UINT width, UINT height)
 {
     SetViewport(width, height);
 }
+
 void D3D11RHI::ResizeSwapChain(UINT width, UINT height)
 {
     if (!SwapChain) return;
 
     // 렌더링 완료까지 대기 (중요!)
-    if (DeviceContext) {
+    if (DeviceContext)
+    {
         DeviceContext->Flush();
     }
 
     // 현재 렌더 타겟 언바인딩
-    if (DeviceContext) {
+    if (DeviceContext)
+    {
         DeviceContext->OMSetRenderTargets(0, nullptr, nullptr);
     }
 
     // 기존 뷰 해제
-    if (RenderTargetView) { RenderTargetView->Release(); RenderTargetView = nullptr; }
-    if (DepthStencilView) { DepthStencilView->Release(); DepthStencilView = nullptr; }
-    if (FrameBuffer) { FrameBuffer->Release(); FrameBuffer = nullptr; }
+    if (RenderTargetView)
+    {
+        RenderTargetView->Release();
+        RenderTargetView = nullptr;
+    }
+    if (DepthStencilView)
+    {
+        DepthStencilView->Release();
+        DepthStencilView = nullptr;
+    }
+    if (FrameBuffer)
+    {
+        FrameBuffer->Release();
+        FrameBuffer = nullptr;
+    }
 
     // 스왑체인 버퍼 리사이즈
     HRESULT hr = SwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
-    if (FAILED(hr)) { UE_LOG("ResizeBuffers failed!\n"); return; }
+    if (FAILED(hr))
+    {
+        UE_LOG("ResizeBuffers failed!\n");
+        return;
+    }
 
     // 다시 RTV/DSV 만들기
     CreateBackBufferAndDepthStencil(width, height);
@@ -859,5 +998,5 @@ void D3D11RHI::ResizeSwapChain(UINT width, UINT height)
 
 void D3D11RHI::PSSetDefaultSampler(UINT StartSlot)
 {
-	DeviceContext->PSSetSamplers(StartSlot, 1, &DefaultSamplerState);
+    DeviceContext->PSSetSamplers(StartSlot, 1, &DefaultSamplerState);
 }

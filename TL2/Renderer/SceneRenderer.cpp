@@ -9,7 +9,7 @@
 #include "SceneViewFamily/Public/SceneViewFamily.h"
 
 // 전역 RHI 인스턴스
-URHIDevice* FSceneRenderer::GlobalRHI = nullptr;
+D3D11RHI* FSceneRenderer::GlobalRHI = nullptr;
 
 FSceneRenderer* FSceneRenderer::CreateSceneRenderer(const FSceneViewFamily& InViewFamily)
 {

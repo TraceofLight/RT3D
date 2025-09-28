@@ -6,11 +6,10 @@
  */
 void FRHIUpdateHighlightBufferCommand::Execute()
 {
-    if (!Renderer)
+    if (!RHIDevice)
     {
         return;
     }
     
-    Renderer->
-        UpdateHighLightConstantBuffer(bIsSelected ? 1 : 0, Color, 0, 0, 0, Gizmo);
+    RHIDevice->UpdateHighLightConstantBuffers(bIsSelected ? 1 : 0, Color, 0, 0, 0, Gizmo);
 }

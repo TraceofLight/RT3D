@@ -6,10 +6,10 @@
  */
 void FRHISetViewModeCommand::Execute()
 {
-    if (!Renderer)
+    if (!RHIDevice)
     {
         return;
     }
 
-    Renderer->SetViewModeType(ViewMode);
+    RHIDevice->RSSetState(ViewMode);
 }

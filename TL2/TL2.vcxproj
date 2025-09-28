@@ -200,6 +200,11 @@
     <ClCompile Include="Renderer\RenderCommand\Private\SetViewModeCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\UpdateConstantBufferCommand.cpp" />
     <ClCompile Include="Renderer\RenderCommand\Private\UpdateHighlightBufferCommand.cpp" />
+    <ClCompile Include="Renderer\RenderPass\Private\BasePass.cpp" />
+    <ClCompile Include="Renderer\RenderPass\Private\DebugPass.cpp" />
+    <ClCompile Include="Renderer\RenderPass\Private\DepthPrePass.cpp" />
+    <ClCompile Include="Renderer\SceneRenderer.cpp" />
+    <ClCompile Include="Renderer\SceneViewFamily\Private\SceneViewFamily.cpp" />
     <ClCompile Include="Renderer\SceneView\Private\SceneView.cpp" />
     <ClCompile Include="RenderingStats.cpp" />
     <ClCompile Include="RenderViewportSwitcherWidget.cpp" />
@@ -252,7 +257,6 @@
     </ClCompile>
     <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="RHIDevice.cpp" />
     <ClCompile Include="SControlPanel.cpp" />
     <ClCompile Include="SDetailsWindow.cpp" />
@@ -375,6 +379,12 @@
     <ClInclude Include="Renderer\RenderCommand\Public\SetViewModeCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\UpdateConstantBufferCommand.h" />
     <ClInclude Include="Renderer\RenderCommand\Public\UpdateHighlightBufferCommand.h" />
+    <ClInclude Include="Renderer\RenderPass\Public\BasePass.h" />
+    <ClInclude Include="Renderer\RenderPass\Public\DebugPass.h" />
+    <ClInclude Include="Renderer\RenderPass\Public\DepthPrePass.h" />
+    <ClInclude Include="Renderer\RenderPass\Public\RenderPass.h" />
+    <ClInclude Include="Renderer\SceneRenderer.h" />
+    <ClInclude Include="Renderer\SceneViewFamily\Public\SceneViewFamily.h" />
     <ClInclude Include="Renderer\SceneView\Public\SceneView.h" />
     <ClInclude Include="RenderingStats.h" />
     <ClInclude Include="RenderViewportSwitcherWidget.h" />
@@ -394,7 +404,6 @@
     <ClInclude Include="ImGui\imstb_textedit.h" />
     <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="InputManager.h" />
-    <ClInclude Include="Renderer.h" />
     <ClInclude Include="RHIDevice.h" />
     <ClInclude Include="SceneRotationUtils.h" />
     <ClInclude Include="SControlPanel.h" />

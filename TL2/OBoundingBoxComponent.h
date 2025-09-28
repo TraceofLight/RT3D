@@ -31,7 +31,7 @@ public:
 
     FBox GetWorldOBBFromAttachParent() const;
 
-	void Render(URenderer* Renderer, const FMatrix& View, const FMatrix& Proj) override;
+	void Render(URHIDevice* RHI, const FMatrix& View, const FMatrix& Proj) override;
     // Debug 렌더링용
     // void DrawDebug(ID3D11DeviceContext* DC);
 

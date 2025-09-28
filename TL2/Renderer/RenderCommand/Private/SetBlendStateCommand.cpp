@@ -6,10 +6,10 @@
  */
 void FRHISetBlendStateCommand::Execute()
 {
-    if (!Renderer)
+    if (!RHIDevice)
     {
         return;
     }
 
-    Renderer->OMSetBlendState(bEnableBlend);
+    RHIDevice->OMSetBlendState(bEnableBlend);
 }

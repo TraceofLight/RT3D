@@ -25,14 +25,14 @@ public:
     void Cleanup();
     
     // RHI 접근자
-    static URHIDevice* GetGlobalRHI() { return GlobalRHI; }
-    static void SetGlobalRHI(URHIDevice* InRHI) { GlobalRHI = InRHI; }
+    static D3D11RHI* GetGlobalRHI() { return GlobalRHI; }
+    static void SetGlobalRHI(D3D11RHI* InRHI) { GlobalRHI = InRHI; }
 
 private:
     const FSceneViewFamily* ViewFamily;
     TArray<IRenderPass*> RenderPasses;
     
-    static URHIDevice* GlobalRHI;
+    static D3D11RHI* GlobalRHI;
     
     FSceneRenderer(const FSceneViewFamily& InViewFamily);
     

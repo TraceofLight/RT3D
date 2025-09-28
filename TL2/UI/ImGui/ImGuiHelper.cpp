@@ -1,9 +1,8 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "ImGuiHelper.h"
 #include "../../ImGui/imgui.h"
 #include "../../ImGui/imgui_impl_dx11.h"
 #include "../../ImGui/imgui_impl_win32.h"
-#include "../../Renderer.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, uint32 msg, WPARAM wParam, LPARAM lParam);
 

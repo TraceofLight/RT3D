@@ -97,13 +97,14 @@ FBox UOBoundingBoxComponent::GetWorldOBBFromAttachParent() const
     return FBox(MinW, MaxW);
 }
 
-void UOBoundingBoxComponent::Render(URenderer* Renderer, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
+void UOBoundingBoxComponent::Render(URHIDevice* RHI, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
 {
     /*if(OOBB)
     SetupAttachment(NULL);*///OOBB시  조건문 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-    Renderer->RSSetState(EViewModeIndex::VMI_Wireframe);
-    Renderer->UpdateConstantBuffer(GetWorldMatrix(), ViewMatrix, ProjectionMatrix);
-    Renderer->PrepareShader(GetMaterial()->GetShader());
-    //Renderer->DrawIndexedPrimitiveComponent(GetMeshResource(), D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
+    // TODO: DebugPass에서 처리
+    // Renderer->RSSetState(EViewModeIndex::VMI_Wireframe);
+    // Renderer->UpdateConstantBuffer(GetWorldMatrix(), ViewMatrix, ProjectionMatrix);
+    // Renderer->PrepareShader(GetMaterial()->GetShader());
+    // Renderer->DrawIndexedPrimitiveComponent(GetMeshResource(), D3D11_PRIMITIVE_TOPOLOGY_LINELIST);
 }

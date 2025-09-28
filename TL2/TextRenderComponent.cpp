@@ -140,26 +140,29 @@ TArray<FBillboardVertexInfo_GPU> UTextRenderComponent::CreateVerticesForString(c
     return vertices;
 }
 
-void UTextRenderComponent::Render(URenderer* Renderer, const FMatrix& View, const FMatrix& Proj)
+void UTextRenderComponent::Render(URHIDevice* RHI, const FMatrix& View, const FMatrix& Proj)
 {
+    // TODO: DebugPass에서 처리
+    /*
     if (Owner->GetIsPicked() == true)
     {
-        Material->Load("TextBillboard.dds", Renderer->GetRHIDevice()->GetDevice());//texture 불러오기 초기화는 ResourceManager Initialize() -> CreateTextBillboardTexture();
+        Material->Load("TextBillboard.dds", RHI->GetDevice());
         ACameraActor* CameraActor = GetOwner()->GetWorld()->GetCameraActor();
         FVector CamRight = CameraActor->GetActorRight();
         FVector CamUp = CameraActor->GetActorUp();
 
 
         FVector cameraPosition = CameraActor->GetActorLocation();
-        Renderer->UpdateBillboardConstantBuffers(Owner->GetActorLocation() + FVector(0.f, 0.f, 1.f) * Owner->GetActorScale().Z, View, Proj, CamRight, CamUp);
+        // Renderer->UpdateBillboardConstantBuffers(Owner->GetActorLocation() + FVector(0.f, 0.f, 1.f) * Owner->GetActorScale().Z, View, Proj, CamRight, CamUp);
 
 
-        Renderer->PrepareShader(Material->GetShader());
-        TArray<FBillboardVertexInfo_GPU> vertices = CreateVerticesForString(FString("UUID : ") + FString(std::to_string(Owner->UUID)), Owner->GetActorLocation());//TODO : HELLOWORLD를 멤버변수 TEXT로바꾸기
+        // Renderer->PrepareShader(Material->GetShader());
+        TArray<FBillboardVertexInfo_GPU> vertices = CreateVerticesForString(FString("UUID : ") + FString(std::to_string(Owner->UUID)), Owner->GetActorLocation());//TODO : HELLOWORLD를 멤버변수 TEXT로바꿔기
         UResourceManager::GetInstance().UpdateDynamicVertexBuffer("TextBillboard", vertices);
-        Renderer->OMSetBlendState(true);
-        Renderer->RSSetState(EViewModeIndex::VMI_Unlit);
-        Renderer->DrawIndexedPrimitiveComponent(this, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        Renderer->OMSetBlendState(false);
+        // Renderer->OMSetBlendState(true);
+        // Renderer->RSSetState(EViewModeIndex::VMI_Unlit);
+        // Renderer->DrawIndexedPrimitiveComponent(this, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        // Renderer->OMSetBlendState(false);
     }
+    */
 }

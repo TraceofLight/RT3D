@@ -35,7 +35,7 @@ void UAABoundingBoxComponent::SetFromVertices(const TArray<FNormalVertex>& Verts
     }
 }
 
-void UAABoundingBoxComponent::Render(URenderer* Renderer, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
+void UAABoundingBoxComponent::Render(URHIDevice* RHI, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
 {
     if (USelectionManager::GetInstance().GetSelectedActor() == GetOwner())
     {
@@ -45,7 +45,8 @@ void UAABoundingBoxComponent::Render(URenderer* Renderer, const FMatrix& ViewMat
 
         FBound WorldBound = GetWorldBoundFromCube();
         CreateLineData(WorldBound.Min, WorldBound.Max, Start, End, Color);
-        Renderer->AddLines(Start, End, Color);
+    // TODO: DebugPass에서 처리
+    // Renderer->AddLine(P1, P2, Color);
     }
 }
 

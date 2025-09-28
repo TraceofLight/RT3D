@@ -10,8 +10,8 @@ class FRHISetRenderTargetCommand :
     public IRHICommand
 {
 public:
-    FRHISetRenderTargetCommand(URenderer* InRenderer, const FSceneView* InView)
-        : Renderer(InRenderer), View(InView)
+    FRHISetRenderTargetCommand(URHIDevice* InRHIDevice, const FSceneView* InView)
+        : RHIDevice(InRHIDevice), View(InView)
     {
     }
 
@@ -23,6 +23,6 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
     const FSceneView* View;
 };

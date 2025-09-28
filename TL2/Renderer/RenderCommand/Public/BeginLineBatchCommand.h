@@ -8,7 +8,7 @@ class FRHIBeginLineBatchCommand :
     public IRHICommand
 {
 public:
-    FRHIBeginLineBatchCommand(URenderer* InRenderer) : Renderer(InRenderer)
+    FRHIBeginLineBatchCommand(URHIDevice* InRHIDevice) : RHIDevice(InRHIDevice)
     {
     }
 
@@ -20,5 +20,5 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
 };

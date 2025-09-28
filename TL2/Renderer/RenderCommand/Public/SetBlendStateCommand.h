@@ -8,8 +8,8 @@ class FRHISetBlendStateCommand :
     public IRHICommand
 {
 public:
-    FRHISetBlendStateCommand(URenderer* InRenderer, bool bInEnableBlend)
-        : Renderer(InRenderer), bEnableBlend(bInEnableBlend)
+    FRHISetBlendStateCommand(URHIDevice* InRHIDevice, bool bInEnableBlend)
+        : RHIDevice(InRHIDevice), bEnableBlend(bInEnableBlend)
     {
     }
 
@@ -21,6 +21,6 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
     bool bEnableBlend;
 };

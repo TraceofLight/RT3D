@@ -3,8 +3,6 @@
 #include "Line.h"
 #include "UEContainer.h"
 
-class URenderer;
-
 class ULineComponent : public UPrimitiveComponent
 {
 public:
@@ -19,7 +17,7 @@ public:
     void RemoveLine(ULine* Line);
     void ClearLines();
 
-    virtual void Render(URenderer* Renderer, const FMatrix& View, const FMatrix& Proj) override;
+    virtual void Render(URHIDevice* RHI, const FMatrix& View, const FMatrix& Proj) override;
 
     // Properties
     void SetLineVisible(bool bVisible) { bLinesVisible = bVisible; }

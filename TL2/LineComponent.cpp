@@ -1,6 +1,5 @@
 ﻿#include "pch.h"
 #include "LineComponent.h"
-#include "Renderer.h"
 
 void ULineComponent::GetWorldLineData(TArray<FVector>& OutStartPoints, TArray<FVector>& OutEndPoints, TArray<FVector4>& OutColors) const
 {
@@ -75,27 +74,13 @@ void ULineComponent::ClearLines()
     Lines.Empty();
 }
 
-void ULineComponent::Render(URenderer* Renderer, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
+void ULineComponent::Render(URHIDevice* RHI, const FMatrix& ViewMatrix, const FMatrix& ProjectionMatrix)
 {
-    if (!HasVisibleLines() || !Renderer)
+    if (!HasVisibleLines() || !RHI)
         return;
 
-    TArray<FVector> startPoints, endPoints;
-    TArray<FVector4> colors;
-    
-    // Extract world coordinate line data efficiently
-    GetWorldLineData(startPoints, endPoints, colors);
-    
-    // Add all lines to renderer batch at once
-    if (!startPoints.empty())
-    {
-        Renderer->AddLines(startPoints, endPoints, colors);
-    }
-    startPoints.clear();
-    startPoints.Shrink();
-    endPoints.clear();
-    endPoints.Shrink();
-    colors.clear();
-    colors.Shrink();
+    // TODO: RHI를 통한 라인 렌더링은 DebugPass에서 처리
+    // 현재는 빈 구현으로 두고, DebugPass에서 GetWorldLineData()를 호출하여 처리
+    // 이 함수는 향후 제거되거나 DebugPass로 통합될 예정
 }
 

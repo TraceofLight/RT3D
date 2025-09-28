@@ -11,11 +11,12 @@ class UUIManager;
 class UInputManager;
 class USelectionManager;
 class AActor;
-class URenderer;
 class ACameraActor;
 class AGizmoActor;
 class FViewport;
 class SMultiViewportWindow;
+class FSceneRenderer;
+class FSceneView;
 struct FTransform;
 struct FPrimitiveData;
 class SViewportWindow;
@@ -49,9 +50,6 @@ public:
     void ProcessActorSelection();
 
     void ProcessViewportInput();
-
-    void SetRenderer(URenderer* InRenderer);
-    URenderer* GetRenderer() { return Renderer; }
 
     void SetMainViewport(SViewportWindow* InViewport) { MainViewport = InViewport; }
     SViewportWindow* GetMainViewport() const { return MainViewport; }
@@ -99,13 +97,13 @@ public:
 
     /** === 렌더 === */
     void Render();
-    void RenderSingleViewport();
     void RenderViewports(ACameraActor* Camera, FViewport* Viewport);
     //void GameRender(ACameraActor* Camera, FViewport* Viewport);
 
 
     /** === 필요한 엑터 게터 === */
     const TArray<AActor*>& GetActors() { return Actors; }
+    const TArray<AActor*>& GetEngineActors() { return EngineActors; }
     AGizmoActor* GetGizmoActor();
     AGridActor* GetGridActor() { return GridActor; }
 
@@ -131,8 +129,6 @@ private:
     ACameraActor* MainCameraActor = nullptr;
 
     AGridActor* GridActor = nullptr;
-    // 렌더러 (월드가 소유)
-    URenderer* Renderer;
 
     // 메인 뷰포트
     SViewportWindow* MainViewport = nullptr;

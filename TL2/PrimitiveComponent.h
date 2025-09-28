@@ -5,8 +5,6 @@
 // 전방 선언
 struct FPrimitiveData;
 
-class URenderer;
-
 class UPrimitiveComponent :public USceneComponent
 {
 public:
@@ -21,7 +19,7 @@ public:
     // 트랜스폼 직렬화/역직렬화 (월드 트랜스폼 기준)
     virtual void Serialize(bool bIsLoading, FPrimitiveData& InOut);
 
-    virtual void Render(URenderer* Renderer, const FMatrix& View, const FMatrix& Proj) {}
+    virtual void Render(URHIDevice* RHI, const FMatrix& View, const FMatrix& Proj) {}
 
 protected:
     UMaterial* Material = nullptr;

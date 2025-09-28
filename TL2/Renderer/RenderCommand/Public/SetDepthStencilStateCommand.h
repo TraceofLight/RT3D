@@ -8,8 +8,8 @@ class FRHISetDepthStencilStateCommand :
     public IRHICommand
 {
 public:
-    FRHISetDepthStencilStateCommand(URenderer* InRenderer, EComparisonFunc InCompareFunc)
-        : Renderer(InRenderer), CompareFunction(InCompareFunc)
+    FRHISetDepthStencilStateCommand(URHIDevice* InRHIDevice, EComparisonFunc InCompareFunc)
+        : RHIDevice(InRHIDevice), CompareFunction(InCompareFunc)
     {
     }
 
@@ -21,6 +21,6 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
     EComparisonFunc CompareFunction;
 };

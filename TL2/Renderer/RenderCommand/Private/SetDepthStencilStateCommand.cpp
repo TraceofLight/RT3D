@@ -6,10 +6,10 @@
  */
 void FRHISetDepthStencilStateCommand::Execute()
 {
-    if (!Renderer)
+    if (!RHIDevice)
     {
         return;
     }
 
-    Renderer->OMSetDepthStencilState(CompareFunction);
+    RHIDevice->OmSetDepthStencilState(CompareFunction);
 }

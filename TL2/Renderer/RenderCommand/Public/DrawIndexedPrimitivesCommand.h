@@ -8,9 +8,9 @@ class FRHIDrawIndexedPrimitivesCommand :
     public IRHICommand
 {
 public:
-    FRHIDrawIndexedPrimitivesCommand(URenderer* InRenderer, UPrimitiveComponent* InComponent,
+    FRHIDrawIndexedPrimitivesCommand(URHIDevice* InRHIDevice, UPrimitiveComponent* InComponent,
                                      const FMatrix& InViewMatrix, const FMatrix& InProjMatrix)
-        : Renderer(InRenderer), Component(InComponent), ViewMatrix(InViewMatrix),
+        : RHIDevice(InRHIDevice), Component(InComponent), ViewMatrix(InViewMatrix),
           ProjMatrix(InProjMatrix)
     {
     }
@@ -23,7 +23,7 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
     UPrimitiveComponent* Component;
     FMatrix ViewMatrix;
     FMatrix ProjMatrix;

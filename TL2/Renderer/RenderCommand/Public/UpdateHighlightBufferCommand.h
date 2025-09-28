@@ -7,9 +7,9 @@
 class FRHIUpdateHighlightBufferCommand : public IRHICommand
 {
 public:
-    FRHIUpdateHighlightBufferCommand(URenderer* InRenderer, bool bInIsSelected,
+    FRHIUpdateHighlightBufferCommand(URHIDevice* InRHIDevice, bool bInIsSelected,
                                      const FVector& InColor, uint32 InGizmo = 0)
-        : Renderer(InRenderer), bIsSelected(bInIsSelected), Color(InColor), Gizmo(InGizmo)
+        : RHIDevice(InRHIDevice), bIsSelected(bInIsSelected), Color(InColor), Gizmo(InGizmo)
     {
     }
 
@@ -21,7 +21,7 @@ public:
     }
 
 private:
-    URenderer* Renderer;
+    URHIDevice* RHIDevice;
     bool bIsSelected;
     FVector Color;
     uint32 Gizmo;

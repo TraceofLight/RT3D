@@ -24,7 +24,7 @@ protected:
     ~UStaticMeshComponent() override;
 
 public:
-    void Render(URenderer* Renderer, const FMatrix& View, const FMatrix& Proj) override;
+    void Render(URHIDevice* RHI, const FMatrix& View, const FMatrix& Proj) override;
 
     void SetStaticMesh(const FString& PathFileName);
     UStaticMesh* GetStaticMesh() const { return StaticMesh; }
