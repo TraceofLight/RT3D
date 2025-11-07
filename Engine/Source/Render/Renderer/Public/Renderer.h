@@ -69,7 +69,7 @@ public:
 	void CreateDepthOnlyShader();
 	void CreatePointLightShadowShader();
 	void CreateHitProxyShader();
-	void RenderHitProxyPass(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
+	void RenderHitProxyPass(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 
 	// HotReload
 	/** @brief 런타임 중 VS, PS 셰이더 파일이 변경되었는지 확인하고, 변경된 파일을 사용하는 Shader Usage들을 반환합니다.*/

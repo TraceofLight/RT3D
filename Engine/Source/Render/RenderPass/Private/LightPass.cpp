@@ -1,12 +1,12 @@
 #include "pch.h"
 #include "Render/RenderPass/Public/LightPass.h"
+
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 #include "Component/Public/AmbientLightComponent.h"
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Component/Public/PointLightComponent.h"
 #include "Component/Public/SpotLightComponent.h"
 #include "Render/RenderPass/Public/ShadowMapPass.h"
-#include "Source/Editor/Public/Camera.h"
 #include "Render/UI/Overlay/Public/StatOverlay.h"
 
 constexpr uint32 CSNumThread = 128;

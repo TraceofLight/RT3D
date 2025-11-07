@@ -49,11 +49,7 @@ public:
 	const FPoint& GetViewportSize() const { return ViewSize; }
 
 	// Viewport Rect 반환 (SceneView 호환성)
-	FRect GetRect() const { return FRect(0, 0, ViewSize.X, ViewSize.Y); }
-
-	// Legacy Camera (RenderPass 호환성을 위한 임시 객체)
-	void UpdateLegacyCamera();
-	class UCamera* GetLegacyCamera() const { return LegacyCamera; }
+	FRect GetRect() const { return {0, 0, ViewSize.X, ViewSize.Y}; }
 
 	// 업데이트
 	void Tick();
@@ -82,9 +78,6 @@ private:
 	float FOV = 60.0f;
 	float NearZ = 0.1f;
 	float FarZ = 4000.0f;
-
-	// Legacy Camera (레거시 RenderPass 지원용 - CameraComponent로부터 재조립)
-	class UCamera* LegacyCamera = nullptr;
 
 	// 뷰/입력 상태
 	FPoint ViewSize{ 0, 0 };

@@ -201,7 +201,6 @@ void UViewportMenuBarWidget::RenderWidget()
 				if (ImGui::MenuItem("Perspective"))
 				{
 					ViewportClient->SetViewType(EViewType::Perspective);
-					if (UCamera* Cam = ViewportClient->GetCamera()) { Cam->SetCameraType(ECameraType::ECT_Perspective); }
 				}
 
 				if (ImGui::BeginMenu("Orthographic"))
@@ -215,12 +214,8 @@ void UViewportMenuBarWidget::RenderWidget()
 					if (ImGui::MenuItem("Top"))
 					{
 						ViewportClient->SetViewType(EViewType::OrthoTop);
-						if (UCamera* Cam = ViewportClient->GetCamera())
-						{
-							Cam->SetCameraType(ECameraType::ECT_Orthographic);
-						}
 					}
-					
+
 					// Bottom
 					if (IconBottom && IconBottom->GetTextureSRV())
 					{
@@ -230,12 +225,8 @@ void UViewportMenuBarWidget::RenderWidget()
 					if (ImGui::MenuItem("Bottom"))
 					{
 						ViewportClient->SetViewType(EViewType::OrthoBottom);
-						if (UCamera* Cam = ViewportClient->GetCamera())
-						{
-							Cam->SetCameraType(ECameraType::ECT_Orthographic);
-						}
 					}
-					
+
 					// Left
 					if (IconLeft && IconLeft->GetTextureSRV())
 					{
@@ -245,12 +236,8 @@ void UViewportMenuBarWidget::RenderWidget()
 					if (ImGui::MenuItem("Left"))
 					{
 						ViewportClient->SetViewType(EViewType::OrthoLeft);
-						if (UCamera* Cam = ViewportClient->GetCamera())
-						{
-							Cam->SetCameraType(ECameraType::ECT_Orthographic);
-						}
 					}
-					
+
 					// Right
 					if (IconRight && IconRight->GetTextureSRV())
 					{
@@ -260,12 +247,8 @@ void UViewportMenuBarWidget::RenderWidget()
 					if (ImGui::MenuItem("Right"))
 					{
 						ViewportClient->SetViewType(EViewType::OrthoRight);
-						if (UCamera* Cam = ViewportClient->GetCamera())
-						{
-							Cam->SetCameraType(ECameraType::ECT_Orthographic);
-						}
 					}
-					
+
 					// Front
 					if (IconFront && IconFront->GetTextureSRV())
 					{
@@ -275,12 +258,8 @@ void UViewportMenuBarWidget::RenderWidget()
 					if (ImGui::MenuItem("Front"))
 					{
 						ViewportClient->SetViewType(EViewType::OrthoFront);
-						if (UCamera* Cam = ViewportClient->GetCamera())
-						{
-							Cam->SetCameraType(ECameraType::ECT_Orthographic);
-						}
 					}
-					
+
 					// Back
 					if (IconBack && IconBack->GetTextureSRV())
 					{
@@ -290,32 +269,11 @@ void UViewportMenuBarWidget::RenderWidget()
 					if (ImGui::MenuItem("Back"))
 					{
 						ViewportClient->SetViewType(EViewType::OrthoBack);
-						if (UCamera* Cam = ViewportClient->GetCamera())
-						{
-							Cam->SetCameraType(ECameraType::ECT_Orthographic);
-						}
 					}
-					
+
 					ImGui::EndMenu();
 				}
 				ImGui::EndMenu();
-			}
-
-			ImGui::Separator();
-
-			// 카메라 설정 버튼
-			if (ImGui::Button("Camera Settings"))
-			{
-				ImGui::OpenPopup("CameraSettingsPopup");
-			}
-			if (ImGui::BeginPopup("CameraSettingsPopup"))
-			{
-				// FutureEngine 철학: ViewportClient->GetCamera()로 접근
-				if (UCamera* Camera = ViewportClient->GetCamera())
-				{
-					RenderCameraControls(*Camera);
-				}
-				ImGui::EndPopup();
 			}
 
 			ImGui::Separator();
@@ -357,60 +315,5 @@ void UViewportMenuBarWidget::RenderWidget()
 
 		ImGui::PopStyleColor(14);
 		ImGui::PopID();
-	}
-}
-
-void UViewportMenuBarWidget::RenderCameraControls(UCamera& InCamera)
-{
-	// --- UI를 그리기 직전에 항상 카메라로부터 최신 값을 가져옵니다 ---
-	FVector Location = InCamera.GetLocation();
-	FVector Rotation = InCamera.GetRotation();
-	float FovY = InCamera.GetFovY();
-	float NearZ = InCamera.GetNearZ();
-	float FarZ = InCamera.GetFarZ();
-	float OrthoWidth = InCamera.GetOrthoWidth();
-	float MoveSpeed = InCamera.GetMoveSpeed();
-	int ModeIndex = (InCamera.GetCameraType() == ECameraType::ECT_Perspective) ? 0 : 1;
-	static const char* CameraMode[] = { "Perspective", "Orthographic" };
-
-
-	ImGui::Text("Camera Properties");
-	ImGui::Separator();
-
-	// --- UI 렌더링 및 상호작용 ---
-	if (ImGui::SliderFloat("Move Speed", &MoveSpeed, UViewportManager::MIN_CAMERA_SPEED, UViewportManager::MAX_CAMERA_SPEED, "%.1f"))
-	{
-		InCamera.SetMoveSpeed(MoveSpeed); // 변경 시 즉시 적용
-	}
-
-	bool bTransformChanged = false;
-	bTransformChanged |= ImGui::DragFloat3("Location", &Location.X, 0.05f);
-	bTransformChanged |= ImGui::DragFloat3("Rotation", &Rotation.X, 0.1f);
-
-	bool bOpticsChanged = false;
-	if (ModeIndex == 0) // 원근 투영 
-	{
-		bOpticsChanged |= ImGui::SliderFloat("FOV", &FovY, 1.0f, 170.0f, "%.1f");
-		bOpticsChanged |= ImGui::DragFloat("Z Near", &NearZ, 0.01f, 0.0001f, 1e6f, "%.4f");
-		bOpticsChanged |= ImGui::DragFloat("Z Far", &FarZ, 0.1f, 0.001f, 1e7f, "%.3f");
-	}
-	else if (ModeIndex == 1) // 직교 투영
-	{
-		bOpticsChanged |= ImGui::SliderFloat("OrthoWidth", &OrthoWidth, 1.0f, 150.0f, "%.1f");
-	}
-
-	// 변경된 값을 카메라에 다시 적용
-	if (bTransformChanged)
-	{
-		InCamera.SetLocation(Location);
-		InCamera.SetRotation(Rotation);
-	}
-
-	if (bOpticsChanged)
-	{
-		InCamera.SetFovY(FovY);
-		InCamera.SetNearZ(NearZ);
-		InCamera.SetFarZ(FarZ);
-		InCamera.SetOrthoWidth(OrthoWidth);
 	}
 }

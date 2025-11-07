@@ -807,9 +807,10 @@ void UViewportControlWidget::RenderViewportToolbar(int32 ViewportIndex)
 				ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
 				ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
 
-				if (UCamera* Camera = Clients[ViewportIndex]->GetCamera())
+				FViewportClient* Client = Clients[ViewportIndex];
+				if (Client)
 				{
-					EViewType PopupViewType = Clients[ViewportIndex]->GetViewType();
+					EViewType PopupViewType = Client->GetViewType();
 					const bool bIsPerspective = (PopupViewType == EViewType::Perspective);
 					ImGui::Text(bIsPerspective ? "Perspective Camera Settings" : "Orthographic Camera Settings");
 					ImGui::Separator();
@@ -828,10 +829,10 @@ void UViewportControlWidget::RenderViewportToolbar(int32 ViewportIndex)
 					}
 
 					// 카메라 위치
-					FVector location = Camera->GetLocation();
+					FVector location = Client->GetViewLocation();
 					if (ImGui::DragFloat3("Location", &location.X, 0.1f))
 					{
-						Camera->SetLocation(location);
+						Client->SetViewLocation(location);
 					}
 
 					// 카메라 회전 (Perspective만 표시)
@@ -843,7 +844,7 @@ void UViewportControlWidget::RenderViewportToolbar(int32 ViewportIndex)
 						// 드래그 시작 시 또는 비활성 상태일 때 현재 값 캐싱
 						if (!bIsDraggingRotation)
 						{
-							CachedRotation = Camera->GetRotation();
+							CachedRotation = Client->GetViewRotation();
 						}
 
 						bool bRotationChanged = ImGui::DragFloat3("Rotation", &CachedRotation.X, 0.5f);
@@ -856,16 +857,16 @@ void UViewportControlWidget::RenderViewportToolbar(int32 ViewportIndex)
 							// 값이 변경되었으면 카메라에 반영
 							if (bRotationChanged)
 							{
-								Camera->SetRotation(CachedRotation);
+								Client->SetViewRotation(CachedRotation);
 								// SetRotation 후 wrapping된 값으로 즉시 재동기화
-								CachedRotation = Camera->GetRotation();
+								CachedRotation = Client->GetViewRotation();
 							}
 						}
 						else if (bIsDraggingRotation)
 						{
 							// 드래그 종료 시 최종 동기화
 							bIsDraggingRotation = false;
-							CachedRotation = Camera->GetRotation();
+							CachedRotation = Client->GetViewRotation();
 						}
 					}
 					// Orthographic 뷰는 회전 항목 없음 (고정된 방향)
@@ -875,51 +876,49 @@ void UViewportControlWidget::RenderViewportToolbar(int32 ViewportIndex)
 					if (bIsPerspective)
 					{
 						// Perspective: FOV 표시
-						float Fov = Camera->GetFovY();
+						float Fov = Client->GetFOV();
 						if (ImGui::SliderFloat("FOV", &Fov, 1.0f, 170.0f, "%.1f"))
 						{
-							Camera->SetFovY(Fov);
+							Client->SetFOV(Fov);
 						}
 					}
 					else
 					{
 						// Orthographic: Zoom Level (OrthoZoom) 표시 및 SharedOrthoZoom 동기화
-						float OrthoZoom = Camera->GetOrthoZoom();
+						float OrthoZoom = Client->GetOrthoZoom();
 						if (ImGui::DragFloat("Zoom Level", &OrthoZoom, 10.0f, 10.0f, 10000.0f, "%.1f"))
 						{
-							Camera->SetOrthoZoom(OrthoZoom);
+							Client->SetOrthoZoom(OrthoZoom);
 
 							// 모든 Ortho 카메라에 동일한 줌 적용 (SharedOrthoZoom 갱신)
 							for (FViewportClient* OtherClient : ViewportManager.GetClients())
 							{
 								if (OtherClient && OtherClient->IsOrtho())
 								{
-									if (UCamera* OtherCam = OtherClient->GetCamera())
-									{
-										OtherCam->SetOrthoZoom(OrthoZoom);
-									}
+									OtherClient->SetOrthoZoom(OrthoZoom);
 								}
 							}
 						}
 
-						// 정보: Aspect는 자동 계산됨
-						float Aspect = Camera->GetAspect();
+						// 정보: Aspect는 자동 계산됨 (뷰포트 크기 기반)
+						const FViewport* Viewport = Client->GetOwningViewport();
+						float Aspect = Viewport ? (static_cast<float>(Viewport->GetRect().Width) / Viewport->GetRect().Height) : 1.0f;
 						ImGui::BeginDisabled();
 						ImGui::DragFloat("Aspect Ratio", &Aspect, 0.01f, 0.1f, 10.0f, "%.3f");
 						ImGui::EndDisabled();
 					}
 
 					// Near/Far Plane
-					float NearZ = Camera->GetNearZ();
+					float NearZ = Client->GetNearZ();
 					if (ImGui::DragFloat("Near Z", &NearZ, 0.01f, 0.01f, 100.0f, "%.3f"))
 					{
-						Camera->SetNearZ(NearZ);
+						Client->SetNearZ(NearZ);
 					}
 
-					float FarZ = Camera->GetFarZ();
+					float FarZ = Client->GetFarZ();
 					if (ImGui::DragFloat("Far Z", &FarZ, 1.0f, 1.0f, 10000.0f, "%.1f"))
 					{
-						Camera->SetFarZ(FarZ);
+						Client->SetFarZ(FarZ);
 					}
 				}
 

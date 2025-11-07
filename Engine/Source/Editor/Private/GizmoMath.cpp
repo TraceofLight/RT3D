@@ -2,19 +2,20 @@
 #include "Editor/Public/GizmoMath.h"
 
 #include "Editor/Public/GizmoTypes.h"
-#include "Editor/Public/Camera.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
 
-float FGizmoMath::CalculateScreenSpaceScale(const UCamera* InCamera, const D3D11_VIEWPORT& InViewport,
+float FGizmoMath::CalculateScreenSpaceScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport,
                                              const FVector& InGizmoLocation, float InDesiredPixelSize)
 {
-	if (!InCamera)
+	if (!InClient)
 	{
 		return 1.0f;
 	}
 
-	const FCameraConstants& CameraConstants = InCamera->GetFViewProjConstants();
-	const FMatrix& ProjMatrix = CameraConstants.Projection;
-	const ECameraType CameraType = InCamera->GetCameraType();
+	const float AspectRatio = InViewport.Width / InViewport.Height;
+	const FMatrix ViewMatrix = InClient->GetViewMatrix();
+	const FMatrix ProjMatrix = InClient->GetProjectionMatrix(AspectRatio);
+	const bool bIsOrtho = InClient->IsOrtho();
 	const float ViewportHeight = InViewport.Height;
 
 	if (ViewportHeight < 1.0f)
@@ -30,10 +31,8 @@ float FGizmoMath::CalculateScreenSpaceScale(const UCamera* InCamera, const D3D11
 
 	float Scale;
 
-	if (CameraType == ECameraType::ECT_Perspective)
+	if (!bIsOrtho)  // Perspective
 	{
-		const FMatrix& ViewMatrix = CameraConstants.View;
-
 		FVector4 GizmoPos4(InGizmoLocation.X, InGizmoLocation.Y, InGizmoLocation.Z, 1.0f);
 		FVector4 ViewSpacePos = GizmoPos4 * ViewMatrix;
 
@@ -44,7 +43,7 @@ float FGizmoMath::CalculateScreenSpaceScale(const UCamera* InCamera, const D3D11
 
 		Scale = (InDesiredPixelSize * ProjectedDepth) / (ProjYY * ViewportHeight * 0.5f);
 	}
-	else
+	else  // Orthographic
 	{
 		float OrthoHeight = 2.0f / ProjYY;
 		Scale = (InDesiredPixelSize * OrthoHeight) / ViewportHeight;
@@ -55,11 +54,11 @@ float FGizmoMath::CalculateScreenSpaceScale(const UCamera* InCamera, const D3D11
 	return Scale;
 }
 
-void FGizmoMath::CalculateQuarterRingDirections(UCamera* InCamera, EGizmoDirection InAxis,
+void FGizmoMath::CalculateQuarterRingDirections(FViewportClient* InClient, EGizmoDirection InAxis,
                                                  const FVector& InGizmoLocation,
                                                  FVector& OutStartDir, FVector& OutEndDir)
 {
-	if (!InCamera)
+	if (!InClient)
 	{
 		OutStartDir = FVector::ForwardVector();
 		OutEndDir = FVector::RightVector();
@@ -67,7 +66,7 @@ void FGizmoMath::CalculateQuarterRingDirections(UCamera* InCamera, EGizmoDirecti
 	}
 
 	const int Idx = DirectionToAxisIndex(InAxis);
-	const FVector CameraLoc = InCamera->GetLocation();
+	const FVector CameraLoc = InClient->GetViewLocation();
 	const FVector DirectionToWidget = (InGizmoLocation - CameraLoc).GetNormalized();
 
 	FVector Axis0 = FGizmoConstants::LocalAxis0[Idx];

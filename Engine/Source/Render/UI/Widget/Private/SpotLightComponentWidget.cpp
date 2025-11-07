@@ -291,10 +291,10 @@ void USpotLightComponentWidget::RenderWidget()
         for (FViewport* Viewport : UViewportManager::GetInstance().GetViewports())
         {
             FViewportClient* ViewportClient = Viewport->GetViewportClient();
-            if (UCamera* Camera = ViewportClient->GetCamera())
+            if (ViewportClient)
             {
-                Camera->SetLocation(SpotLightComponent->GetWorldLocation());
-                Camera->SetRotation(SpotLightComponent->GetWorldRotation());
+                ViewportClient->SetViewLocation(SpotLightComponent->GetWorldLocation());
+                ViewportClient->SetViewRotation(SpotLightComponent->GetWorldRotation());
             }
         }
     }

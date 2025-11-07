@@ -6,7 +6,10 @@
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Manager/Config/Public/ConfigManager.h"
+#include "Manager/Input/Public/InputManager.h"
 #include "Render/UI/Overlay/Public/D2DOverlayManager.h"
+#include "Render/UI/Viewport/Public/Viewport.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
 
 IMPLEMENT_CLASS(UGizmo, UObject)
 
@@ -67,17 +70,17 @@ UGizmo::UGizmo()
 
 UGizmo::~UGizmo() = default;
 
-void UGizmo::UpdateScale(const UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void UGizmo::UpdateScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
 	TargetComponent = Cast<USceneComponent>(GEditor->GetEditorModule()->GetSelectedComponent());
-	if (!TargetComponent || !InCamera)
+	if (!TargetComponent || !InClient)
 	{
 		return;
 	}
 
 	// 스크린에서 균일한 사이즈를 가지도록 하기 위한 스케일 조정
 	const FVector GizmoLocation = TargetComponent->GetWorldLocation();
-	const float Scale = FGizmoMath::CalculateScreenSpaceScale(InCamera, InViewport, GizmoLocation, 120.0f);
+	const float Scale = FGizmoMath::CalculateScreenSpaceScale(InClient, InViewport, GizmoLocation, 120.0f);
 
 	TranslateCollisionConfig.Scale = Scale;
 	RotateCollisionConfig.Scale = Scale;
@@ -108,24 +111,42 @@ bool UGizmo::IsInRadius(float Radius) const
 	return false;
 }
 
-void UGizmo::OnMouseDragStart(const FVector& CollisionPoint)
+void UGizmo::OnMouseDragStart(FViewportClient* InClient, const FVector& CollisionPoint)
 {
 	bIsDragging = true;
+	DragStartViewportClient = InClient;
 	DragStartMouseLocation = CollisionPoint;
 	PreviousMouseLocation = CollisionPoint;  // 누적 각도 계산을 위한 초기화
 
 	// 스크린 공간 드래그 초기화 (뷰포트 로컬 좌표)
-	POINT MousePos;
-	GetCursorPos(&MousePos);
-	ScreenToClient(GetActiveWindow(), &MousePos);
+	const UInputManager& InputManager = UInputManager::GetInstance();
+	const FVector& GlobalMousePos = InputManager.GetMousePosition();
 
-	const FRect& ViewportRect = UViewportManager::GetInstance().GetActiveViewportRect();
-	const FVector2 CurrentScreenPos(
-		static_cast<float>(MousePos.x) - static_cast<float>(ViewportRect.Left),
-		static_cast<float>(MousePos.y) - static_cast<float>(ViewportRect.Top)
-	);
-	PreviousScreenPos = CurrentScreenPos;
-	DragStartScreenPos = CurrentScreenPos;
+	// 드래그 시작한 뷰포트의 정보로 로컬 좌표 계산
+	auto& ViewportManager = UViewportManager::GetInstance();
+	const auto& Viewports = ViewportManager.GetViewports();
+	const auto& Clients = ViewportManager.GetClients();
+
+	int32 DragViewportIndex = -1;
+	for (int32 i = 0; i < Clients.Num(); ++i)
+	{
+		if (Clients[i] == InClient)
+		{
+			DragViewportIndex = i;
+			break;
+		}
+	}
+
+	if (DragViewportIndex != -1)
+	{
+		const D3D11_VIEWPORT& DragViewportInfo = Viewports[DragViewportIndex]->GetRenderRect();
+		const FVector2 CurrentScreenPos(
+			GlobalMousePos.X - DragViewportInfo.TopLeftX,
+			GlobalMousePos.Y - DragViewportInfo.TopLeftY
+		);
+		PreviousScreenPos = CurrentScreenPos;
+		DragStartScreenPos = CurrentScreenPos;
+	}
 
 	// 드래그 시작 방향 계산 (Arc 렌더링의 시작점으로 사용)
 	FVector GizmoCenter = Primitives[static_cast<int>(GizmoMode)].Location;
@@ -163,7 +184,7 @@ FVector4 UGizmo::ColorFor(EGizmoDirection InAxis) const
 	return FGizmoMath::CalculateColor(InAxis, GizmoDirection, bIsDragging, GizmoColor);
 }
 
-void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
 	if (!bIsDragging || GizmoMode != EGizmoMode::Rotate || !TargetComponent)
 	{
@@ -220,7 +241,7 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, UCa
 		TotalRotation = StartRotQuat;
 	}
 
-	// Z축은 각도 반전 (언리얼 표준)
+	// Z축은 각도 반전
 	float PositionAngleRadians = DisplayAngleRadians;
 	if (GizmoDirection == EGizmoDirection::Up)
 	{
@@ -240,8 +261,10 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, UCa
 	const FVector PointOnCircle = GizmoLocation + AngleDirection * RotateRadius;
 
 	// 스크린 공간으로 투영
-	const FCameraConstants& CamConst = InCamera->GetFViewProjConstants();
-	const FMatrix ViewProj = CamConst.View * CamConst.Projection;
+	const float AspectRatio = InViewport.Width / InViewport.Height;
+	const FMatrix ViewMatrix = InClient->GetViewMatrix();
+	const FMatrix ProjMatrix = InClient->GetProjectionMatrix(AspectRatio);
+	const FMatrix ViewProj = ViewMatrix * ProjMatrix;
 
 	FVector4 GizmoScreenPos4 = FVector4(GizmoLocation, 1.0f) * ViewProj;
 	FVector4 PointScreenPos4 = FVector4(PointOnCircle, 1.0f) * ViewProj;

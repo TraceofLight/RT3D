@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Editor/Public/Axis.h"
-#include "Editor/Public/Camera.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include <d2d1.h>
 
@@ -10,9 +10,9 @@ FAxis::FAxis() = default;
 
 FAxis::~FAxis() = default;
 
-void FAxis::CollectDrawCommands(FD2DOverlayManager& Manager, UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void FAxis::CollectDrawCommands(FD2DOverlayManager& Manager, FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
-    if (!InCamera)
+    if (!InClient)
     {
 	    return;
     }
@@ -22,8 +22,8 @@ void FAxis::CollectDrawCommands(FD2DOverlayManager& Manager, UCamera* InCamera, 
 	const float OriginY = InViewport.Height - OffsetFromBottom;
 	D2D1_POINT_2F AxisCenter = D2D1::Point2F(OriginX, OriginY);
 
-	// 메인 카메라의 회전(View) 행렬
-	const FMatrix ViewOnly = InCamera->GetFViewProjConstants().View;
+	// ViewportClient의 View 행렬
+	const FMatrix ViewOnly = InClient->GetViewMatrix();
 
 	// 월드 축 변환
 	// 월드 고정 축 (1,0,0), (0,1,0), (0,0,1)을 View 공간으로 변환
@@ -100,7 +100,7 @@ void FAxis::CollectDrawCommands(FD2DOverlayManager& Manager, UCamera* InCamera, 
 	constexpr float TextBoxSize = 16.0f;
 
 	// Ortho 뷰에서만 카메라를 정면으로 향하는 축 텍스트 숨김
-	const bool bIsOrtho = (InCamera->GetCameraType() == ECameraType::ECT_Orthographic);
+	const bool bIsOrtho = InClient->IsOrtho();
 	constexpr float VisibilityThreshold = 0.98f;  // 거의 완전히 수직일 때만 숨김
 
 	// X축 텍스트

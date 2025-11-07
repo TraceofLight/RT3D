@@ -2,7 +2,7 @@
 #include "GizmoTypes.h"
 #include "Global/Vector.h"
 
-class UCamera;
+class FViewportClient;
 
 /**
  * @brief Gizmo 수학 계산 유틸리티 구조체
@@ -15,24 +15,24 @@ struct FGizmoMath
 {
 	/**
 	 * @brief Screen-space uniform scale 계산
-	 * @param InCamera 카메라
+	 * @param InClient ViewportClient
 	 * @param InViewport 뷰포트 정보
 	 * @param InGizmoLocation 기즈모 위치
 	 * @param InDesiredPixelSize 원하는 화면 픽셀 크기
 	 * @return 계산된 스케일 값
 	 */
-	static float CalculateScreenSpaceScale(const UCamera* InCamera, const D3D11_VIEWPORT& InViewport,
+	static float CalculateScreenSpaceScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport,
 	                                       const FVector& InGizmoLocation, float InDesiredPixelSize);
 
 	/**
 	 * @brief Quarter Ring의 시작/끝 방향 계산 (카메라 정렬용)
-	 * @param InCamera 카메라
+	 * @param InClient ViewportClient
 	 * @param InAxis 회전 축
 	 * @param InGizmoLocation 기즈모 위치
 	 * @param OutStartDir 시작 방향 (출력)
 	 * @param OutEndDir 끝 방향 (출력)
 	 */
-	static void CalculateQuarterRingDirections(UCamera* InCamera, EGizmoDirection InAxis,
+	static void CalculateQuarterRingDirections(FViewportClient* InClient, EGizmoDirection InAxis,
 	                                           const FVector& InGizmoLocation,
 	                                           FVector& OutStartDir, FVector& OutEndDir);
 

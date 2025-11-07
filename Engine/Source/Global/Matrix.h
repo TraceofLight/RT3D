@@ -25,10 +25,17 @@ struct FMatrix
 		 * @brief SIMD 접근용: 4개의 __m128 벡터로 접근
 		 */
 		__m128 V[4];
+		/**
+		 * @brief DirectX/Unreal Engine 스타일 접근용
+		 */
+		struct
+		{
+			float _11, _12, _13, _14;
+			float _21, _22, _23, _24;
+			float _31, _32, _33, _34;
+			float _41, _42, _43, _44;
+		};
 	};
-
-	static FMatrix DxToUE;
-	static FMatrix UEToDx;
 
 	/**
 	* @brief float 타입의 배열을 사용한 FMatrix의 기본 생성자
@@ -102,10 +109,10 @@ struct FMatrix
 	static FMatrix RotationZ(float Radian);
 
 	    static FMatrix GetModelMatrix(const FVector& Location, const FVector& Rotation, const FVector& Scale);
-	
+
 	    static FMatrix GetModelMatrix(const FVector& Location, const FQuaternion& Rotation, const FVector& Scale);
 	    static FMatrix GetModelMatrixInverse(const FVector& Location, const FVector& Rotation, const FVector& Scale);
-	
+
 		static FMatrix GetModelMatrixInverse(const FVector& Location, const FQuaternion& Rotation, const FVector& Scale);
 	static FVector4 VectorMultiply(const FVector4&, const FMatrix&);
 
@@ -114,7 +121,7 @@ struct FMatrix
 	// Create an orthographic projection matrix (Left-Handed)
 	static FMatrix CreateOrthoLH(float Left, float Right, float Bottom, float Top, float Near, float Far);
 	static FMatrix CreateLookAtLH(const FVector& Eye, const FVector& Target, const FVector& Up);
-	
+
 	FMatrix Transpose() const;
 	FMatrix Inverse() const;
 

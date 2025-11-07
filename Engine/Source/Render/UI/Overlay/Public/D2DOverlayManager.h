@@ -1,6 +1,7 @@
 #pragma once
 
-class UCamera;
+class FViewportClient;
+class UGameViewportClient;
 
 /**
  * @brief D2D 오버레이 렌더링 명령을 수집하고 배치 렌더링하는 매니저
@@ -16,9 +17,14 @@ public:
 	}
 
 	/**
-	 * @brief 렌더링 명령 수집 시작
+	 * @brief 렌더링 명령 수집 시작 (Editor용 - FViewportClient)
 	 */
-	void BeginCollect(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
+	void BeginCollect(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
+
+	/**
+	 * @brief 렌더링 명령 수집 시작 (StandAlone용 - UGameViewportClient)
+	 */
+	void BeginCollect(UGameViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 
 	/**
 	 * @brief 라인 렌더링 명령 추가
@@ -101,6 +107,6 @@ private:
 	std::vector<FRectangleCommand> RectangleCommands;
 	std::vector<FTextCommand> TextCommands;
 
-	UCamera* CurrentCamera = nullptr;
+	FViewportClient* CurrentViewportClient = nullptr;
 	D3D11_VIEWPORT CurrentViewport = {};
 };

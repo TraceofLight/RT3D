@@ -7,10 +7,11 @@
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/Renderer/Public/Renderer.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
 
 void FGizmoBatchRenderer::AddMesh(const TArray<FNormalVertex>& InVertices, const TArray<uint32>& InIndices,
-                                   const FVector4& InColor, const FVector& InLocation,
-                                   const FQuaternion& InRotation, const FVector& InScale)
+                                  const FVector4& InColor, const FVector& InLocation,
+                                  const FQuaternion& InRotation, const FVector& InScale)
 {
 	FBatchedMesh Mesh;
 	Mesh.Vertices = InVertices;
@@ -86,10 +87,10 @@ void FGizmoBatchRenderer::Clear()
 	Meshes.Empty();
 }
 
-void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void UGizmo::RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
 	TargetComponent = Cast<USceneComponent>(GEditor->GetEditorModule()->GetSelectedComponent());
-	if (!TargetComponent || !InCamera)
+	if (!TargetComponent || !InClient)
 	{
 		return;
 	}
@@ -106,7 +107,7 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 		GizmoLocation = TargetComponent->GetWorldLocation();
 	}
 
-	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(InCamera, InViewport, GizmoLocation, 120.0f);
+	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(InClient, InViewport, GizmoLocation, 120.0f);
 
 	URenderer& Renderer = URenderer::GetInstance();
 	const int Mode = static_cast<int>(GizmoMode);
@@ -157,13 +158,16 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 	};
 
 	// 오쏘 뷰에서 World 모드일 때 어떤 축을 표시할지 결정
-	const bool bIsOrtho = (InCamera->GetCameraType() == ECameraType::ECT_Orthographic);
+	const bool bIsOrtho = InClient->IsOrtho();
 	EGizmoDirection OrthoWorldAxis = EGizmoDirection::None;
 
 	if (bIsOrtho && bIsWorld && bIsRotateMode)
 	{
-		// 카메라 Forward 방향으로 어떤 평면을 보고 있는지 판단
-		const FVector CamForward = InCamera->GetForward();
+		// ViewRotation으로부터 Forward 방향 계산
+		FVector Radians = FVector::GetDegreeToRadian(InClient->GetViewRotation());
+		FMatrix RotationMatrix = FMatrix::CreateFromYawPitchRoll(Radians.Y, Radians.X, Radians.Z);
+		FVector CamForward = FMatrix::VectorMultiply(FVector::ForwardVector(), RotationMatrix);
+		CamForward.Normalize();
 		const float AbsX = std::abs(CamForward.X);
 		const float AbsY = std::abs(CamForward.Y);
 		const float AbsZ = std::abs(CamForward.Z);
@@ -222,11 +226,11 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 		if (bIsRotateMode && bIsDragging && GizmoDirection == EGizmoDirection::Forward)
 		{
 			// BaseAxis가 이미 평면을 정의하므로 AxisRotation 불필요 (Identity 사용)
-			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[0], BaseAxis0[0], BaseAxis1[0], InCamera);
+			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[0], BaseAxis0[0], BaseAxis1[0], InClient);
 		}
 		else if (bIsRotateMode)
 		{
-			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Forward, InCamera, BaseAxis0[0], BaseAxis1[0]);
+			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Forward, InClient, BaseAxis0[0], BaseAxis1[0]);
 		}
 		else
 		{
@@ -243,11 +247,11 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 		if (bIsRotateMode && bIsDragging && GizmoDirection == EGizmoDirection::Right)
 		{
 			// BaseAxis가 이미 평면을 정의하므로 AxisRotation 불필요 (Identity 사용)
-			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[1], BaseAxis0[1], BaseAxis1[1], InCamera);
+			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[1], BaseAxis0[1], BaseAxis1[1], InClient);
 		}
 		else if (bIsRotateMode)
 		{
-			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Right, InCamera, BaseAxis0[1], BaseAxis1[1]);
+			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Right, InClient, BaseAxis0[1], BaseAxis1[1]);
 		}
 		else
 		{
@@ -264,11 +268,11 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 		if (bIsRotateMode && bIsDragging && GizmoDirection == EGizmoDirection::Up)
 		{
 			// BaseAxis가 이미 평면을 정의하므로 AxisRotation 불필요 (Identity 사용)
-			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[2], BaseAxis0[2], BaseAxis1[2], InCamera);
+			RenderRotationCircles(P, FQuaternion::Identity(), BaseRot, GizmoColor[2], BaseAxis0[2], BaseAxis1[2], InClient);
 		}
 		else if (bIsRotateMode)
 		{
-			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Up, InCamera, BaseAxis0[2], BaseAxis1[2]);
+			RenderRotationQuarterRing(P, BaseRot, EGizmoDirection::Up, InClient, BaseAxis0[2], BaseAxis1[2]);
 		}
 		else
 		{
@@ -297,6 +301,9 @@ void UGizmo::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 			RenderScalePlanes(P, BaseRot, RenderScale);
 		}
 	}
+
+	// 스크린 공간 축 방향 벡터 계산
+	CalculateScreenSpaceAxisDirections(InClient, InViewport, GizmoLocation, BaseRot, RenderScale);
 }
 
 /**
@@ -664,7 +671,7 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 }
 
 void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion& AxisRotation,
-	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, UCamera* InCamera)
+	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, FViewportClient* InClient)
 {
 	URenderer& Renderer = URenderer::GetInstance();
 
@@ -809,11 +816,10 @@ void UGizmo::RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion&
 }
 
 void UGizmo::RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuaternion& BaseRot,
-	EGizmoDirection Direction, UCamera* InCamera, const FVector& BaseAxis0, const FVector& BaseAxis1)
+	EGizmoDirection Direction, FViewportClient* InClient, const FVector& BaseAxis0, const FVector& BaseAxis1)
 {
 	URenderer& Renderer = URenderer::GetInstance();
-	UAssetManager& AssetManager = UAssetManager::GetInstance();
-	const bool bIsOrtho = InCamera->GetCameraType() == ECameraType::ECT_Orthographic;
+	const bool bIsOrtho = InClient->IsOrtho();
 
 	if (bIsOrtho && bIsWorld)
 	{
@@ -849,14 +855,14 @@ void UGizmo::RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuatern
 	{
 		// 퍼스펙티브 또는 오쏘 뷰 Local 모드: QuarterRing
 		const FVector GizmoLoc = P.Location;
-		const FVector CameraLoc = InCamera->GetLocation();
+		const FVector CameraLoc = InClient->GetViewLocation();
 		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
 
 		// 월드 좌표에서 축 계산
 		FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0);
 		FVector WorldAxis1 = BaseRot.RotateVector(BaseAxis1);
 
-		// 플립 판정 (언리얼 표준)
+		// 플립 판정
 		// InDirectionToWidget = 카메라 -> 위젯
 		// (Axis · InDirectionToWidget) <= 0 -> 축이 카메라 반대를 향함 -> Axis 그대로
 		// (Axis · InDirectionToWidget) > 0 -> 축이 카메라를 향함 -> -Axis
@@ -893,9 +899,9 @@ void UGizmo::RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuatern
 	}
 }
 
-void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void UGizmo::RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
-	if (!TargetComponent || !InCamera)
+	if (!TargetComponent || !InClient)
 	{
 		return;
 	}
@@ -912,7 +918,7 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 		GizmoLocation = TargetComponent->GetWorldLocation();
 	}
 
-	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(InCamera, InViewport, GizmoLocation, 120.0f);
+	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(InClient, InViewport, GizmoLocation, 120.0f);
 
 	URenderer& Renderer = URenderer::GetInstance();
 	FHitProxyManager& HitProxyManager = FHitProxyManager::GetInstance();
@@ -950,13 +956,17 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 		AxisRots[1] = FQuaternion::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(90.0f));  // Left-Handed
 		AxisRots[2] = FQuaternion::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(-90.0f));  // Left-Handed
 	}
-	const bool bIsOrtho = (InCamera->GetCameraType() == ECameraType::ECT_Orthographic);
+	const bool bIsOrtho = InClient->IsOrtho();
 
 	// Orthographic rotation axis determination
 	EGizmoDirection OrthoWorldAxis = EGizmoDirection::None;
 	if (bIsOrtho && bIsWorld && bIsRotateMode)
 	{
-		const FVector CamForward = InCamera->GetForward();
+		// ViewRotation으로부터 Forward 방향 계산
+		FVector Radians = FVector::GetDegreeToRadian(InClient->GetViewRotation());
+		FMatrix RotationMatrix = FMatrix::CreateFromYawPitchRoll(Radians.Y, Radians.X, Radians.Z);
+		FVector CamForward = FMatrix::VectorMultiply(FVector::ForwardVector(), RotationMatrix);
+		CamForward.Normalize();
 		const float AbsX = abs(CamForward.X);
 		const float AbsY = abs(CamForward.Y);
 		const float AbsZ = abs(CamForward.Z);
@@ -995,11 +1005,17 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 	HWidgetAxis* YAxisProxy = new HWidgetAxis(EGizmoAxisType::Y, InvalidHitProxyId);
 	HWidgetAxis* ZAxisProxy = new HWidgetAxis(EGizmoAxisType::Z, InvalidHitProxyId);
 	HWidgetAxis* CenterProxy = new HWidgetAxis(EGizmoAxisType::Center, InvalidHitProxyId);
+	HWidgetAxis* XYPlaneProxy = new HWidgetAxis(EGizmoAxisType::XY, InvalidHitProxyId);
+	HWidgetAxis* XZPlaneProxy = new HWidgetAxis(EGizmoAxisType::XZ, InvalidHitProxyId);
+	HWidgetAxis* YZPlaneProxy = new HWidgetAxis(EGizmoAxisType::YZ, InvalidHitProxyId);
 
 	FHitProxyId XAxisId = HitProxyManager.AllocateHitProxyId(XAxisProxy);
 	FHitProxyId YAxisId = HitProxyManager.AllocateHitProxyId(YAxisProxy);
 	FHitProxyId ZAxisId = HitProxyManager.AllocateHitProxyId(ZAxisProxy);
 	FHitProxyId CenterId = HitProxyManager.AllocateHitProxyId(CenterProxy);
+	FHitProxyId XYPlaneId = HitProxyManager.AllocateHitProxyId(XYPlaneProxy);
+	FHitProxyId XZPlaneId = HitProxyManager.AllocateHitProxyId(XZPlaneProxy);
+	FHitProxyId YZPlaneId = HitProxyManager.AllocateHitProxyId(YZPlaneProxy);
 
 
 	// Rotation mode requires dynamic mesh generation
@@ -1018,7 +1034,7 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 		};
 
 		const FVector GizmoLoc = P.Location;
-		const FVector CameraLoc = InCamera->GetLocation();
+		const FVector CameraLoc = InClient->GetViewLocation();
 		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
 
 		// X axis rendering (YZ 평면)
@@ -1232,5 +1248,334 @@ void UGizmo::RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewpo
 				sphereIB->Release();
 			}
 		}
+
+		// Plane gizmo rendering for Translate/Scale modes
+		if (GizmoMode == EGizmoMode::Translate || GizmoMode == EGizmoMode::Scale)
+		{
+			const float CornerPos = 0.3f * RenderScale;
+			const float HandleRadius = 0.02f * RenderScale;
+			const int NumSegments = 8;
+
+			struct FPlaneInfo
+			{
+				EGizmoDirection Direction;
+				FVector Tangent1;
+				FVector Tangent2;
+				FHitProxyId ProxyId;
+			};
+
+			FPlaneInfo Planes[3] = {
+				{EGizmoDirection::XY_Plane, {1, 0, 0}, {0, 1, 0}, XYPlaneId},
+				{EGizmoDirection::XZ_Plane, {1, 0, 0}, {0, 0, 1}, XZPlaneId},
+				{EGizmoDirection::YZ_Plane, {0, 1, 0}, {0, 0, 1}, YZPlaneId}
+			};
+
+			for (const FPlaneInfo& PlaneInfo : Planes)
+			{
+				FVector T1 = PlaneInfo.Tangent1;
+				FVector T2 = PlaneInfo.Tangent2;
+				FVector PlaneNormal = Cross(T1, T2).GetNormalized();
+
+				// 선분 1 메쉬 생성
+				{
+					TArray<FNormalVertex> vertices;
+					TArray<uint32> Indices;
+
+					FVector Start1 = T1 * CornerPos;
+					FVector End1 = T1 * CornerPos + T2 * CornerPos;
+					FVector Dir1 = (End1 - Start1).GetNormalized();
+					FVector Perp1_1 = Cross(Dir1, PlaneNormal).GetNormalized();
+					FVector Perp1_2 = Cross(Dir1, Perp1_1).GetNormalized();
+
+					for (int i = 0; i < NumSegments; ++i)
+					{
+						float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
+						FVector Offset = (Perp1_1 * std::cos(Angle) + Perp1_2 * std::sin(Angle)) * HandleRadius;
+
+						vertices.Add({Start1 + Offset, Offset.GetNormalized()});
+						vertices.Add({End1 + Offset, Offset.GetNormalized()});
+					}
+
+					for (int i = 0; i < NumSegments; ++i)
+					{
+						int Next = (i + 1) % NumSegments;
+						Indices.Add(i * 2 + 0);
+						Indices.Add(i * 2 + 1);
+						Indices.Add(Next * 2 + 0);
+						Indices.Add(Next * 2 + 0);
+						Indices.Add(i * 2 + 1);
+						Indices.Add(Next * 2 + 1);
+					}
+
+					ID3D11Buffer* vb = nullptr;
+					ID3D11Buffer* ib = nullptr;
+					FGizmoGeometry::CreateTempBuffers(vertices, Indices, &vb, &ib);
+
+					FEditorPrimitive PlanePrim = P;
+					PlanePrim.VertexBuffer = vb;
+					PlanePrim.NumVertices = static_cast<uint32>(vertices.Num());
+					PlanePrim.IndexBuffer = ib;
+					PlanePrim.NumIndices = static_cast<uint32>(Indices.Num());
+					PlanePrim.Rotation = BaseRot;
+					PlanePrim.Color = PlaneInfo.ProxyId.GetColor();
+					Renderer.RenderEditorPrimitive(PlanePrim, RenderState);
+
+					vb->Release();
+					ib->Release();
+				}
+
+				// 선분 2 메쉬 생성
+				{
+					TArray<FNormalVertex> vertices;
+					TArray<uint32> Indices;
+
+					FVector Start2 = T2 * CornerPos;
+					FVector End2 = T1 * CornerPos + T2 * CornerPos;
+					FVector Dir2 = (End2 - Start2).GetNormalized();
+					FVector Perp2_1 = Cross(Dir2, PlaneNormal).GetNormalized();
+					FVector Perp2_2 = Cross(Dir2, Perp2_1).GetNormalized();
+
+					for (int i = 0; i < NumSegments; ++i)
+					{
+						float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
+						FVector Offset = (Perp2_1 * std::cos(Angle) + Perp2_2 * std::sin(Angle)) * HandleRadius;
+
+						vertices.Add({Start2 + Offset, Offset.GetNormalized()});
+						vertices.Add({End2 + Offset, Offset.GetNormalized()});
+					}
+
+					for (int i = 0; i < NumSegments; ++i)
+					{
+						int Next = (i + 1) % NumSegments;
+						Indices.Add(i * 2 + 0);
+						Indices.Add(i * 2 + 1);
+						Indices.Add(Next * 2 + 0);
+						Indices.Add(Next * 2 + 0);
+						Indices.Add(i * 2 + 1);
+						Indices.Add(Next * 2 + 1);
+					}
+
+					ID3D11Buffer* vb = nullptr;
+					ID3D11Buffer* ib = nullptr;
+					FGizmoGeometry::CreateTempBuffers(vertices, Indices, &vb, &ib);
+
+					FEditorPrimitive PlanePrim = P;
+					PlanePrim.VertexBuffer = vb;
+					PlanePrim.NumVertices = static_cast<uint32>(vertices.Num());
+					PlanePrim.IndexBuffer = ib;
+					PlanePrim.NumIndices = static_cast<uint32>(Indices.Num());
+					PlanePrim.Rotation = BaseRot;
+					PlanePrim.Color = PlaneInfo.ProxyId.GetColor();
+					Renderer.RenderEditorPrimitive(PlanePrim, RenderState);
+
+					vb->Release();
+					ib->Release();
+				}
+			}
+		}
 	}
 }
+
+/**
+ * @brief 스크린 공간 축 방향 벡터 계산
+ * 월드 공간의 각 축 끝점을 스크린 공간으로 투영하여 2D 방향 벡터를 계산
+ * @param InClient ViewportClient
+ * @param InViewport D3D11 뷰포트
+ * @param GizmoLocation 기즈모 월드 위치
+ * @param BaseRot 기즈모 기준 회전 (World/Local 모드)
+ * @param RenderScale 스크린 공간 스케일
+ */
+void UGizmo::CalculateScreenSpaceAxisDirections(
+	const FViewportClient* InClient,
+	const D3D11_VIEWPORT& InViewport,
+	const FVector& GizmoLocation,
+	const FQuaternion& BaseRot,
+	float RenderScale)
+{
+	const float AxisLength = RenderScale * 64.0f;
+
+	// 각 축의 월드 공간 방향
+	const FMatrix BaseRotMatrix = BaseRot.ToRotationMatrix();
+	const FVector AxisX = BaseRotMatrix.TransformVector(FVector(1, 0, 0));  // Forward
+	const FVector AxisY = BaseRotMatrix.TransformVector(FVector(0, 1, 0));  // Right
+	const FVector AxisZ = BaseRotMatrix.TransformVector(FVector(0, 0, 1));  // Up
+
+	// 각 축의 끝점 월드 좌표
+	const FVector AxisEndX = GizmoLocation + AxisX * AxisLength;
+	const FVector AxisEndY = GizmoLocation + AxisY * AxisLength;
+	const FVector AxisEndZ = GizmoLocation + AxisZ * AxisLength;
+
+	// View/Projection 행렬 가져오기
+	const float AspectRatio = InViewport.Width / InViewport.Height;
+	const FMatrix ViewMatrix = InClient->GetViewMatrix();
+	const FMatrix ProjMatrix = InClient->GetProjectionMatrix(AspectRatio);
+	const FMatrix ViewProjMatrix = ViewMatrix * ProjMatrix;
+
+	// 월드 -> NDC 변환 함수
+	auto WorldToNDC = [&](const FVector& WorldPos) -> FVector
+	{
+		FVector4 ClipPos(WorldPos.X, WorldPos.Y, WorldPos.Z, 1.0f);
+		ClipPos = ClipPos * ViewProjMatrix;
+
+		if (ClipPos.W != 0.0f)
+		{
+			ClipPos.X /= ClipPos.W;
+			ClipPos.Y /= ClipPos.W;
+			ClipPos.Z /= ClipPos.W;
+		}
+
+		return {ClipPos.X, ClipPos.Y, ClipPos.Z};
+	};
+
+	// NDC -> 스크린 픽셀 좌표 변환
+	auto NDCToScreen = [&](const FVector& NDC) -> FVector2
+	{
+		const float ScreenX = (NDC.X * 0.5f + 0.5f) * InViewport.Width;
+		const float ScreenY = (-NDC.Y * 0.5f + 0.5f) * InViewport.Height;  // Y축 반전
+		return {ScreenX, ScreenY};
+	};
+
+	// 원점과 각 축 끝점을 스크린 좌표로 변환
+	const FVector OriginNDC = WorldToNDC(GizmoLocation);
+	const FVector AxisEndX_NDC = WorldToNDC(AxisEndX);
+	const FVector AxisEndY_NDC = WorldToNDC(AxisEndY);
+	const FVector AxisEndZ_NDC = WorldToNDC(AxisEndZ);
+
+	const FVector2 OriginScreen = NDCToScreen(OriginNDC);
+	const FVector2 AxisEndX_Screen = NDCToScreen(AxisEndX_NDC);
+	const FVector2 AxisEndY_Screen = NDCToScreen(AxisEndY_NDC);
+	const FVector2 AxisEndZ_Screen = NDCToScreen(AxisEndZ_NDC);
+
+	// 스크린 공간 방향 벡터 계산 및 정규화
+	ScreenOrigin = OriginScreen;
+	ScreenAxisX = (AxisEndX_Screen - OriginScreen);
+	ScreenAxisY = (AxisEndY_Screen - OriginScreen);
+	ScreenAxisZ = (AxisEndZ_Screen - OriginScreen);
+
+	// 정규화 (길이가 0이 아닐 때만)
+	if (ScreenAxisX.LengthSquared() > MATH_EPSILON)
+	{
+		ScreenAxisX.Normalize();
+	}
+	if (ScreenAxisY.LengthSquared() > MATH_EPSILON)
+	{
+		ScreenAxisY.Normalize();
+	}
+	if (ScreenAxisZ.LengthSquared() > MATH_EPSILON)
+	{
+		ScreenAxisZ.Normalize();
+	}
+}
+
+/**
+ * @brief 스크린 공간 축 방향 벡터 계산 (멀티 뷰포트 대응)
+ * 월드 공간의 각 축 끝점을 스크린 공간으로 투영하여 2D 방향 벡터를 계산
+ * @param InClient ViewportClient
+ * @param InViewport D3D11 뷰포트
+ * @param OutScreenAxisX 출력: X축 스크린 방향 (정규화됨)
+ * @param OutScreenAxisY 출력: Y축 스크린 방향 (정규화됨)
+ * @param OutScreenAxisZ 출력: Z축 스크린 방향 (정규화됨)
+ * @param OutScreenOrigin 출력: 기즈모 원점 스크린 좌표
+ */
+void UGizmo::CalculateScreenAxes(
+	const FViewportClient* InClient,
+	const D3D11_VIEWPORT& InViewport,
+	FVector2& OutScreenAxisX,
+	FVector2& OutScreenAxisY,
+	FVector2& OutScreenAxisZ,
+	FVector2& OutScreenOrigin) const
+{
+	const FVector GizmoLocation = GetGizmoLocation();
+
+	// Scale 모드: 컴포넌트 로컬 축 사용
+	// Translate/Rotate: World/Local 모드에 따라 결정
+	FQuaternion BaseRot = FQuaternion::Identity();
+	if (GizmoMode == EGizmoMode::Scale)
+	{
+		BaseRot = TargetComponent ? TargetComponent->GetWorldRotationAsQuaternion() : FQuaternion::Identity();
+	}
+	else if (GizmoMode == EGizmoMode::Rotate)
+	{
+		BaseRot = bIsWorld ? FQuaternion::Identity() : GetDragStartActorRotationQuat();
+	}
+	else // Translate
+	{
+		BaseRot = bIsWorld ? FQuaternion::Identity() : (TargetComponent ? TargetComponent->GetWorldRotationAsQuaternion() : FQuaternion::Identity());
+	}
+
+	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(InClient, InViewport, GizmoLocation, 120.0f);
+	const float AxisLength = RenderScale * 64.0f;
+
+	// 각 축의 월드 공간 방향
+	const FMatrix BaseRotMatrix = BaseRot.ToRotationMatrix();
+	const FVector AxisX = BaseRotMatrix.TransformVector(FVector(1, 0, 0));  // Forward
+	const FVector AxisY = BaseRotMatrix.TransformVector(FVector(0, 1, 0));  // Right
+	const FVector AxisZ = BaseRotMatrix.TransformVector(FVector(0, 0, 1));  // Up
+
+	// 각 축의 끝점 월드 좌표
+	const FVector AxisEndX = GizmoLocation + AxisX * AxisLength;
+	const FVector AxisEndY = GizmoLocation + AxisY * AxisLength;
+	const FVector AxisEndZ = GizmoLocation + AxisZ * AxisLength;
+
+	// View/Projection 행렬 가져오기
+	const float AspectRatio = InViewport.Width / InViewport.Height;
+	const FMatrix ViewMatrix = InClient->GetViewMatrix();
+	const FMatrix ProjMatrix = InClient->GetProjectionMatrix(AspectRatio);
+	const FMatrix ViewProjMatrix = ViewMatrix * ProjMatrix;
+
+	// 월드 -> NDC 변환 함수
+	auto WorldToNDC = [&](const FVector& WorldPos) -> FVector
+	{
+		FVector4 ClipPos(WorldPos.X, WorldPos.Y, WorldPos.Z, 1.0f);
+		ClipPos = ClipPos * ViewProjMatrix;
+
+		if (ClipPos.W != 0.0f)
+		{
+			ClipPos.X /= ClipPos.W;
+			ClipPos.Y /= ClipPos.W;
+			ClipPos.Z /= ClipPos.W;
+		}
+
+		return {ClipPos.X, ClipPos.Y, ClipPos.Z};
+	};
+
+	// NDC -> 스크린 픽셀 좌표 변환 (뷰포트 로컬 좌표)
+	auto NDCToScreen = [&](const FVector& NDC) -> FVector2
+	{
+		const float ScreenX = (NDC.X * 0.5f + 0.5f) * InViewport.Width;
+		const float ScreenY = (-NDC.Y * 0.5f + 0.5f) * InViewport.Height;  // Y축 반전
+		return {ScreenX, ScreenY};
+	};
+
+	// 원점과 각 축 끝점을 스크린 좌표로 변환
+	const FVector OriginNDC = WorldToNDC(GizmoLocation);
+	const FVector AxisEndX_NDC = WorldToNDC(AxisEndX);
+	const FVector AxisEndY_NDC = WorldToNDC(AxisEndY);
+	const FVector AxisEndZ_NDC = WorldToNDC(AxisEndZ);
+
+	const FVector2 OriginScreen = NDCToScreen(OriginNDC);
+	const FVector2 AxisEndX_Screen = NDCToScreen(AxisEndX_NDC);
+	const FVector2 AxisEndY_Screen = NDCToScreen(AxisEndY_NDC);
+	const FVector2 AxisEndZ_Screen = NDCToScreen(AxisEndZ_NDC);
+
+	// 스크린 공간 방향 벡터 계산 및 정규화
+	OutScreenOrigin = OriginScreen;
+	OutScreenAxisX = (AxisEndX_Screen - OriginScreen);
+	OutScreenAxisY = (AxisEndY_Screen - OriginScreen);
+	OutScreenAxisZ = (AxisEndZ_Screen - OriginScreen);
+
+	// 정규화 (길이가 0이 아닐 때만)
+	if (OutScreenAxisX.LengthSquared() > MATH_EPSILON)
+	{
+		OutScreenAxisX.Normalize();
+	}
+	if (OutScreenAxisY.LengthSquared() > MATH_EPSILON)
+	{
+		OutScreenAxisY.Normalize();
+	}
+	if (OutScreenAxisZ.LengthSquared() > MATH_EPSILON)
+	{
+		OutScreenAxisZ.Normalize();
+	}
+}
+

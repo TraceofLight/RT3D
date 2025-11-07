@@ -2,7 +2,6 @@
 #include "Render/RenderPass/Public/FogPass.h"
 
 #include "Component/Public/HeightFogComponent.h"
-#include "Editor/Public/Camera.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 
 FFogPass::FFogPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferViewProj,

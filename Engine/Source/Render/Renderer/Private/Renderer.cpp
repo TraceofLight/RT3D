@@ -11,12 +11,12 @@
 #include "Component/Public/PrimitiveComponent.h"
 #include "Component/Public/SpotLightComponent.h"
 #include "Component/Public/UUIDTextComponent.h"
-#include "Editor/Public/Camera.h"
 #include "Editor/Public/Editor.h"
 #include "Global/Octree.h"
 #include "Level/Public/Level.h"
 #include "Manager/UI/Public/UIManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "Render/RenderPass/Public/BillboardPass.h"
 #include "Render/RenderPass/Public/EditorIconPass.h"
 #include "Render/RenderPass/Public/ClusteredRenderingGridPass.h"
@@ -904,7 +904,7 @@ void URenderer::Update()
 			ID3D11RenderTargetView* RTVs[] = { GetDestinationRTV() };
 			Pipeline->SetRenderTargets(1, RTVs, GetDepthBufferDSV());
 			GEditor->GetEditorModule()->RenderEditorGeometry();
-			GEditor->GetEditorModule()->RenderGizmo(ViewportClient->GetCamera(), LocalViewport);
+			GEditor->GetEditorModule()->RenderGizmo(ViewportClient, LocalViewport);
 		}
     	// PIE 일때만 Camera Post Process 적용
 		else
@@ -945,9 +945,9 @@ void URenderer::Update()
     	const int32 ViewportToolBarHeight = 32;
     	D3D11_VIEWPORT LocalViewport = { static_cast<float>(SingleWindowRect.Left),static_cast<float>(SingleWindowRect.Top) + ViewportToolBarHeight, static_cast<float>(SingleWindowRect.Width), static_cast<float>(SingleWindowRect.Height) - ViewportToolBarHeight, 0.0f, 1.0f };
 
-    	// Note: Collect2DRender uses editor camera for UI overlay coordinates
-    	UCamera* EditorCamera = Viewport->GetViewportClient()->GetCamera();
-    	GEditor->GetEditorModule()->Collect2DRender(EditorCamera, LocalViewport, bIsPIEViewport);
+    	// Note: Collect2DRender uses ViewportClient for UI overlay coordinates
+    	FViewportClient* ViewportClientForOverlay = Viewport->GetViewportClient();
+    	GEditor->GetEditorModule()->Collect2DRender(ViewportClientForOverlay, LocalViewport, bIsPIEViewport);
     	TIME_PROFILE(FlushAndRender)
 		FD2DOverlayManager::GetInstance().FlushAndRender();
 
@@ -1299,9 +1299,9 @@ void URenderer::ReleaseConstantBuffers()
 	SafeRelease(ConstantBufferViewProj);
 }
 
-void URenderer::RenderHitProxyPass(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void URenderer::RenderHitProxyPass(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
-	if (!HitProxyPass || !InCamera)
+	if (!HitProxyPass || !InClient)
 	{
 		if (!HitProxyPass)
 		{
@@ -1323,19 +1323,9 @@ void URenderer::RenderHitProxyPass(UCamera* InCamera, const D3D11_VIEWPORT& InVi
 		return;
 	}
 
-	// Build FMinimalViewInfo from editor camera
-	FMinimalViewInfo ViewInfo;
-	ViewInfo.Location = InCamera->GetLocation();
-	ViewInfo.Rotation = InCamera->GetRotationQuat();
-	ViewInfo.FOV = InCamera->GetFovY();
-	ViewInfo.AspectRatio = InCamera->GetAspect();
-	ViewInfo.NearClipPlane = InCamera->GetNearZ();
-	ViewInfo.FarClipPlane = InCamera->GetFarZ();
-	ViewInfo.ProjectionMode = (InCamera->GetCameraType() == ECameraType::ECT_Orthographic)
-		? ECameraProjectionMode::Orthographic
-		: ECameraProjectionMode::Perspective;
-	ViewInfo.OrthoWidth = InCamera->GetOrthoWidth();
-	ViewInfo.CameraConstants = InCamera->GetCameraConstants();
+	// Build FMinimalViewInfo from ViewportClient
+	FMinimalViewInfo ViewInfo = InClient->GetViewInfo();
+	ViewInfo.AspectRatio = InViewport.Width / InViewport.Height;
 
 	// RenderingContext 구성
 	FRenderingContext Context(
@@ -1412,7 +1402,7 @@ void URenderer::RenderHitProxyPass(UCamera* InCamera, const D3D11_VIEWPORT& InVi
 	UEditor* Editor = GEditor->GetEditorModule();
 	if (Editor && Editor->GetSelectedComponent())
 	{
-		Editor->RenderGizmoForHitProxy(InCamera, InViewport);
+		Editor->RenderGizmoForHitProxy(InClient, InViewport);
 	}
 }
 
@@ -1482,14 +1472,8 @@ void URenderer::RenderLevelForGameInstance(UWorld* InWorld, const FSceneView* In
 		}
 	}
 
-	// Legacy Camera for D2D overlay (used by Lua debug drawing)
-	UCamera* LegacyCamera = nullptr;
+	// ViewportClient for D2D overlay (used by Lua debug drawing)
 	UGameViewportClient* ViewportClient = InGameInstance->GetViewportClient();
-	if (ViewportClient)
-	{
-		ViewportClient->UpdateLegacyCamera();
-		LegacyCamera = ViewportClient->GetLegacyCamera();
-	}
 
 	// Build FMinimalViewInfo from SceneView
 	FMinimalViewInfo ViewInfo;
@@ -1611,7 +1595,7 @@ void URenderer::RenderLevelForGameInstance(UWorld* InWorld, const FSceneView* In
 	Pipeline->SetConstantBuffer(1, EShaderType::VS, ConstantBufferViewProj);
 
 	// D2D Overlay 수집 시작 (Lua DebugDraw 호출을 위한 뷰포트 정보 설정)
-	FD2DOverlayManager::GetInstance().BeginCollect(LegacyCamera, D3DViewport);
+	FD2DOverlayManager::GetInstance().BeginCollect(ViewportClient, D3DViewport);
 
 	// RenderPasses 실행
 	for (auto RenderPass : RenderPasses)

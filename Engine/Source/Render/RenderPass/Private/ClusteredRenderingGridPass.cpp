@@ -1,9 +1,9 @@
 #include "pch.h"
 #include "Render/RenderPass/Public/ClusteredRenderingGridPass.h"
 
-#include "Editor/Public/Camera.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
-#include "Render/RenderPass/Public//FogPass.h"
+#include "Render/RenderPass/Public/FogPass.h"
+
 FClusteredRenderingGridPass::FClusteredRenderingGridPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferViewProj,
     ID3D11VertexShader* InVS, ID3D11PixelShader* InPS, ID3D11InputLayout* InLayout, ID3D11DepthStencilState* InDS_Read,
     ID3D11BlendState* InBlendState)

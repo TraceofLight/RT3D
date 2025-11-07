@@ -1,6 +1,6 @@
 #pragma once
 
-class UCamera;
+class FViewportClient;
 class FD2DOverlayManager;
 struct ImDrawList;
 
@@ -14,7 +14,7 @@ public:
 	FAxis();
 	virtual	~FAxis();
 
-	static void CollectDrawCommands(FD2DOverlayManager& Manager, UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
+	static void CollectDrawCommands(FD2DOverlayManager& Manager, FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 
 private:
 	// 뷰포트 좌하단 오프셋

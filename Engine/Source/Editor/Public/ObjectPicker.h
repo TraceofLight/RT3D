@@ -1,37 +1,46 @@
 #pragma once
-#include "pch.h"
-#include "Editor/Public/Gizmo.h"
 #include "Render/HitProxy/Public/HitProxy.h"
 
-class UPrimitiveComponent;
-class AActor;
-class ULevel;
-class UCamera;
-class UGizmo;
 class FOctree;
-struct FRay;
+class UGizmo;
+class FViewportClient;
 
-class UObjectPicker : public UObject
+class UObjectPicker :
+	public UObject
 {
+	GENERATED_BODY()
+	DECLARE_CLASS(UObjectPicker, UObject)
+
 public:
 	UObjectPicker() = default;
-	~UObjectPicker();
-	UPrimitiveComponent* PickPrimitive(UCamera* InActiveCamera, const FRay& WorldRay, TArray<UPrimitiveComponent*> Candidate, float* Distance);
-	UPrimitiveComponent* PickPrimitiveFromHitProxy(UCamera* InActiveCamera, int32 MouseX, int32 MouseY);
-	void PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGizmo& Gizmo, FVector& CollisionPoint);
+	~UObjectPicker() override;
+
+	void PickGizmo(FViewportClient* InClient, const FRay& WorldRay, UGizmo& Gizmo, FVector& CollisionPoint);
+	UPrimitiveComponent* PickPrimitive(FViewportClient* InClient, int32 MouseX, int32 MouseY);
 	bool IsRayCollideWithPlane(const FRay& WorldRay, FVector PlanePoint, FVector Normal, FVector& PointOnPlane);
 
-	bool FindCandidateFromOctree(FOctree* Node, const FRay& WorldRay, TArray<UPrimitiveComponent*>& OutCandidate);
-
 private:
-	void GatherCandidateTriangles(UPrimitiveComponent* Primitive, const FRay& ModelRay, TArray<int32>& OutCandidateTriangleIndices);
-	bool IsRayPrimitiveCollided(UCamera* InActiveCamera, const FRay& WorldRay, UPrimitiveComponent* Primitive, const FMatrix& ModelMatrix, float* ShortestDistance);
-	FRay GetModelRay(const FRay& Ray, UPrimitiveComponent* Primitive);
-	bool IsRayTriangleCollided(UCamera* InActiveCamera, const FRay& Ray, const FVector& Vertex1, const FVector& Vertex2, const FVector& Vertex3,
-		const FMatrix& ModelMatrix, float* Distance);
-
 	FHitProxyId ReadHitProxyAtLocation(int32 X, int32 Y, const D3D11_VIEWPORT& Viewport);
 	void CreateStagingTextureIfNeeded();
+
+	// Gizmo picking helper functions
+	bool CheckRaySphereCollision(const FVector& RayOrigin, const FVector& RayDirection,
+	                             const FVector& SphereCenter, float SphereRadius,
+	                             FVector& OutCollisionPoint) const;
+	bool CheckRayCylinderCollision(const FVector& RayOrigin, const FVector& RayDirection,
+	                               const FVector& CylinderBase, const FVector& CylinderAxis,
+	                               float CylinderRadius, float CylinderHeight,
+	                               FVector& OutCollisionPoint) const;
+	bool IsCollisionPointInQuarterRing(const FVector& CollisionPoint, const FVector& GizmoLocation,
+	                                   const FVector& GizmoAxis, int AxisIndex,
+	                                   const UGizmo& Gizmo, const FViewportClient* InClient) const;
+
+	// Gizmo picking constants
+	static constexpr float CENTER_SPHERE_RADIUS_SCALE = 2.5f;   // Center 구체 반지름 배율 (렌더링 0.1 * Scale과 일치: 0.04 * 2.5 = 0.1)
+	static constexpr float PLANE_GIZMO_SIZE = 0.3f;             // 평면 기즈모 사각형 크기 (렌더링 CornerPos와 일치)
+	static constexpr float PLANE_GIZMO_OFFSET = 0.0f;           // 평면 기즈모 오프셋 (렌더링은 0부터 시작)
+	static constexpr float QUARTER_RING_MIN_PROJECTION = 0.001f; // Quarter Ring 최소 투영 길이
+	static constexpr float RAY_PLANE_PARALLEL_THRESHOLD = 0.01f; // Ray-Plane 평행 판정 임계값
 
 	ID3D11Texture2D* HitProxyStagingTexture = nullptr;
 };

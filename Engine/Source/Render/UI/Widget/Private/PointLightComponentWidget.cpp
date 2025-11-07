@@ -268,10 +268,10 @@ void UPointLightComponentWidget::RenderWidget()
         for (FViewport* Viewport : UViewportManager::GetInstance().GetViewports())
         {
             FViewportClient* ViewportClient = Viewport->GetViewportClient();
-            if (UCamera* Camera = ViewportClient->GetCamera())
+            if (ViewportClient)
             {
-                Camera->SetLocation(PointLightComponent->GetWorldLocation());
-                Camera->SetRotation(PointLightComponent->GetWorldRotation());
+                ViewportClient->SetViewLocation(PointLightComponent->GetWorldLocation());
+                ViewportClient->SetViewRotation(PointLightComponent->GetWorldRotation());
             }
         }
     }

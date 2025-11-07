@@ -4,7 +4,7 @@
 #include "Core/Public/Object.h"
 #include "Actor/Public/Actor.h"
 
-class UCamera;
+class FViewportClient;
 class UConfigManager;
 
 /**
@@ -50,16 +50,20 @@ class UGizmo :
 {
 	GENERATED_BODY()
 	DECLARE_CLASS(UGizmo, UObject)
-	
+
 public:
 	UGizmo();
 	~UGizmo() override;
-	void UpdateScale(const UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
-	void RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
-	void RenderForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
-	void CollectRotationAngleOverlay(class FD2DOverlayManager& OverlayManager, UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
+	void UpdateScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
+	void RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
+	void RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
+	void CollectRotationAngleOverlay(class FD2DOverlayManager& OverlayManager, FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 	void ChangeGizmoMode();
 	void SetGizmoMode(EGizmoMode Mode);
+
+	// 스크린 공간 축 방향 벡터 계산 (멀티 뷰포트 대응)
+	void CalculateScreenAxes(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport,
+	                         FVector2& OutScreenAxisX, FVector2& OutScreenAxisY, FVector2& OutScreenAxisZ, FVector2& OutScreenOrigin) const;
 
 	/**
 	 * @brief Setter
@@ -86,14 +90,19 @@ public:
 	float GetTranslateScale() const { return TranslateCollisionConfig.Scale; }
 	float GetRotateScale() const { return RotateCollisionConfig.Scale; }
 	EGizmoDirection GetGizmoDirection() const { return GizmoDirection; }
-	FVector GetGizmoLocation()
+	FVector GetGizmoLocation() const
 	{
 		// Pilot Mode일 때 고정 위치 사용
 		if (bUseFixedLocation)
 		{
 			return FixedLocation;
 		}
-		return Primitives[static_cast<int>(GizmoMode)].Location;
+		// 충돌 판정과 렌더링이 같은 위치를 사용하도록 TargetComponent 직접 참조
+		if (TargetComponent)
+		{
+			return TargetComponent->GetWorldLocation();
+		}
+		return FVector(0, 0, 0);
 	}
 	FQuaternion GetComponentRotation() const { return TargetComponent->GetWorldRotationAsQuaternion(); }
 	FVector GetComponentScale() const { return TargetComponent->GetWorldScale3D(); }
@@ -179,15 +188,24 @@ public:
 		return std::round(CurrentRotationAngle / SnapAngleRadians) * SnapAngleRadians;
 	}
 
+	// 스크린 공간 축 방향 벡터 Getter
+	FVector2 GetScreenAxisX() const { return ScreenAxisX; }
+	FVector2 GetScreenAxisY() const { return ScreenAxisY; }
+	FVector2 GetScreenAxisZ() const { return ScreenAxisZ; }
+	FVector2 GetScreenOrigin() const { return ScreenOrigin; }
+	FViewportClient* GetDragStartViewportClient() const { return DragStartViewportClient; }
+
 	// 마우스 관련
 	void EndDrag()
 	{
 		bIsDragging = false;
 		CurrentRotationAngle = 0.0f;
+		GizmoDirection = EGizmoDirection::None;
+		DragStartViewportClient = nullptr;
 	}
 	bool IsDragging() const { return bIsDragging; }
 	void OnMouseHovering() {}
-	void OnMouseDragStart(const FVector& CollisionPoint);
+	void OnMouseDragStart(FViewportClient* InClient, const FVector& CollisionPoint);
 	void OnMouseRelease(EGizmoDirection DirectionReleased) {}
 
 private:
@@ -219,6 +237,13 @@ private:
 	// 스크린 공간 드래그 상태
 	FVector2 DragStartScreenPos;      // 드래그 시작 시 스크린 좌표
 	FVector2 PreviousScreenPos;       // 이전 프레임 스크린 좌표
+	FViewportClient* DragStartViewportClient = nullptr;  // 드래그를 시작한 뷰포트
+
+	// 스크린 공간 축 방향 벡터 (렌더링 시 계산)
+	FVector2 ScreenAxisX = FVector2(0, 0);  // X축(Forward)의 스크린 방향
+	FVector2 ScreenAxisY = FVector2(0, 0);  // Y축(Right)의 스크린 방향
+	FVector2 ScreenAxisZ = FVector2(0, 0);  // Z축(Up)의 스크린 방향
+	FVector2 ScreenOrigin = FVector2(0, 0); // 기즈모 원점의 스크린 좌표
 
 	// Pilot Mode 고정 위치
 	bool bUseFixedLocation = false;
@@ -232,7 +257,11 @@ private:
 	void RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion& BaseRot, float RenderScale);
 	void RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& BaseRot, float RenderScale);
 	void RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion& AxisRotation,
-	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, UCamera* InCamera);
+	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, FViewportClient* InClient);
 	void RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuaternion& BaseRot,
-	EGizmoDirection Direction, UCamera* InCamera, const FVector& BaseAxis0, const FVector& BaseAxis1);
+	EGizmoDirection Direction, FViewportClient* InClient, const FVector& BaseAxis0, const FVector& BaseAxis1);
+
+	// 스크린 공간 축 방향 벡터 계산
+	void CalculateScreenSpaceAxisDirections(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport,
+		const FVector& GizmoLocation, const FQuaternion& BaseRot, float RenderScale);
 };

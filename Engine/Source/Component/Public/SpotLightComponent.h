@@ -4,7 +4,7 @@
 #include "Editor/Public/EditorPrimitive.h"
 
 struct FEditorPrimitive;
-class UCamera;
+class FViewportClient;
 
 
 UCLASS()
@@ -61,7 +61,7 @@ public:
     void SetOuterAngle(float const InAttenuationAngleRad);
     void SetInnerAngle(float const InAttenuationAngleRad);
 
-    void RenderLightDirectionGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
+    void RenderLightDirectionGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 
     FSpotLightInfo GetSpotLightInfo() const;
 
