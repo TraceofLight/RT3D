@@ -9,6 +9,7 @@ class USphereComponent : public UShapeComponent
 
 public:
 	USphereComponent();
+	~USphereComponent() override;
 
 	// Sphere radius (unscaled)
 	float GetSphereRadius() const { return SphereRadius; }

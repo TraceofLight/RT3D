@@ -16,6 +16,14 @@ USphereComponent::USphereComponent()
 	BoundingBox = new FBoundingSphere(FVector(0.0f, 0.0f, 0.0f), SphereRadius);
 }
 
+USphereComponent::~USphereComponent()
+{
+	if (bOwnsBoundingBox && BoundingBox)
+	{
+		SafeDelete(BoundingBox);
+	}
+}
+
 void USphereComponent::SetSphereRadius(float InRadius)
 {
 	if (SphereRadius != InRadius)

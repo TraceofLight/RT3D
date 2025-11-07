@@ -20,6 +20,14 @@ UBoxComponent::UBoxComponent()
 	BoundingBox = Box;
 }
 
+UBoxComponent::~UBoxComponent()
+{
+	if (bOwnsBoundingBox && BoundingBox)
+	{
+		SafeDelete(BoundingBox);
+	}
+}
+
 void UBoxComponent::SetBoxExtent(const FVector& InExtent)
 {
 	FVector ClampedExtent(
