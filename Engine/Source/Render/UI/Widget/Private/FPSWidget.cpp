@@ -73,8 +73,8 @@ void UFPSWidget::RenderWidget()
 	if (bShowGraph)
 	{
 		ImGui::Text("동적 할당된 메모리 정보");
-		ImGui::Text("Overall Object Count: %u", TotalAllocationCount);
-		ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes) / KILO);
+		ImGui::Text("Overall Object Count: %u", TotalAllocationCount.load(std::memory_order_relaxed));
+		ImGui::Text("Overall Memory: %.3f KB", static_cast<float>(TotalAllocationBytes.load(std::memory_order_relaxed)) / KILO);
 		ImGui::Separator();
 
 		ImGui::Text("Frame Time History:");

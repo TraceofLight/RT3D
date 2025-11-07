@@ -67,10 +67,10 @@ void UStatOverlay::RenderFPS()
 
 void UStatOverlay::RenderMemory()
 {
-    float MemoryMB = static_cast<float>(TotalAllocationBytes) / (1024.0f * 1024.0f);
+    float MemoryMB = static_cast<float>(TotalAllocationBytes.load(std::memory_order_relaxed)) / (1024.0f * 1024.0f);
 
     char Buf[64];
-    (void)sprintf_s(Buf, sizeof(Buf), "Memory: %.1f MB (%u objects)", MemoryMB, TotalAllocationCount);
+    (void)sprintf_s(Buf, sizeof(Buf), "Memory: %.1f MB (%u objects)", MemoryMB, TotalAllocationCount.load(std::memory_order_relaxed));
     FString text = Buf;
 
     float OffsetY = 0.0f;

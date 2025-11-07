@@ -28,9 +28,23 @@
 #include "Utility/Public/FileDialog.h"
 #endif
 
-FClientApp::FClientApp() = default;
+#ifdef _DEBUG
+#include "Global/Memory.h"
+#endif
 
-FClientApp::~FClientApp() = default;
+FClientApp::FClientApp()
+{
+#ifdef _DEBUG
+	InitializeMemoryTracking();
+#endif
+}
+
+FClientApp::~FClientApp()
+{
+#ifdef _DEBUG
+	ShutdownMemoryTracking();
+#endif
+}
 /**
  * @brief Client Main Runtime Function
  * App 초기화, Main Loop 실행을 통한 전체 Cycle
