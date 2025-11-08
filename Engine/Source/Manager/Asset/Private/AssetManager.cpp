@@ -5,6 +5,7 @@
 #include "Physics/Public/AABB.h"
 #include "Texture/Public/Texture.h"
 #include "Manager/Asset/Public/ObjManager.h"
+#include "Manager/Asset/Public/FFBXManager.h"
 #include "Manager/Path/Public/PathManager.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 
@@ -126,6 +127,7 @@ void UAssetManager::Release()
 void UAssetManager::LoadAllObjStaticMesh()
 {
 	TArray<FName> ObjList;
+	TArray<FName> FbxList;
 	const FString DataDirectory = "Data/"; // 검색할 기본 디렉토리
 	// 디렉토리가 실제로 존재하는지 먼저 확인합니다.
 	if (std::filesystem::exists(DataDirectory) && std::filesystem::is_directory(DataDirectory))
@@ -142,8 +144,15 @@ void UAssetManager::LoadAllObjStaticMesh()
 				// 찾은 파일 경로를 FName으로 변환하여 ObjList에 추가합니다.
 				ObjList.Emplace(FName(PathString));
 			}
+
+			if (Entry.is_regular_file() && Entry.path().extension() == ".fbx")
+			{
+				FString PathString = Entry.path().generic_string();
+
+				FbxList.Emplace(FName(PathString));
+			}
 		}
-	}
+	} 
 
 	// Enable winding order flip for this OBJ file
 	FObjImporter::Configuration Config;
@@ -167,6 +176,18 @@ void UAssetManager::LoadAllObjStaticMesh()
 			StaticMeshVertexBuffers.Emplace(ObjPath, this->CreateVertexBuffer(LoadedMesh->GetVertices()));
 			StaticMeshIndexBuffers.Emplace(ObjPath, this->CreateIndexBuffer(LoadedMesh->GetIndices()));
 		}
+	}
+
+	for (const FName& FbxPath : FbxList)
+	{
+		UStaticMesh* LoadedMesh = FFbxManager::LoadFbxStaticMesh(FbxPath);
+
+		if (LoadedMesh)
+		{
+			StaticMeshVertexBuffers.Emplace(FbxPath, this->CreateVertexBuffer(LoadedMesh->GetVertices()));
+			StaticMeshIndexBuffers.Emplace(FbxPath, this->CreateIndexBuffer(LoadedMesh->GetIndices())); 
+		}
+		
 	}
 }
 

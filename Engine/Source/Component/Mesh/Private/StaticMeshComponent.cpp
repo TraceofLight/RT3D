@@ -8,6 +8,7 @@
 #include "Render/UI/Widget/Public/StaticMeshComponentWidget.h"
 #include "Utility/Public/JsonSerializer.h"
 #include "Texture/Public/Texture.h"
+#include "Manager/Asset/Public/FFBXManager.h"
 
 IMPLEMENT_CLASS(UStaticMeshComponent, UMeshComponent)
 
@@ -96,7 +97,23 @@ void UStaticMeshComponent::SetStaticMesh(const FName& InObjPath)
 {
 	UAssetManager& AssetManager = UAssetManager::GetInstance();
 
-	UStaticMesh* NewStaticMesh = FObjManager::LoadObjStaticMesh(InObjPath);
+	std::filesystem::path PathEx(InObjPath.ToString());
+	std::string Ext = PathEx.extension().string();
+
+	UStaticMesh* NewStaticMesh ;
+	if (Ext == ".obj")
+	{
+		NewStaticMesh = FObjManager::LoadObjStaticMesh(InObjPath);
+	}
+	else if (Ext == ".fbx")
+	{
+		NewStaticMesh = FFbxManager::LoadFbxStaticMesh(InObjPath);
+	}
+	else
+	{
+		UE_LOG("확장자를 찾을 수 없습니다. ");
+		return;
+	}
 
 	if (NewStaticMesh)
 	{
