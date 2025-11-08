@@ -9,10 +9,9 @@ void FSkeleton::BuildRefPoseGlobal()
 		RefPoseGlobal = {};
 		InvRefPoseGlobal = {};
 		return;
-
-	 
-    RefPoseGlobal.SetNum(NumBones);
-    InvRefPoseGlobal.SetNum(NumBones);
+	}
+	RefPoseGlobal.SetNum(NumBones);
+	InvRefPoseGlobal.SetNum(NumBones);
 	 
     if (RefPoseLocal.Num() != NumBones)
     {
@@ -36,7 +35,7 @@ void FSkeleton::BuildRefPoseGlobal()
         }
         else
         {
-            RefPoseGlobal[i] = LocalM; // root
+            RefPoseGlobal[i] = LocalM; // 루트일 때
         }
 
         InvRefPoseGlobal[i] = RefPoseGlobal[i].Inverse();

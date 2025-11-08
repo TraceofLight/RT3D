@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="Asset\Shader\ClusteredLightCullingCS.hlsl">
@@ -578,6 +578,12 @@
     </ClCompile>
     <ClCompile Include="Source\Manager\Asset\Private\FFBXManager.cpp">
       <Filter>Source\Manager\Asset\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\SkinnedMeshComponent.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\SkeletalMeshComponent.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1175,6 +1181,12 @@
     <ClInclude Include="Source\Manager\Asset\Public\FFBXManager.h">
       <Filter>Source\Manager\Asset\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Component\Mesh\Public\SkinnedMeshComponent.h">
+      <Filter>Source\Component\Mesh\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Component\Public\SkeletalMeshComponent.h">
+      <Filter>Source\Component\Mesh\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Asset">
@@ -1435,6 +1447,32 @@
     <Filter Include="Source\Render\Shadow\Private">
       <UniqueIdentifier>{cde83c49-b938-4180-8c80-3ce4999f87ea}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMesh.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMesh.h">
+      <Filter>Source\Component\Mesh\Public</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\\Component\\Mesh\\Private\\SkinnedMeshComponent.cpp">
+      <Filter>Source\\Component\\Mesh\\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\\Component\\Private\\SkeletalMeshComponent.cpp">
+      <Filter>Source\\Component\\Private</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\\Component\\Mesh\\Public\\SkinnedMeshComponent.h">
+      <Filter>Source\\Component\\Mesh\\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\\Component\\Mesh\\Public\\SkeletalMeshBuilder.h">
+      <Filter>Source\\Component\\Mesh\\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

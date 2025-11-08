@@ -298,6 +298,10 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMeshComponent.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkinnedMeshComponent.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMesh.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMeshBuilder.h" />
     <ClInclude Include="Source\Component\Public\SpringArmComponent.h" />
     <ClInclude Include="Source\Global\CurveTypes.h" />
     <ClInclude Include="Source\Level\Public\CurveLibrary.h" />
@@ -547,6 +551,8 @@
     <ClInclude Include="Source\Utility\Public\UELogParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="SkinnedMeshComponent.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Source\Component\Private\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Level\Private\CurveLibrary.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\FbxLoader.cpp" />
@@ -744,6 +750,7 @@
     <ClCompile Include="Source\Render\UI\Widget\Private\ViewportControlWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\ViewportMenuBarWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\Widget.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMesh.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\ConsoleWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\ControlPanelWindow.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\EditorWindow.cpp" />
