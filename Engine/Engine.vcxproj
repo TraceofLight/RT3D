@@ -140,18 +140,19 @@
       <PreprocessorDefinitions>_DEBUG;_WINDOWS;_DEVELOP=1;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include;$(SolutionDir)External\Include\FBX</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /FS /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Debug;$(SolutionDir)External\DirectXTex\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmodL_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Debug;$(SolutionDir)External\DirectXTex\lib\Debug;$(SolutionDir)External\Library\FBX\x64\debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>fmodL_vc.lib;DirectXTex.lib;libfbxsdk-md.lib;libxml2-md.lib;zlib-md.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
@@ -177,6 +178,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -207,6 +209,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -235,17 +238,18 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include;$(SolutionDir)External\Include\FBX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Release;$(SolutionDir)External\DirectXTex\lib\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmod_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Release;$(SolutionDir)External\DirectXTex\lib\Release;$(SolutionDir)External\Library\FBX\x64\release</AdditionalLibraryDirectories>
+      <AdditionalDependencies>fmod_vc.lib;DirectXTex.lib;libfbxsdk.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
@@ -273,6 +277,7 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -296,6 +301,8 @@
     <ClInclude Include="Source\Component\Public\SpringArmComponent.h" />
     <ClInclude Include="Source\Global\CurveTypes.h" />
     <ClInclude Include="Source\Level\Public\CurveLibrary.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\FbxLoader.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\FFBXManager.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier_CameraShake.h" />
     <ClInclude Include="pch.h" />
@@ -542,6 +549,9 @@
   <ItemGroup>
     <ClCompile Include="Source\Component\Private\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Level\Private\CurveLibrary.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\FbxLoader.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\FFBXManager.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp" />
     <ClCompile Include="Source\Render\Camera\Private\CameraModifier.cpp" />
     <ClCompile Include="Source\Render\Camera\Private\CameraModifier_CameraShake.cpp" />
     <ClCompile Include="pch.cpp">
@@ -618,7 +628,6 @@
     <ClCompile Include="Source\Level\Private\World.cpp" />
     <ClCompile Include="Source\Render\UI\Viewport\Private\GameViewportClient.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp" />
-    <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjManager.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\TextureManager.cpp" />
     <ClCompile Include="Source\Manager\Lua\Private\LuaBinder.cpp" />
