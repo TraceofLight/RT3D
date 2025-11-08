@@ -1,15 +1,19 @@
 #include "pch.h"
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
 
+void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+{
+}
+
 void USkeletalMeshComponent::UseReferencePose()
 {
-	if (!SkeletalMesh || !SkeletalMesh->Skeleton) return;
-	const int32 NumBones = SkeletalMesh->Skeleton->GetNumBones();
+	if (!SkeletalMesh || !SkeletalMesh->GetSkeletalMeshAsset()->Skeleton) return;
+	const int32 NumBones = SkeletalMesh->GetSkeletalMeshAsset()->Skeleton->GetNumBones();
 
 	LocalPose.SetNum(NumBones);
 	for (int i = 0; i < NumBones; ++i)
 	{
-		LocalPose[i] = SkeletalMesh->Skeleton->RefPoseLocal[i];
+		LocalPose[i] = SkeletalMesh->GetSkeletalMeshAsset()->Skeleton->RefPoseLocal[i];
 	}
 
 	BuildComponentWorldSpacePose();
@@ -18,16 +22,16 @@ void USkeletalMeshComponent::UseReferencePose()
 
 void USkeletalMeshComponent::SetLocalPose(const TArray<FTransform>& InLocalPose)
 {
-    if (!SkeletalMesh || !SkeletalMesh->Skeleton) return;
-    const int32 NumBones = SkeletalMesh->Skeleton->GetNumBones();
+    if (!SkeletalMesh || !SkeletalMesh->GetSkeleton()) return;
+    const int32 NumBones = SkeletalMesh->GetSkeletalMeshAsset()->Skeleton->GetNumBones();
     if (InLocalPose.Num() != NumBones) return;
     LocalPose = InLocalPose;
 }
 
 void USkeletalMeshComponent::BuildComponentWorldSpacePose()
 {
-	if (!SkeletalMesh || !SkeletalMesh->Skeleton) return;
-	const FSkeleton& Skel = *(SkeletalMesh->Skeleton);
+	if (!SkeletalMesh || !SkeletalMesh->GetSkeleton()) return;
+	const FSkeleton& Skel = *(SkeletalMesh->GetSkeleton());
 	const int32 NumBones = Skel.GetNumBones();
 
 	if (LocalPose.Num() != NumBones) return;
@@ -55,9 +59,9 @@ void USkeletalMeshComponent::BuildComponentWorldSpacePose()
 
 void USkeletalMeshComponent::BuildSkinMatrices()
 {
-	if (!SkeletalMesh || !SkeletalMesh->Skeleton) return;
+	if (!SkeletalMesh || !SkeletalMesh->GetSkeleton()) return;
 
-    const FSkeleton& Skel = *SkeletalMesh->Skeleton;
+    const FSkeleton& Skel = *SkeletalMesh->GetSkeleton();
     const int32 NumBones = Skel.GetNumBones();
     if (GlobalPose.Num() != NumBones) return;
 
@@ -74,7 +78,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 {
     Super::TickComponent(DeltaTime);
 
-    if (!SkeletalMesh || !SkeletalMesh->Skeleton) return;
+    if (!SkeletalMesh || !SkeletalMesh->GetSkeleton()) return;
     if (LocalPose.IsEmpty())
     {
         UseReferencePose();

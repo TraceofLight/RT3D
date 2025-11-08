@@ -65,12 +65,15 @@ struct FSkeletalMeshSection
 struct FSkeleton
 {
     TArray<FName>		BoneNames;				/** 모든 Bone 이름의 배열 */
-    TArray<int32>		Parents;				/** 부모 인덱스 배열, -1은 Root */
+	TArray<int32>		Parents;				/** 부모 인덱스 배열, -1은 Root */
 	//ARRAY<ARRAY<>> Children;
 	TArray<FTransform>	RefPoseLocal;			/** 부모 뼈에 대한 상대 변환 값 */
     TArray<FMatrix>		RefPoseGlobal;			/** 각 bone을 Root가 0,0,0인 Space로 변환하는 행렬 */
     TArray<FMatrix>		InvRefPoseGlobal;		/** Root 기준 모델 Space에서 각 뼈의 local Space로 변환 */
 
+	/**
+	* RefPoseLocal,RefPoseGlobal, InvRefPoseGlobal 를 세팅해주는 함수 
+	*/
 	void BuildRefPoseGlobal();
     int32 GetNumBones() const { return static_cast<int32>(BoneNames.Num()); }
 };
@@ -89,4 +92,36 @@ struct FSkeletalMesh
     TArray<FMaterial>   MaterialInfo;
 
 	bool IsValid() const { return Skeleton != nullptr && Sections.Num() > 0; }
+};
+
+UCLASS()
+class USkeletalMesh : public UObject
+{
+	GENERATED_BODY()
+	DECLARE_CLASS(USkeletalMesh, UObject)
+
+public:
+	USkeletalMesh();
+	virtual ~USkeletalMesh();
+
+	FSkeletalMesh* GetSkeletalMeshAsset() { return SkeletalMesh; };
+	void SetSkeletalMeshAsset(FSkeletalMesh* InSkeletalMeshAsset);
+
+	FSkeleton* GetSkeleton() { return SkeletalMesh->Skeleton; }
+	
+	
+	// Geometry Data
+	const TArray<FNormalVertex>& GetVertices() const;
+	TArray<FNormalVertex>& GetVertices();
+	const TArray<uint32>& GetIndices() const;
+
+	//Material Data
+
+
+	//유효성 검사
+	bool IsValid() const { return SkeletalMesh != nullptr; }
+private:
+	FSkeletalMesh* SkeletalMesh;
+
+
 };

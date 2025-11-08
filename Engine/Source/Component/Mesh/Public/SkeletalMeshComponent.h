@@ -10,7 +10,12 @@ class USkeletalMeshComponent : public USkinnedMeshComponent
     DECLARE_CLASS(USkeletalMeshComponent, USkinnedMeshComponent)
 
 public:
+	USkeletalMeshComponent();
+	~USkeletalMeshComponent();
 
+	void Serialize(const bool bInIsLoading, JSON& InOutHandle ) override;
+
+public:
 	/** RefPos를 위한 Matrix 세팅 */
 	void UseReferencePose();
 	 
@@ -22,9 +27,7 @@ public:
 	/** 최종으로 사용할 Matrix => LocalM * GlobalPose[i]* InvGlobalPose[i] */
     void BuildSkinMatrices();
 
-    // Optional tick to keep skin up to date each frame
-    virtual void TickComponent(float DeltaTime) override;
-
+    virtual void TickComponent(float DeltaTime) override; 
 private:
     TArray<FTransform> LocalPose;   // 부모와 상대적인 좌표
     TArray<FMatrix>    GlobalPose;  // component/global space matrices

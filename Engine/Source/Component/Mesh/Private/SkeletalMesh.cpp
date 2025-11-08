@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Component/Mesh/Public/SkeletalMesh.h"
- 
+
 void FSkeleton::BuildRefPoseGlobal()
 {
 	const int32 NumBones = static_cast<int32>(BoneNames.Num());
@@ -25,7 +25,7 @@ void FSkeleton::BuildRefPoseGlobal()
     for (int32 i = 0; i < NumBones; ++i)
     {
         const FTransform& L = RefPoseLocal[i];
-        const FQuaternion LocalRot = FQuaternion::FromEuler(L.Rotation); // degrees -> quat
+        const FQuaternion LocalRot = FQuaternion::FromEuler(L.Rotation); 
         const FMatrix LocalM = FMatrix::GetModelMatrix(L.Location, LocalRot, L.Scale);
 
         const int32 Parent = (i < Parents.Num()) ? Parents[i] : -1;
@@ -42,3 +42,7 @@ void FSkeleton::BuildRefPoseGlobal()
     }
 }
 
+void USkeletalMesh::SetSkeletalMeshAsset(FSkeletalMesh* InSkeletalMeshAsset)
+{
+	SkeletalMesh = InSkeletalMeshAsset;
+}

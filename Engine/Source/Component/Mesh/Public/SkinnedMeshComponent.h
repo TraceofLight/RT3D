@@ -9,8 +9,8 @@ class USkinnedMeshComponent : public UMeshComponent
     DECLARE_CLASS(USkinnedMeshComponent, UMeshComponent)
 
 public:
-    void SetSkeletalMesh(FSkeletalMesh* InMesh);
-    FSkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
+    //void SetSkeletalMesh(FSkeletalMesh* InMesh);
+    //FSkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
 	 
     void SetSkinMatrices(const TArray<FMatrix>& InMatrices);
     void SetSkinMatrices(const FMatrix* InMatrices, int32 Count);
@@ -21,6 +21,7 @@ public:
 
 protected:
 	/** 사용 중인 SkeletalMesh */
-    FSkeletalMesh* SkeletalMesh = nullptr;
+    ///FSkeletalMesh* SkeletalMesh = nullptr;
+	USkeletalMesh* SkeletalMesh = nullptr;
     TArray<FMatrix> FinalSkinMatrices; // sized to Skeleton->GetNumBones()
 };
