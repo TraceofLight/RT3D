@@ -1,8 +1,8 @@
 #pragma once
-
-#include "Core/Public/Object.h"       // UObject 기반 클래스 및 매크로
-#include "Global/CoreTypes.h"        // TArray 등
 #include "Global/BVH.h"
+#include "Texture/Public/Material.h"
+
+struct FMaterial;
 
 // 전방 선언: FStaticMesh의 전체 정의를 포함할 필요 없이 포인터만 사용
 struct FMeshSection

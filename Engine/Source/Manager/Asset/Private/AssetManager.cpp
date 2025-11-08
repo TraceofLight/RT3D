@@ -5,7 +5,7 @@
 #include "Physics/Public/AABB.h"
 #include "Texture/Public/Texture.h"
 #include "Manager/Asset/Public/ObjManager.h"
-#include "Manager/Asset/Public/FFBXManager.h"
+#include "Manager/Asset/Public/FbxLoader.h"
 #include "Manager/Path/Public/PathManager.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 
@@ -35,7 +35,7 @@ void UAssetManager::Initialize()
 		FRenderResourceFactory::CreateIndexBuffer(IndicesVerticalSquare.GetData(), static_cast<int>(IndicesVerticalSquare.Num()) * sizeof(uint32)));
 
 	NumIndices.Emplace(EPrimitiveType::Sprite, static_cast<uint32>(IndicesVerticalSquare.Num()));
-	
+
 	VertexBuffers.Emplace(EPrimitiveType::Torus, FRenderResourceFactory::CreateVertexBuffer(
 		VerticesTorus.GetData(), static_cast<int>(VerticesTorus.Num() * sizeof(FNormalVertex))));
 	VertexBuffers.Emplace(EPrimitiveType::Arrow, FRenderResourceFactory::CreateVertexBuffer(
@@ -55,7 +55,7 @@ void UAssetManager::Initialize()
 	NumVertices.Emplace(EPrimitiveType::Ring, static_cast<uint32>(VerticesRing.Num()));
 	NumVertices.Emplace(EPrimitiveType::Line, static_cast<uint32>(VerticesLine.Num()));
 	NumVertices.Emplace(EPrimitiveType::Sprite, static_cast<uint32>(VerticesVerticalSquare.Num()));
-	
+
 	// Calculate AABB for all primitive types (excluding StaticMesh)
 	for (const auto& Pair : VertexDatas)
 	{
@@ -117,7 +117,7 @@ void UAssetManager::Release()
 	// TMap.Empty()
 	VertexBuffers.Empty();
 	IndexBuffers.Empty();
-	
+
 	SafeDelete(TextureManager);
 }
 
@@ -152,11 +152,11 @@ void UAssetManager::LoadAllObjStaticMesh()
 				FbxList.Emplace(FName(PathString));
 			}
 		}
-	} 
+	}
 
-	// Enable winding order flip for this OBJ file
+	// CW 와인딩
 	FObjImporter::Configuration Config;
-	Config.bFlipWindingOrder = false;
+	Config.bFlipWindingOrder = true;
 	Config.bIsBinaryEnabled = true;
 	Config.bPositionToUEBasis = true;
 	Config.bNormalToUEBasis = true;
@@ -180,14 +180,30 @@ void UAssetManager::LoadAllObjStaticMesh()
 
 	for (const FName& FbxPath : FbxList)
 	{
-		UStaticMesh* LoadedMesh = FFbxManager::LoadFbxStaticMesh(FbxPath);
-
-		if (LoadedMesh)
+		FbxLoader Loader;
+		if (!Loader.Initialize())
 		{
-			StaticMeshVertexBuffers.Emplace(FbxPath, this->CreateVertexBuffer(LoadedMesh->GetVertices()));
-			StaticMeshIndexBuffers.Emplace(FbxPath, this->CreateIndexBuffer(LoadedMesh->GetIndices())); 
+			continue;
 		}
-		
+
+		if (Loader.ImportFromFile(FbxPath.ToString().c_str()))
+		{
+			// FbxLoader의 결과를 UStaticMesh로 변환
+			FStaticMesh* StaticMeshData = new FStaticMesh();
+			StaticMeshData->PathFileName = FbxPath;
+			StaticMeshData->Vertices = Loader.OutVertices;
+			StaticMeshData->Indices = Loader.OutIndices;
+
+			UStaticMesh* LoadedMesh = new UStaticMesh();
+			LoadedMesh->SetStaticMeshAsset(StaticMeshData);
+
+			StaticMeshCache.Emplace(FbxPath, LoadedMesh);
+			StaticMeshVertexBuffers.Emplace(FbxPath, this->CreateVertexBuffer(Loader.OutVertices));
+			StaticMeshIndexBuffers.Emplace(FbxPath, this->CreateIndexBuffer(Loader.OutIndices));
+			StaticMeshAABBs[FbxPath] = CalculateAABB(Loader.OutVertices);
+		}
+
+		Loader.Release();
 	}
 }
 

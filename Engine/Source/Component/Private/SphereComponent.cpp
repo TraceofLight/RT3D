@@ -77,7 +77,7 @@ UObject* USphereComponent::Duplicate()
 	return NewSphere;
 }
 
-void USphereComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void USphereComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

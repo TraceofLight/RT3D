@@ -46,7 +46,7 @@ void UDecalComponent::TickComponent(float DeltaTime)
 	UpdateFade(DeltaTime);
 }
 
-void UDecalComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UDecalComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

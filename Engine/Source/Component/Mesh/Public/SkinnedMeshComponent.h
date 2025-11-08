@@ -9,9 +9,9 @@ class USkinnedMeshComponent : public UMeshComponent
     DECLARE_CLASS(USkinnedMeshComponent, UMeshComponent)
 
 public:
-    //void SetSkeletalMesh(FSkeletalMesh* InMesh);
-    //FSkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
-	 
+    void SetSkeletalMesh(USkeletalMesh* InMesh);
+    USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
+
     void SetSkinMatrices(const TArray<FMatrix>& InMatrices);
     void SetSkinMatrices(const FMatrix* InMatrices, int32 Count);
     const TArray<FMatrix>& GetSkinMatrices() const { return FinalSkinMatrices; }

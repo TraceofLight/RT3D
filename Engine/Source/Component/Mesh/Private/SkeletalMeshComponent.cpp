@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
 
-void USkeletalMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void USkeletalMeshComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 }
 
@@ -65,7 +65,7 @@ void USkeletalMeshComponent::BuildSkinMatrices()
     const int32 NumBones = Skel.GetNumBones();
     if (GlobalPose.Num() != NumBones) return;
 
-	//최종으로 사용할 matrix 
+	//최종으로 사용할 matrix
     FinalSkinMatrices.SetNum(NumBones);
     for (int32 i = 0; i < NumBones; ++i)
     {

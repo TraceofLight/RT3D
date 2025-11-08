@@ -100,7 +100,7 @@ public:
 	void NotifyComponentEndOverlap(UPrimitiveComponent* OtherComp);
 
 	virtual void MarkAsDirty() override;
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 	// 데칼에 덮일 수 있는가
 	bool bReceivesDecals = true;
 
@@ -139,7 +139,7 @@ protected:
 
 	mutable IBoundingVolume* BoundingBox = nullptr;
 	bool bOwnsBoundingBox = false;
-	
+
 	mutable FVector CachedWorldMin;
 	mutable FVector CachedWorldMax;
 	mutable bool bIsAABBCacheDirty = true;

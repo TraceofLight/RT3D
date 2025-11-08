@@ -42,6 +42,18 @@ void FSkeleton::BuildRefPoseGlobal()
     }
 }
 
+int32 FSkeleton::FindBoneIndex(const FName& BoneName) const
+{
+	for (int32 i = 0; i < BoneNames.Num(); i++)
+	{
+		if (BoneNames[i] == BoneName)
+		{
+			return i;
+		}
+	}
+	return -1;
+}
+
 void USkeletalMesh::SetSkeletalMeshAsset(FSkeletalMesh* InSkeletalMeshAsset)
 {
 	SkeletalMesh = InSkeletalMeshAsset;

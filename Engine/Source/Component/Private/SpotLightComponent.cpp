@@ -20,7 +20,7 @@ USpotLightComponent::USpotLightComponent()
 	LightDirectionArrow.bShouldAlwaysVisible = false;
 }
 
-void USpotLightComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void USpotLightComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
     if (bInIsLoading)

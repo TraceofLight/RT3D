@@ -14,7 +14,7 @@ public:
 	UStaticMeshComponent();
 	~UStaticMeshComponent();
 
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 public:
 	UStaticMesh* GetStaticMesh() { return StaticMesh; }
@@ -32,7 +32,7 @@ public:
 	void SetElapsedTime(float InElapsedTime) { ElapsedTime = InElapsedTime; }
 	float GetElapsedTime() const { return ElapsedTime; }
 
-	static const FRenderState& GetClassDefaultRenderState(); 
+	static const FRenderState& GetClassDefaultRenderState();
 
 	void EnableNormalMap() { NormalMapEnabled = true; }
 	void DisableNormalMap() { NormalMapEnabled = false; }
@@ -49,7 +49,7 @@ private:
 	float ElapsedTime;
 
 	bool NormalMapEnabled = true;
-	
+
 public:
 	virtual UObject* Duplicate() override;
 

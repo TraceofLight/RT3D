@@ -915,7 +915,7 @@ FQuaternion UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& World
 
 		// UE5 표준: 드래그 시작 지점에서 기즈모로의 방향 (Origin = DragStartPos in UE)
 		const FVector2 DragStartScreenPos = Gizmo.GetDragStartScreenPos();
-		const FVector2 DirectionToMousePos = (DragStartScreenPos - GizmoScreenPos).GetNormalized();
+		const FVector2 DirectionToMousePos = (DragStartScreenPos - GizmoScreenPos).GetSafeNormal();
 
 		// Tangent 방향: DirectionToMousePos에 수직 (시계방향 회전)
 		FVector2 TangentDir = FVector2(-DirectionToMousePos.Y, DirectionToMousePos.X);

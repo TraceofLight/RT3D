@@ -3,56 +3,6 @@
 #include <fbxsdk.h>
 
 // ========================================
-// FSkeleton 구현
-// ========================================
-
-void FSkeleton::BuildRefPoseGlobal()
-{
-	int32 NumBones = GetNumBones();
-	RefPoseGlobal.SetNum(NumBones);
-	InvRefPoseGlobal.SetNum(NumBones);
-
-	// Root부터 시작하여 자식으로 내려가며 계산
-	for (int32 i = 0; i < NumBones; i++)
-	{
-		// FTransform → FMatrix 변환
-		const FTransform& LocalTransform = RefPoseLocal[i];
-
-		FMatrix ScaleMatrix = FMatrix::ScalingMatrix(LocalTransform.Scale);
-		FMatrix RotMatrix = FMatrix::RotationMatrix(LocalTransform.Rotation);
-		FMatrix TranslationMatrix = FMatrix::TranslationMatrix(LocalTransform.Location);
-
-		FMatrix LocalMatrix = ScaleMatrix * RotMatrix * TranslationMatrix;
-
-		if (Parents[i] == -1)
-		{
-			// Root Bone
-			RefPoseGlobal[i] = LocalMatrix;
-		}
-		else
-		{
-			// Child Bone: Global = Local * ParentGlobal
-			RefPoseGlobal[i] = LocalMatrix * RefPoseGlobal[Parents[i]];
-		}
-
-		// 역행렬 계산 (Skinning용)
-		InvRefPoseGlobal[i] = RefPoseGlobal[i].Inverse();
-	}
-}
-
-int32 FSkeleton::FindBoneIndex(const FName& BoneName) const
-{
-	for (int32 i = 0; i < BoneNames.Num(); i++)
-	{
-		if (BoneNames[i] == BoneName)
-		{
-			return i;
-		}
-	}
-	return -1;
-}
-
-// ========================================
 // FFbxParser 구현
 // ========================================
 
@@ -426,7 +376,8 @@ void FFbxParser::BuildMeshSections(FbxMesh* Mesh, FSkeletalMesh& OutMesh)
 			continue;
 		}
 
-		for (int32 VertIndex = 0; VertIndex < 3; VertIndex++)
+		// CW 와인딩
+		for (int32 VertIndex = 2; VertIndex >= 0; VertIndex--)
 		{
 			int32 ControlPointIndex = Mesh->GetPolygonVertex(PolyIndex, VertIndex);
 

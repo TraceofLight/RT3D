@@ -14,7 +14,7 @@ UProjectileMovementComponent::UProjectileMovementComponent()
 void UProjectileMovementComponent::BeginPlay()
 {
     UMovementComponent::BeginPlay();
-    
+
     Velocity.Normalize();
     Velocity = Velocity * InitialSpeed;
 }
@@ -36,7 +36,7 @@ void UProjectileMovementComponent::TickComponent(float DeltaTime)
     FQuaternion NewRotation = UpdatedComponent->GetWorldRotationAsQuaternion();
     if (bRotationFollowsVelocity && !Velocity.IsZero())
     {
-        NewRotation = FQuaternion::MakeFromDirection(Velocity.GetNormalized());
+        NewRotation = FQuaternion::MakeFromDirection(Velocity.GetSafeNormal());
     }
 
     const FVector Delta = Velocity * DeltaTime;
@@ -44,10 +44,10 @@ void UProjectileMovementComponent::TickComponent(float DeltaTime)
     MoveUpdatedComponent(Delta, NewRotation);
 }
 
-void UProjectileMovementComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UProjectileMovementComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
-    
+
     if (bInIsLoading)
     {
         FJsonSerializer::ReadFloat(InOutHandle, "InitialSpeed", InitialSpeed, 0);

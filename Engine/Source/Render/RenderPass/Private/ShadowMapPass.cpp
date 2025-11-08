@@ -654,7 +654,7 @@ void FShadowMapPass::CalculateDirectionalLightViewProj(UDirectionalLightComponen
 	if (LightDir.Length() < 1e-6f)
 		LightDir = FVector(0, 0, -1);
 	else
-		LightDir = LightDir.GetNormalized();
+		LightDir = LightDir.GetSafeNormal();
 
 	// 라이트 컴포넌트로부터 PSM 파라미터 설정
 	FPSMParameters Params;
@@ -720,7 +720,7 @@ void FShadowMapPass::CalculateUniformShadowMapViewProj(UDirectionalLightComponen
 	if (LightDir.Length() < 1e-6f)
 		LightDir = FVector(0, 0, -1);
 	else
-		LightDir = LightDir.GetNormalized();
+		LightDir = LightDir.GetSafeNormal();
 
 	FVector SceneCenter = (MinBounds + MaxBounds) * 0.5f;
 	float SceneRadius = (MaxBounds - MinBounds).Length() * 0.5f;
@@ -796,7 +796,7 @@ void FShadowMapPass::CalculateSpotLightViewProj(USpotLightComponent* Light,
 	if (LightDir.Length() < 1e-6f)
 		LightDir = FVector(1, 0, 0);  // X-Forward (engine default)
 	else
-		LightDir = LightDir.GetNormalized();
+		LightDir = LightDir.GetSafeNormal();
 
 	// 2. View Matrix 생성: Light 위치에서 Direction 방향으로
 	FVector Target = LightPos + LightDir;

@@ -1,6 +1,7 @@
 #pragma once
 #include "Widget.h"
 
+class UMaterial;
 class UClass;
 class UDecalComponent;
 

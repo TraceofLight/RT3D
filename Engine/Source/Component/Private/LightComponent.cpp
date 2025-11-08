@@ -10,7 +10,7 @@
 
 IMPLEMENT_ABSTRACT_CLASS(ULightComponent, ULightComponentBase)
 
-void ULightComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void ULightComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
 

@@ -1,8 +1,7 @@
 #include "pch.h"
 #include "Optimization/Public/ViewVolumeCuller.h"
-#include "Core/Public/Object.h"
+#include "Global/CameraTypes.h"
 #include "Global/Octree.h"
-#include "Level/Public/Level.h"
 
 namespace
 {
@@ -21,7 +20,7 @@ void ViewVolumeCuller::Cull(FOctree* StaticOctree, TArray<UPrimitiveComponent*>&
 	RenderableObjects.Empty();
 	CurrentFrustum.Clear();
 
-	// 1. 절두체 'Key' 생성 
+	// 1. 절두체 'Key' 생성
 	FMatrix VP = ViewProjConstants.View * ViewProjConstants.Projection;
 	CurrentFrustum.Planes[0] = VP[3] + VP[0]; // Left
 	CurrentFrustum.Planes[1] = VP[3] - VP[0]; // Right
@@ -87,8 +86,8 @@ void ViewVolumeCuller::CullOctree(FOctree* Octree)
 
 		// 현재 옥트리 노드(자신)의 경계와 절두체의 관계를 확인합니다.
 		EBoundCheckResult result = CurrentFrustum.CheckIntersection(CurrentNode->GetBoundingBox());
-	
-		// Case 1. 노드가 절두체 밖에 있다면, 즉시 다음 노드로 넘어갑니다. 
+
+		// Case 1. 노드가 절두체 밖에 있다면, 즉시 다음 노드로 넘어갑니다.
 		if (result == EBoundCheckResult::Outside)
 		{
 			continue;

@@ -219,9 +219,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMesh.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMeshComponent.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkinnedMeshComponent.h" />
     <ClInclude Include="Source\Component\Public\SpringArmComponent.h" />
     <ClInclude Include="Source\Global\CurveTypes.h" />
     <ClInclude Include="Source\Level\Public\CurveLibrary.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\FbxLoader.h" />
     <ClInclude Include="Source\Manager\Sound\Public\SoundManager.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier_CameraShake.h" />
@@ -467,8 +471,12 @@
     <ClInclude Include="Source\Utility\Public\UELogParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMesh.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMeshComponent.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\SkinnedMeshComponent.cpp" />
     <ClCompile Include="Source\Component\Private\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Level\Private\CurveLibrary.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\FbxLoader.cpp" />
     <ClCompile Include="Source\Render\Camera\Private\CameraModifier.cpp" />
     <ClCompile Include="Source\Render\Camera\Private\CameraModifier_CameraShake.cpp" />
     <ClCompile Include="pch.cpp">

@@ -1,14 +1,14 @@
 #include "pch.h"
 #include "Component/Mesh/Public/SkinnedMeshComponent.h"
 
-void USkinnedMeshComponent::SetSkeletalMesh(FSkeletalMesh* InMesh)
+void USkinnedMeshComponent::SetSkeletalMesh(USkeletalMesh* InMesh)
 {
     SkeletalMesh = InMesh;
-    FinalSkinMatrices.Clear();
+    FinalSkinMatrices.Empty();
 
-    if (SkeletalMesh && SkeletalMesh->Skeleton)
+    if (SkeletalMesh && SkeletalMesh->GetSkeleton())
     {
-        FinalSkinMatrices.SetNum(SkeletalMesh->Skeleton->GetNumBones());
+        FinalSkinMatrices.SetNum(SkeletalMesh->GetSkeleton()->GetNumBones());
         // Initialize with identity skinning (ref pose)
         for (int32 i = 0; i < FinalSkinMatrices.Num(); ++i)
         {
@@ -24,7 +24,7 @@ void USkinnedMeshComponent::SetSkinMatrices(const TArray<FMatrix>& InMatrices)
 
 void USkinnedMeshComponent::SetSkinMatrices(const FMatrix* InMatrices, int32 Count)
 {
-    if (!InMatrices || Count <= 0) { FinalSkinMatrices.Clear(); return; }
+    if (!InMatrices || Count <= 0) { FinalSkinMatrices.Empty(); return; }
     FinalSkinMatrices.SetNum(Count);
     for (int32 i = 0; i < Count; ++i) { FinalSkinMatrices[i] = InMatrices[i]; }
 }

@@ -12,7 +12,7 @@ ULightSensorComponent::ULightSensorComponent()
 	bCanEverTick = true;
 }
 
-void ULightSensorComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void ULightSensorComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

@@ -1,10 +1,6 @@
 #pragma once
 
-#include "Core/Public/Object.h"
-#include "Global/CoreTypes.h"
-#include "Global/Matrix.h"
-#include "Global/Quaternion.h"
-#include "Core/Public/Name.h"
+struct FMaterial;
 
 /** 영향을 주는 Vertex을 저장한 구조체 */
 struct FSkinInfluence
@@ -30,36 +26,36 @@ struct FSkinInfluence
 /**
 *	Skeletal Mesh를 읽는 Vertex
 *
-*	FNormalVertex + FSkinIbnfluence 
-*/ 
+*	FNormalVertex + FSkinIbnfluence
+*/
 struct FSkeletalVertex
 {
-	FNormalVertex Vertex; 
-    FSkinInfluence Skin; 
+	FNormalVertex Vertex;
+    FSkinInfluence Skin;
 };
 
 /** Mesh의 한 부분을 정의한다 */
 struct FSkeletalMeshSection
 {
-    TArray<FSkeletalVertex> Vertices;			 
-    TArray<uint32>          Indices;			
+    TArray<FSkeletalVertex> Vertices;
+    TArray<uint32>          Indices;
     TArray<uint16>          BoneMap;			/** 영향을 주는 Bone들, BoneMap의Indices == Verties.Skin.Indices */
     uint32                  MaterialSlot = 0;
-}; 
+};
 
 // 1. 처음 로드 했을 때
-// Vertex는 local space // Root가 0,0,0 일 때, 상대좌표로  
-// Bone(RefPoseLocal)은 부모 뼈 기준 변환 값으로 불러들인다. (->  원래는 root 기준이여서 후처리해야 됨) 
+// Vertex는 local space // Root가 0,0,0 일 때, 상대좌표로
+// Bone(RefPoseLocal)은 부모 뼈 기준 변환 값으로 불러들인다. (->  원래는 root 기준이여서 후처리해야 됨)
 
 // 2. BuildRefPoseGlobal()을 통해 변환 시작
 // RefPoseLocal 데이터 사용해서 RefPoseGlobal, InvRefPoseGlobal을 계산
 // Root 부터 시작해서, 자식 뼈로 내려간다.
-// RefPoseGlobal[i] = RefPoseLocal[i] * RefPoseGlobal[Parent[i]] => 회전할거면 여기서 이미 계산됨  
+// RefPoseGlobal[i] = RefPoseLocal[i] * RefPoseGlobal[Parent[i]] => 회전할거면 여기서 이미 계산됨
 // RefPoseGlobal: i번 뼈 로컬 공간(부모 상대 -> root가 0,0,0일 떄) => 모델 공간(root가 0,0,0일 때ㅔ 0-
 // InvRefPoseGlobal: 모델 공간 => i번 뼈 로컬 공간
 
 // Vertex * InvRefPoseGlobal[i] -> (업데이트 X) * RefPoseGlobal[i] -> (업데이트 0)
-// weight 처리 
+// weight 처리
 
 // 모든 SKeletal Mesh Bone  대한 정보
 struct FSkeleton
@@ -72,12 +68,13 @@ struct FSkeleton
     TArray<FMatrix>		InvRefPoseGlobal;		/** Root 기준 모델 Space에서 각 뼈의 local Space로 변환 */
 
 	/**
-	* RefPoseLocal,RefPoseGlobal, InvRefPoseGlobal 를 세팅해주는 함수 
+	* RefPoseLocal,RefPoseGlobal, InvRefPoseGlobal 를 세팅해주는 함수
 	*/
 	void BuildRefPoseGlobal();
+	int32 FindBoneIndex(const FName& BoneName) const;
     int32 GetNumBones() const { return static_cast<int32>(BoneNames.Num()); }
 };
- 
+
 struct FSkeletalMesh
 {
 	FName               PathFileName;
@@ -85,7 +82,7 @@ struct FSkeletalMesh
 	// 뼈대
 	FSkeleton*     Skeleton = nullptr;
 
-	// 살 
+	// 살
 	TArray<FSkeletalMeshSection> Sections;
 
 	// 피부
@@ -108,8 +105,8 @@ public:
 	void SetSkeletalMeshAsset(FSkeletalMesh* InSkeletalMeshAsset);
 
 	FSkeleton* GetSkeleton() { return SkeletalMesh->Skeleton; }
-	
-	
+
+
 	// Geometry Data
 	const TArray<FNormalVertex>& GetVertices() const;
 	TArray<FNormalVertex>& GetVertices();

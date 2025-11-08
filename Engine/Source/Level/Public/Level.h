@@ -35,7 +35,7 @@ public:
 
 	virtual void Init();
 
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 	const TArray<AActor*>& GetLevelActors() const { return LevelActors; }
 	const TArray<AActor*>& GetTemplateActors() const { return TemplateActors; }

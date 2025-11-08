@@ -43,7 +43,7 @@ UEditorIconComponent::UEditorIconComponent()
 
 UEditorIconComponent::~UEditorIconComponent() = default;
 
-void UEditorIconComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UEditorIconComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

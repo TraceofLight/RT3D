@@ -46,7 +46,7 @@ ULevel::~ULevel()
 	SafeDelete(CurveLibrary);
 }
 
-void ULevel::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void ULevel::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

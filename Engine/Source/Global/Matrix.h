@@ -128,6 +128,7 @@ struct FMatrix
 	FVector GetLocation() const;
 	FVector GetRotation() const;
 	FVector GetScale() const;
+	float Determinant3x3() const;
 	FVector TransformPosition(const FVector& V) const;
 
 	// PSM helper functions

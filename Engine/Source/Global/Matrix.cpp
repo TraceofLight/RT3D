@@ -360,8 +360,8 @@ FMatrix FMatrix::CreateOrthoLH(float Left, float Right, float Bottom, float Top,
 
 FMatrix FMatrix::CreateLookAtLH(const FVector& Eye, const FVector& Target, const FVector& Up)
 {
-	FVector ZAxis = (Target - Eye).GetNormalized();
-	FVector XAxis = Up.Cross(ZAxis).GetNormalized();
+	FVector ZAxis = (Target - Eye).GetSafeNormal();
+	FVector XAxis = Up.Cross(ZAxis).GetSafeNormal();
 	FVector YAxis = ZAxis.Cross(XAxis);
 
 	FMatrix Result;
@@ -694,4 +694,13 @@ FMatrix FMatrix::CreateOrthoOffCenterLH(float Left, float Right, float Bottom, f
 FMatrix FMatrix::CreateTranslation(const FVector& Translation)
 {
     return TranslationMatrix(Translation);
+}
+
+float FMatrix::Determinant3x3() const
+{
+    // 3x3 상단-좌측 부분 행렬의 Determinant 계산
+    // 홀수 개 축이 음수면 Determinant 음수 판정
+    return Data[0][0] * (Data[1][1] * Data[2][2] - Data[1][2] * Data[2][1])
+         - Data[0][1] * (Data[1][0] * Data[2][2] - Data[1][2] * Data[2][0])
+         + Data[0][2] * (Data[1][0] * Data[2][1] - Data[1][1] * Data[2][0]);
 }

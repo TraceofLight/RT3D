@@ -67,7 +67,7 @@ void FGizmoMath::CalculateQuarterRingDirections(FViewportClient* InClient, EGizm
 
 	const int Idx = DirectionToAxisIndex(InAxis);
 	const FVector CameraLoc = InClient->GetViewLocation();
-	const FVector DirectionToWidget = (InGizmoLocation - CameraLoc).GetNormalized();
+	const FVector DirectionToWidget = (InGizmoLocation - CameraLoc).GetSafeNormal();
 
 	FVector Axis0 = FGizmoConstants::LocalAxis0[Idx];
 	FVector Axis1 = FGizmoConstants::LocalAxis1[Idx];

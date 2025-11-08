@@ -1,7 +1,7 @@
 #pragma once
-
 #include "Component/Public/PrimitiveComponent.h"
-#include "Global/Vector.h"
+
+class UTexture;
 
 UCLASS()
 class UBillBoardComponent : public UPrimitiveComponent
@@ -11,9 +11,9 @@ class UBillBoardComponent : public UPrimitiveComponent
 
 public:
 	UBillBoardComponent();
-	virtual ~UBillBoardComponent() override;
+	~UBillBoardComponent() override;
 
-	virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 	void FaceCamera(const FVector& CameraForward);
 
@@ -35,7 +35,7 @@ private:
 	FVector4 SpriteTint = FVector4::OneVector();
 
 // Screen Size Section
-public:	
+public:
 	bool IsScreenSizeScaled() const { return bScreenSizeScaled; }
 	float GetScreenSize() const { return ScreenSize; }
 	void SetScreenSizeScaled(bool bEnable, float InScreenSize = 0.1f)

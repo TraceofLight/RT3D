@@ -334,7 +334,7 @@ void UGizmo::RenderCenterSphere(const FEditorPrimitive& P, float RenderScale)
 			float cosTheta = std::cos(theta);
 
 			FVector pos(sinPhi * cosTheta, sinPhi * sinTheta, cosPhi);
-			FVector normal = pos.GetNormalized();
+			FVector normal = pos.GetSafeNormal();
 			pos = pos * SphereRadius;
 
 			vertices.Add({pos, normal});
@@ -412,7 +412,7 @@ void UGizmo::RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion&
 	{
 		FVector T1 = PlaneInfo.Tangent1;
 		FVector T2 = PlaneInfo.Tangent2;
-		FVector PlaneNormal = Cross(T1, T2).GetNormalized();
+		FVector PlaneNormal = Cross(T1, T2).GetSafeNormal();
 
 		EGizmoDirection Seg1Color, Seg2Color;
 		if (PlaneInfo.Direction == EGizmoDirection::XY_Plane)
@@ -456,17 +456,17 @@ void UGizmo::RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion&
 
 			FVector Start1 = T1 * CornerPos;
 			FVector End1 = T1 * CornerPos + T2 * CornerPos;
-			FVector Dir1 = (End1 - Start1).GetNormalized();
-			FVector Perp1_1 = Cross(Dir1, PlaneNormal).GetNormalized();
-			FVector Perp1_2 = Cross(Dir1, Perp1_1).GetNormalized();
+			FVector Dir1 = (End1 - Start1).GetSafeNormal();
+			FVector Perp1_1 = Cross(Dir1, PlaneNormal).GetSafeNormal();
+			FVector Perp1_2 = Cross(Dir1, Perp1_1).GetSafeNormal();
 
 			for (int i = 0; i < NumSegments; ++i)
 			{
 				float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
 				FVector Offset = (Perp1_1 * std::cos(Angle) + Perp1_2 * std::sin(Angle)) * HandleRadius;
 
-				vertices.Add({Start1 + Offset, Offset.GetNormalized()});
-				vertices.Add({End1 + Offset, Offset.GetNormalized()});
+				vertices.Add({Start1 + Offset, Offset.GetSafeNormal()});
+				vertices.Add({End1 + Offset, Offset.GetSafeNormal()});
 			}
 
 			for (int i = 0; i < NumSegments; ++i)
@@ -490,17 +490,17 @@ void UGizmo::RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion&
 
 			FVector Start2 = T2 * CornerPos;
 			FVector End2 = T1 * CornerPos + T2 * CornerPos;
-			FVector Dir2 = (End2 - Start2).GetNormalized();
-			FVector Perp2_1 = Cross(Dir2, PlaneNormal).GetNormalized();
-			FVector Perp2_2 = Cross(Dir2, Perp2_1).GetNormalized();
+			FVector Dir2 = (End2 - Start2).GetSafeNormal();
+			FVector Perp2_1 = Cross(Dir2, PlaneNormal).GetSafeNormal();
+			FVector Perp2_2 = Cross(Dir2, Perp2_1).GetSafeNormal();
 
 			for (int i = 0; i < NumSegments; ++i)
 			{
 				float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
 				FVector Offset = (Perp2_1 * std::cos(Angle) + Perp2_2 * std::sin(Angle)) * HandleRadius;
 
-				vertices.Add({Start2 + Offset, Offset.GetNormalized()});
-				vertices.Add({End2 + Offset, Offset.GetNormalized()});
+				vertices.Add({Start2 + Offset, Offset.GetSafeNormal()});
+				vertices.Add({End2 + Offset, Offset.GetSafeNormal()});
 			}
 
 			for (int i = 0; i < NumSegments; ++i)
@@ -559,7 +559,7 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 		FVector Point2 = T2 * MidPoint;
 		FVector MidCenter = (Point1 + Point2) * 0.5f;
 
-		FVector PlaneNormal = Cross(T1, T2).GetNormalized();
+		FVector PlaneNormal = Cross(T1, T2).GetSafeNormal();
 
 		EGizmoDirection Seg1Color, Seg2Color;
 		if (PlaneInfo.Direction == EGizmoDirection::XY_Plane)
@@ -604,17 +604,17 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 
 			FVector Start = Point1;
 			FVector End = MidCenter;
-			FVector DiagDir = (End - Start).GetNormalized();
-			FVector Perp1 = Cross(DiagDir, PlaneNormal).GetNormalized();
-			FVector Perp2 = Cross(DiagDir, Perp1).GetNormalized();
+			FVector DiagDir = (End - Start).GetSafeNormal();
+			FVector Perp1 = Cross(DiagDir, PlaneNormal).GetSafeNormal();
+			FVector Perp2 = Cross(DiagDir, Perp1).GetSafeNormal();
 
 			for (int i = 0; i < NumSegments; ++i)
 			{
 				float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
 				FVector Offset = (Perp1 * std::cos(Angle) + Perp2 * std::sin(Angle)) * HandleRadius;
 
-				vertices.Add({Start + Offset, Offset.GetNormalized()});
-				vertices.Add({End + Offset, Offset.GetNormalized()});
+				vertices.Add({Start + Offset, Offset.GetSafeNormal()});
+				vertices.Add({End + Offset, Offset.GetSafeNormal()});
 			}
 
 			for (int i = 0; i < NumSegments; ++i)
@@ -638,17 +638,17 @@ void UGizmo::RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& Bas
 
 			FVector Start = MidCenter;
 			FVector End = Point2;
-			FVector DiagDir = (End - Start).GetNormalized();
-			FVector Perp1 = Cross(DiagDir, PlaneNormal).GetNormalized();
-			FVector Perp2 = Cross(DiagDir, Perp1).GetNormalized();
+			FVector DiagDir = (End - Start).GetSafeNormal();
+			FVector Perp1 = Cross(DiagDir, PlaneNormal).GetSafeNormal();
+			FVector Perp2 = Cross(DiagDir, Perp1).GetSafeNormal();
 
 			for (int i = 0; i < NumSegments; ++i)
 			{
 				float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
 				FVector Offset = (Perp1 * std::cos(Angle) + Perp2 * std::sin(Angle)) * HandleRadius;
 
-				vertices.Add({Start + Offset, Offset.GetNormalized()});
-				vertices.Add({End + Offset, Offset.GetNormalized()});
+				vertices.Add({Start + Offset, Offset.GetSafeNormal()});
+				vertices.Add({End + Offset, Offset.GetSafeNormal()});
 			}
 
 			for (int i = 0; i < NumSegments; ++i)
@@ -856,7 +856,7 @@ void UGizmo::RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuatern
 		// 퍼스펙티브 또는 오쏘 뷰 Local 모드: QuarterRing
 		const FVector GizmoLoc = P.Location;
 		const FVector CameraLoc = InClient->GetViewLocation();
-		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
+		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetSafeNormal();
 
 		// 월드 좌표에서 축 계산
 		FVector WorldAxis0 = BaseRot.RotateVector(BaseAxis0);
@@ -1035,7 +1035,7 @@ void UGizmo::RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& 
 
 		const FVector GizmoLoc = P.Location;
 		const FVector CameraLoc = InClient->GetViewLocation();
-		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetNormalized();
+		const FVector DirectionToWidget = (GizmoLoc - CameraLoc).GetSafeNormal();
 
 		// X axis rendering (YZ 평면)
 		if (bShowX)
@@ -1204,7 +1204,7 @@ void UGizmo::RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& 
 					v.Position.X = SphereRadius * SinTheta * CosPhi;
 					v.Position.Y = SphereRadius * SinTheta * SinPhi;
 					v.Position.Z = SphereRadius * CosTheta;
-					v.Normal = v.Position.GetNormalized();
+					v.Normal = v.Position.GetSafeNormal();
 					v.Color = FVector4(1, 1, 1, 1);
 					vertices.Add(v);
 				}
@@ -1274,7 +1274,7 @@ void UGizmo::RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& 
 			{
 				FVector T1 = PlaneInfo.Tangent1;
 				FVector T2 = PlaneInfo.Tangent2;
-				FVector PlaneNormal = Cross(T1, T2).GetNormalized();
+				FVector PlaneNormal = Cross(T1, T2).GetSafeNormal();
 
 				// 선분 1 메쉬 생성
 				{
@@ -1283,17 +1283,17 @@ void UGizmo::RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& 
 
 					FVector Start1 = T1 * CornerPos;
 					FVector End1 = T1 * CornerPos + T2 * CornerPos;
-					FVector Dir1 = (End1 - Start1).GetNormalized();
-					FVector Perp1_1 = Cross(Dir1, PlaneNormal).GetNormalized();
-					FVector Perp1_2 = Cross(Dir1, Perp1_1).GetNormalized();
+					FVector Dir1 = (End1 - Start1).GetSafeNormal();
+					FVector Perp1_1 = Cross(Dir1, PlaneNormal).GetSafeNormal();
+					FVector Perp1_2 = Cross(Dir1, Perp1_1).GetSafeNormal();
 
 					for (int i = 0; i < NumSegments; ++i)
 					{
 						float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
 						FVector Offset = (Perp1_1 * std::cos(Angle) + Perp1_2 * std::sin(Angle)) * HandleRadius;
 
-						vertices.Add({Start1 + Offset, Offset.GetNormalized()});
-						vertices.Add({End1 + Offset, Offset.GetNormalized()});
+						vertices.Add({Start1 + Offset, Offset.GetSafeNormal()});
+						vertices.Add({End1 + Offset, Offset.GetSafeNormal()});
 					}
 
 					for (int i = 0; i < NumSegments; ++i)
@@ -1331,17 +1331,17 @@ void UGizmo::RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& 
 
 					FVector Start2 = T2 * CornerPos;
 					FVector End2 = T1 * CornerPos + T2 * CornerPos;
-					FVector Dir2 = (End2 - Start2).GetNormalized();
-					FVector Perp2_1 = Cross(Dir2, PlaneNormal).GetNormalized();
-					FVector Perp2_2 = Cross(Dir2, Perp2_1).GetNormalized();
+					FVector Dir2 = (End2 - Start2).GetSafeNormal();
+					FVector Perp2_1 = Cross(Dir2, PlaneNormal).GetSafeNormal();
+					FVector Perp2_2 = Cross(Dir2, Perp2_1).GetSafeNormal();
 
 					for (int i = 0; i < NumSegments; ++i)
 					{
 						float Angle = static_cast<float>(i) / NumSegments * 2.0f * PI;
 						FVector Offset = (Perp2_1 * std::cos(Angle) + Perp2_2 * std::sin(Angle)) * HandleRadius;
 
-						vertices.Add({Start2 + Offset, Offset.GetNormalized()});
-						vertices.Add({End2 + Offset, Offset.GetNormalized()});
+						vertices.Add({Start2 + Offset, Offset.GetSafeNormal()});
+						vertices.Add({End2 + Offset, Offset.GetSafeNormal()});
 					}
 
 					for (int i = 0; i < NumSegments; ++i)

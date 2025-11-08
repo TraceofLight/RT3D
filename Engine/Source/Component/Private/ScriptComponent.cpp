@@ -152,7 +152,7 @@ UObject* UScriptComponent::Duplicate()
     return Duplicated;
 }
 
-void UScriptComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UScriptComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
     if (bInIsLoading)

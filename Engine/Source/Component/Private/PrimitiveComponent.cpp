@@ -241,7 +241,7 @@ void UPrimitiveComponent::DuplicateSubObjects(UObject* DuplicatedObject)
 	Super::DuplicateSubObjects(DuplicatedObject);
 
 }
-void UPrimitiveComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UPrimitiveComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

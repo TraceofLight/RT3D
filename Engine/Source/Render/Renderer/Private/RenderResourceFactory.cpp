@@ -300,7 +300,7 @@ ID3D11RasterizerState* FRenderResourceFactory::GetRasterizerState(const FRenderS
 	D3D11_RASTERIZER_DESC RasterizerDesc = {};
 	RasterizerDesc.FillMode = Key.FillMode;
 	RasterizerDesc.CullMode = Key.CullMode;
-	RasterizerDesc.FrontCounterClockwise = TRUE;
+	RasterizerDesc.FrontCounterClockwise = FALSE;
 	RasterizerDesc.DepthClipEnable = TRUE;
 
 	ID3D11RasterizerState* RasterizerState = nullptr;

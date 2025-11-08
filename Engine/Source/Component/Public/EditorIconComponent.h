@@ -3,6 +3,7 @@
 #include "Component/Public/PrimitiveComponent.h"
 #include "Global/Vector.h"
 
+class UTexture;
 /**
  * @brief 에디터 전용 아이콘 컴포넌트
  * BillBoardComponent와 달리 에디터 Billboard 플래그와 무관하게 항상 렌더링
@@ -16,9 +17,9 @@ class UEditorIconComponent : public UPrimitiveComponent
 
 public:
 	UEditorIconComponent();
-	virtual ~UEditorIconComponent() override;
+	~UEditorIconComponent() override;
 
-	virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 	void FaceCamera(const FVector& CameraForward);
 

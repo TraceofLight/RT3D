@@ -10,48 +10,23 @@ class UTexture;
 struct FMaterial
 {
 	FString Name;
+	FVector Ambient;
+	FVector Diffuse{0.1f, 0.1f, 0.1f};
+	FVector Specular;
+	FVector Emissive;
 
-	/** Ambient color (Ka). */
-	FVector Ka;
+	float Shininess;
+	float RefractiveIndex;
+	float Opacity;
+	int32 IlluminationModel;
 
-	/** Diffuse color (Kd). */
-	FVector Kd{0.1f, 0.1f, 0.1f}; // 기본 값을 바꿔줘야 프리미티브들의 색상이 바뀜
-
-	/** Specular color (Ks). */
-	FVector Ks;
-
-	/** Emissive color (Ke) */
-	FVector Ke;
-
-	/** Specular exponent (Ns). Defines the size of the specular highlight. */
-	float Ns;
-
-	/** Optical density or index of refraction (Ni). */
-	float Ni;
-
-	/** Dissolve factor (d). 1.0 is fully opaque. */
-	float D;
-
-	/** Illumination model (illum). */
-	int32 Illumination;
-
-	/** Ambient texture map (map_Ka). */
-	FString KaMap;
-
-	/** Diffuse texture map (map_Kd). */
-	FString KdMap;
-
-	/** Specular texture map (map_Ks). */
-	FString KsMap;
-
-	/** Specular highlight map (map_Ns). */
-	FString NsMap;
-
-	/** Alpha texture map (map_d). */
-	FString DMap;
-
-	/** Bump map (map_bump or bump). */
-	FString BumpMap;
+	// 텍스처 맵 경로
+	FString AmbientTexturePath;
+	FString DiffuseTexturePath;
+	FString SpecularTexturePath;
+	FString ShininessTexturePath;
+	FString OpacityTexturePath;
+	FString NormalTexturePath;
 };
 
 UCLASS()
@@ -61,45 +36,49 @@ class UMaterial : public UObject
 	DECLARE_CLASS(UMaterial, UObject)
 
 public:
-	UMaterial() {}
+	UMaterial();
 	~UMaterial() override;
 
-	FVector GetAmbientColor() const { return MaterialData.Ka; }
-	FVector GetDiffuseColor() const { return MaterialData.Kd; }
-	FVector GetSpecularColor() const { return MaterialData.Ks; }
-	float GetSpecularExponent() const { return MaterialData.Ns; }
-	float GetRefractionIndex() const { return MaterialData.Ni; }
-	float GetDissolveFactor() const { return MaterialData.D; }
-	
-	// Texture access functions
+	// 머티리얼 데이터 접근자
+	FVector GetAmbientColor() const { return MaterialData.Ambient; }
+	FVector GetDiffuseColor() const { return MaterialData.Diffuse; }
+	FVector GetSpecularColor() const { return MaterialData.Specular; }
+	FVector GetEmissiveColor() const { return MaterialData.Emissive; }
+	float GetShininess() const { return MaterialData.Shininess; }
+	float GetRefractiveIndex() const { return MaterialData.RefractiveIndex; }
+	float GetOpacity() const { return MaterialData.Opacity; }
+
+	// 텍스처 접근자
 	UTexture* GetDiffuseTexture() const { return DiffuseTexture; }
 	UTexture* GetAmbientTexture() const { return AmbientTexture; }
 	UTexture* GetSpecularTexture() const { return SpecularTexture; }
 	UTexture* GetNormalTexture() const { return NormalTexture; }
-	UTexture* GetAlphaTexture() const { return AlphaTexture; }
+	UTexture* GetOpacityTexture() const { return OpacityTexture; }
 	UTexture* GetBumpTexture() const { return BumpTexture; }
 
-	void SetMaterialData(const FMaterial& InMaterialData) { MaterialData = InMaterialData; }
+	const FMaterial& GetMaterialData() const { return MaterialData; }
+
+	void SetAmbientColor(const FVector& InColor) { MaterialData.Ambient = InColor; }
+	void SetDiffuseColor(const FVector& InColor) { MaterialData.Diffuse = InColor; }
+	void SetSpecularColor(const FVector& InColor) { MaterialData.Specular = InColor; }
+	void SetEmissiveColor(const FVector& InColor) { MaterialData.Emissive = InColor; }
 
 	void SetDiffuseTexture(UTexture* InTexture) { DiffuseTexture = InTexture; }
 	void SetAmbientTexture(UTexture* InTexture) { AmbientTexture = InTexture; }
 	void SetSpecularTexture(UTexture* InTexture) { SpecularTexture = InTexture; }
 	void SetNormalTexture(UTexture* InTexture) { NormalTexture = InTexture; }
-	void SetAlphaTexture(UTexture* InTexture) { AlphaTexture = InTexture; }
+	void SetOpacityTexture(UTexture* InTexture) { OpacityTexture = InTexture; }
 	void SetBumpTexture(UTexture* InTexture) { BumpTexture = InTexture; }
 
-
-	void SetAmbientColor(FVector& InColor) { MaterialData.Ka = InColor; }
-	void SetDiffuseColor(FVector& InColor) { MaterialData.Kd = InColor; }
-	void SetSpecularColor(FVector& InColor) { MaterialData.Ks = InColor; }
+	void SetMaterialData(const FMaterial& InMaterialData) { MaterialData = InMaterialData; }
 
 private:
+	FMaterial MaterialData;
+
 	UTexture* DiffuseTexture = nullptr;
 	UTexture* AmbientTexture = nullptr;
 	UTexture* SpecularTexture = nullptr;
 	UTexture* NormalTexture = nullptr;
-	UTexture* AlphaTexture = nullptr;
+	UTexture* OpacityTexture = nullptr;
 	UTexture* BumpTexture = nullptr;
-
-	FMaterial MaterialData;
 };

@@ -5,7 +5,7 @@
 
 IMPLEMENT_CLASS(UAmbientLightComponent, ULightComponent)
 
-void UAmbientLightComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UAmbientLightComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
 }

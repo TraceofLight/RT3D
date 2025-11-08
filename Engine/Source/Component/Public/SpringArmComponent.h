@@ -14,7 +14,7 @@ public:
 	virtual void TickComponent(float DeltaTime) override;
 
 	UObject* Duplicate() override;
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;;
 
 	// Settings
 	void SetTargetArmLength(float NewLength) { TargetArmLength = NewLength; }

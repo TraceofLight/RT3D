@@ -69,7 +69,7 @@ uint32 UObject::GetSerialNumber() const
 	return 0;
 }
 
-void UObject::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UObject::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 }
 

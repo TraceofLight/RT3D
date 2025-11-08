@@ -44,13 +44,13 @@ void UStaticMeshComponentWidget::RenderWidget()
 	ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
-	
+
 	RenderStaticMeshSelector();
 	ImGui::Separator();
 	RenderMaterialSections();
 	ImGui::Separator();
 	RenderOptions();
-	
+
 	ImGui::PopStyleColor(5);
 }
 
@@ -145,12 +145,12 @@ void UStaticMeshComponentWidget::RenderMaterialSections()
 			ImGui::EndCombo();
 		}
 		// Helper lambda for RGB color picker
-		auto RenderColorPicker = [](const char* Label, FVector& Color, UMaterial* Material, void (UMaterial::*SetColor)(FVector&)) {
+		auto RenderColorPicker = [](const char* Label, FVector& Color, UMaterial* Material, void (UMaterial::*SetColor)(const FVector&)) {
 			float ColorRGB[3] = { Color.X * 255.0f, Color.Y * 255.0f, Color.Z * 255.0f };
 			bool ColorChanged = false;
 			ImDrawList* DrawList = ImGui::GetWindowDrawList();
 			float BoxWidth = 65.0f;
-			
+
 			ImGui::SetNextItemWidth(BoxWidth);
 			ImVec2 PosR = ImGui::GetCursorScreenPos();
 			std::string IDR = std::string("##") + Label + "R";
@@ -158,7 +158,7 @@ void UStaticMeshComponentWidget::RenderMaterialSections()
 			ImVec2 SizeR = ImGui::GetItemRectSize();
 			DrawList->AddLine(ImVec2(PosR.x + 5, PosR.y + 2), ImVec2(PosR.x + 5, PosR.y + SizeR.y - 2), IM_COL32(255, 0, 0, 255), 2.0f);
 			ImGui::SameLine();
-			
+
 			ImGui::SetNextItemWidth(BoxWidth);
 			ImVec2 PosG = ImGui::GetCursorScreenPos();
 			std::string IDG = std::string("##") + Label + "G";
@@ -166,7 +166,7 @@ void UStaticMeshComponentWidget::RenderMaterialSections()
 			ImVec2 SizeG = ImGui::GetItemRectSize();
 			DrawList->AddLine(ImVec2(PosG.x + 5, PosG.y + 2), ImVec2(PosG.x + 5, PosG.y + SizeG.y - 2), IM_COL32(0, 255, 0, 255), 2.0f);
 			ImGui::SameLine();
-			
+
 			ImGui::SetNextItemWidth(BoxWidth);
 			ImVec2 PosB = ImGui::GetCursorScreenPos();
 			std::string IDB = std::string("##") + Label + "B";
@@ -174,7 +174,7 @@ void UStaticMeshComponentWidget::RenderMaterialSections()
 			ImVec2 SizeB = ImGui::GetItemRectSize();
 			DrawList->AddLine(ImVec2(PosB.x + 5, PosB.y + 2), ImVec2(PosB.x + 5, PosB.y + SizeB.y - 2), IM_COL32(0, 0, 255, 255), 2.0f);
 			ImGui::SameLine();
-			
+
 			float Color01[3] = { ColorRGB[0] / 255.0f, ColorRGB[1] / 255.0f, ColorRGB[2] / 255.0f };
 			if (ImGui::ColorEdit3(Label, Color01, ImGuiColorEditFlags_NoInputs))
 			{
@@ -183,7 +183,7 @@ void UStaticMeshComponentWidget::RenderMaterialSections()
 				ColorRGB[2] = Color01[2] * 255.0f;
 				ColorChanged = true;
 			}
-			
+
 			if (ColorChanged)
 			{
 				Color.X = ColorRGB[0] / 255.0f;
@@ -192,16 +192,14 @@ void UStaticMeshComponentWidget::RenderMaterialSections()
 				(Material->*SetColor)(Color);
 			}
 		};
-		
+
 		FVector Ambient = CurrentMaterial->GetAmbientColor();
 		FVector Diffuse = CurrentMaterial->GetDiffuseColor();
 		FVector Specular = CurrentMaterial->GetSpecularColor();
-		
+
 		RenderColorPicker("Ambient", Ambient, CurrentMaterial, &UMaterial::SetAmbientColor);
 		RenderColorPicker("Diffuse", Diffuse, CurrentMaterial, &UMaterial::SetDiffuseColor);
 		RenderColorPicker("Specular", Specular, CurrentMaterial, &UMaterial::SetSpecularColor);
-
-
 
 		ImGui::PopID();
 	}
@@ -228,7 +226,7 @@ void UStaticMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotIndex)
 
 		if (RowShaderResourceView != nullptr)
 		{
-			ImGui::Image((ImTextureID)RowShaderResourceView, 
+			ImGui::Image((ImTextureID)RowShaderResourceView,
 				ImVec2(RowPreviewSize, RowPreviewSize), ImVec2(0, 0), ImVec2(1, 1));
 		}
 		else
@@ -321,7 +319,7 @@ FString UStaticMeshComponentWidget::GetMaterialDisplayName(UMaterial* Material) 
 		Material->GetAmbientTexture(),
 		Material->GetSpecularTexture(),
 		Material->GetNormalTexture(),
-		Material->GetAlphaTexture(),
+		Material->GetOpacityTexture(),
 		Material->GetBumpTexture()
 	};
 
@@ -372,7 +370,7 @@ UTexture* UStaticMeshComponentWidget::GetPreviewTextureForMaterial(UMaterial* Ma
 	PreviewTexture = Material->GetNormalTexture();
 	if (PreviewTexture != nullptr) { return PreviewTexture; }
 
-	PreviewTexture = Material->GetAlphaTexture();
+	PreviewTexture = Material->GetOpacityTexture();
 	if (PreviewTexture != nullptr) { return PreviewTexture; }
 
 	PreviewTexture = Material->GetBumpTexture();

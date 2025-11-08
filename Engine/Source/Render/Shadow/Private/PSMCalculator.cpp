@@ -88,7 +88,7 @@ void FPSMCalculator::ComputeVirtualCameraParameters(
 	FPSMFrustum SceneFrustum(ViewProj);
 
 	// 빛 스윕 방향 (빛 방향의 반대)
-	FVector SweepDir = -LightDirection.GetNormalized();
+	FVector SweepDir = -LightDirection.GetSafeNormal();
 
 	// 각 메시 테스트
 	for (auto* Mesh : Meshes)
@@ -159,7 +159,7 @@ void FPSMCalculator::ComputeVirtualCameraParameters(
 
 	// 감마 계산 (빛과 뷰 방향 사이의 각도)
 	FVector ViewDir(ViewMatrix.Data[0][2], ViewMatrix.Data[1][2], ViewMatrix.Data[2][2]);  // 뷰 전방 (뷰 공간의 Z)
-	InOutParams.CosGamma = LightDirection.GetNormalized().Dot(ViewDir);
+	InOutParams.CosGamma = LightDirection.GetSafeNormal().Dot(ViewDir);
 }
 
 //-----------------------------------------------------------------------------
@@ -179,7 +179,7 @@ void FPSMCalculator::BuildUniformShadowMap(
 	FMatrix CameraView = CamConstants.View;
 
 	// 월드 공간 빛 방향
-	FVector WorldLightDir = LightDirection.GetNormalized();
+	FVector WorldLightDir = LightDirection.GetSafeNormal();
 
 	// 씬 AABB 계산
 	FPSMBoundingBox SceneBox;
@@ -269,7 +269,7 @@ void FPSMCalculator::BuildPSMProjection(
 {
 	const FCameraConstants& CamConstants = ViewInfo.CameraConstants;
 	FMatrix CameraView = CamConstants.View;
-	FVector ViewLightDir = CameraView.TransformVector(LightDirection.GetNormalized());
+	FVector ViewLightDir = CameraView.TransformVector(LightDirection.GetSafeNormal());
 
 	// 단계 1: 슬라이드 백이 적용된 가상 카메라 설정
 	FMatrix VirtualCameraView = FMatrix::Identity();
@@ -510,8 +510,8 @@ static FMatrix CreateLightSpaceBasis(const FVector& ViewLightDir, const FVector&
 	// leftVector = cross(upVector, eyeVector)
 	// viewVector = cross(upVector, leftVector)
 
-	FVector UpVector = ViewLightDir.GetNormalized();
-	FVector EyeVector = ViewDir.GetNormalized();
+	FVector UpVector = ViewLightDir.GetSafeNormal();
+	FVector EyeVector = ViewDir.GetSafeNormal();
 
 	// Left vector = cross(up, eye)
 	FVector LeftVector = Cross(UpVector, EyeVector);
@@ -562,7 +562,7 @@ void FPSMCalculator::BuildLSPSMProjection(
 	ViewDir.Normalize();
 
 	// Sample line 537: lightdir = Vector3(-lightview._13, -lightview._23, -lightview._33)
-	FVector LightDir = -LightDirection.GetNormalized();
+	FVector LightDir = -LightDirection.GetSafeNormal();
 
 	// Check degenerate case
 	float CosGamma = ViewDir.Dot(LightDir);

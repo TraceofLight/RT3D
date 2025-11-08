@@ -49,7 +49,7 @@ struct FRotator
 	 * @brief 각도 정규화가 적용된 FRotator 반환
 	 * @return 정규화된 FRotator
 	 */
-	FRotator GetNormalized() const
+	FRotator GetSafeNormal() const
 	{
 		return {NormalizeAxis(Pitch), NormalizeAxis(Yaw), NormalizeAxis(Roll)};
 	}

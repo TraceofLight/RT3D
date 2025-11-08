@@ -127,12 +127,19 @@ struct FVector
 
 	/**
 	 * @brief 단위 벡터 반환하는 함수
+	 * @param Tolerance 영벡터 판별 임계값
+	 * @return 정규화된 벡터, 영벡터일 경우 (0,0,0) 반환
 	 */
-	FVector GetNormalized() const
+	FVector GetSafeNormal(float Tolerance = 1e-8f) const
 	{
-		FVector NormalizedVector = *this;
-		NormalizedVector.Normalize();
-		return NormalizedVector;
+		const float SquareSum = LengthSquared();
+		if (SquareSum > Tolerance)
+		{
+			const float Scale = 1.0f / sqrt(SquareSum);
+			return {X * Scale, Y * Scale, Z * Scale};
+		}
+
+		return {0.0f, 0.0f, 0.0f};
 	}
 
 	bool IsZero() const
@@ -281,7 +288,7 @@ struct FVector2
 	/**
 	 * @brief 벡터를 정규화한 새로운 벡터를 반환하는 함수
 	 */
-	inline FVector2 GetNormalized() const
+	inline FVector2 GetSafeNormal() const
 	{
 		const float Len = Length();
 		if (Len > 0.0f)

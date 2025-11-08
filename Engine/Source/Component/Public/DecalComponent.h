@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "Component/Public/PrimitiveComponent.h"
 
+class UTexture;
+
 UCLASS()
 class UDecalComponent : public UPrimitiveComponent
 {
@@ -9,16 +11,16 @@ class UDecalComponent : public UPrimitiveComponent
 
 public:
     UDecalComponent();
-    virtual ~UDecalComponent() override;
+	~UDecalComponent() override;
 
-    virtual void BeginPlay() override;
-    virtual void TickComponent(float DeltaTime) override;
-    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    void BeginPlay() override;
+    void TickComponent(float DeltaTime) override;
+    void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
     void SetTexture(UTexture* InTexture);
-    
+
     void SetFadeTexture(UTexture* InFadeTexture);
-    
+
     virtual UTexture* GetTexture() const { return DecalTexture; }
 
     virtual UTexture* GetFadeTexture() const { return FadeTexture; }
@@ -90,25 +92,25 @@ public:
     // --- Getters & Setters ---
 
     float GetFadeStartDelay() const { return FadeStartDelay; }
-    
+
     float GetFadeDuration() const { return FadeDuration; }
-    
+
     float GetFadeInDuration() const { return FadeInDuration; }
-    
+
     float GetFadeInStartDelay() const { return FadeInStartDelay; }
-    
+
     float GetFadeProgress() const { return FadeProgress; }
-    
+
     bool GetDestroyOwnerAfterFade() const { return bDestroyOwnerAfterFade; }
 
     void SetFadeStartDelay(float InFadeStartDelay) { FadeStartDelay = InFadeStartDelay; }
-    
+
     void SetFadeDuration(float InFadeDuration) { FadeDuration = InFadeDuration; }
-    
+
     void SetFadeInDuration(float InFadeInDuration) { FadeInDuration = InFadeInDuration; }
-    
+
     void SetFadeInStartDelay(float InFadeInStartDelay) { FadeInStartDelay = InFadeInStartDelay; }
-    
+
     void SetDestroyOwnerAfterFade(bool bInDestroyOwnerAfterFade) { bDestroyOwnerAfterFade = bInDestroyOwnerAfterFade; }
 
 private:
@@ -120,7 +122,7 @@ private:
 
     /** @brief Time in seconds to wait before fading in the decal. */
     float FadeInStartDelay;
-    
+
     /** @brief Time in seconds for the decal to fade in. */
     float FadeInDuration = 3.0f;
 

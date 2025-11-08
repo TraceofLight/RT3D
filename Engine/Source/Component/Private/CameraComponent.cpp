@@ -41,7 +41,7 @@ void UCameraComponent::TickComponent(float DeltaTime)
 	}
 }
 
-void UCameraComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UCameraComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

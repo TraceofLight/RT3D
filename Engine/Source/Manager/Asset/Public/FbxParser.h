@@ -1,4 +1,5 @@
 #pragma once
+#include "Texture/Public/Material.h"
 
 /** 영향을 주는 Vertex을 저장한 구조체 */
 struct FSkinInfluence

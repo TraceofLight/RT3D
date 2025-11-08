@@ -10,7 +10,7 @@ public:
     virtual ~UHeightFogComponent() override;
 
     virtual void TickComponent(float DeltaTime) override;
-    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    virtual void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
     UClass* GetSpecificWidgetClass() const override;
 
@@ -33,9 +33,9 @@ public:
     void SetFogMaxOpacity(float InValue) { FogMaxOpacity = InValue; }
     void SetFogInscatteringColor(const FVector& InValue) { FogInScatteringColor = InValue; }
     void SetVisible(bool InVisible) { bVisible = InVisible; }
-    
+
 protected:
-    // 안개의 밀도 
+    // 안개의 밀도
     float FogDensity = 0.05f;
     // 높이에 따라 안개가 얼마나 빠르게 옅어지는지
     float FogHeightFalloff = 0.01f;
@@ -48,7 +48,7 @@ protected:
 
     // 산란되어 들어오는 빛의 색상
     FVector FogInScatteringColor = {0.5f, 0.5f, 0.5f};
-    
+
     // 안개 표시 여부
     bool bVisible = true;
 };

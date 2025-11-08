@@ -7,12 +7,12 @@ IMPLEMENT_ABSTRACT_CLASS(UMovementComponent, UActorComponent)
 
 UMovementComponent::UMovementComponent()
 {
-    
+
 }
 
 UMovementComponent::~UMovementComponent()
 {
-    
+
 }
 
 void UMovementComponent::BeginPlay()
@@ -55,10 +55,10 @@ void UMovementComponent::StopMovementImmediately()
     Velocity = FVector::Zero();
 }
 
-void UMovementComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UMovementComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
-    
+
     if (bInIsLoading)
     {
         FJsonSerializer::ReadVector(InOutHandle, "Velocity", Velocity, FVector::Zero());

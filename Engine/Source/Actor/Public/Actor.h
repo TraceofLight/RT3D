@@ -36,7 +36,7 @@ public:
 	AActor(UObject* InOuter);
 	virtual ~AActor() override;
 
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 	void SetActorLocation(const FVector& InLocation) const;
 	void SetActorRotation(const FQuaternion& InRotation) const;

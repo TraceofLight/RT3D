@@ -150,7 +150,7 @@ void UGizmo::OnMouseDragStart(FViewportClient* InClient, const FVector& Collisio
 
 	// 드래그 시작 방향 계산 (Arc 렌더링의 시작점으로 사용)
 	FVector GizmoCenter = Primitives[static_cast<int>(GizmoMode)].Location;
-	DragStartDirection = (CollisionPoint - GizmoCenter).GetNormalized();
+	DragStartDirection = (CollisionPoint - GizmoCenter).GetSafeNormal();
 
 	if (TargetComponent)
 	{
@@ -295,7 +295,7 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, FVi
 	{
 		return;
 	}
-	DirectionToPoint = DirectionToPoint.GetNormalized();
+	DirectionToPoint = DirectionToPoint.GetSafeNormal();
 
 	// 텍스트 위치 (뷰포트 크기 비례 원 바깥으로 추가 오프셋)
 	// 스크린 공간 원 반지름에 비례하는 오프셋 계산

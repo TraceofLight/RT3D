@@ -99,7 +99,7 @@ UObject* UBoxComponent::Duplicate()
 	return NewBox;
 }
 
-void UBoxComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UBoxComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

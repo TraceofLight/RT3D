@@ -77,7 +77,7 @@ void UDirectionalLightComponent::EnsureVisualizationIcon()
     UpdateVisualizationIconTint();
 }
 
-void UDirectionalLightComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UDirectionalLightComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
 

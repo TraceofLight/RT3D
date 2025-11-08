@@ -212,7 +212,7 @@ void FQuaternion::Normalize()
 FQuaternion FQuaternion::MakeFromDirection(const FVector& Direction)
 {
 	const FVector& ForwardVector = FVector::ForwardVector();
-	FVector Dir = Direction.GetNormalized();
+	FVector Dir = Direction.GetSafeNormal();
 
 	float Dot = ForwardVector.Dot(Dir);
 	if (Dot == 1.f)
@@ -227,7 +227,7 @@ FQuaternion FQuaternion::MakeFromDirection(const FVector& Direction)
 		{
 			RotAxis = FVector::RightVector();
 		}
-		return FromAxisAngle(RotAxis.GetNormalized(), PI);
+		return FromAxisAngle(RotAxis.GetSafeNormal(), PI);
 	}
 
 	float AngleRad = acos(Dot);

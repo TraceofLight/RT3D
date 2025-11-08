@@ -8,7 +8,8 @@
 #include "Render/UI/Widget/Public/StaticMeshComponentWidget.h"
 #include "Utility/Public/JsonSerializer.h"
 #include "Texture/Public/Texture.h"
-#include "Manager/Asset/Public/FFBXManager.h"
+#include "Manager/Asset/Public/FbxLoader.h"
+#include "Texture/Public/Material.h"
 
 IMPLEMENT_CLASS(UStaticMeshComponent, UMeshComponent)
 
@@ -24,7 +25,7 @@ UStaticMeshComponent::~UStaticMeshComponent()
 {
 }
 
-void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UStaticMeshComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 
@@ -97,17 +98,30 @@ void UStaticMeshComponent::SetStaticMesh(const FName& InObjPath)
 {
 	UAssetManager& AssetManager = UAssetManager::GetInstance();
 
-	std::filesystem::path PathEx(InObjPath.ToString());
-	std::string Ext = PathEx.extension().string();
+	path PathEx(InObjPath.ToString());
+	FString Ext = PathEx.extension().string();
 
-	UStaticMesh* NewStaticMesh ;
+	UStaticMesh* NewStaticMesh = nullptr;
 	if (Ext == ".obj")
 	{
 		NewStaticMesh = FObjManager::LoadObjStaticMesh(InObjPath);
 	}
 	else if (Ext == ".fbx")
 	{
-		NewStaticMesh = FFbxManager::LoadFbxStaticMesh(InObjPath);
+		// FbxLoader를 사용하여 로드
+		FbxLoader Loader;
+		if (Loader.Initialize() && Loader.ImportFromFile(InObjPath.ToString().c_str()))
+		{
+			FStaticMesh* StaticMeshData = new FStaticMesh();
+			StaticMeshData->PathFileName = InObjPath;
+			StaticMeshData->Vertices = Loader.OutVertices;
+			StaticMeshData->Indices = Loader.OutIndices;
+
+			NewStaticMesh = new UStaticMesh();
+			NewStaticMesh->SetStaticMeshAsset(StaticMeshData);
+
+			Loader.Release();
+		}
 	}
 	else
 	{

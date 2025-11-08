@@ -222,7 +222,7 @@ bool FCollisionHelper::LineIntersectVolume(const FVector& Start, const FVector& 
 	case EBoundingVolumeType::Sphere:
 		{
 			const FBoundingSphere* Sphere = static_cast<const FBoundingSphere*>(Volume);
-			FVector Dir = (End - Start).GetNormalized();
+			FVector Dir = (End - Start).GetSafeNormal();
 			FVector m = Start - Sphere->Center;
 			float b = Dot(m, Dir);
 			float c = Dot(m, m) - Sphere->Radius * Sphere->Radius;

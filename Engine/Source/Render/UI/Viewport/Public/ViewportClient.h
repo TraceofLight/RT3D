@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Global/CameraTypes.h"
 #include "Optimization/Public/ViewVolumeCuller.h"
 
 class FViewport;
