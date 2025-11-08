@@ -157,7 +157,7 @@ ComPtr<ID3D11ShaderResourceView> FTextureManager::CreateTextureFromFile(const pa
 
                     if (SUCCEEDED(ResultHandle))
                     {
-                        UE_LOG_SUCCESS("TextureManager: DDS 캐시 로드 성공 - %s", DDSCachePath.c_str());
+                        UE_LOG_SUCCESS("TextureManager: DDS 캐시 로드 성공: %s", DDSCachePath.c_str());
                         return TextureSRV;
                     }
                 }
@@ -172,7 +172,7 @@ ComPtr<ID3D11ShaderResourceView> FTextureManager::CreateTextureFromFile(const pa
 
                 if (SUCCEEDED(ResultHandle))
                 {
-                    UE_LOG_SUCCESS("TextureManager: DDS 캐시 로드 성공 - %s", DDSCachePath.c_str());
+                    UE_LOG_SUCCESS("TextureManager: DDS 캐시 로드 성공: %s", DDSCachePath.c_str());
                     return TextureSRV;
                 }
                 // 캐시 로드 실패 시 원본 파일을 직접 로드 (fallback)

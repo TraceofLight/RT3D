@@ -126,7 +126,7 @@ FMatrix FMatrix::TranslationMatrixInverse(const FVector& InOtherVector)
 /**
 * @brief Scale의 정보를 행렬로 변환하여 제공하는 함수
 */
-FMatrix FMatrix::ScaleMatrix(const FVector& InOtherVector)
+FMatrix FMatrix::ScalingMatrix(const FVector& InOtherVector)
 {
 	FMatrix Result = FMatrix::Identity();
 	Result.Data[0][0] = InOtherVector.X;
@@ -270,7 +270,7 @@ FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FVector& Rotation
 {
 	FMatrix T = TranslationMatrix(Location);
 	FMatrix R = RotationMatrix(Rotation);
-	FMatrix S = ScaleMatrix(Scale);
+	FMatrix S = ScalingMatrix(Scale);
 	FMatrix modelMatrix = S * R * T;
 
 	return  modelMatrix;
@@ -280,7 +280,7 @@ FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FQuaternion& Rota
 {
     FMatrix T = TranslationMatrix(Location);
     FMatrix R = Rotation.ToRotationMatrix();
-    FMatrix S = ScaleMatrix(Scale);
+    FMatrix S = ScalingMatrix(Scale);
     FMatrix modelMatrix = S * R * T;
 
     return  modelMatrix;

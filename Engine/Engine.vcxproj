@@ -295,6 +295,7 @@
     <ClInclude Include="Source\Level\Public\GameInstance.h" />
     <ClInclude Include="Source\Level\Public\World.h" />
     <ClInclude Include="Source\Render\UI\Viewport\Public\GameViewportClient.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\FbxParser.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjManager.h" />
     <ClInclude Include="Source\Manager\Asset\Public\TextureManager.h" />
@@ -544,6 +545,7 @@
     <ClCompile Include="Source\Level\Private\World.cpp" />
     <ClCompile Include="Source\Render\UI\Viewport\Private\GameViewportClient.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\FbxParser.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjManager.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\TextureManager.cpp" />
