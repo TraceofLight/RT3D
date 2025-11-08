@@ -73,26 +73,26 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <IncludePath>C:\Program Files (x86)\Visual Leak Detector\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);C:\Program Files (x86)\Visual Leak Detector\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <IncludePath>C:\Program Files (x86)\Visual Leak Detector\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);C:\Program Files (x86)\Visual Leak Detector\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -101,7 +101,7 @@
       <PreprocessorDefinitions>_DEBUG;FBXSDK_SHARED;_WINDOWS;_DEVELOP=1;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /FS /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -111,15 +111,15 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Debug;$(SolutionDir)External\DirectXTex\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmodL_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
       <Command>
         IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
         IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Debug\*" xcopy "$(SolutionDir)External\Bin\Debug\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Debug\*" xcopy "$(SolutionDir)ThirdParty\Bin\Debug\*" "$(OutDir)" /E /I /Y
         :VCEnd
       </Command>
     </PostBuildEvent>
@@ -133,7 +133,7 @@
       <PreprocessorDefinitions>NDEBUG;FBXSDK_SHARED;_WINDOWS;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -142,16 +142,16 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Release;$(SolutionDir)External\DirectXTex\lib\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmod_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>;$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
       <Command>
         IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
         IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\bin\Debug\*" xcopy "$(SolutionDir)External\bin\Debug\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Release\*" xcopy "$(SolutionDir)External\Bin\Release\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\bin\Debug\*" xcopy "$(SolutionDir)ThirdParty\bin\Debug\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Release\*" xcopy "$(SolutionDir)ThirdParty\Bin\Release\*" "$(OutDir)" /E /I /Y
         :VCEnd
       </Command>
     </PostBuildEvent>
@@ -163,7 +163,7 @@
       <PreprocessorDefinitions>_DEBUG;FBXSDK_SHARED;_WINDOWS;_DEVELOP=1;STAND_ALONE=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /FS /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -173,15 +173,15 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Debug;$(SolutionDir)External\DirectXTex\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmodL_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>;$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
       <Command>
         IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
         IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Debug\*" xcopy "$(SolutionDir)External\Bin\Debug\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Debug\*" xcopy "$(SolutionDir)ThirdParty\Bin\Debug\*" "$(OutDir)" /E /I /Y
         :VCEnd
       </Command>
     </PostBuildEvent>
@@ -195,7 +195,7 @@
       <PreprocessorDefinitions>NDEBUG;FBXSDK_SHARED;_WINDOWS;STAND_ALONE=1;USE_DDS_CACHE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -204,16 +204,16 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Release;$(SolutionDir)External\DirectXTex\lib\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmod_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>;$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
       <Command>
         IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
         IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\bin\Release\*" xcopy "$(SolutionDir)External\bin\Release\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Release\*" xcopy "$(SolutionDir)External\Bin\Release\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\bin\Release\*" xcopy "$(SolutionDir)ThirdParty\bin\Release\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Release\*" xcopy "$(SolutionDir)ThirdParty\Bin\Release\*" "$(OutDir)" /E /I /Y
         :VCEnd
       </Command>
     </PostBuildEvent>
@@ -222,6 +222,7 @@
     <ClInclude Include="Source\Component\Public\SpringArmComponent.h" />
     <ClInclude Include="Source\Global\CurveTypes.h" />
     <ClInclude Include="Source\Level\Public\CurveLibrary.h" />
+    <ClInclude Include="Source\Manager\Sound\Public\SoundManager.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier_CameraShake.h" />
     <ClInclude Include="pch.h" />
