@@ -104,14 +104,12 @@ using JSON = json::JSON;
 // 빌드 조건에 따른 Library 분류
 #ifdef _DEBUG
 #define DIRECTX_TOOL_KIT R"(DirectXTK\DirectXTK_debug)"
+#define LUA_LIB R"(Lua\Debug\lua)"
+#define FBX_SDK R"(FBX\Debug\libfbxsdk)"
 #else
 #define DIRECTX_TOOL_KIT R"(DirectXTK\DirectXTK)"
-#endif
-
-#ifdef _DEBUG
-#define LUA_LIB R"(Lua\Debug\lua)"
-#else
 #define LUA_LIB R"(Lua\Release\lua)"
+#define FBX_SDK R"(FBX\Release\libfbxsdk)"
 #endif
 
 // Library Linking
@@ -124,3 +122,4 @@ using JSON = json::JSON;
 #pragma comment(lib, "dwmapi")
 #pragma comment(lib, DIRECTX_TOOL_KIT)
 #pragma comment(lib, LUA_LIB)
+#pragma comment(lib, FBX_SDK)
