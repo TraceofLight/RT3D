@@ -4,30 +4,21 @@
 #include "Editor/Public/Grid.h"
 #include "Editor/Public/ObjectPicker.h"
 #include "Editor/Public/BatchLines.h"
-#include "editor/Public/Camera.h"
-#include "Global/Function.h"
 
-class UPrimitiveComponent;
-class UUUIDTextComponent;
-class FViewportClient;
-class UCamera;
-class ULevel;
-class USplitterWidget;
-struct FRay;
-
-class UEditor : public UObject
+class UEditor :
+	public UObject
 {
 	DECLARE_CLASS(UEditor, UObject)
 
 public:
 	UEditor();
-	~UEditor();
+	~UEditor() override;
 
 	void Update();
 	void RenderEditorGeometry();
-	void Collect2DRender(UCamera* InCamera, const D3D11_VIEWPORT& InViewport, bool bIsPIEViewport);
-	void RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
-	void RenderGizmoForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewport);
+	void Collect2DRender(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport, bool bIsPIEViewport);
+	void RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
+	void RenderGizmoForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 
 	void SelectActor(AActor* InActor);
 	void SelectComponent(UActorComponent* InComponent);
@@ -65,7 +56,9 @@ private:
 	AActor* CopiedActor = nullptr; // 복사된 Actor (복사 모드 시)
 	UActorComponent* CopiedComponent = nullptr; // 복사된 Component (복사 모드 시)
 
-	UCamera* Camera;
+	// 기즈모 드래그 상태 (뷰포트별 독립 관리)
+	bool bWasDraggingGizmo = false;
+
 	UGizmo Gizmo;
 	UBatchLines BatchLines;
 
@@ -83,7 +76,7 @@ private:
 	// Camera focus animation
 	bool bIsCameraAnimating = false;
 	float CameraAnimationTime = 0.0f;
-	ECameraType AnimatingCameraType = ECameraType::ECT_Perspective;
+	EViewType AnimatingViewType = EViewType::Perspective;
 	TArray<FVector> CameraStartLocation;
 	TArray<FVector> CameraStartRotation;
 	TArray<FVector> CameraTargetLocation;
@@ -103,16 +96,17 @@ private:
 	void UpdateBatchLines();
 	void ProcessMouseInput();
 
-	// 모든 기즈모 드래그 함수가 ActiveCamera를 받도록 통일
-	FVector GetGizmoDragLocation(UCamera* InActiveCamera, FRay& WorldRay);
-	FQuaternion GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRay);
-	FVector GetGizmoDragScale(UCamera* InActiveCamera, FRay& WorldRay);
+	// 모든 기즈모 드래그 함수가 ViewportClient를 받도록 통일
+	FVector GetGizmoDragLocation(FViewportClient* InClient, FRay& WorldRay);
+	FQuaternion GetGizmoDragRotation(FViewportClient* InClient, FRay& WorldRay);
+	FVector GetGizmoDragScale(FViewportClient* InClient, FRay& WorldRay);
 
 	// Focus Target Calculation
 	bool GetComponentFocusTarget(UActorComponent* Component, FVector& OutCenter, float& OutRadius);
 	bool GetActorFocusTarget(AActor* Actor, FVector& OutCenter, float& OutRadius);
 
 	void UpdateCameraAnimation();
+	void UpdateViewportCameraInput();
 
 	void TogglePilotMode();
 	void UpdatePilotMode();

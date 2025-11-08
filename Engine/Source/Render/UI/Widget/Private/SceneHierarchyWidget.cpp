@@ -1,16 +1,10 @@
 #include "pch.h"
 #include "Render/UI/Widget/Public/SceneHierarchyWidget.h"
 
-
 #include "Level/Public/Level.h"
 #include "Actor/Public/Actor.h"
-#include "Editor/Public/Camera.h"
 #include "Component/Public/PrimitiveComponent.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/UI/Viewport/Public/ViewportClient.h"
-#include "Render/UI/Viewport/Public/Viewport.h"
-#include "Manager/UI/Public/ViewportManager.h"
-#include "Global/Quaternion.h"
 #include "Component/Public/LightComponentBase.h"
 #include "Component/Public/HeightFogComponent.h"
 #include "Manager/Asset/Public/AssetManager.h"

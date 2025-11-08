@@ -35,7 +35,7 @@ struct FVector
 	 * @brief 두 벡터를 뺀 새로운 벡터를 반환하는 함수
 	 */
 	FVector operator-(const FVector& InOther) const;
-	
+
 	/**
 	 * @brief 두 벡터를 곱한 새로운 벡터를 반환하는 함수
 	 */
@@ -50,7 +50,7 @@ struct FVector
 	 * @brief 자신의 벡터에서 배율을 곱한 벡터를 반환하는 함수
 	 */
 	FVector operator*(float InRatio) const;
-	
+
 	/**
 	 * @brief 자신의 벡터에서 배율을 나눈 벡터를 반환하는 함수
 	 */
@@ -124,7 +124,7 @@ struct FVector
 			Z /= Length;
 		}
 	}
-	
+
 	/**
 	 * @brief 단위 벡터 반환하는 함수
 	 */
@@ -139,7 +139,7 @@ struct FVector
 	{
 		return X==0.f && Y==0.f && Z==0.f;
 	}
-	
+
 	/**
 	 * @brief 각도를 라디안으로 변환한 값을 반환하는 함수
 	 */
@@ -266,6 +266,19 @@ struct FVector2
 	inline float LengthSquared() const { return (X * X) + (Y * Y); }
 
 	/**
+	 * @brief 자기 자신을 정규화하는 함수 (in-place)
+	 */
+	inline void Normalize()
+	{
+		const float Len = Length();
+		if (Len > 0.0f)
+		{
+			X /= Len;
+			Y /= Len;
+		}
+	}
+
+	/**
 	 * @brief 벡터를 정규화한 새로운 벡터를 반환하는 함수
 	 */
 	inline FVector2 GetNormalized() const
@@ -279,11 +292,19 @@ struct FVector2
 	}
 
 	/**
-	 * @brief 두 벡터의 내적을 계산하는 함수
+	 * @brief 두 벡터의 내적을 계산하는 함수 (멤버 함수)
 	 */
 	inline float Dot(const FVector2& Other) const
 	{
 		return X * Other.X + Y * Other.Y;
+	}
+
+	/**
+	 * @brief 두 벡터의 내적을 계산하는 정적 함수
+	 */
+	static inline float DotProduct(const FVector2& A, const FVector2& B)
+	{
+		return A.X * B.X + A.Y * B.Y;
 	}
 };
 

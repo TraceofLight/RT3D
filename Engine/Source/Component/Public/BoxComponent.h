@@ -9,6 +9,7 @@ class UBoxComponent : public UShapeComponent
 
 public:
 	UBoxComponent();
+	~UBoxComponent() override;
 
 	// Box extent (unscaled half-extents)
 	FVector GetBoxExtent() const { return BoxExtent; }

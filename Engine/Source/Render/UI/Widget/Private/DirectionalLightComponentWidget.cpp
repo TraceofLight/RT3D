@@ -317,10 +317,10 @@ void UDirectionalLightComponentWidget::RenderWidget()
         for (FViewport* Viewport : UViewportManager::GetInstance().GetViewports())
         {
             FViewportClient* ViewportClient = Viewport->GetViewportClient();
-            if (UCamera* Camera = ViewportClient->GetCamera())
+            if (ViewportClient)
             {
-                Camera->SetLocation(DirectionalLightComponent->GetWorldLocation());
-                Camera->SetRotation(DirectionalLightComponent->GetWorldRotation());
+                ViewportClient->SetViewLocation(DirectionalLightComponent->GetWorldLocation());
+                ViewportClient->SetViewRotation(DirectionalLightComponent->GetWorldRotation());
             }
         }
     }

@@ -1,10 +1,25 @@
 #include "pch.h"
 #include "Render/UI/Overlay/Public/D2DOverlayManager.h"
 #include "Render/Renderer/Public/Renderer.h"
+#include "Render/UI/Viewport/Public/GameViewportClient.h"
 
-void FD2DOverlayManager::BeginCollect(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void FD2DOverlayManager::BeginCollect(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
-	CurrentCamera = InCamera;
+	CurrentViewportClient = InClient;
+	CurrentViewport = InViewport;
+
+	// 이미 Flush 시 Clear
+	// LineCommands.clear();
+	// EllipseCommands.clear();
+	// RectangleCommands.clear();
+	// TextCommands.clear();
+}
+
+void FD2DOverlayManager::BeginCollect(UGameViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
+{
+	// UGameViewportClient는 FViewportClient를 상속하지 않으므로 별도 처리
+	// 현재는 뷰포트 정보만 저장 (StandAlone 모드에서는 ViewportClient 참조가 필요 없음)
+	CurrentViewportClient = nullptr;
 	CurrentViewport = InViewport;
 
 	// 이미 Flush 시 Clear

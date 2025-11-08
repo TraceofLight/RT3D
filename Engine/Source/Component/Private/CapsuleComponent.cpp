@@ -22,6 +22,14 @@ UCapsuleComponent::UCapsuleComponent()
 	BoundingBox = Capsule;
 }
 
+UCapsuleComponent::~UCapsuleComponent()
+{
+	if (bOwnsBoundingBox && BoundingBox)
+	{
+		SafeDelete(BoundingBox);
+	}
+}
+
 void UCapsuleComponent::SetCapsuleRadius(float InRadius, bool bUpdateOverlaps)
 {
 	if (CapsuleRadius != InRadius)

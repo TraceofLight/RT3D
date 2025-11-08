@@ -4,7 +4,6 @@
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 #include "Component/Public/TextComponent.h"
 #include "Component/Public/UUIDTextComponent.h"
-#include "Editor/Public/Camera.h"
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Editor/Public/Editor.h"
 #include "Texture/Public/Texture.h"

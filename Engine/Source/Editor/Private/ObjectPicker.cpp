@@ -1,60 +1,21 @@
 #include "pch.h"
 #include "Editor/Public/ObjectPicker.h"
-#include "Editor/Public/Camera.h"
-#include "Editor/Public/Gizmo.h"
-#include "Editor/Public/GizmoMath.h"
-#include "Component/Public/PrimitiveComponent.h"
-#include "Global/Octree.h"
-#include "Physics/Public/AABB.h"
-#include "Component/Mesh/Public/StaticMeshComponent.h"
-#include "Manager/UI/Public/ViewportManager.h"
-#include "Render/HitProxy/Public/HitProxy.h"
+
 #include "Editor/Public/Editor.h"
+#include "Editor/Public/Gizmo.h"
+#include "Manager/UI/Public/ViewportManager.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
+
+IMPLEMENT_CLASS(UObjectPicker, UObject)
 
 UObjectPicker::~UObjectPicker()
 {
 	SafeRelease(HitProxyStagingTexture);
 }
 
-FRay UObjectPicker::GetModelRay(const FRay& Ray, UPrimitiveComponent* Primitive)
-{
-	FMatrix ModelInverse = Primitive->GetWorldTransformMatrixInverse();
-
-	FRay ModelRay;
-	ModelRay.Origin = Ray.Origin * ModelInverse;
-	ModelRay.Direction = Ray.Direction * ModelInverse;
-	ModelRay.Direction.Normalize();
-	return ModelRay;
-}
-
-UPrimitiveComponent* UObjectPicker::PickPrimitive(UCamera* InActiveCamera, const FRay& WorldRay, TArray<UPrimitiveComponent*> Candidate, float* Distance)
-{
-	UPrimitiveComponent* ShortestPrimitive = nullptr;
-	float ShortestDistance = D3D11_FLOAT32_MAX;
-	float PrimitiveDistance = D3D11_FLOAT32_MAX;
-
-	for (UPrimitiveComponent* Primitive : Candidate)
-	{
-		if (!Primitive->CanPick()) { continue; }
-		FMatrix ModelMat = Primitive->GetWorldTransformMatrix();
-		if (IsRayPrimitiveCollided(InActiveCamera, WorldRay, Primitive, ModelMat, &PrimitiveDistance))
-			//Ray와 Primitive가 충돌했다면 거리 테스트 후 가까운 Actor Picking
-		{
-			if (PrimitiveDistance < ShortestDistance)
-			{
-				ShortestPrimitive = Primitive;
-				ShortestDistance = PrimitiveDistance;
-			}
-		}
-	}
-	*Distance = ShortestDistance;
-
-	return ShortestPrimitive;
-}
-
-void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGizmo& Gizmo, FVector& CollisionPoint)
+void UObjectPicker::PickGizmo(FViewportClient* InClient, const FRay& WorldRay, UGizmo& Gizmo, FVector& CollisionPoint)
 {
 	//Forward, Right, Up순으로 테스트할거임.
 	//원기둥 위의 한 점 P, 축 위의 임의의 점 A에(기즈모 포지션) 대해, AP벡터와 축 벡터 V와 피타고라스 정리를 적용해서 점 P의 축부터의 거리 r을 구할 수 있음.
@@ -63,6 +24,28 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 	//FVector4 PointOnCylinder = WorldRay.Origin + WorldRay.Direction * X;
 	//dot(PointOnCylinder - GizmoLocation)*Dot(PointOnCylinder - GizmoLocation) - Dot(PointOnCylinder - GizmoLocation, GizmoAxis)^2 = r^2 = radiusOfGizmo
 	//이 t에 대한 방정식을 풀어서 근의공식 적용하면 됨.
+
+	// 멀티 뷰포트 대응: 현재 뷰포트의 ViewportClient 기준으로 Viewport 정보 가져오기
+	auto& ViewportManager = UViewportManager::GetInstance();
+	const auto& Viewports = ViewportManager.GetViewports();
+	const auto& Clients = ViewportManager.GetClients();
+
+	int32 CurrentViewportIndex = -1;
+	for (int32 i = 0; i < Clients.Num(); ++i)
+	{
+		if (Clients[i] == InClient)
+		{
+			CurrentViewportIndex = i;
+			break;
+		}
+	}
+
+	// 현재 뷰포트 기준으로 Scale 재계산 (멀티 뷰포트에서 각 뷰포트마다 다른 Scale 사용)
+	if (CurrentViewportIndex != -1 && Gizmo.GetTargetComponent())
+	{
+		const D3D11_VIEWPORT& CurrentViewportInfo = Viewports[CurrentViewportIndex]->GetRenderRect();
+		Gizmo.UpdateScale(InClient, CurrentViewportInfo);
+	}
 
 	FVector GizmoLocation = Gizmo.GetGizmoLocation();
 	FVector GizmoAxises[3] = { FVector{1, 0, 0}, FVector{0, 1, 0}, FVector{0, 0, 1} };
@@ -88,8 +71,8 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 	{
 		// 먼저 평면 충돌 검사 (우선순위 높음)
 		const float GizmoScale = Gizmo.GetTranslateScale();
-		const float PlaneSize = 0.25f * GizmoScale;
-		const float PlaneOffset = 0.15f * GizmoScale;
+		const float PlaneSize = PLANE_GIZMO_SIZE * GizmoScale;
+		const float PlaneOffset = PLANE_GIZMO_OFFSET * GizmoScale;
 
 		// 평면 정보: {방향, 탄젠트1, 탄젠트2, 법선}
 		struct FPlaneTestInfo
@@ -114,9 +97,11 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 			FVector Normal = PlaneInfo.Normal;
 
 			// World/Local 모드에 따라 회전 적용
-			if (Gizmo.GetGizmoMode() == EGizmoMode::Scale || !Gizmo.IsWorldMode())
+			FQuaternion q = FQuaternion::Identity();
+			bool bNeedRotation = (Gizmo.GetGizmoMode() == EGizmoMode::Scale || !Gizmo.IsWorldMode());
+			if (bNeedRotation)
 			{
-				FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+				q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
 				T1 = q.RotateVector(T1);
 				T2 = q.RotateVector(T2);
 				Normal = q.RotateVector(Normal);
@@ -127,9 +112,18 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 			if (IsRayCollideWithPlane(WorldRay, GizmoLocation, Normal, HitPoint))
 			{
 				// 교차점을 평면 로컬 좌표로 변환
-				FVector LocalHit = HitPoint - GizmoLocation;
-				float U = LocalHit.Dot(T1);
-				float V = LocalHit.Dot(T2);
+				FVector WorldHit = HitPoint - GizmoLocation;
+
+				// 회전이 적용된 경우, 역회전하여 로컬 좌표로 변환
+				FVector LocalHit = WorldHit;
+				if (bNeedRotation)
+				{
+					LocalHit = q.Inverse().RotateVector(WorldHit);
+				}
+
+				// 로컬 좌표계에서 U, V 계산
+				float U = LocalHit.Dot(PlaneInfo.Tangent1);
+				float V = LocalHit.Dot(PlaneInfo.Tangent2);
 
 				// 평면 사각형 내부에 있는지 확인
 				if (U >= PlaneOffset && U <= PlaneOffset + PlaneSize &&
@@ -144,73 +138,30 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 
 		// 중심 구체 충돌 검사
 		{
-			const float SphereRadius = Gizmo.GetTranslateRadius() * 2.5f;
-			FVector ToSphere = GizmoLocation - WorldRayOrigin;
-			float ProjectionLength = ToSphere.Dot(WorldRayDirection);
-
-			if (ProjectionLength > 0.0f)
+			const float SphereRadius = Gizmo.GetTranslateRadius() * CENTER_SPHERE_RADIUS_SCALE;
+			if (CheckRaySphereCollision(WorldRayOrigin, WorldRayDirection, GizmoLocation, SphereRadius, CollisionPoint))
 			{
-				FVector ClosestPoint = WorldRayOrigin + WorldRayDirection * ProjectionLength;
-				float DistanceToRay = (ClosestPoint - GizmoLocation).Length();
-
-				if (DistanceToRay <= SphereRadius)
-				{
-					// 구체와 충돌
-					CollisionPoint = ClosestPoint;
-					Gizmo.SetGizmoDirection(EGizmoDirection::Center);
-					return;
-				}
+				Gizmo.SetGizmoDirection(EGizmoDirection::Center);
+				return;
 			}
 		}
 
 		// 평면과 중심 구체와 충돌하지 않았으면 축 충돌 검사
-		FVector GizmoDistanceVector = WorldRayOrigin - GizmoLocation;
-		bool bIsCollide = false;
-
-		float GizmoRadius = Gizmo.GetTranslateRadius();
-		float GizmoHeight = Gizmo.GetTranslateHeight();
-		float A, B, C; //Ax^2 + Bx + C의 ABC
-		float X; //해
-		float Det; //판별식
-		//0 = forward 1 = Right 2 = UP
+		const float GizmoRadius = Gizmo.GetTranslateRadius();
+		const float GizmoHeight = Gizmo.GetTranslateHeight();
 
 		for (int a = 0; a < 3; a++)
 		{
-			FVector GizmoAxis = GizmoAxises[a];
-			A = 1 - static_cast<float>(pow(WorldRay.Direction.Dot3(GizmoAxis), 2));
-			B = WorldRay.Direction.Dot3(GizmoDistanceVector) - WorldRay.Direction.Dot3(GizmoAxis) * GizmoDistanceVector.
-				Dot(GizmoAxis); //B가 2의 배수이므로 미리 약분
-			C = static_cast<float>(GizmoDistanceVector.Dot(GizmoDistanceVector) -
-				pow(GizmoDistanceVector.Dot(GizmoAxis), 2)) - GizmoRadius * GizmoRadius;
+			bool bCollided = CheckRayCylinderCollision(WorldRayOrigin, WorldRayDirection, GizmoLocation, GizmoAxises[a],
+			                              GizmoRadius, GizmoHeight, CollisionPoint);
 
-			Det = B * B - A * C;
-			if (Det >= 0) //판별식 0이상 => 근 존재. 높이테스트만 통과하면 충돌
+			if (bCollided)
 			{
-				X = (-B + sqrtf(Det)) / A;
-				FVector PointOnCylinder = WorldRayOrigin + WorldRayDirection * X;
-				float Height = (PointOnCylinder - GizmoLocation).Dot(GizmoAxis);
-				if (Height <= GizmoHeight && Height >= 0) //충돌
+				switch (a)
 				{
-					CollisionPoint = PointOnCylinder;
-					bIsCollide = true;
-
-				}
-				X = (-B - sqrtf(Det)) / A;
-				PointOnCylinder = WorldRayOrigin + WorldRayDirection * X;
-				Height = (PointOnCylinder - GizmoLocation).Dot(GizmoAxis);
-				if (Height <= GizmoHeight && Height >= 0)
-				{
-					CollisionPoint = PointOnCylinder;
-					bIsCollide = true;
-				}
-				if (bIsCollide)
-				{
-					switch (a)
-					{
-					case 0:	Gizmo.SetGizmoDirection(EGizmoDirection::Forward);	return;
-					case 1:	Gizmo.SetGizmoDirection(EGizmoDirection::Right);	return;
-					case 2:	Gizmo.SetGizmoDirection(EGizmoDirection::Up);		return;
-					}
+				case 0:	Gizmo.SetGizmoDirection(EGizmoDirection::Forward);	return;
+				case 1:	Gizmo.SetGizmoDirection(EGizmoDirection::Right);	return;
+				case 2:	Gizmo.SetGizmoDirection(EGizmoDirection::Up);		return;
 				}
 			}
 		}
@@ -220,13 +171,14 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 		EGizmoDirection Dirs[3] = { EGizmoDirection::Forward, EGizmoDirection::Right, EGizmoDirection::Up };
 
 		// 오쏘 뷰 World 모드: 카메라 방향에 따라 피킹할 축 결정
-		const bool bIsOrtho = (InActiveCamera->GetCameraType() == ECameraType::ECT_Orthographic);
+		const bool bIsOrtho = InClient->IsOrtho();
 		const bool bIsWorld = Gizmo.IsWorldMode();
 		int OrthoAxisIndex = -1;
 
 		if (bIsOrtho && bIsWorld && !Gizmo.IsDragging())
 		{
-			const FVector CamForward = InActiveCamera->GetForward();
+			// ViewportClient로부터 직접 Forward 방향 가져오기
+			const FVector CamForward = InClient->GetForward();
 			const float AbsX = abs(CamForward.X);
 			const float AbsY = abs(CamForward.Y);
 			const float AbsZ = abs(CamForward.Z);
@@ -264,60 +216,11 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 					// Quarter ring 각도 범위 체크
 					if (!Gizmo.IsDragging() && bShouldCheckQuarterRingAngle)
 					{
-						// 충돌점을 축 평면에 투영
-						FVector ToHit = CollisionPoint - GizmoLocation;
-						FVector Projected = ToHit - (GizmoAxises[a] * ToHit.Dot(GizmoAxises[a]));
-						float ProjLen = Projected.Length();
-						if (ProjLen < 0.001f)
-						{
-							continue;
-						}
-						Projected = Projected * (1.0f / ProjLen);
-
-						// BaseAxis 계산
-						FVector BaseAxis0, BaseAxis1;
-						if (a == 0)
-						{
-							BaseAxis0 = FVector(0, 0, 1);  // Z
-							BaseAxis1 = FVector(0, 1, 0);  // Y
-						}
-						else if (a == 1)
-						{
-							BaseAxis0 = FVector(1, 0, 0);  // X
-							BaseAxis1 = FVector(0, 0, 1);  // Z
-						}
-						else
-						{
-							BaseAxis0 = FVector(1, 0, 0);  // X
-							BaseAxis1 = FVector(0, 1, 0);  // Y
-						}
-
-						// Local 모드면 회전 적용
-						if (!Gizmo.IsWorldMode())
-						{
-							FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
-							BaseAxis0 = q.RotateVector(BaseAxis0);
-							BaseAxis1 = q.RotateVector(BaseAxis1);
-						}
-
-						// 플립 판정
-						const FVector CameraLoc = InActiveCamera->GetLocation();
-						const FVector DirectionToWidget = (GizmoLocation - CameraLoc).GetNormalized();
-						const bool bMirrorAxis0 = (BaseAxis0.Dot(DirectionToWidget) <= 0.0f);
-						const bool bMirrorAxis1 = (BaseAxis1.Dot(DirectionToWidget) <= 0.0f);
-						const FVector StartDir = bMirrorAxis0 ? BaseAxis0 : -BaseAxis0;
-						const FVector EndDir = bMirrorAxis1 ? BaseAxis1 : -BaseAxis1;
-
-						// 충돌점이 StartDir와 EndDir 사이에 있는지 확인
-						float DotStart = Projected.Dot(StartDir);
-						float DotEnd = Projected.Dot(EndDir);
-
-						if (DotStart < 0.0f || DotEnd < 0.0f)
+						if (!IsCollisionPointInQuarterRing(CollisionPoint, GizmoLocation, GizmoAxises[a], a, Gizmo, InClient))
 						{
 							continue;
 						}
 					}
-
 					switch (a)
 					{
 					case 0:	Gizmo.SetGizmoDirection(EGizmoDirection::Forward);	return;
@@ -334,127 +237,12 @@ void UObjectPicker::PickGizmo(UCamera* InActiveCamera, const FRay& WorldRay, UGi
 	Gizmo.SetGizmoDirection(EGizmoDirection::None);
 }
 
-//개별 primitive와 ray 충돌 검사
-bool UObjectPicker::IsRayPrimitiveCollided(UCamera* InActiveCamera, const FRay& WorldRay, UPrimitiveComponent* Primitive, const FMatrix& ModelMatrix, float* ShortestDistance)
-{
-	// 1. World Bounding Box를 통해 rough한 충돌 체크
-	FVector Min, Max;
-	Primitive->GetWorldAABB(Min, Max);
-	FAABB WorldAABB(Min, Max);
-	if (!CheckIntersectionRayBox(WorldRay, WorldAABB))
-	{
-		return false; //AABB와 충돌하지 않으면 false반환
-	}
-
-	// 2. 삼각형 단위로 정밀 충돌 체크
-	float Distance = D3D11_FLOAT32_MAX; //Distance 초기화
-	bool bIsHit = false;
-	
-	const TArray<FNormalVertex>* Vertices = Primitive->GetVerticesData();
-	const TArray<uint32>* Indices = Primitive->GetIndicesData();
-
-	FRay ModelRay = GetModelRay(WorldRay, Primitive);
-	
-	// 충돌 가능성 있는 삼각형 인덱스 수집
-	// Triangle Ordinal(인덱스 버퍼를 3개 단위로 묶었을 때의 삼각형 번호)로 반환
-	TArray<int32> CandidateTriangleIndices;
-	GatherCandidateTriangles(Primitive, ModelRay, CandidateTriangleIndices);
-
-	for (int32 TriIndex : CandidateTriangleIndices)
-	{
-		FVector V0, V1, V2;
-		if (Indices)
-		{
-			V0 = (*Vertices)[(*Indices)[TriIndex * 3 + 0]].Position;
-			V1 = (*Vertices)[(*Indices)[TriIndex * 3 + 1]].Position;
-			V2 = (*Vertices)[(*Indices)[TriIndex * 3 + 2]].Position;
-		}
-		else
-		{
-			V0 = (*Vertices)[TriIndex * 3 + 0].Position;
-			V1 = (*Vertices)[TriIndex * 3 + 1].Position;
-			V2 = (*Vertices)[TriIndex * 3 + 2].Position;
-		}
-
-		if (IsRayTriangleCollided(InActiveCamera, ModelRay, V0, V1, V2, ModelMatrix, &Distance))
-		{
-			bIsHit = true;
-			*ShortestDistance = std::min(*ShortestDistance, Distance);
-		}
-	}
-
-	return bIsHit;
-}
-
-bool UObjectPicker::IsRayTriangleCollided(UCamera* InActiveCamera, const FRay& Ray, const FVector& Vertex1, const FVector& Vertex2, const FVector& Vertex3,
-                           const FMatrix& ModelMatrix, float* Distance)
-{
-	FVector CameraForward = InActiveCamera->GetForward(); //카메라 정보 필요
-	float NearZ = InActiveCamera->GetNearZ();
-	float FarZ = InActiveCamera->GetFarZ();
-	FMatrix ModelTransform; //Primitive로부터 얻어내야함.(카메라가 처리하는게 나을듯)
-
-
-	//삼각형 내의 점은 E1*V + E2*U + Vertex1.Position으로 표현 가능( 0<= U + V <=1,  Y>=0, V>=0 )
-	//Ray.Direction * T + Ray.Origin = E1*V + E2*U + Vertex1.Position을 만족하는 T U V값을 구해야 함.
-	//[E1 E2 RayDirection][V U T] = [RayOrigin-Vertex1.Position]에서 cramer's rule을 이용해서 T U V값을 구하고
-	//U V값이 저 위의 조건을 만족하고 T값이 카메라의 near값 이상이어야 함.
-	FVector RayDirection{Ray.Direction.X, Ray.Direction.Y, Ray.Direction.Z};
-	FVector RayOrigin{Ray.Origin.X, Ray.Origin.Y, Ray.Origin.Z};
-	FVector E1 = Vertex2 - Vertex1;
-	FVector E2 = Vertex3 - Vertex1;
-	FVector Result = (RayOrigin - Vertex1); //[E1 E2 -RayDirection]x = [RayOrigin - Vertex1.Position] 의 result임.
-
-
-	FVector CrossE2Ray = RayDirection.Cross(E2);
-	FVector CrossE1Result = Result.Cross(E1);
-
-	float Determinant = E1.Dot(CrossE2Ray);
-
-	float NoInverse = 0.0001f; //0.0001이하면 determinant가 0이라고 판단=>역행렬 존재 X
-	if (std::fabsf(Determinant) <= NoInverse)
-	{
-		return false;
-	}
-
-
-	float V = Result.Dot(CrossE2Ray) / Determinant; //cramer's rule로 해를 구했음. 이게 0미만 1초과면 충돌하지 않음.
-
-	if (V < 0 || V > 1)
-	{
-		return false;
-	}
-
-	float U = RayDirection.Dot(CrossE1Result) / Determinant;
-	if (U < 0 || U + V > 1)
-	{
-		return false;
-	}
-
-	float T = E2.Dot(CrossE1Result) / Determinant;
-
-	FVector HitPoint = RayOrigin + RayDirection * T; //모델 좌표계에서의 충돌점
-	FVector4 HitPoint4{HitPoint.X, HitPoint.Y, HitPoint.Z, 1};
-	//이제 이것을 월드 좌표계로 변환해서 view Frustum안에 들어가는지 판단할 것임.(near, far plane만 테스트하면 됨)
-
-	FVector4 HitPointWorld = HitPoint4 * ModelMatrix;
-	FVector4 RayOriginWorld = Ray.Origin * ModelMatrix;
-
-	FVector4 DistanceVec = HitPointWorld - RayOriginWorld;
-	if (DistanceVec.Dot3(CameraForward) >= NearZ && DistanceVec.Dot3(CameraForward) <= FarZ)
-	{
-		*Distance = DistanceVec.Length();
-		return true;
-	}
-	return false;
-}
-
 bool UObjectPicker::IsRayCollideWithPlane(const FRay& WorldRay, FVector PlanePoint, FVector Normal, FVector& PointOnPlane)
 {
 	FVector WorldRayOrigin{ WorldRay.Origin.X, WorldRay.Origin.Y ,WorldRay.Origin.Z };
 	FVector WorldRayDirection{ WorldRay.Direction.X, WorldRay.Direction.Y, WorldRay.Direction.Z };
 
-	if (std::fabsf(WorldRayDirection.Dot(Normal)) < 0.01f)
+	if (std::fabsf(WorldRayDirection.Dot(Normal)) < RAY_PLANE_PARALLEL_THRESHOLD)
 	{
 		return false;
 	}
@@ -471,69 +259,127 @@ bool UObjectPicker::IsRayCollideWithPlane(const FRay& WorldRay, FVector PlanePoi
 	return true;
 }
 
-/**
- * 레이와 충돌하는 후보 노드들을 찾아 그 안의 프리미티브들을 OutCandidate에 담습니다.
- * @return 후보를 찾았으면 true, 못 찾았으면 false를 반환합니다.
- */
-bool UObjectPicker::FindCandidateFromOctree(FOctree* Node, const FRay& WorldRay, TArray<UPrimitiveComponent*>& OutCandidate)
+bool UObjectPicker::CheckRaySphereCollision(const FVector& RayOrigin, const FVector& RayDirection,
+                                            const FVector& SphereCenter, float SphereRadius,
+                                            FVector& OutCollisionPoint) const
 {
-	// 0. nullptr인지 검사.
-	if (!Node) { return false; }
+	const FVector ToSphere = SphereCenter - RayOrigin;
+	const float ProjectionLength = ToSphere.Dot(RayDirection);
 
-	// 1. 레이가 현재 노드와 겹치지 않으면 검사 생략.
-	if (CheckIntersectionRayBox(WorldRay, Node->GetBoundingBox()) == false) { return false; }
-
-	// 2. 현재 노드와 레이가 교차하므로, 이 노드에 직접 포함된 프리미티브들을 후보에 추가합니다.
-	const auto& CurrentNodePrimitives = Node->GetPrimitives();
-	if (!CurrentNodePrimitives.IsEmpty())
+	if (ProjectionLength <= 0.0f)
 	{
-		OutCandidate.Append(Node->GetPrimitives());
+		return false;
 	}
 
-	// 3. 리프 노드가 아니라면, 자식 노드를 재귀적으로 탐색합니다.
-	if (!Node->IsLeafNode())
+	const FVector ClosestPoint = RayOrigin + RayDirection * ProjectionLength;
+	const float DistanceToRay = (ClosestPoint - SphereCenter).Length();
+
+	if (DistanceToRay <= SphereRadius)
 	{
-		for (FOctree* Child : Node->GetChildren())
-		{
-			FindCandidateFromOctree(Child, WorldRay, OutCandidate);
-		}
+		OutCollisionPoint = ClosestPoint;
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
-void UObjectPicker::GatherCandidateTriangles(UPrimitiveComponent* Primitive, const FRay& ModelRay, TArray<int32>& OutCandidateIndices)
+bool UObjectPicker::CheckRayCylinderCollision(const FVector& RayOrigin, const FVector& RayDirection,
+                                               const FVector& CylinderBase, const FVector& CylinderAxis,
+                                               float CylinderRadius, float CylinderHeight,
+                                               FVector& OutCollisionPoint) const
 {
-	if (UStaticMeshComponent* StaticMeshComp = Cast<UStaticMeshComponent>(Primitive))
+	const FVector DistanceVector = RayOrigin - CylinderBase;
+
+	// Ax^2 + Bx + C = 0 (이차 방정식)
+	const float A = 1.0f - static_cast<float>(pow(RayDirection.Dot(CylinderAxis), 2));
+	const float B = RayDirection.Dot(DistanceVector) - RayDirection.Dot(CylinderAxis) * DistanceVector.Dot(CylinderAxis);
+	const float C = static_cast<float>(DistanceVector.Dot(DistanceVector) - pow(DistanceVector.Dot(CylinderAxis), 2)) - CylinderRadius * CylinderRadius;
+
+	// 판별식
+	const float Det = B * B - A * C;
+	if (Det < 0.0f)
 	{
-		if (FStaticMesh* StaticMesh = StaticMeshComp->GetStaticMesh()->GetStaticMeshAsset())
-		{
-			if (StaticMesh->BVH.TraverseRay(ModelRay, OutCandidateIndices))
-            {
-				return;
-            }
-		}
+		return false;
 	}
 
-	// fallback: 전체 삼각형 인덱스 채우기
-	const TArray<FNormalVertex>* Vertices = Primitive->GetVerticesData();
-	const TArray<uint32>* Indices = Primitive->GetIndicesData();
+	const float SqrtDet = sqrtf(Det);
 
-	const int32 NumVertices = Primitive->GetNumVertices();
-	const int32 NumIndices = Primitive->GetNumIndices();
-	const int32 NumTriangles = (NumIndices > 0) ? (NumIndices / 3) : (NumVertices / 3);
+	// 두 개의 교점 확인 (가까운 것과 먼 것)
+	const float X1 = (-B + SqrtDet) / A;
+	const FVector Point1 = RayOrigin + RayDirection * X1;
+	const float Height1 = (Point1 - CylinderBase).Dot(CylinderAxis);
 
-	OutCandidateIndices.Reserve(NumTriangles);
-	for (int32 TriIndex = 0; TriIndex < NumTriangles; TriIndex++)
+	if (Height1 >= 0.0f && Height1 <= CylinderHeight)
 	{
-		OutCandidateIndices.Add(TriIndex);
+		OutCollisionPoint = Point1;
+		return true;
 	}
-	return;
+
+	const float X2 = (-B - SqrtDet) / A;
+	const FVector Point2 = RayOrigin + RayDirection * X2;
+	const float Height2 = (Point2 - CylinderBase).Dot(CylinderAxis);
+
+	if (Height2 >= 0.0f && Height2 <= CylinderHeight)
+	{
+		OutCollisionPoint = Point2;
+		return true;
+	}
+
+	return false;
 }
 
-UPrimitiveComponent* UObjectPicker::PickPrimitiveFromHitProxy(UCamera* InActiveCamera, int32 MouseX, int32 MouseY)
+bool UObjectPicker::IsCollisionPointInQuarterRing(const FVector& CollisionPoint, const FVector& GizmoLocation,
+                                                   const FVector& GizmoAxis, int AxisIndex,
+                                                   const UGizmo& Gizmo, const FViewportClient* InClient) const
 {
-	if (!InActiveCamera)
+	// 충돌점을 축 평면에 투영
+	const FVector ToHit = CollisionPoint - GizmoLocation;
+	FVector Projected = ToHit - (GizmoAxis * ToHit.Dot(GizmoAxis));
+	const float ProjLen = Projected.Length();
+
+	if (ProjLen < QUARTER_RING_MIN_PROJECTION)
+	{
+		return false;
+	}
+
+	Projected = Projected * (1.0f / ProjLen);
+
+	// BaseAxis 계산 (각 축의 Quarter Ring이 놓인 평면의 기저 벡터)
+	// AxisIndex=0 (X축/Forward): YZ 평면, AxisIndex=1 (Y축/Right): XZ 평면, AxisIndex=2 (Z축/Up): XY 평면
+	static const FVector BaseAxisPairs[3][2] = {
+		{ FVector(0, 0, 1), FVector(0, 1, 0) },  // X축: Z, Y
+		{ FVector(1, 0, 0), FVector(0, 0, 1) },  // Y축: X, Z
+		{ FVector(1, 0, 0), FVector(0, 1, 0) }   // Z축: X, Y
+	};
+	FVector BaseAxis0 = BaseAxisPairs[AxisIndex][0];
+	FVector BaseAxis1 = BaseAxisPairs[AxisIndex][1];
+
+	// Local 모드면 회전 적용
+	if (!Gizmo.IsWorldMode())
+	{
+		const FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+		BaseAxis0 = q.RotateVector(BaseAxis0);
+		BaseAxis1 = q.RotateVector(BaseAxis1);
+	}
+
+	// 플립 판정
+	const FVector CameraLoc = InClient->GetViewLocation();
+	const FVector DirectionToWidget = (GizmoLocation - CameraLoc).GetNormalized();
+	const bool bMirrorAxis0 = (BaseAxis0.Dot(DirectionToWidget) <= 0.0f);
+	const bool bMirrorAxis1 = (BaseAxis1.Dot(DirectionToWidget) <= 0.0f);
+	const FVector StartDir = bMirrorAxis0 ? BaseAxis0 : -BaseAxis0;
+	const FVector EndDir = bMirrorAxis1 ? BaseAxis1 : -BaseAxis1;
+
+	// 충돌점이 StartDir와 EndDir 사이에 있는지 확인
+	const float DotStart = Projected.Dot(StartDir);
+	const float DotEnd = Projected.Dot(EndDir);
+
+	return (DotStart >= 0.0f && DotEnd >= 0.0f);
+}
+
+UPrimitiveComponent* UObjectPicker::PickPrimitive(FViewportClient* InClient, int32 MouseX, int32 MouseY)
+{
+	if (!InClient)
 	{
 		return nullptr;
 	}
@@ -552,7 +398,7 @@ UPrimitiveComponent* UObjectPicker::PickPrimitiveFromHitProxy(UCamera* InActiveC
 	D3D11_VIEWPORT DXViewport = ActiveViewport->GetRenderRect();
 
 	// HitProxy 렌더링
-	Renderer.RenderHitProxyPass(InActiveCamera, DXViewport);
+	Renderer.RenderHitProxyPass(InClient, DXViewport);
 
 	// HitProxy 텍스처 픽셀 읽기
 	FHitProxyId HitProxyId = ReadHitProxyAtLocation(MouseX, MouseY, DXViewport);
@@ -598,6 +444,15 @@ UPrimitiveComponent* UObjectPicker::PickPrimitiveFromHitProxy(UCamera* InActiveC
 			case EGizmoAxisType::Center:
 				GizmoDir = EGizmoDirection::Center;
 				break;
+			case EGizmoAxisType::XY:
+				GizmoDir = EGizmoDirection::XY_Plane;
+				break;
+			case EGizmoAxisType::XZ:
+				GizmoDir = EGizmoDirection::XZ_Plane;
+				break;
+			case EGizmoAxisType::YZ:
+				GizmoDir = EGizmoDirection::YZ_Plane;
+				break;
 			default:
 				break;
 			}
@@ -611,11 +466,11 @@ UPrimitiveComponent* UObjectPicker::PickPrimitiveFromHitProxy(UCamera* InActiveC
 	if (HitProxy->IsComponent())
 	{
 		HComponent* ComponentProxy = static_cast<HComponent*>(HitProxy);
-		UPrimitiveComponent* Component = ComponentProxy->Component;
+		UPrimitiveComponent* Primitive = ComponentProxy->Component;
 
-		if (Component)
+		if (Primitive)
 		{
-			return Component;
+			return Primitive;
 		}
 	}
 
@@ -625,7 +480,6 @@ UPrimitiveComponent* UObjectPicker::PickPrimitiveFromHitProxy(UCamera* InActiveC
 FHitProxyId UObjectPicker::ReadHitProxyAtLocation(int32 X, int32 Y, const D3D11_VIEWPORT& Viewport)
 {
 	URenderer& Renderer = URenderer::GetInstance();
-	ID3D11Device* Device = Renderer.GetDevice();
 	ID3D11DeviceContext* DeviceContext = Renderer.GetDeviceContext();
 	UDeviceResources* DeviceResources = Renderer.GetDeviceResources();
 
@@ -635,12 +489,6 @@ FHitProxyId UObjectPicker::ReadHitProxyAtLocation(int32 X, int32 Y, const D3D11_
 		return InvalidHitProxyId;
 	}
 
-	// 디버그: HitProxy RTV 크기 출력
-	D3D11_TEXTURE2D_DESC HitProxyDesc;
-	HitProxyTexture->GetDesc(&HitProxyDesc);
-	UE_LOG_DEBUG("ObjectPicker: Click at (%d, %d), Viewport=(%.0f,%.0f,%.0fx%.0f), HitProxyRTV=%ux%u",
-		X, Y, Viewport.TopLeftX, Viewport.TopLeftY, Viewport.Width, Viewport.Height,
-		HitProxyDesc.Width, HitProxyDesc.Height);
 
 	// Staging Texture 생성 (한 번만)
 	CreateStagingTextureIfNeeded();
@@ -690,12 +538,6 @@ FHitProxyId UObjectPicker::ReadHitProxyAtLocation(int32 X, int32 Y, const D3D11_
 
 	// HitProxyId 생성
 	FHitProxyId HitProxyId(R, G, B);
-
-	if (HitProxyId.IsValid())
-	{
-		UE_LOG_WARNING("ObjectPicker: ReadHitProxy at (%d, %d) -> RGB(%u, %u, %u) = ID %u",
-			X, Y, R, G, B, HitProxyId.Index);
-	}
 
 	return HitProxyId;
 }

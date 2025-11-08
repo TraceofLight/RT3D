@@ -9,7 +9,10 @@ enum class EGizmoAxisType : uint8
 	X = 1,
 	Y = 2,
 	Z = 3,
-	Center = 4
+	Center = 4,
+	XY = 5,  // XY 평면
+	XZ = 6,  // XZ 평면
+	YZ = 7   // YZ 평면
 };
 
 // HitProxy ID (RGB 값으로 인코딩)

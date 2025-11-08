@@ -1,15 +1,13 @@
 #include "pch.h"
 #include "Render/UI/Viewport/Public/GameViewportClient.h"
+
 #include "Render/UI/Viewport/Public/Viewport.h"
 #include "Level/Public/World.h"
-#include "Level/Public/GameInstance.h"
 #include "Render/Renderer/Public/SceneView.h"
 #include "Render/Renderer/Public/SceneViewFamily.h"
 #include "Render/Renderer/Public/SceneRenderer.h"
 #include "Actor/Public/GameMode.h"
 #include "Actor/Public/PlayerCameraManager.h"
-#include "Component/Public/CameraComponent.h"
-#include "Editor/Public/Camera.h"
 
 IMPLEMENT_CLASS(UGameViewportClient, UObject)
 
@@ -74,9 +72,6 @@ void UGameViewportClient::Draw(FViewport* InViewport) const
 		UE_LOG_WARNING("GameViewportClient::Draw - No World");
 		return;
 	}
-
-	// Legacy Camera 업데이트 (레거시 RenderPass 지원용)
-	const_cast<UGameViewportClient*>(this)->UpdateLegacyCamera();
 
 	// SceneViewFamily 생성
 	FSceneViewFamily ViewFamily;
@@ -264,45 +259,4 @@ FMatrix UGameViewportClient::GetProjectionMatrixInverse() const
 	InvProjection.Data[3][3] = 1.0f / FarZ;
 
 	return InvProjection;
-}
-
-/**
- * @brief PlayerCameraManager의 CameraComponent로부터 Legacy UCamera 객체 생성
- * 레거시 RenderPass 호환성을 위해 CameraComponent 정보를 UCamera로 재조립
- */
-void UGameViewportClient::UpdateLegacyCamera()
-{
-	if (!GWorld)
-	{
-		return;
-	}
-
-	AGameMode* GameMode = GWorld->GetGameMode();
-	if (!GameMode)
-	{
-		return;
-	}
-
-	APlayerCameraManager* PlayerCameraManager = GameMode->GetPlayerCameraManager();
-	if (!PlayerCameraManager)
-	{
-		return;
-	}
-
-	// Legacy Camera 생성 (최초 1회)
-	if (!LegacyCamera)
-	{
-		LegacyCamera = NewObject<UCamera>();
-	}
-
-	// PlayerCameraManager로부터 캐시된 POV 가져오기
-	const FMinimalViewInfo& POV = PlayerCameraManager->GetCameraCachePOV();
-
-	// CameraComponent로부터 정보 복사
-	LegacyCamera->SetLocation(POV.Location);
-	LegacyCamera->SetRotationQuat(POV.Rotation);
-	LegacyCamera->SetFovY(POV.FOV);
-	LegacyCamera->SetAspect(POV.AspectRatio);
-	LegacyCamera->SetNearZ(POV.CameraConstants.NearClip);
-	LegacyCamera->SetFarZ(POV.CameraConstants.FarClip);
 }

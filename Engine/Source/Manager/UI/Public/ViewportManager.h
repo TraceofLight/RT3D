@@ -4,7 +4,6 @@
 class SWindow;
 class SSplitter;
 class FAppWindow;
-class UCamera;
 class FViewport;
 class FViewportClient;
 class UConfigManager;
@@ -245,6 +244,7 @@ private:
     void SyncRectsToViewports() const;
     void InitializeViewportAndClient();
 
+    void UpdateViewportInput();
     void UpdateViewportAnimation();
     static float EaseInOutCubic(float InT);
     void FinalizeSingleLayoutFromAnimation();

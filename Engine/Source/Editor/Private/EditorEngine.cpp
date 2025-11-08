@@ -103,21 +103,6 @@ void UEditorEngine::Tick(float DeltaSeconds)
     }
 }
 
-class UCamera* UEditorEngine::GetMainCamera() const
-{
-	int32 ActiveIdx = 0;
-	if (GetPIEState() != EPIEState::Stopped)
-	{
-		ActiveIdx = UViewportManager::GetInstance().GetPIEActiveViewportIndex();
-	}
-	else
-	{
-		ActiveIdx = UViewportManager::GetInstance().GetActiveIndex();
-	}
-
-	return UViewportManager::GetInstance().GetClients()[ActiveIdx]->GetCamera();
-}
-
 /**
  * @brief PIE가 활성화되어 있는지 확인
  */

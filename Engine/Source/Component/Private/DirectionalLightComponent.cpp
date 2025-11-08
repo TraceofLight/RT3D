@@ -4,7 +4,6 @@
 #include "Render/UI/Widget/Public/DirectionalLightComponentWidget.h"
 #include "Utility/Public/JsonSerializer.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Editor/Public/Camera.h"
 #include "Editor/Public/EditorPrimitive.h"
 #include "Component/Public/ActorComponent.h"
 #include "Editor/Public/EditorEngine.h"
@@ -124,9 +123,9 @@ FVector UDirectionalLightComponent::GetForwardVector() const
     return LightRotation.RotateVector(FVector::ForwardVector());
 }
 
-void UDirectionalLightComponent::RenderLightDirectionGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void UDirectionalLightComponent::RenderLightDirectionGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
-    if (!InCamera)
+    if (!InClient)
     {
         return;
     }

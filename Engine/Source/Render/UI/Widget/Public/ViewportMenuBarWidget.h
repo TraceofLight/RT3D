@@ -29,7 +29,6 @@ public:
 	void SetViewportClient(FViewport* InViewportClient) { Viewport = InViewportClient; }
 
 private:
-	void RenderCameraControls(UCamera& InCamera);
 	void LoadViewIcons(); // 아이콘 로드 함수
 
 	FViewport* Viewport = nullptr; // 레거시 참조

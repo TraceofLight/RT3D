@@ -187,14 +187,6 @@ void UViewportManager::Update()
 			if (Leaves[i] && Viewports[i] && Clients[i])
 			{
 				Viewports[i]->SetRect(Leaves[i]->GetRect());
-
-				// 각 카메라 종횡비 조정
-				const float Aspect = Viewports[i]->GetAspect();
-				// FutureEngine: Camera null 체크
-				if (UCamera* Cam = Clients[i]->GetCamera())
-				{
-					Cam->SetAspect(Aspect);
-				}
 			}
 		}
 
@@ -272,10 +264,7 @@ void UViewportManager::Update()
 					{
 						if (OrthoClient && OrthoClient->IsOrtho())
 						{
-							if (UCamera* Cam = OrthoClient->GetCamera())
-							{
-								Cam->SetOrthoZoom(SharedOrthoZoom);
-							}
+							OrthoClient->SetOrthoZoom(SharedOrthoZoom);
 						}
 					}
 				}
@@ -305,6 +294,9 @@ void UViewportManager::Update()
 			}
 		}
 	}
+
+	// ViewportClient 입력 처리 (우클릭 드래그로 카메라 이동)
+	UpdateViewportInput();
 
 	// 애니메이션 처리함수
 	UpdateViewportAnimation();
@@ -755,12 +747,6 @@ void UViewportManager::SyncRectsToViewports() const
 			if (Leaves[i] && Viewports[i] && Clients[i])
 			{
 				Viewports[i]->SetRect(Leaves[i]->GetRect());
-				const float Aspect = Viewports[i]->GetAspect();
-				// FutureEngine: Camera null 체크
-				if (UCamera* Cam = Clients[i]->GetCamera())
-				{
-					Cam->SetAspect(Aspect);
-				}
 			}
 		}
 	}
@@ -769,12 +755,6 @@ void UViewportManager::SyncRectsToViewports() const
 		if (Leaves[ActiveIndex] && Viewports[ActiveIndex] && Clients[ActiveIndex])
 		{
 			Viewports[ActiveIndex]->SetRect(Leaves[ActiveIndex]->GetRect());
-			const float Aspect = Viewports[ActiveIndex]->GetAspect();
-			// FutureEngine: Camera null 체크
-			if (UCamera* Cam = Clients[ActiveIndex]->GetCamera())
-			{
-				Cam->SetAspect(Aspect);
-			}
 		}
 	}
 }
@@ -835,6 +815,178 @@ void UViewportManager::InitializeViewportAndClient()
 void UViewportManager::SetViewportLayout(EViewportLayout InViewportLayout)
 {
 	ViewportLayout = InViewportLayout;
+}
+
+/**
+ * @brief ViewportClient의 입력 처리 (우클릭 드래그로 카메라 이동)
+ */
+void UViewportManager::UpdateViewportInput()
+{
+	const UInputManager& Input = UInputManager::GetInstance();
+
+	// 우클릭 중일 때만 카메라 제어
+	if (!Input.IsKeyDown(EKeyInput::MouseRight))
+	{
+		return;
+	}
+
+	// 활성 뷰포트의 클라이언트 가져오기
+	if (ActiveIndex < 0 || ActiveIndex >= Clients.Num())
+	{
+		return;
+	}
+
+	FViewportClient* Client = Clients[ActiveIndex];
+	if (!Client)
+	{
+		return;
+	}
+
+	// Perspective 뷰
+	if (!Client->IsOrtho())
+	{
+		// FutureEngine의 Camera.cpp 로직 사용 (FRotator 기반)
+		FVector CurrentRotation = Client->GetViewRotation(); // (Pitch, Yaw, Roll)
+
+		// 1. 회전 처리 (마우스 드래그) - Camera.cpp와 동일
+		const FVector MouseDelta = Input.GetMouseDelta();
+		if (MouseDelta.X != 0.0f || MouseDelta.Y != 0.0f)
+		{
+			// Constant.h의 전역 상수 사용 (0.05f * 3 = 0.15f, 감도 절반으로 감소)
+			const float YawDelta = MouseDelta.X * KeySensitivityDegPerPixel * 3;
+			const float PitchDelta = -MouseDelta.Y * KeySensitivityDegPerPixel * 3; // Y 반전
+
+			// FVector(Pitch, Yaw, Roll) 형식에 맞춰 업데이트
+			CurrentRotation.Y += YawDelta;   // Yaw
+			CurrentRotation.X += PitchDelta; // Pitch
+			CurrentRotation.Z = 0.0f;        // Roll
+
+			// Pitch 클램핑 (UE 표준: -89.9 ~ 89.9)
+			constexpr float MaxPitch = 89.9f;
+			CurrentRotation.X = clamp(CurrentRotation.X, -MaxPitch, MaxPitch);
+
+			Client->SetViewRotation(CurrentRotation);
+		}
+
+		// 2. 이동 처리 (WASD + QE) - Camera.cpp와 동일하게 Right/Forward 벡터 계산
+		// FRotator -> Quaternion -> RotationMatrix -> Forward/Right/Up 계산
+		FRotator ViewRotator(CurrentRotation.X, CurrentRotation.Y, CurrentRotation.Z);
+		const FQuaternion RotationQuat = ViewRotator.Quaternion();
+		const FMatrix RotationMatrix = RotationQuat.ToRotationMatrix();
+		const FVector4 Forward4 = FVector4::ForwardVector() * RotationMatrix;
+
+		FVector Forward = FVector(Forward4.X, Forward4.Y, Forward4.Z);
+		Forward.Normalize();
+
+		// UE 표준: 월드 Z축으로 Right 계산 (Roll drift 자동 제거)
+		const FVector WorldUp = FVector(0, 0, 1);
+		FVector Right = WorldUp.Cross(Forward);
+		if (Right.LengthSquared() < MATH_EPSILON)
+		{
+			Right = FVector(0, 1, 0);
+		}
+		Right.Normalize();
+
+		FVector Up = Forward.Cross(Right);
+		Up.Normalize();
+
+		// 이동 입력 처리
+		FVector Direction = FVector::Zero();
+		if (Input.IsKeyDown(EKeyInput::A)) { Direction += -Right * 2; }
+		if (Input.IsKeyDown(EKeyInput::D)) { Direction += Right * 2; }
+		if (Input.IsKeyDown(EKeyInput::W)) { Direction += Forward * 2; }
+		if (Input.IsKeyDown(EKeyInput::S)) { Direction += -Forward * 2; }
+		if (Input.IsKeyDown(EKeyInput::Q)) { Direction += FVector(0, 0, -2); }
+		if (Input.IsKeyDown(EKeyInput::E)) { Direction += FVector(0, 0, 2); }
+
+		if (Direction.LengthSquared() > MATH_EPSILON)
+		{
+			Direction.Normalize();
+			FVector NewLocation = Client->GetViewLocation() + Direction * EditorCameraSpeed * DT;
+			Client->SetViewLocation(NewLocation);
+		}
+	}
+	else
+	{
+		// Orthographic 뷰: 마우스 드래그로 패닝
+		const FVector MouseDelta = Input.GetMouseDelta();
+		if (MouseDelta.X == 0.0f && MouseDelta.Y == 0.0f)
+		{
+			return;
+		}
+
+		FViewport* Viewport = Viewports[ActiveIndex];
+		if (!Viewport)
+		{
+			return;
+		}
+
+		const D3D11_VIEWPORT& ViewportInfo = Viewport->GetRenderRect();
+		const float Width = ViewportInfo.Width;
+		const float Height = ViewportInfo.Height;
+
+		if (Width <= 0.0f || Height <= 0.0f)
+		{
+			return;
+		}
+
+		const EViewType ViewType = Client->GetViewType();
+
+		// 드래그 방향 벡터 (ProjectGTL 참고)
+		FVector Right, Up;
+		switch (ViewType)
+		{
+		case EViewType::OrthoTop:
+			Right = FVector(0.0f, 1.0f, 0.0f);  // +Y
+			Up = FVector(1.0f, 0.0f, 0.0f);     // +X
+			break;
+		case EViewType::OrthoBottom:
+			Right = FVector(0.0f, -1.0f, 0.0f); // -Y
+			Up = FVector(-1.0f, 0.0f, 0.0f);    // -X
+			break;
+		case EViewType::OrthoFront:
+			Right = FVector(0.0f, 1.0f, 0.0f);  // +Y
+			Up = FVector(0.0f, 0.0f, -1.0f);    // -Z
+			break;
+		case EViewType::OrthoBack:
+			Right = FVector(0.0f, -1.0f, 0.0f); // -Y
+			Up = FVector(0.0f, 0.0f, -1.0f);    // -Z
+			break;
+		case EViewType::OrthoLeft:
+			Right = FVector(-1.0f, 0.0f, 0.0f); // -X
+			Up = FVector(0.0f, 0.0f, -1.0f);    // -Z
+			break;
+		case EViewType::OrthoRight:
+			Right = FVector(1.0f, 0.0f, 0.0f);  // +X
+			Up = FVector(0.0f, 0.0f, -1.0f);    // -Z
+			break;
+		default:
+			return;
+		}
+
+		// 마우스 델타(px) → NDC 델타 → 월드 델타 (Camera.cpp 방식)
+		const float Aspect = (Height > 0.f) ? (Width / Height) : 1.0f;
+
+		// OrthoZoom 기반 OrthoWidth 계산 (GetOrthoUnitsPerPixel 인라인)
+		constexpr float CAMERA_ZOOM_DIV = 15.0f;
+		constexpr float ORTHO_ZOOM_FACTOR_BASE = 500.0f;
+		const float ZoomFactor = Width / ORTHO_ZOOM_FACTOR_BASE;
+		const float UnitsPerPixel = (SharedOrthoZoom / (Width * CAMERA_ZOOM_DIV)) * ZoomFactor;
+		const float OrthoWidth = UnitsPerPixel * Width * 0.5f;
+		const float SafeAspect = max(0.1f, Aspect);
+		const float OrthoHeight = OrthoWidth / SafeAspect;
+
+		// NDC 델타
+		constexpr float Sensitivity = 1.0f;
+		const float NdcDX = (MouseDelta.X / Width) * 2.0f * Sensitivity;
+		const float NdcDY = -(MouseDelta.Y / Height) * 2.0f * Sensitivity; // Y축 반전
+
+		const FVector WorldDelta = Right * (NdcDX * (OrthoWidth * 0.5f)) + Up * (NdcDY * (OrthoHeight * 0.5f));
+
+		// 위치 업데이트
+		FVector NewLocation = Client->GetViewLocation() + WorldDelta;
+		Client->SetViewLocation(NewLocation);
+	}
 }
 
 /**
@@ -1016,9 +1168,9 @@ void UViewportManager::SerializeViewports(const bool bInIsLoading, JSON& InOutHa
 			}
 		}
 
-		// 카메라 정보 로드
+		// ViewportClient Transform 정보 로드
 		JSON CameraDataJson;
-		if (FJsonSerializer::ReadObject(InOutHandle, "PerspectiveCamera", CameraDataJson))
+		if (FJsonSerializer::ReadObject(InOutHandle, "ViewportTransforms", CameraDataJson))
 		{
 			const int32 ClientCount = static_cast<int32>(Clients.Num());
 			for (int32 Index = 0; Index < ClientCount; ++Index)
@@ -1029,28 +1181,18 @@ void UViewportManager::SerializeViewports(const bool bInIsLoading, JSON& InOutHa
 					continue;
 				}
 
-				UCamera* Cam = Client->GetCamera();
-				if (!Cam)
-				{
-					continue;
-				}
-
 				// 인덱스 문자열로 접근
 				FString IndexStr = std::to_string(Index);
-				JSON CamJson;
-				if (!FJsonSerializer::ReadObject(CameraDataJson, IndexStr.data(), CamJson))
+				JSON TransformJson;
+				if (!FJsonSerializer::ReadObject(CameraDataJson, IndexStr.data(), TransformJson))
 				{
-					// 해당 인덱스의 카메라 정보가 없으면 기본값 유지
+					// 해당 인덱스의 정보가 없으면 기본값 유지
 					continue;
 				}
-
-				// CameraType
-				int32 CameraType = 0;
-				FJsonSerializer::ReadInt32(CamJson, "CameraType", CameraType, 0);
 
 				// Location
 				FVector Location;
-				if (!FJsonSerializer::ReadVector(CamJson, "Location", Location))
+				if (!FJsonSerializer::ReadVector(TransformJson, "Location", Location))
 				{
 					// 적절하지 않으면 기본값 유지
 					continue;
@@ -1058,7 +1200,7 @@ void UViewportManager::SerializeViewports(const bool bInIsLoading, JSON& InOutHa
 
 				// Rotation
 				FVector Rotation;
-				if (!FJsonSerializer::ReadVector(CamJson, "Rotation", Rotation))
+				if (!FJsonSerializer::ReadVector(TransformJson, "Rotation", Rotation))
 				{
 					// 적절하지 않으면 기본값 유지
 					continue;
@@ -1072,36 +1214,29 @@ void UViewportManager::SerializeViewports(const bool bInIsLoading, JSON& InOutHa
 					continue;
 				}
 
-				// FovY, NearClip, FarClip
-				float FovY = 90.0f;
-				float NearClip = 0.1f;
-				float FarClip = 1000.0f;
-				FJsonSerializer::ReadFloat(CamJson, "FovY", FovY, 90.0f);
-				FJsonSerializer::ReadFloat(CamJson, "NearClip", NearClip, 0.1f);
-				FJsonSerializer::ReadFloat(CamJson, "FarClip", FarClip, 1000.0f);
+				// FOV, NearZ, FarZ
+				float FOV = 60.0f;
+				float NearZ = 0.1f;
+				float FarZ = 4000.0f;
+				FJsonSerializer::ReadFloat(TransformJson, "FOV", FOV, 60.0f);
+				FJsonSerializer::ReadFloat(TransformJson, "NearZ", NearZ, 0.1f);
+				FJsonSerializer::ReadFloat(TransformJson, "FarZ", FarZ, 4000.0f);
 
-				// FocusLocation (optional)
-				FVector FocusLocation(0, 0, 0);
-				FJsonSerializer::ReadVector(CamJson, "FocusLocation", FocusLocation);
-
-				// 카메라에 적용
-				Cam->SetLocation(Location);
-				Cam->SetRotation(Rotation);
-				Cam->SetFovY(FovY);
-				Cam->SetNearZ(NearClip);
-				Cam->SetFarZ(FarClip);
+				// ViewportClient에 적용
+				Client->SetViewLocation(Location);
+				Client->SetViewRotation(Rotation);
+				Client->SetFOV(FOV);
+				Client->SetNearZ(NearZ);
+				Client->SetFarZ(FarZ);
 			}
 		}
 
-		// 로드 후 모든 Ortho 카메라에 SharedOrthoZoom 적용 (OrthoWidth 무시)
+		// 로드 후 모든 Ortho ViewportClient에 SharedOrthoZoom 적용
 		for (FViewportClient* Client : Clients)
 		{
 			if (Client && Client->IsOrtho())
 			{
-				if (UCamera* Cam = Client->GetCamera())
-				{
-					Cam->SetOrthoZoom(SharedOrthoZoom);
-				}
+				Client->SetOrthoZoom(SharedOrthoZoom);
 			}
 		}
 	}
@@ -1132,8 +1267,8 @@ void UViewportManager::SerializeViewports(const bool bInIsLoading, JSON& InOutHa
 
 		InOutHandle[ViewportSystemKey] = ViewportSystemJson;
 
-		// 3) 카메라 정보 저장
-		JSON CameraDataJson = json::Object();
+		// ViewportClient Transform 정보 저장
+		JSON TransformDataJson = json::Object();
 		for (int32 Index = 0; Index < ClientCount; ++Index)
 		{
 			FViewportClient* Client = Clients[Index];
@@ -1142,28 +1277,19 @@ void UViewportManager::SerializeViewports(const bool bInIsLoading, JSON& InOutHa
 				continue;
 			}
 
-			UCamera* Cam = Client->GetCamera();
-			if (!Cam)
-			{
-				continue;
-			}
-
-			JSON CamJson = json::Object();
-			CamJson["CameraType"] = 0; // 현재는 모두 Perspective로 저장
-			CamJson["Location"] = FJsonSerializer::VectorToJson(Cam->GetLocation());
-			CamJson["Rotation"] = FJsonSerializer::VectorToJson(Cam->GetRotation());
-			CamJson["FovY"] = Cam->GetFovY();
-			CamJson["NearClip"] = Cam->GetNearZ();
-			CamJson["FarClip"] = Cam->GetFarZ();
-			CamJson["OrthoWidth"] = 90.0f; // 호환성을 위해 고정값
-			CamJson["FocusLocation"] = FJsonSerializer::VectorToJson(FVector(0, 0, 0)); // 현재 미사용
+			JSON TransformJson = json::Object();
+			TransformJson["Location"] = FJsonSerializer::VectorToJson(Client->GetViewLocation());
+			TransformJson["Rotation"] = FJsonSerializer::VectorToJson(Client->GetViewRotation());
+			TransformJson["FOV"] = Client->GetFOV();
+			TransformJson["NearZ"] = Client->GetNearZ();
+			TransformJson["FarZ"] = Client->GetFarZ();
 
 			// 인덱스 문자열을 키로 사용
 			FString IndexStr = std::to_string(Index);
-			CameraDataJson[IndexStr.data()] = CamJson;
+			TransformDataJson[IndexStr.data()] = TransformJson;
 		}
 
-		InOutHandle["PerspectiveCamera"] = CameraDataJson;
+		InOutHandle["ViewportTransforms"] = TransformDataJson;
 	}
 }
 
@@ -1343,28 +1469,25 @@ void UViewportManager::LoadViewportLayoutFromConfig()
 		}
 	}
 
-	// 로드 후 모든 Ortho 카메라에 SharedOrthoZoom 적용
+	// 로드 후 모든 Ortho ViewportClient에 SharedOrthoZoom 적용
 	for (FViewportClient* Client : Clients)
 	{
 		if (Client && Client->IsOrtho())
 		{
-			if (UCamera* Cam = Client->GetCamera())
-			{
-				Cam->SetOrthoZoom(SharedOrthoZoom);
-			}
+			Client->SetOrthoZoom(SharedOrthoZoom);
 		}
 	}
 }
 
 /**
- * @brief 모든 뷰포트의 카메라 설정을 Config 파일에 저장합니다.
+ * @brief 모든 뷰포트의 Transform 설정을 Config 파일에 저장합니다.
  */
 void UViewportManager::SaveCameraSettingsToConfig()
 {
-	JSON ViewportCameraJson = json::Object();
+	JSON ViewportTransformJson = json::Object();
 
-	// 각 뷰포트의 카메라 설정을 저장
-	JSON CamerasArray = json::Array();
+	// 각 뷰포트의 Transform 설정을 저장
+	JSON TransformsArray = json::Array();
 	const int32 ClientCount = Clients.Num();
 
 	for (int32 Index = 0; Index < ClientCount; ++Index)
@@ -1375,79 +1498,71 @@ void UViewportManager::SaveCameraSettingsToConfig()
 			continue;
 		}
 
-		UCamera* Camera = Client->GetCamera();
-		if (!Camera)
-		{
-			continue;
-		}
+		JSON TransformJson = json::Object();
+		TransformJson["Index"] = Index;
 
-		JSON CameraJson = json::Object();
-		CameraJson["Index"] = Index;
-		CameraJson["CameraType"] = static_cast<int32>(Camera->GetCameraType());
+		// ViewLocation, ViewRotation
+		const FVector& Location = Client->GetViewLocation();
+		const FVector& Rotation = Client->GetViewRotation();
+		TransformJson["Location"] = FJsonSerializer::VectorToJson(Location);
+		TransformJson["Rotation"] = FJsonSerializer::VectorToJson(Rotation);
 
-		// Location, Rotation
-		const FVector& Location = Camera->GetLocation();
-		const FVector& Rotation = Camera->GetRotation();
-		CameraJson["Location"] = FJsonSerializer::VectorToJson(Location);
-		CameraJson["Rotation"] = FJsonSerializer::VectorToJson(Rotation);
+		// ViewportClient parameters
+		TransformJson["FOV"] = Client->GetFOV();
+		TransformJson["NearZ"] = Client->GetNearZ();
+		TransformJson["FarZ"] = Client->GetFarZ();
+		TransformJson["OrthoZoom"] = Client->GetOrthoZoom();
 
-		// Camera parameters
-		CameraJson["FovY"] = Camera->GetFovY();
-		CameraJson["NearZ"] = Camera->GetNearZ();
-		CameraJson["FarZ"] = Camera->GetFarZ();
-		CameraJson["OrthoZoom"] = Camera->GetOrthoZoom();
-		CameraJson["MoveSpeed"] = Camera->GetMoveSpeed();
-
-		CamerasArray.append(CameraJson);
+		TransformsArray.append(TransformJson);
 	}
 
-	ViewportCameraJson["Cameras"] = CamerasArray;
-	ViewportCameraJson["EditorCameraSpeed"] = EditorCameraSpeed;
+	ViewportTransformJson["Transforms"] = TransformsArray;
+	ViewportTransformJson["EditorCameraSpeed"] = EditorCameraSpeed;
 
 	// ConfigManager에 저장
-	UConfigManager::GetInstance().SaveViewportCameraSettings(ViewportCameraJson);
+	UConfigManager::GetInstance().SaveViewportCameraSettings(ViewportTransformJson);
 }
 
 /**
- * @brief Config 파일에서 모든 뷰포트의 카메라 설정을 로드합니다.
+ * @brief Config 파일에서 모든 뷰포트의 Transform 설정을 로드합니다.
  */
 void UViewportManager::LoadCameraSettingsFromConfig()
 {
-	// ConfigManager에서 카메라 설정 로드
-	JSON ViewportCameraJson = UConfigManager::GetInstance().LoadViewportCameraSettings();
+	// ConfigManager에서 Transform 설정 로드
+	JSON ViewportTransformJson = UConfigManager::GetInstance().LoadViewportCameraSettings();
 
-	if (ViewportCameraJson.IsNull())
+	if (ViewportTransformJson.IsNull())
 	{
-		return; // 저장된 카메라 설정이 없으면 무시
+		return; // 저장된 Transform 설정이 없으면 무시
 	}
 
 	// EditorCameraSpeed 로드
 	float LoadedEditorCameraSpeed = EditorCameraSpeed;
-	if (FJsonSerializer::ReadFloat(ViewportCameraJson, "EditorCameraSpeed", LoadedEditorCameraSpeed, EditorCameraSpeed))
+	if (FJsonSerializer::ReadFloat(ViewportTransformJson, "EditorCameraSpeed", LoadedEditorCameraSpeed, EditorCameraSpeed))
 	{
 		SetEditorCameraSpeed(LoadedEditorCameraSpeed);
 	}
 
-	if (!ViewportCameraJson.hasKey("Cameras"))
+	if (!ViewportTransformJson.hasKey("Transforms"))
 	{
-		return; // 카메라 배열이 없으면 종료
+		return; // Transform 배열이 없으면 종료
 	}
 
-	JSON CamerasArray = ViewportCameraJson["Cameras"];
-	if (CamerasArray.JSONType() != JSON::Class::Array)
+	JSON TransformsArray = ViewportTransformJson["Transforms"];
+	if (TransformsArray.JSONType() != JSON::Class::Array)
 	{
 		return;
 	}
 
-	const int32 SavedCount = CamerasArray.size();
+	const int32 SavedCount = TransformsArray.size();
 	const int32 ClientCount = Clients.Num();
 
 	for (int32 SavedIndex = 0; SavedIndex < SavedCount; ++SavedIndex)
 	{
-		JSON& CameraJson = CamerasArray[SavedIndex];
+		JSON& TransformJson = TransformsArray[SavedIndex];
 
 		int32 Index = 0;
-		FJsonSerializer::ReadInt32(CameraJson, "Index", Index, 0);
+		FJsonSerializer::ReadInt32(TransformJson, "Index", Index, 0);
 
 		if (Index < 0 || Index >= ClientCount)
 		{
@@ -1460,42 +1575,28 @@ void UViewportManager::LoadCameraSettingsFromConfig()
 			continue;
 		}
 
-		UCamera* Camera = Client->GetCamera();
-		if (!Camera)
-		{
-			continue;
-		}
-
-		// CameraType
-		int32 CameraTypeInt = static_cast<int32>(Camera->GetCameraType());
-		FJsonSerializer::ReadInt32(CameraJson, "CameraType", CameraTypeInt, CameraTypeInt);
-		Camera->SetCameraType(static_cast<ECameraType>(CameraTypeInt));
-
 		// Location, Rotation
 		FVector SavedLocation, SavedRotation;
-		FJsonSerializer::ReadVector(CameraJson, "Location", SavedLocation, Camera->GetLocation());
-		FJsonSerializer::ReadVector(CameraJson, "Rotation", SavedRotation, Camera->GetRotation());
-		Camera->SetLocation(SavedLocation);
-		Camera->SetRotation(SavedRotation);
+		FJsonSerializer::ReadVector(TransformJson, "Location", SavedLocation, Client->GetViewLocation());
+		FJsonSerializer::ReadVector(TransformJson, "Rotation", SavedRotation, Client->GetViewRotation());
+		Client->SetViewLocation(SavedLocation);
+		Client->SetViewRotation(SavedRotation);
 
-		// Camera parameters
-		float SavedFovY = Camera->GetFovY();
-		float SavedNearZ = Camera->GetNearZ();
-		float SavedFarZ = Camera->GetFarZ();
-		float SavedOrthoZoom = Camera->GetOrthoZoom();
-		float SavedMoveSpeed = Camera->GetMoveSpeed();
+		// ViewportClient parameters
+		float SavedFOV = Client->GetFOV();
+		float SavedNearZ = Client->GetNearZ();
+		float SavedFarZ = Client->GetFarZ();
+		float SavedOrthoZoom = Client->GetOrthoZoom();
 
-		FJsonSerializer::ReadFloat(CameraJson, "FovY", SavedFovY, SavedFovY);
-		FJsonSerializer::ReadFloat(CameraJson, "NearZ", SavedNearZ, SavedNearZ);
-		FJsonSerializer::ReadFloat(CameraJson, "FarZ", SavedFarZ, SavedFarZ);
-		FJsonSerializer::ReadFloat(CameraJson, "OrthoZoom", SavedOrthoZoom, SavedOrthoZoom);
-		FJsonSerializer::ReadFloat(CameraJson, "MoveSpeed", SavedMoveSpeed, SavedMoveSpeed);
+		FJsonSerializer::ReadFloat(TransformJson, "FOV", SavedFOV, SavedFOV);
+		FJsonSerializer::ReadFloat(TransformJson, "NearZ", SavedNearZ, SavedNearZ);
+		FJsonSerializer::ReadFloat(TransformJson, "FarZ", SavedFarZ, SavedFarZ);
+		FJsonSerializer::ReadFloat(TransformJson, "OrthoZoom", SavedOrthoZoom, SavedOrthoZoom);
 
-		Camera->SetFovY(SavedFovY);
-		Camera->SetNearZ(SavedNearZ);
-		Camera->SetFarZ(SavedFarZ);
-		Camera->SetOrthoZoom(SavedOrthoZoom);
-		Camera->SetMoveSpeed(SavedMoveSpeed);
+		Client->SetFOV(SavedFOV);
+		Client->SetNearZ(SavedNearZ);
+		Client->SetFarZ(SavedFarZ);
+		Client->SetOrthoZoom(SavedOrthoZoom);
 	}
 }
 
@@ -1510,14 +1611,7 @@ void UViewportManager::SetEditorCameraSpeed(float InSpeed)
 	// ConfigManager에 동기화
 	UConfigManager::GetInstance().SetCachedEditorCameraSpeed(EditorCameraSpeed);
 
-	// 모든 ViewportClient의 카메라에 전역 스피드 동기화
-	for (FViewportClient* Client : Clients)
-	{
-		if (Client && Client->GetCamera())
-		{
-			Client->GetCamera()->SetMoveSpeed(EditorCameraSpeed);
-		}
-	}
+	// EditorCameraSpeed는 입력 처리 시 직접 사용됨 (ViewportClient에 저장하지 않음)
 }
 
 /**

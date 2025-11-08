@@ -6,7 +6,6 @@
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Component/Public/EditorIconComponent.h"
-#include "Editor/Public/Camera.h"
 #include "Render/HitProxy/Public/HitProxy.h"
 
 FHitProxyPass::FHitProxyPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferCamera, ID3D11Buffer* InConstantBufferModel,

@@ -6,9 +6,6 @@
 #include "imGui/imgui_impl_win32.h"
 
 #include "Render/Renderer/Public/Renderer.h"
-
-// 테스트용 Camera
-#include "Editor/Public/Camera.h"
 #include "Manager/Path/Public/PathManager.h"
 
 extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hwnd, uint32 msg, WPARAM wParam, LPARAM lParam);
@@ -35,16 +32,16 @@ void UImGuiHelper::Initialize(HWND InWindowHandle)
 
 	// imgui.ini 파일 생성 비활성화
 	IO.IniFilename = nullptr;
-	
+
 	// ImGui 스타일 설정: 타이틀바 색상을 검은색으로 변경
 	ImGuiStyle& Style = ImGui::GetStyle();
 	Style.Colors[ImGuiCol_TitleBg] = ImVec4(0.04f, 0.04f, 0.04f, 1.0f);          // 비활성 타이틀바
 	Style.Colors[ImGuiCol_TitleBgActive] = ImVec4(0.04f, 0.04f, 0.04f, 1.0f);    // 활성 타이틀바 (파란색 제거)
 	Style.Colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.04f, 0.04f, 0.04f, 1.0f); // 접힌 타이틀바
-	
+
 	path FontFilePath = UPathManager::GetInstance().GetFontPath() / "Pretendard-Regular.otf";
 	IO.Fonts->AddFontFromFileTTF((char*)FontFilePath.u8string().c_str(), 16.0f, nullptr, IO.Fonts->GetGlyphRangesKorean());
-	
+
 	auto& Renderer = URenderer::GetInstance();
 	ImGui_ImplDX11_Init(Renderer.GetDevice(), Renderer.GetDeviceContext());
 

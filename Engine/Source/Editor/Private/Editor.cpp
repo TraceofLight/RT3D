@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Editor/Public/Editor.h"
-#include "Editor/Public/Camera.h"
+
 #include "Editor/Public/Axis.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Manager/UI/Public/UIManager.h"
@@ -32,7 +32,6 @@ UEditor::UEditor()
 {
 	int32 ActiveIndex = UViewportManager::GetInstance().GetActiveIndex();
 	ActiveViewportIndex = ActiveIndex;
-	Camera = UViewportManager::GetInstance().GetClients()[ActiveIndex]->GetCamera();
 }
 
 UEditor::~UEditor()
@@ -45,12 +44,11 @@ void UEditor::Update()
 	UViewportManager& ViewportManager = UViewportManager::GetInstance();
 	const UInputManager& Input = UInputManager::GetInstance();
 
-	// 활성 카메라 업데이트
+	// 활성 뷰포트 인덱스 업데이트
 	int32 ActiveIndex = ViewportManager.GetActiveIndex();
 	if (ActiveViewportIndex != ActiveIndex)
 	{
 		ActiveViewportIndex = ActiveIndex;
-		Camera = ViewportManager.GetClients()[ActiveIndex]->GetCamera();
 	}
 
 	// KTLWeek07: 각 뷰포트에서 마우스 우클릭 시 해당 카메라만 입력 활성화
@@ -71,7 +69,9 @@ void UEditor::Update()
 	bWasRightMouseDown = bIsRightMouseDown;
 
 	// 드래그 중이면 잠긴 뷰포트 사용, 아니면 호버된 뷰포트 사용
-	int32 ActiveViewportIndexForInput = (LockedViewportIndexForDrag >= 0) ? LockedViewportIndexForDrag : HoveredViewportIndex;
+	int32 ActiveViewportIndexForInput = (LockedViewportIndexForDrag >= 0)
+		                                    ? LockedViewportIndexForDrag
+		                                    : HoveredViewportIndex;
 
 	if (ViewportManager.GetViewportLayout() == EViewportLayout::Quad)
 	{
@@ -88,25 +88,24 @@ void UEditor::Update()
 
 		for (int32 i = 0; i < 4; ++i)
 		{
-			if (ViewportManager.GetClients()[i] && ViewportManager.GetClients()[i]->GetCamera())
+			FViewportClient* Client = ViewportManager.GetClients()[i];
+			if (Client)
 			{
-				UCamera* Cam = ViewportManager.GetClients()[i]->GetCamera();
-
 				// PIE 마우스 detach 상태일 때 PIE 뷰포트는 입력 비활성화 유지
 				if (bIsPIEMouseDetached && i == PIEViewportIndex)
 				{
-					Cam->SetInputEnabled(false);
+					Client->SetInputEnabled(false);
 					continue;
 				}
 
-				// 마우스 우클릭 중이고 해당 뷰포트가 활성화된 뷰포트면 카메라 입력 활성화
+				// 마우스 우클릭 중이고 해당 뷰포트가 활성화된 뷰포트면 입력 활성화
 				bool bEnableInput = (ActiveViewportIndexForInput == i && bIsRightMouseDown);
-				Cam->SetInputEnabled(bEnableInput);
+				Client->SetInputEnabled(bEnableInput);
 
 				// 오쏘 뷰가 활성화되었고 이동이 있었다면 기록
-				if (bEnableInput && ViewportManager.GetClients()[i]->IsOrtho())
+				if (bEnableInput && Client->IsOrtho())
 				{
-					ActiveOrthoClient = ViewportManager.GetClients()[i];
+					ActiveOrthoClient = Client;
 				}
 			}
 		}
@@ -115,66 +114,76 @@ void UEditor::Update()
 		// PIE 마우스 detach 상태에서는 PIE 뷰포트 동기화 스킵
 		if (ActiveOrthoClient && bIsRightMouseDown)
 		{
-			UCamera* ActiveOrthoCam = ActiveOrthoClient->GetCamera();
-			if (ActiveOrthoCam)
-			{
-				// Camera::UpdateInput에서 이미 RelativeLocation이 업데이트됨
-				// 공유 중심점 업데이트
-				FVector CurrentLocation = ActiveOrthoCam->GetLocation();
+			// ViewportClient의 UpdateInput에서 이미 ViewLocation이 업데이트됨
+			// 공유 중심점 업데이트
+			FVector CurrentLocation = ActiveOrthoClient->GetViewLocation();
 
-				// ViewType에 따라 InitialOffsets 인덱스 결정
-				int32 OrthoIdx = -1;
-				switch (ActiveOrthoClient->GetViewType())
+			// ViewType에 따라 InitialOffsets 인덱스 결정
+			int32 OrthoIdx = -1;
+			switch (ActiveOrthoClient->GetViewType())
+			{
+			case EViewType::OrthoTop: OrthoIdx = 0;
+				break;
+			case EViewType::OrthoBottom: OrthoIdx = 1;
+				break;
+			case EViewType::OrthoLeft: OrthoIdx = 2;
+				break;
+			case EViewType::OrthoRight: OrthoIdx = 3;
+				break;
+			case EViewType::OrthoFront: OrthoIdx = 4;
+				break;
+			case EViewType::OrthoBack: OrthoIdx = 5;
+				break;
+			}
+
+			if (OrthoIdx >= 0 && OrthoIdx < ViewportManager.GetInitialOffsets().Num())
+			{
+				// 공유 중심점 = 현재 위치 - 초기 오프셋
+				ViewportManager.SetOrthoGraphicCameraPoint(
+					CurrentLocation - ViewportManager.GetInitialOffsets()[OrthoIdx]);
+
+				// 모든 오쏘 뷰를 공유 중심점 기준으로 업데이트
+				// PIE 마우스 detach 상태일 때는 PIE 뷰포트 제외
+				int32 PIEViewportIndex = -1;
+				bool bShouldSkipPIEViewport = (GEditor && GEditor->IsPIEMouseDetached());
+				if (bShouldSkipPIEViewport)
 				{
-				case EViewType::OrthoTop: OrthoIdx = 0; break;
-				case EViewType::OrthoBottom: OrthoIdx = 1; break;
-				case EViewType::OrthoLeft: OrthoIdx = 2; break;
-				case EViewType::OrthoRight: OrthoIdx = 3; break;
-				case EViewType::OrthoFront: OrthoIdx = 4; break;
-				case EViewType::OrthoBack: OrthoIdx = 5; break;
+					PIEViewportIndex = ViewportManager.GetPIEActiveViewportIndex();
 				}
 
-				if (OrthoIdx >= 0 && OrthoIdx < ViewportManager.GetInitialOffsets().Num())
+				for (int32 i = 0; i < 4; ++i)
 				{
-					// 공유 중심점 = 현재 위치 - 초기 오프셋
-					ViewportManager.SetOrthoGraphicCameraPoint(CurrentLocation - ViewportManager.GetInitialOffsets()[OrthoIdx]);
-
-					// 모든 오쏘 뷰를 공유 중심점 기준으로 업데이트
-					// PIE 마우스 detach 상태일 때는 PIE 뷰포트 제외
-					int32 PIEViewportIndex = -1;
-					bool bShouldSkipPIEViewport = (GEditor && GEditor->IsPIEMouseDetached());
-					if (bShouldSkipPIEViewport)
+					// PIE 마우스 detach 상태에서 PIE 뷰포트는 스킵
+					if (bShouldSkipPIEViewport && i == PIEViewportIndex)
 					{
-						PIEViewportIndex = ViewportManager.GetPIEActiveViewportIndex();
+						continue;
 					}
 
-					for (int32 i = 0; i < 4; ++i)
+					if (ViewportManager.GetClients()[i] && ViewportManager.GetClients()[i]->IsOrtho())
 					{
-						// PIE 마우스 detach 상태에서 PIE 뷰포트는 스킵
-						if (bShouldSkipPIEViewport && i == PIEViewportIndex)
+						FViewportClient* Client = ViewportManager.GetClients()[i];
+						int32 ClientOrthoIdx = -1;
+						switch (Client->GetViewType())
 						{
-							continue;
+						case EViewType::OrthoTop: ClientOrthoIdx = 0;
+							break;
+						case EViewType::OrthoBottom: ClientOrthoIdx = 1;
+							break;
+						case EViewType::OrthoLeft: ClientOrthoIdx = 2;
+							break;
+						case EViewType::OrthoRight: ClientOrthoIdx = 3;
+							break;
+						case EViewType::OrthoFront: ClientOrthoIdx = 4;
+							break;
+						case EViewType::OrthoBack: ClientOrthoIdx = 5;
+							break;
 						}
 
-						if (ViewportManager.GetClients()[i] && ViewportManager.GetClients()[i]->IsOrtho())
+						if (ClientOrthoIdx >= 0 && ClientOrthoIdx < ViewportManager.GetInitialOffsets().Num())
 						{
-							FViewportClient* Client = ViewportManager.GetClients()[i];
-							int32 ClientOrthoIdx = -1;
-							switch (Client->GetViewType())
-							{
-							case EViewType::OrthoTop: ClientOrthoIdx = 0; break;
-							case EViewType::OrthoBottom: ClientOrthoIdx = 1; break;
-							case EViewType::OrthoLeft: ClientOrthoIdx = 2; break;
-							case EViewType::OrthoRight: ClientOrthoIdx = 3; break;
-							case EViewType::OrthoFront: ClientOrthoIdx = 4; break;
-							case EViewType::OrthoBack: ClientOrthoIdx = 5; break;
-							}
-
-							if (ClientOrthoIdx >= 0 && ClientOrthoIdx < ViewportManager.GetInitialOffsets().Num() && Client->GetCamera())
-							{
-								FVector NewLocation = ViewportManager.GetOrthoGraphicCameraPoint() + ViewportManager.GetInitialOffsets()[ClientOrthoIdx];
-								Client->GetCamera()->SetLocation(NewLocation);
-							}
+							FVector NewLocation = ViewportManager.GetOrthoGraphicCameraPoint() + ViewportManager.
+								GetInitialOffsets()[ClientOrthoIdx];
+							Client->SetViewLocation(NewLocation);
 						}
 					}
 				}
@@ -183,19 +192,21 @@ void UEditor::Update()
 	}
 	else
 	{
-		// 싱글 모드: 뷰포트 위에서 마우스 우클릭 시 카메라 입력 활성화
-		if (Camera)
+		// 싱글 모드: 뷰포트 위에서 마우스 우클릭 시 입력 활성화
+		if (ActiveViewportIndexForInput >= 0 && ViewportManager.GetClients()[ActiveViewportIndexForInput])
 		{
-			// PIE 마우스 detach 상태일 때는 카메라 입력 비활성화
+			FViewportClient* Client = ViewportManager.GetClients()[ActiveViewportIndexForInput];
+
+			// PIE 마우스 detach 상태일 때는 입력 비활성화
 			if (GEditor && GEditor->IsPIEMouseDetached())
 			{
-				Camera->SetInputEnabled(false);
+				Client->SetInputEnabled(false);
 			}
 			else
 			{
 				// Single 모드에서는 ActiveViewportIndexForInput이 유효한 뷰포트면 입력 활성화
-				bool bEnableInput = (ActiveViewportIndexForInput >= 0 && bIsRightMouseDown);
-				Camera->SetInputEnabled(bEnableInput);
+				bool bEnableInput = bIsRightMouseDown;
+				Client->SetInputEnabled(bEnableInput);
 			}
 		}
 	}
@@ -235,23 +246,26 @@ void UEditor::Update()
 		UpdatePilotMode();
 	}
 
+	// 뷰포트 카메라 입력 처리
+	UpdateViewportCameraInput();
+
 	ProcessMouseInput();
 }
 
-void UEditor::Collect2DRender(UCamera* InCamera, const D3D11_VIEWPORT& InViewport, bool bIsPIEViewport)
+void UEditor::Collect2DRender(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport, bool bIsPIEViewport)
 {
 	// D2D 드로잉 정보 수집 시작
 	FD2DOverlayManager& OverlayManager = FD2DOverlayManager::GetInstance();
-	OverlayManager.BeginCollect(InCamera, InViewport);
+	OverlayManager.BeginCollect(InClient, InViewport);
 
 	if (!bIsPIEViewport)
 	{
 		// FAxis 렌더링 명령 수집
-		FAxis::CollectDrawCommands(OverlayManager, InCamera, InViewport);
+		FAxis::CollectDrawCommands(OverlayManager, InClient, InViewport);
 	}
 
 	// Gizmo 회전 각도 오버레이 수집
-	Gizmo.CollectRotationAngleOverlay(OverlayManager, InCamera, InViewport);
+	Gizmo.CollectRotationAngleOverlay(OverlayManager, InClient, InViewport);
 
 	// StatOverlay 렌더링 명령 수집
 	UStatOverlay::GetInstance().Render();
@@ -263,9 +277,9 @@ void UEditor::RenderEditorGeometry()
 	BatchLines.Render();
 }
 
-void UEditor::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void UEditor::RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
-	Gizmo.RenderGizmo(InCamera, InViewport);
+	Gizmo.RenderGizmo(InClient, InViewport);
 
 	// 모든 DirectionalLight의 빛 방향 기즈모 렌더링 (선택 여부 무관)
 	UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
@@ -283,21 +297,21 @@ void UEditor::RenderGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
 
 			if (UDirectionalLightComponent* DirLight = Cast<UDirectionalLightComponent>(LightComp))
 			{
-				DirLight->RenderLightDirectionGizmo(InCamera, InViewport);
+				DirLight->RenderLightDirectionGizmo(InClient, InViewport);
 			}
 			if (USpotLightComponent* SpotLight = Cast<USpotLightComponent>(LightComp))
 			{
-				SpotLight->RenderLightDirectionGizmo(InCamera, InViewport);
+				SpotLight->RenderLightDirectionGizmo(InClient, InViewport);
 			}
 		}
 	}
 }
 
-void UEditor::RenderGizmoForHitProxy(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void UEditor::RenderGizmoForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
 	if (Gizmo.HasComponent())
 	{
-		Gizmo.RenderForHitProxy(InCamera, InViewport);
+		Gizmo.RenderForHitProxy(InClient, InViewport);
 	}
 }
 
@@ -337,7 +351,8 @@ void UEditor::UpdateBatchLines()
 			{
 				if (PrimitiveComponent->GetBoundingBox()->GetType() == EBoundingVolumeType::AABB)
 				{
-					FVector WorldMin, WorldMax; PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
+					FVector WorldMin, WorldMax;
+					PrimitiveComponent->GetWorldAABB(WorldMin, WorldMax);
 					FAABB AABB(WorldMin, WorldMax);
 					BatchLines.UpdateBoundingBoxVertices(&AABB);
 				}
@@ -383,19 +398,12 @@ void UEditor::UpdateBatchLines()
 
 void UEditor::ProcessMouseInput()
 {
-	// KTLWeek07: 활성 카메라 사용 (ViewportManager에서 관리)
-	UCamera* CurrentCamera = Camera; // 생성자에서 설정된 활성 카메라
-	if (!CurrentCamera)
-	{
-		return;
-	}
-
 	const UInputManager& InputManager = UInputManager::GetInstance();
 	const FVector& MousePos = InputManager.GetMousePosition();
 
 	// KTLWeek07: 활성 뷰포트의 정보 가져오기
 	auto& ViewportManager = UViewportManager::GetInstance();
-	int32 ActiveViewportIndex = ViewportManager.GetActiveIndex();
+	ActiveViewportIndex = ViewportManager.GetActiveIndex();
 	FViewport* ActiveViewport = ViewportManager.GetViewports()[ActiveViewportIndex];
 	if (!ActiveViewport) { return; }
 
@@ -407,19 +415,47 @@ void UEditor::ProcessMouseInput()
 
 	const D3D11_VIEWPORT& ViewportInfo = ActiveViewport->GetRenderRect();
 
+	// ViewportClient 가져오기
+	FViewportClient* Client = ViewportManager.GetClients()[ActiveViewportIndex];
+	if (!Client)
+	{
+		return;
+	}
+
 	AActor* ActorPicked = GetSelectedActor();
 	if (ActorPicked)
 	{
-		// 피킹 전 현재 카메라에 맞는 기즈모 스케일 업데이트
-		Gizmo.UpdateScale(CurrentCamera, ViewportInfo);
+		// 피킹 전 현재 ViewportClient Transform으로 기즈모 스케일 업데이트
+		Gizmo.UpdateScale(Client, ViewportInfo);
 	}
 
 	const float NdcX = ((MousePos.X - ViewportInfo.TopLeftX) / ViewportInfo.Width) * 2.0f - 1.0f;
 	const float NdcY = -(((MousePos.Y - ViewportInfo.TopLeftY) / ViewportInfo.Height) * 2.0f - 1.0f);
 
-	FRay WorldRay = CurrentCamera->ConvertToWorldRay(NdcX, NdcY);
+	// ViewportClient Transform으로 World Ray 계산
+	FMatrix ViewMatrix = Client->GetViewMatrix();
+	FMatrix ProjectionMatrix = Client->GetProjectionMatrix(ViewportInfo.Width / ViewportInfo.Height);
+	FMatrix ViewProjectionMatrixInv = (ViewMatrix * ProjectionMatrix).Inverse();
 
-	static EGizmoDirection PreviousGizmoDirection = EGizmoDirection::None;
+	// NDC를 World로 변환 (w=1로 동차 좌표 사용)
+	FVector4 NearPoint = FVector4(NdcX, NdcY, 0.0f, 1.0f);
+	FVector4 FarPoint = FVector4(NdcX, NdcY, 1.0f, 1.0f);
+
+	FVector4 WorldNear4 = FMatrix::VectorMultiply(NearPoint, ViewProjectionMatrixInv);
+	FVector4 WorldFar4 = FMatrix::VectorMultiply(FarPoint, ViewProjectionMatrixInv);
+
+	// 원근 나누기 (perspective divide): w로 나눠서 3D 좌표로 변환
+	FVector WorldNear = FVector(WorldNear4.X / WorldNear4.W, WorldNear4.Y / WorldNear4.W, WorldNear4.Z / WorldNear4.W);
+	FVector WorldFar = FVector(WorldFar4.X / WorldFar4.W, WorldFar4.Y / WorldFar4.W, WorldFar4.Z / WorldFar4.W);
+
+	FVector Direction = (WorldFar - WorldNear);
+	Direction.Normalize();
+
+	FRay WorldRay;
+	const FVector ViewLocation = Client->GetViewLocation();
+	WorldRay.Origin = FVector4(ViewLocation.X, ViewLocation.Y, ViewLocation.Z, 1.0f);
+	WorldRay.Direction = FVector4(Direction.X, Direction.Y, Direction.Z, 0.0f);
+
 	FVector CollisionPoint;
 	float ActorDistance = -1;
 
@@ -466,46 +502,38 @@ void UEditor::ProcessMouseInput()
 	// 스플리터 드래그 여부 체크
 	const bool bSplitterDragging = ViewportManager.IsAnySplitterDragging();
 
+	// 드래그 중: 기즈모 컨트롤 로직 실행
 	if (Gizmo.IsDragging() && IsValid<USceneComponent>(Gizmo.GetSelectedComponent()))
 	{
 		switch (Gizmo.GetGizmoMode())
 		{
 		case EGizmoMode::Translate:
-		{
-			FVector GizmoDragLocation = GetGizmoDragLocation(CurrentCamera, WorldRay);
-			Gizmo.SetLocation(GizmoDragLocation);
-			break;
-		}
+			{
+				FVector GizmoDragLocation = GetGizmoDragLocation(Client, WorldRay);
+				Gizmo.SetLocation(GizmoDragLocation);
+				break;
+			}
 		case EGizmoMode::Rotate:
-		{
-			FQuaternion GizmoDragRotation = GetGizmoDragRotation(CurrentCamera, WorldRay);
-			Gizmo.SetComponentRotation(GizmoDragRotation);
-			break;
-		}
+			{
+				FQuaternion GizmoDragRotation = GetGizmoDragRotation(Client, WorldRay);
+				Gizmo.SetComponentRotation(GizmoDragRotation);
+				break;
+			}
 		case EGizmoMode::Scale:
-		{
-			FVector GizmoDragScale = GetGizmoDragScale(CurrentCamera, WorldRay);
-			Gizmo.SetComponentScale(GizmoDragScale);
-		}
+			{
+				FVector GizmoDragScale = GetGizmoDragScale(Client, WorldRay);
+				Gizmo.SetComponentScale(GizmoDragScale);
+			}
 		}
 	}
+	// 드래그 중이 아님: 클릭/호버링 처리
 	else if (!ImGui::GetIO().WantCaptureMouse && !bSplitterDragging)
 	{
-		// 스플리터 드래그 중이 아니고, ImGui가 마우스를 캡처하지 않았을 때만 처리
-		if (GetSelectedActor() && Gizmo.HasComponent())
-		{
-			// 기즈모 호버링 (Ray Based)
-			ObjectPicker.PickGizmo(CurrentCamera, WorldRay, Gizmo, CollisionPoint);
-		}
-		else
-		{
-			Gizmo.SetGizmoDirection(EGizmoDirection::None);
-		}
-
-		// 더블 클릭이 우선 (단일 클릭보다 먼저 체크)
+		// 1. 클릭 감지 (먼저!)
 		bool bIsDoubleClick = InputManager.IsMouseDoubleClicked(EKeyInput::MouseLeft);
 		bool bIsSingleClick = !bIsDoubleClick && InputManager.IsKeyPressed(EKeyInput::MouseLeft);
 
+		// 2. 클릭 처리: HitProxy로 기즈모/오브젝트 구분
 		if (bIsDoubleClick || bIsSingleClick)
 		{
 			// 뷰포트 클릭 시 LastClickedViewportIndex 업데이트 (PIE 시작 시 사용)
@@ -518,13 +546,61 @@ void UEditor::ProcessMouseInput()
 
 			TStatId StatId("Picking");
 			FScopeCycleCounter PickCounter(StatId);
-			PrimitiveCollided = ObjectPicker.PickPrimitiveFromHitProxy(CurrentCamera, MouseX, MouseY);
+			PrimitiveCollided = ObjectPicker.PickPrimitive(Client, MouseX, MouseY);
 			ActorPicked = PrimitiveCollided ? PrimitiveCollided->GetOwner() : nullptr;
 			float ElapsedMs = static_cast<float>(PickCounter.Finish());
 			UStatOverlay::GetInstance().RecordPickingStats(ElapsedMs);
 
-			// 피킹 결과에 따라 Actor와 Component 선택
-			if (Gizmo.GetGizmoDirection() == EGizmoDirection::None)
+			// HitProxy 결과로 기즈모 클릭 여부 확인
+			// HitProxy가 기즈모를 반환했는지 직접 체크 (기즈모는 별도 HitProxy ID 가짐)
+			// TODO: HitProxy ID로 기즈모 구분하는 방식으로 개선 필요
+			// 현재는 임시로 호버링 상태 사용
+			EGizmoDirection PreviousDirection = Gizmo.GetGizmoDirection();
+
+			// 클릭 시점에 기즈모 호버링 중이었는지 체크 (이전 프레임 호버링 상태 사용)
+			bool bClickedGizmo = (PreviousDirection != EGizmoDirection::None);
+
+			// 기즈모 클릭: 드래그 시작
+			if (bClickedGizmo)
+			{
+				// Alt + 드래그: 객체 복사 (Scale 모드에서는 비활성화)
+				bool bAltPressed = InputManager.IsKeyDown(EKeyInput::Alt);
+				bool bIsScaleMode = (Gizmo.GetGizmoMode() == EGizmoMode::Scale);
+
+				if (bAltPressed && GetSelectedActor() && GetSelectedComponent() && !bIsScaleMode)
+				{
+					// RootComponent 선택 = Actor 선택
+					bool bIsActorSelection = (GetSelectedComponent() == GetSelectedActor()->GetRootComponent());
+
+					if (bIsActorSelection)
+					{
+						// Actor 복사
+						AActor* NewActor = DuplicateActor(GetSelectedActor());
+						if (NewActor)
+						{
+							SelectActor(NewActor);
+							CopiedActor = NewActor;
+							bIsInCopyMode = true;
+						}
+					}
+					else
+					{
+						// Component 복사
+						UActorComponent* NewComponent = DuplicateComponent(GetSelectedComponent(), GetSelectedActor());
+						if (NewComponent)
+						{
+							SelectActorAndComponent(GetSelectedActor(), NewComponent);
+							CopiedComponent = NewComponent;
+							bIsInCopyMode = true;
+						}
+					}
+				}
+
+				// 기즈모 드래그 시작
+				Gizmo.OnMouseDragStart(Client, CollisionPoint);
+			}
+			// 오브젝트 클릭: 오브젝트 선택
+			else
 			{
 				if (ActorPicked && PrimitiveCollided)
 				{
@@ -600,58 +676,17 @@ void UEditor::ProcessMouseInput()
 				}
 			}
 		}
-
-		if (Gizmo.GetGizmoDirection() == EGizmoDirection::None)
-		{
-			if (PreviousGizmoDirection != EGizmoDirection::None)
-			{
-				Gizmo.OnMouseRelease(PreviousGizmoDirection);
-			}
-		}
+		// 3. 클릭이 아닌 경우: Ray 기반 호버링
 		else
 		{
-			PreviousGizmoDirection = Gizmo.GetGizmoDirection();
-			if (InputManager.IsKeyPressed(EKeyInput::MouseLeft))
+			if (GetSelectedActor() && Gizmo.HasComponent())
 			{
-				// Alt + 드래그: 객체 복사 (Scale 모드에서는 비활성화)
-				bool bAltPressed = InputManager.IsKeyDown(EKeyInput::Alt);
-				bool bIsScaleMode = (Gizmo.GetGizmoMode() == EGizmoMode::Scale);
-
-				if (bAltPressed && GetSelectedActor() && GetSelectedComponent() && !bIsScaleMode)
-				{
-					// 실제로 Actor 선택인지 Component 선택인지 확인
-					// RootComponent가 선택된 경우 = Actor 선택
-					bool bIsActorSelection = (GetSelectedComponent() == GetSelectedActor()->GetRootComponent());
-
-					if (bIsActorSelection)
-					{
-						// Actor 복사 (전체)
-						AActor* NewActor = DuplicateActor(GetSelectedActor());
-						if (NewActor)
-						{
-							SelectActor(NewActor);
-							CopiedActor = NewActor;
-							bIsInCopyMode = true;
-						}
-					}
-					else
-					{
-						// Component 복사 (같은 Actor 내)
-						UActorComponent* NewComponent = DuplicateComponent(GetSelectedComponent(), GetSelectedActor());
-						if (NewComponent)
-						{
-							SelectActorAndComponent(GetSelectedActor(), NewComponent);
-							CopiedComponent = NewComponent;
-							bIsInCopyMode = true;
-						}
-					}
-				}
-
-				Gizmo.OnMouseDragStart(CollisionPoint);
+				// 기즈모 호버링 (Ray Based)
+				ObjectPicker.PickGizmo(Client, WorldRay, Gizmo, CollisionPoint);
 			}
 			else
 			{
-				Gizmo.OnMouseHovering();
+				Gizmo.SetGizmoDirection(EGizmoDirection::None);
 			}
 		}
 	}
@@ -662,101 +697,161 @@ void UEditor::ProcessMouseInput()
 	}
 }
 
-FVector UEditor::GetGizmoDragLocation(UCamera* InActiveCamera, FRay& WorldRay)
+FVector UEditor::GetGizmoDragLocation(FViewportClient* InClient, FRay& WorldRay)
 {
-	FVector MouseWorld;
-	FVector PlaneOrigin{ Gizmo.GetGizmoLocation() };
+	const EGizmoDirection Direction = Gizmo.GetGizmoDirection();
 
-	// Center 구체 드래그 처리
-	// UE 기준 카메라 NDC 평면에 평행하게 이동
-	if (Gizmo.GetGizmoDirection() == EGizmoDirection::Center)
+	// Direction이 None이면 현재 위치 반환
+	if (Direction == EGizmoDirection::None)
 	{
-		// 카메라의 Forward 방향을 평면 법선로 사용
-		FVector PlaneNormal = InActiveCamera->GetForward();
-
-		// 드래그 시작 지점의 마우스 위치를 평면 원점으로 사용
-		FVector FixedPlaneOrigin = Gizmo.GetDragStartMouseLocation();
-
-		// 레이와 카메라 평면 교차점 계산
-		if (ObjectPicker.IsRayCollideWithPlane(WorldRay, FixedPlaneOrigin, PlaneNormal, MouseWorld))
-		{
-			// 드래그 시작점으로부터 이동 거리 계산
-			FVector MouseDelta = MouseWorld - Gizmo.GetDragStartMouseLocation();
-			return Gizmo.GetDragStartActorLocation() + MouseDelta;
-		}
 		return Gizmo.GetGizmoLocation();
 	}
 
-	// 평면 드래그 처리
-	if (Gizmo.IsPlaneDirection())
+	// 드래그를 시작한 뷰포트와 현재 뷰포트가 다르면 드래그 무시
+	if (Gizmo.GetDragStartViewportClient() != InClient)
 	{
-		// 평면 법선 벡터
-		FVector PlaneNormal = Gizmo.GetPlaneNormal();
-
-		if (!Gizmo.IsWorldMode())
-		{
-			FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
-			PlaneNormal = q.RotateVector(PlaneNormal);
-		}
-
-		// 레이와 평면 교차점 계산
-		if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, PlaneNormal, MouseWorld))
-		{
-			// 드래그 시작점으로부터 이동 거리 계산
-			FVector MouseDelta = MouseWorld - Gizmo.GetDragStartMouseLocation();
-			return Gizmo.GetDragStartActorLocation() + MouseDelta;
-		}
 		return Gizmo.GetGizmoLocation();
 	}
 
-	// 축 드래그 처리
-	FVector GizmoAxis = Gizmo.GetGizmoAxis();
+	// 스크린 공간 축 방향 벡터와 마우스 델타 내적 사용
+	const UInputManager& InputManager = UInputManager::GetInstance();
+	const FVector& GlobalMousePos = InputManager.GetMousePosition();
 
+	// 드래그 시작한 뷰포트의 정보로 로컬 좌표 계산
+	auto& ViewportManager = UViewportManager::GetInstance();
+	const auto& Viewports = ViewportManager.GetViewports();
+	int32 DragViewportIndex = -1;
+	for (int32 i = 0; i < Viewports.Num(); ++i)
+	{
+		if (ViewportManager.GetClients()[i] == InClient)
+		{
+			DragViewportIndex = i;
+			break;
+		}
+	}
+
+	if (DragViewportIndex == -1)
+	{
+		return Gizmo.GetGizmoLocation();
+	}
+
+	const D3D11_VIEWPORT& DragViewportInfo = Viewports[DragViewportIndex]->GetRenderRect();
+	const FVector2 CurrentScreenPos(
+		GlobalMousePos.X - DragViewportInfo.TopLeftX,
+		GlobalMousePos.Y - DragViewportInfo.TopLeftY
+	);
+
+	const FVector2 PrevScreenPos = Gizmo.GetPreviousScreenPos();
+	const FVector2 DragDelta = CurrentScreenPos - PrevScreenPos;
+
+	// 스크린 공간 축 방향 벡터 (드래그 중인 ViewportClient 기준으로 재계산)
+	FVector2 ScreenAxisX, ScreenAxisY, ScreenAxisZ, ScreenOrigin;
+	Gizmo.CalculateScreenAxes(InClient, DragViewportInfo, ScreenAxisX, ScreenAxisY, ScreenAxisZ, ScreenOrigin);
+
+	// 각 축별 드래그량 계산 (내적)
+	float DragX = 0.0f;
+	float DragY = 0.0f;
+	float DragZ = 0.0f;
+
+	// Center: 모든 축 자유 이동
+	if (Direction == EGizmoDirection::Center)
+	{
+		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+	}
+	// 평면 드래그: 두 축 동시 이동
+	else if (Direction == EGizmoDirection::XY_Plane)
+	{
+		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::XZ_Plane)
+	{
+		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::YZ_Plane)
+	{
+		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+	}
+	// 단일 축 드래그
+	else if (Direction == EGizmoDirection::Forward)
+	{
+		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::Right)
+	{
+		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::Up)
+	{
+		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+	}
+
+	// 월드 공간 축 방향
+	FVector WorldAxisX = FVector(1, 0, 0);
+	FVector WorldAxisY = FVector(0, 1, 0);
+	FVector WorldAxisZ = FVector(0, 0, 1);
+
+	// Local 모드: 컴포넌트 회전 적용
 	if (!Gizmo.IsWorldMode())
 	{
-		FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
-		GizmoAxis = q.RotateVector(GizmoAxis);
+		const FQuaternion CompRot = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+		WorldAxisX = CompRot.RotateVector(WorldAxisX);
+		WorldAxisY = CompRot.RotateVector(WorldAxisY);
+		WorldAxisZ = CompRot.RotateVector(WorldAxisZ);
 	}
 
-	// 카메라 방향 벡터를 사용하여 안정적인 평면 계산
-	const FVector CamRight = InActiveCamera->GetRight();
-	const FVector CamUp = InActiveCamera->GetUp();
+	// 스크린 공간 드래그 -> 월드 공간 이동 변환
+	// 언리얼 방식: 뷰포트 거리와 FOV 기반으로 DragScale 계산
+	const FVector GizmoLocation = Gizmo.GetGizmoLocation();
+	const FVector CameraLocation = InClient->GetViewLocation();
+	const float DistanceToGizmo = (GizmoLocation - CameraLocation).Length();
 
-	// GizmoAxis에 가장 수직인 카메라 벡터 선택
-	FVector PlaneVector;
-	const float DotRight = abs(GizmoAxis.Dot(CamRight));
-	const float DotUp = abs(GizmoAxis.Dot(CamUp));
+	// 기즈모 드래그 스케일 계산
+	// UnitsPerPixel = Distance * tan(FOV/2) / (ViewportHeight/2)
+	const float ViewportHeight = static_cast<float>(DragViewportInfo.Height);
+	const float FOV = InClient->GetFOV();
+	const float FOVRadians = FVector::GetDegreeToRadian(FOV);
+	const float UnitsPerPixel = (DistanceToGizmo * std::tanf(FOVRadians * 0.5f)) / (ViewportHeight * 0.5f);
 
-	if (DotRight < DotUp)
-	{
-		PlaneVector = CamRight;
-	}
-	else
-	{
-		PlaneVector = CamUp;
-	}
+	// 스크린 축 방향과 월드 축 방향의 일관성 보장
+	// 카메라가 축의 반대편에 있을 때 방향이 뒤집히므로 보정 필요
+	// 방법: 스크린 공간에서 축이 카메라 뒤쪽을 향하면 월드 축 반전
+	const FVector CamForward = InClient->GetForward();
 
-	FVector PlaneNormal = GizmoAxis.Cross(PlaneVector);
-	PlaneNormal.Normalize();
+	// 각 축이 카메라 방향과 반대인지 체크 (내적이 음수면 반대)
+	const float DotX = WorldAxisX.Dot(CamForward);
+	const float DotY = WorldAxisY.Dot(CamForward);
+	const float DotZ = WorldAxisZ.Dot(CamForward);
 
-	// PlaneNormal이 카메라를 향하도록 보장 (드래그 방향 일관성)
-	const FVector CameraLocation = InActiveCamera->GetLocation();
-	const FVector ToCamera = (CameraLocation - PlaneOrigin).GetNormalized();
-	if (PlaneNormal.Dot(ToCamera) < 0.0f)
-	{
-		PlaneNormal = -PlaneNormal;
-	}
+	// 카메라 뒤쪽을 향하는 축은 스크린 드래그 방향이 반대이므로 보정
+	const float SignX = (DotX < 0.0f) ? -1.0f : 1.0f;
+	const float SignY = (DotY < 0.0f) ? -1.0f : 1.0f;
+	const float SignZ = (DotZ < 0.0f) ? -1.0f : 1.0f;
 
-	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, PlaneNormal, MouseWorld))
-	{
-		FVector MouseDistance = MouseWorld - Gizmo.GetDragStartMouseLocation();
-		return Gizmo.GetDragStartActorLocation() + GizmoAxis * MouseDistance.Dot(GizmoAxis);
-	}
-	return Gizmo.GetGizmoLocation();
+	// 픽셀 단위 드래그를 월드 단위로 변환
+	const FVector WorldDelta =
+		WorldAxisX * (DragX * UnitsPerPixel * SignX) +
+		WorldAxisY * (DragY * UnitsPerPixel * SignY) +
+		WorldAxisZ * (DragZ * UnitsPerPixel * SignZ);
+
+	// 이전 스크린 좌표 저장
+	Gizmo.SetPreviousScreenPos(CurrentScreenPos);
+
+	return Gizmo.GetGizmoLocation() + WorldDelta;
 }
 
-FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRay)
+FQuaternion UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& WorldRay)
 {
+	// 드래그를 시작한 뷰포트와 현재 뷰포트가 다르면 드래그 무시
+	if (Gizmo.GetDragStartViewportClient() != InClient)
+	{
+		return Gizmo.GetComponentRotation();
+	}
+
 	const FVector GizmoLocation = Gizmo.GetGizmoLocation();
 	const FVector LocalGizmoAxis = Gizmo.GetGizmoAxis();
 	const FQuaternion StartRotQuat = Gizmo.GetDragStartActorRotationQuat();
@@ -769,16 +864,36 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 	}
 
 	// 스크린 공간 회전 계산
-	// 활성 뷰포트 정보 가져오기
-	const FRect& ViewportRect = UViewportManager::GetInstance().GetActiveViewportRect();
-	const float ViewportWidth = static_cast<float>(ViewportRect.Width);
-	const float ViewportHeight = static_cast<float>(ViewportRect.Height);
-	const float ViewportLeft = static_cast<float>(ViewportRect.Left);
-	const float ViewportTop = static_cast<float>(ViewportRect.Top);
+	// 드래그 시작한 뷰포트의 정보 가져오기
+	const UInputManager& InputManager = UInputManager::GetInstance();
+	const FVector& GlobalMousePos = InputManager.GetMousePosition();
 
-	// 기즈모 중심을 스크린 공간으로 투영
-	const FCameraConstants& CamConst = InActiveCamera->GetFViewProjConstants();
-	const FMatrix ViewProj = CamConst.View * CamConst.Projection;
+	auto& ViewportManager = UViewportManager::GetInstance();
+	const auto& Viewports = ViewportManager.GetViewports();
+	int32 DragViewportIndex = -1;
+	for (int32 i = 0; i < Viewports.Num(); ++i)
+	{
+		if (ViewportManager.GetClients()[i] == InClient)
+		{
+			DragViewportIndex = i;
+			break;
+		}
+	}
+
+	if (DragViewportIndex == -1)
+	{
+		return Gizmo.GetComponentRotation();
+	}
+
+	const D3D11_VIEWPORT& DragViewportInfo = Viewports[DragViewportIndex]->GetRenderRect();
+	const float ViewportWidth = static_cast<float>(DragViewportInfo.Width);
+	const float ViewportHeight = static_cast<float>(DragViewportInfo.Height);
+
+	// ViewportClient로부터 View/Projection 행렬 가져오기
+	const float AspectRatio = ViewportWidth / ViewportHeight;
+	const FMatrix ViewMatrix = InClient->GetViewMatrix();
+	const FMatrix ProjectionMatrix = InClient->GetProjectionMatrix(AspectRatio);
+	const FMatrix ViewProj = ViewMatrix * ProjectionMatrix;
 	FVector4 GizmoScreenPos4 = FVector4(GizmoLocation, 1.0f) * ViewProj;
 
 	if (GizmoScreenPos4.W > 0.0f)
@@ -792,14 +907,10 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 			((-GizmoScreenPos4.Y) * 0.5f + 0.5f) * ViewportHeight
 		);
 
-		// 현재 마우스 스크린 좌표
-		POINT MousePos;
-		GetCursorPos(&MousePos);
-		ScreenToClient(GetActiveWindow(), &MousePos);
-
+		// 현재 마우스 스크린 좌표 (뷰포트 로컬)
 		const FVector2 CurrentScreenPos(
-			static_cast<float>(MousePos.x) - ViewportLeft,
-			static_cast<float>(MousePos.y) - ViewportTop
+			GlobalMousePos.X - DragViewportInfo.TopLeftX,
+			GlobalMousePos.Y - DragViewportInfo.TopLeftY
 		);
 
 		// UE5 표준: 드래그 시작 지점에서 기즈모로의 방향 (Origin = DragStartPos in UE)
@@ -878,199 +989,150 @@ FQuaternion UEditor::GetGizmoDragRotation(UCamera* InActiveCamera, FRay& WorldRa
 	return Gizmo.GetComponentRotation();
 }
 
-FVector UEditor::GetGizmoDragScale(UCamera* InActiveCamera, FRay& WorldRay)
+FVector UEditor::GetGizmoDragScale(FViewportClient* InClient, FRay& WorldRay)
 {
-	FVector MouseWorld;
-	FVector PlaneOrigin = Gizmo.GetGizmoLocation();
-	FQuaternion Quat = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
-	const FVector CameraLocation = InActiveCamera->GetLocation();
-
-	// Center 구체 드래그 처리 (균일 스케일, 모든 축 동일하게)
-	if (Gizmo.GetGizmoDirection() == EGizmoDirection::Center)
+	const EGizmoDirection Direction = Gizmo.GetGizmoDirection();
+	if (Direction == EGizmoDirection::None)
 	{
-		// 카메라 Forward 방향의 평면에서 드래그
-		FVector PlaneNormal = InActiveCamera->GetForward();
-
-		if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, PlaneNormal, MouseWorld))
-		{
-			// 드래그 벡터 계산
-			const FVector MouseDelta = MouseWorld - Gizmo.GetDragStartMouseLocation();
-
-			// 카메라 Right 방향으로의 드래그 거리 사용 (수평 드래그)
-			const FVector CamRight = InActiveCamera->GetRight();
-			const float DragDistance = MouseDelta.Dot(CamRight);
-
-			// 스케일 민감도 조정
-			const float DistanceToGizmo = (PlaneOrigin - CameraLocation).Length();
-			constexpr float BaseSensitivity = 0.03f;
-			const float ScaleSensitivity = BaseSensitivity * DistanceToGizmo;
-			const float ScaleDelta = DragDistance * ScaleSensitivity;
-
-			// 모든 축에 동일한 스케일 적용 (균일 스케일)
-			const FVector DragStartScale = Gizmo.GetDragStartActorScale();
-			const float UniformScale = max(1.0f + ScaleDelta / DragStartScale.X, MIN_SCALE_VALUE);
-
-			FVector NewScale;
-			NewScale.X = max(DragStartScale.X * UniformScale, MIN_SCALE_VALUE);
-			NewScale.Y = max(DragStartScale.Y * UniformScale, MIN_SCALE_VALUE);
-			NewScale.Z = max(DragStartScale.Z * UniformScale, MIN_SCALE_VALUE);
-
-			return NewScale;
-		}
 		return Gizmo.GetComponentScale();
 	}
 
-	// 평면 스케일 처리
-	if (Gizmo.IsPlaneDirection())
+	// 드래그를 시작한 뷰포트와 현재 뷰포트가 다르면 드래그 무시
+	if (Gizmo.GetDragStartViewportClient() != InClient)
 	{
-		// 평면 법선과 접선 벡터
-		FVector PlaneNormal = Gizmo.GetPlaneNormal();
-		FVector Tangent1, Tangent2;
-		Gizmo.GetPlaneTangents(Tangent1, Tangent2);
-
-		// 로컬 좌표로 변환
-		PlaneNormal = Quat.RotateVector(PlaneNormal);
-		FVector WorldTangent1 = Quat.RotateVector(Tangent1);
-		FVector WorldTangent2 = Quat.RotateVector(Tangent2);
-
-		// 레이와 평면 교차점 계산
-		if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, PlaneNormal, MouseWorld))
-		{
-			// 평면 내 드래그 벡터 계산
-			const FVector MouseDelta = MouseWorld - Gizmo.GetDragStartMouseLocation();
-
-			// 두 접선 방향 드래그 거리 평균
-			const float Drag1 = MouseDelta.Dot(WorldTangent1);
-			const float Drag2 = MouseDelta.Dot(WorldTangent2);
-			const float AvgDrag = (Drag1 + Drag2) * 0.5f;
-
-			// 스케일 민감도 조정
-			const float DistanceToGizmo = (PlaneOrigin - CameraLocation).Length();
-			constexpr float BaseSensitivity = 0.03f;
-			const float ScaleSensitivity = BaseSensitivity * DistanceToGizmo;
-			const float ScaleDelta = AvgDrag * ScaleSensitivity;
-
-			const FVector DragStartScale = Gizmo.GetDragStartActorScale();
-			FVector NewScale = DragStartScale;
-
-			// 평면의 두 축에 동일한 스케일 적용
-			if (abs(Tangent1.X) > 0.5f)
-			{
-				NewScale.X = max(DragStartScale.X + ScaleDelta, MIN_SCALE_VALUE);
-			}
-			if (abs(Tangent1.Y) > 0.5f)
-			{
-				NewScale.Y = max(DragStartScale.Y + ScaleDelta, MIN_SCALE_VALUE);
-			}
-			if (abs(Tangent1.Z) > 0.5f)
-			{
-				NewScale.Z = max(DragStartScale.Z + ScaleDelta, MIN_SCALE_VALUE);
-			}
-			if (abs(Tangent2.X) > 0.5f)
-			{
-				NewScale.X = max(DragStartScale.X + ScaleDelta, MIN_SCALE_VALUE);
-			}
-			if (abs(Tangent2.Y) > 0.5f)
-			{
-				NewScale.Y = max(DragStartScale.Y + ScaleDelta, MIN_SCALE_VALUE);
-			}
-			if (abs(Tangent2.Z) > 0.5f)
-			{
-				NewScale.Z = max(DragStartScale.Z + ScaleDelta, MIN_SCALE_VALUE);
-			}
-
-			return NewScale;
-		}
 		return Gizmo.GetComponentScale();
 	}
 
-	// 축 스케일 처리 (기존 로직)
-	FVector CardinalAxis = Gizmo.GetGizmoAxis();
-	FVector GizmoAxis = Quat.RotateVector(CardinalAxis);
+	// 스크린 공간 드래그로 스케일 계산
+	const UInputManager& InputManager = UInputManager::GetInstance();
+	const FVector& GlobalMousePos = InputManager.GetMousePosition();
 
-	// 카메라 방향 벡터를 사용하여 안정적인 평면 계산
-	const FVector CamForward = InActiveCamera->GetForward();
-	const FVector CamRight = InActiveCamera->GetRight();
-	const FVector CamUp = InActiveCamera->GetUp();
-
-	// GizmoAxis에 가장 수직인 카메라 벡터 선택
-	FVector PlaneVector;
-	const float DotRight = abs(GizmoAxis.Dot(CamRight));
-	const float DotUp = abs(GizmoAxis.Dot(CamUp));
-
-	if (DotRight < DotUp)
+	// 드래그 시작한 뷰포트의 정보로 로컬 좌표 계산
+	auto& ViewportManager = UViewportManager::GetInstance();
+	const auto& Viewports = ViewportManager.GetViewports();
+	int32 DragViewportIndex = -1;
+	for (int32 i = 0; i < Viewports.Num(); ++i)
 	{
-		PlaneVector = CamRight;
-	}
-	else
-	{
-		PlaneVector = CamUp;
-	}
-
-	FVector PlaneNormal = GizmoAxis.Cross(PlaneVector);
-	PlaneNormal.Normalize();
-
-	// PlaneNormal이 카메라를 향하도록 보장 (드래그 방향 일관성)
-	const FVector ToCamera = (CameraLocation - PlaneOrigin).GetNormalized();
-	if (PlaneNormal.Dot(ToCamera) < 0.0f)
-	{
-		PlaneNormal = -PlaneNormal;
-	}
-
-	if (ObjectPicker.IsRayCollideWithPlane(WorldRay, PlaneOrigin, PlaneNormal, MouseWorld))
-	{
-		// UE 방식을 사용, 드래그 거리에 비례하여 스케일 변화
-		const FVector MouseDelta = MouseWorld - Gizmo.GetDragStartMouseLocation();
-		const float AxisDragDistance = MouseDelta.Dot(GizmoAxis);
-
-		// 카메라 거리에 따른 스케일 민감도 조정
-		const float DistanceToGizmo = (PlaneOrigin - CameraLocation).Length();
-
-		// 거리에 비례한 민감도, 기본 배율 적용
-		// 가까울수록 정밀하게, 멀수록 빠르게 조정
-		constexpr float BaseSensitivity = 0.03f;  // 기본 민감도
-		const float ScaleSensitivity = BaseSensitivity * DistanceToGizmo;
-		const float ScaleDelta = AxisDragDistance * ScaleSensitivity;
-
-		const FVector DragStartScale = Gizmo.GetDragStartActorScale();
-		FVector NewScale;
-
-		if (Gizmo.GetSelectedComponent()->IsUniformScale())
+		if (ViewportManager.GetClients()[i] == InClient)
 		{
-			// Uniform Scale: 모든 축에 동일한 스케일 델타 적용
-			const float UniformDelta = ScaleDelta;
-			NewScale = DragStartScale + FVector(UniformDelta, UniformDelta, UniformDelta);
-
-			// 모든 축이 최소값 이상이 되도록 보장
-			NewScale.X = std::max(NewScale.X, MIN_SCALE_VALUE);
-			NewScale.Y = std::max(NewScale.Y, MIN_SCALE_VALUE);
-			NewScale.Z = std::max(NewScale.Z, MIN_SCALE_VALUE);
+			DragViewportIndex = i;
+			break;
 		}
-		else
-		{
-			// Non-uniform Scale: 선택한 축에만 스케일 델타 적용
-			NewScale = DragStartScale;
-
-			// X축 (1,0,0)
-			if (abs(CardinalAxis.X) > 0.5f)
-			{
-				NewScale.X = std::max(DragStartScale.X + ScaleDelta, MIN_SCALE_VALUE);
-			}
-			// Y축 (0,1,0)
-			else if (abs(CardinalAxis.Y) > 0.5f)
-			{
-				NewScale.Y = std::max(DragStartScale.Y + ScaleDelta, MIN_SCALE_VALUE);
-			}
-			// Z축 (0,0,1)
-			else if (abs(CardinalAxis.Z) > 0.5f)
-			{
-				NewScale.Z = std::max(DragStartScale.Z + ScaleDelta, MIN_SCALE_VALUE);
-			}
-		}
-
-		return NewScale;
 	}
-	return Gizmo.GetComponentScale();
+
+	if (DragViewportIndex == -1)
+	{
+		return Gizmo.GetComponentScale();
+	}
+
+	const D3D11_VIEWPORT& DragViewportInfo = Viewports[DragViewportIndex]->GetRenderRect();
+	const FVector2 CurrentScreenPos(
+		GlobalMousePos.X - DragViewportInfo.TopLeftX,
+		GlobalMousePos.Y - DragViewportInfo.TopLeftY
+	);
+
+	// Scale은 드래그 시작 위치부터의 누적 델타 사용 (Translate와 다름)
+	const FVector2 DragStartScreenPos = Gizmo.GetDragStartScreenPos();
+	const FVector2 DragDelta = CurrentScreenPos - DragStartScreenPos;
+
+	// 스크린 공간 축 방향 벡터 (드래그 중인 ViewportClient 기준으로 재계산)
+	FVector2 ScreenAxisX, ScreenAxisY, ScreenAxisZ, ScreenOrigin;
+	Gizmo.CalculateScreenAxes(InClient, DragViewportInfo, ScreenAxisX, ScreenAxisY, ScreenAxisZ, ScreenOrigin);
+
+	// 각 축별 드래그량 계산 (내적)
+	float DragX = 0.0f;
+	float DragY = 0.0f;
+	float DragZ = 0.0f;
+
+	// Center: 균일 스케일 (모든 축 동일)
+	if (Direction == EGizmoDirection::Center)
+	{
+		// 세 축 중 가장 큰 드래그값 사용
+		const float DX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		const float DY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+		const float DZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+		const float MaxDrag = max(max(abs(DX), abs(DY)), abs(DZ));
+		const float Sign = (DX + DY + DZ) >= 0.0f ? 1.0f : -1.0f;
+
+		DragX = DragY = DragZ = MaxDrag * Sign;
+	}
+	// 평면 스케일: 두 축 동시
+	else if (Direction == EGizmoDirection::XY_Plane)
+	{
+		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::XZ_Plane)
+	{
+		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::YZ_Plane)
+	{
+		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+	}
+	// 단일 축 스케일
+	else if (Direction == EGizmoDirection::Forward)
+	{
+		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::Right)
+	{
+		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+	}
+	else if (Direction == EGizmoDirection::Up)
+	{
+		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+	}
+
+	// 픽셀 단위 드래그를 스케일 변화로 변환
+	// 거리에 비례하는 스케일 민감도
+	const FVector GizmoLocation = Gizmo.GetGizmoLocation();
+	const FVector CameraLocation = InClient->GetViewLocation();
+	const float DistanceToGizmo = (GizmoLocation - CameraLocation).Length();
+
+	// 스케일 민감도: 100 픽셀 = 1x 스케일 변화 (거리 기반 조정)
+	constexpr float BaseScaleSensitivity = 0.01f;
+	const float ScaleSensitivity = BaseScaleSensitivity * (DistanceToGizmo / 100.0f);
+
+	// 스크린 축 방향과 월드 축 방향의 일관성 보장
+	const FVector CamForward = InClient->GetForward();
+
+	// 월드 공간 축 방향 (Scale 모드는 항상 컴포넌트 회전 적용)
+	FVector WorldAxisX = FVector(1, 0, 0);
+	FVector WorldAxisY = FVector(0, 1, 0);
+	FVector WorldAxisZ = FVector(0, 0, 1);
+
+	// Scale 모드는 World/Local 관계없이 항상 컴포넌트 로컬 축 사용
+	const FQuaternion CompRot = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+	WorldAxisX = CompRot.RotateVector(WorldAxisX);
+	WorldAxisY = CompRot.RotateVector(WorldAxisY);
+	WorldAxisZ = CompRot.RotateVector(WorldAxisZ);
+
+	// 각 축이 카메라 방향과 반대인지 체크 (내적이 음수면 반대)
+	const float DotX = WorldAxisX.Dot(CamForward);
+	const float DotY = WorldAxisY.Dot(CamForward);
+	const float DotZ = WorldAxisZ.Dot(CamForward);
+
+	// 카메라 뒤쪽을 향하는 축은 스크린 드래그 방향이 반대이므로 보정
+	const float SignX = (DotX < 0.0f) ? -1.0f : 1.0f;
+	const float SignY = (DotY < 0.0f) ? -1.0f : 1.0f;
+	const float SignZ = (DotZ < 0.0f) ? -1.0f : 1.0f;
+
+	// 드래그 픽셀을 스케일 변화율로 변환 (방향 보정 적용)
+	const float ScaleDeltaX = DragX * ScaleSensitivity * SignX;
+	const float ScaleDeltaY = DragY * ScaleSensitivity * SignY;
+	const float ScaleDeltaZ = DragZ * ScaleSensitivity * SignZ;
+
+	// 시작 스케일에서 변화량 적용 (음수 허용하여 뒤집기 가능)
+	const FVector DragStartScale = Gizmo.GetDragStartActorScale();
+	FVector NewScale;
+	NewScale.X = DragStartScale.X + ScaleDeltaX * DragStartScale.X;
+	NewScale.Y = DragStartScale.Y + ScaleDeltaY * DragStartScale.Y;
+	NewScale.Z = DragStartScale.Z + ScaleDeltaZ * DragStartScale.Z;
+
+	return NewScale;
 }
 
 void UEditor::SelectActor(AActor* InActor)
@@ -1090,6 +1152,9 @@ void UEditor::SelectActor(AActor* InActor)
 	}
 
 	SelectedActor = InActor;
+
+	// Gizmo 상태 리셋 (드래그/호버 상태 초기화)
+	Gizmo.EndDrag();
 
 	if (SelectedActor)
 	{
@@ -1141,6 +1206,10 @@ void UEditor::SelectActorAndComponent(AActor* InActor, UActorComponent* InCompon
 	}
 
 	SelectedActor = InActor;
+
+	// Gizmo 상태 리셋 (드래그/호버 상태 초기화)
+	Gizmo.EndDrag();
+
 	SelectComponent(InComponent);
 }
 
@@ -1153,6 +1222,9 @@ void UEditor::SelectComponent(UActorComponent* InComponent)
 	{
 		SelectedComponent->OnDeselected();
 	}
+
+	// Gizmo 상태 리셋 (드래그/호버 상태 초기화)
+	Gizmo.EndDrag();
 
 	SelectedComponent = InComponent;
 	if (SelectedComponent.IsValid())
@@ -1277,7 +1349,7 @@ bool UEditor::GetActorFocusTarget(AActor* Actor, FVector& OutCenter, float& OutR
 	OutRadius = Size.Length() * 0.5f;
 
 	UE_LOG("Editor: GetActorFocusTarget: Mesh Actor Center=(%.1f,%.1f,%.1f) Radius=%.1f",
-		OutCenter.X, OutCenter.Y, OutCenter.Z, OutRadius);
+	       OutCenter.X, OutCenter.Y, OutCenter.Z, OutRadius);
 	return true;
 }
 
@@ -1294,21 +1366,15 @@ void UEditor::FocusOnSelectedActor()
 
 	const int32 ViewportCount = Viewports.Num();
 
-	// 마지막 클릭한 뷰포트의 카메라 타입 가져오기
+	// 마지막 클릭한 뷰포트 가져오기
 	const int32 LastClickedIdx = ViewportManager.GetLastClickedViewportIndex();
 	if (LastClickedIdx < 0 || LastClickedIdx >= ViewportCount || !Clients[LastClickedIdx])
 	{
 		return;
 	}
 
-	UCamera* LastClickedCam = Clients[LastClickedIdx]->GetCamera();
-	if (!LastClickedCam)
-	{
-		return;
-	}
-
-	const ECameraType LastClickedCameraType = LastClickedCam->GetCameraType();
-	const bool bIsOrtho = LastClickedCameraType == ECameraType::ECT_Orthographic;
+	FViewportClient* LastClickedClient = Clients[LastClickedIdx];
+	const bool bIsOrtho = LastClickedClient->IsOrtho();
 
 	FVector Center;
 	float BoundingRadius;
@@ -1366,26 +1432,27 @@ void UEditor::FocusOnSelectedActor()
 	OrthoZoomStart.SetNum(ViewportCount);
 	OrthoZoomTarget.SetNum(ViewportCount);
 
-	AnimatingCameraType = LastClickedCameraType;
+	// 애니메이션 타입 설정 (Ortho 뷰면 Top, Perspective 뷰면 Perspective)
+	AnimatingViewType = bIsOrtho ? EViewType::OrthoTop : EViewType::Perspective;
 
 	for (int32 i = 0; i < ViewportCount; ++i)
 	{
-		if (!Clients[i]) continue;
-		UCamera* Cam = Clients[i]->GetCamera();
-		if (!Cam) continue;
+		FViewportClient* Client = Clients[i];
+		if (!Client) continue;
 
-		// 모든 카메라의 현재 상태 저장 (애니메이션 필터링은 나중에)
-		CameraStartLocation[i] = Cam->GetLocation();
-		CameraStartRotation[i] = Cam->GetRotation();
+		// 모든 뷰포트의 현재 상태 저장 (애니메이션 필터링은 나중에)
+		CameraStartLocation[i] = Client->GetViewLocation();
+		CameraStartRotation[i] = Client->GetViewRotation();
 
-		// 오쏘 카메라면 현재 줌 값도 저장
-		if (Cam->GetCameraType() == ECameraType::ECT_Orthographic)
+		// 오쏘 뷰포트면 현재 줌 값도 저장
+		const bool bIsClientOrtho = Client->IsOrtho();
+		if (bIsClientOrtho)
 		{
-			OrthoZoomStart[i] = Cam->GetOrthoZoom();
+			OrthoZoomStart[i] = Client->GetOrthoZoom();
 		}
 
-		// 마지막 클릭한 뷰포트와 동일한 카메라 타입만 목표 위치 계산
-		if (Cam->GetCameraType() != LastClickedCameraType)
+		// 마지막 클릭한 뷰포트와 동일한 타입만 목표 위치 계산
+		if (bIsClientOrtho != bIsOrtho)
 		{
 			// 타입이 다르면 현재 위치를 목표로 (애니메이션 안 함)
 			CameraTargetLocation[i] = CameraStartLocation[i];
@@ -1394,12 +1461,15 @@ void UEditor::FocusOnSelectedActor()
 			continue;
 		}
 
-		if (Cam->GetCameraType() == ECameraType::ECT_Perspective)
+		if (!bIsClientOrtho) // Perspective
 		{
-			// 카메라의 Forward 벡터를 직접 사용 (오일러각 대신)
-			const FVector Forward = Cam->GetForward();
+			// ViewRotation으로부터 Forward 벡터 계산
+			FVector Radians = FVector::GetDegreeToRadian(Client->GetViewRotation());
+			FMatrix RotationMatrix = FMatrix::CreateFromYawPitchRoll(Radians.Y, Radians.X, Radians.Z);
+			FVector Forward = FMatrix::VectorMultiply(FVector::ForwardVector(), RotationMatrix);
+			Forward.Normalize();
 
-			const float FovY = Cam->GetFovY();
+			const float FovY = Client->GetFOV();
 			const float HalfFovRadian = FVector::GetDegreeToRadian(FovY * 0.5f);
 
 			// BoundingRadius 기준으로 거리 계산
@@ -1418,15 +1488,18 @@ void UEditor::FocusOnSelectedActor()
 			CameraTargetLocation[i] = Center - Forward * Distance;
 
 			// 목표 회전은 현재 회전 유지 (카메라 각도가 바뀌지 않음)
-			CameraTargetRotation[i] = Cam->GetRotation();
+			CameraTargetRotation[i] = Client->GetViewRotation();
 
 			// Perspective는 줌 애니메이션 없음
 			OrthoZoomTarget[i] = OrthoZoomStart[i];
 		}
-		else
+		else // Orthographic
 		{
-			// Orthographic: 물체 중심으로 카메라 이동 + 줌 애니메이션
-			const FVector Forward = Cam->GetForward();
+			// ViewRotation으로부터 Forward 벡터 계산
+			FVector Radians = FVector::GetDegreeToRadian(Client->GetViewRotation());
+			FMatrix RotationMatrix = FMatrix::CreateFromYawPitchRoll(Radians.Y, Radians.X, Radians.Z);
+			FVector Forward = FMatrix::VectorMultiply(FVector::ForwardVector(), RotationMatrix);
+			Forward.Normalize();
 
 			// 현재 카메라에서 물체 중심까지의 Forward 방향 투영 거리 계산
 			const FVector ToCenterVec = Center - CameraStartLocation[i];
@@ -1495,38 +1568,42 @@ void UEditor::UpdateCameraAnimation()
 	}
 
 	const size_t AnimationVectorSize = CameraStartLocation.Num();
+	const bool bAnimatingOrtho = (AnimatingViewType != EViewType::Perspective);
+
 	for (int Index = 0; Index < Clients.Num() && Index < AnimationVectorSize; ++Index)
 	{
-		if (!Clients[Index]) continue;
-		UCamera* Cam = Clients[Index]->GetCamera();
-		if (!Cam) continue;
+		FViewportClient* Client = Clients[Index];
+		if (!Client) continue;
 
-		// 애니메이션 시작 시 결정된 카메라 타입과 일치하는 경우만 처리
-		if (Cam->GetCameraType() != AnimatingCameraType)
+		// 애니메이션 시작 시 결정된 타입과 일치하는 경우만 처리
+		const bool bIsClientOrtho = Client->IsOrtho();
+		if (bIsClientOrtho != bAnimatingOrtho)
 		{
 			continue;
 		}
 
-		FVector CurrentLocation = CameraStartLocation[Index] + (CameraTargetLocation[Index] - CameraStartLocation[Index]) * SmoothProgress;
-		Cam->SetLocation(CurrentLocation);
+		FVector CurrentLocation = CameraStartLocation[Index] + (CameraTargetLocation[Index] - CameraStartLocation[
+			Index]) * SmoothProgress;
+		Client->SetViewLocation(CurrentLocation);
 
-		// Perspective 카메라만 회전 애니메이션 적용
-		// Orthographic 카메라는 회전이 고정되어야 함
-		if (Cam->GetCameraType() == ECameraType::ECT_Perspective)
+		// Perspective 뷰만 회전 애니메이션 적용
+		// Orthographic 뷰는 회전이 고정되어야 함
+		if (!bIsClientOrtho) // Perspective
 		{
-			FVector CurrentRotation = CameraStartRotation[Index] + (CameraTargetRotation[Index] - CameraStartRotation[Index]) * SmoothProgress;
-			Cam->SetRotation(CurrentRotation);
+			FVector CurrentRotation = CameraStartRotation[Index] + (CameraTargetRotation[Index] - CameraStartRotation[
+				Index]) * SmoothProgress;
+			Client->SetViewRotation(CurrentRotation);
 		}
-		// Orthographic 카메라는 줌 애니메이션 적용
-		else if (Cam->GetCameraType() == ECameraType::ECT_Orthographic)
+		// Orthographic 뷰는 줌 애니메이션 적용
+		else
 		{
 			float CurrentZoom = Lerp<float>(OrthoZoomStart[Index], OrthoZoomTarget[Index], SmoothProgress);
-			Cam->SetOrthoZoom(CurrentZoom);
+			Client->SetOrthoZoom(CurrentZoom);
 		}
 	}
 
 	// 애니메이션 완료 시 오쏘 뷰의 InitialOffsets, SharedOrthoZoom 및 공유 센터 업데이트
-	if (bAnimationCompleted && AnimatingCameraType == ECameraType::ECT_Orthographic)
+	if (bAnimationCompleted && bAnimatingOrtho)
 	{
 		// SharedOrthoZoom 업데이트 (목표 줌 값으로 설정)
 		ViewportManager.SetSharedOrthoZoom(500.0f);
@@ -1538,26 +1615,31 @@ void UEditor::UpdateCameraAnimation()
 
 		for (int Index = 0; Index < Clients.Num(); ++Index)
 		{
-			if (!Clients[Index]) continue;
-			UCamera* Cam = Clients[Index]->GetCamera();
-			if (!Cam || Cam->GetCameraType() != ECameraType::ECT_Orthographic) continue;
+			FViewportClient* Client = Clients[Index];
+			if (!Client || !Client->IsOrtho()) continue;
 
 			// ViewType에 따른 InitialOffsets 인덱스 결정
 			int32 OrthoIdx = -1;
-			switch (Clients[Index]->GetViewType())
+			switch (Client->GetViewType())
 			{
-			case EViewType::OrthoTop: OrthoIdx = 0; break;
-			case EViewType::OrthoBottom: OrthoIdx = 1; break;
-			case EViewType::OrthoLeft: OrthoIdx = 2; break;
-			case EViewType::OrthoRight: OrthoIdx = 3; break;
-			case EViewType::OrthoFront: OrthoIdx = 4; break;
-			case EViewType::OrthoBack: OrthoIdx = 5; break;
+			case EViewType::OrthoTop: OrthoIdx = 0;
+				break;
+			case EViewType::OrthoBottom: OrthoIdx = 1;
+				break;
+			case EViewType::OrthoLeft: OrthoIdx = 2;
+				break;
+			case EViewType::OrthoRight: OrthoIdx = 3;
+				break;
+			case EViewType::OrthoFront: OrthoIdx = 4;
+				break;
+			case EViewType::OrthoBack: OrthoIdx = 5;
+				break;
 			}
 
 			if (OrthoIdx >= 0 && OrthoIdx < ViewportManager.GetInitialOffsets().Num())
 			{
 				const FVector& OldOffset = ViewportManager.GetInitialOffsets()[OrthoIdx];
-				const FVector NewLocation = Cam->GetLocation();
+				const FVector NewLocation = Client->GetViewLocation();
 
 				// 첫 번째 오쏘 뷰 기준으로 새로운 공유 센터 계산
 				if (!bCenterCalculated)
@@ -1743,9 +1825,9 @@ void UEditor::TogglePilotMode()
 	}
 
 	FViewportClient* TargetClient = Clients[LastClickedIdx];
-	if (!TargetClient || !TargetClient->GetCamera())
+	if (!TargetClient)
 	{
-		UE_LOG_WARNING("Pilot Mode: Target viewport has no camera");
+		UE_LOG_WARNING("Pilot Mode: Invalid viewport client");
 		return;
 	}
 
@@ -1754,25 +1836,111 @@ void UEditor::TogglePilotMode()
 	PilotedActor = SelectedActor.Get();
 	PilotModeViewportIndex = LastClickedIdx;
 
-	// 현재 카메라 위치 저장, 이후 해제 시 복원 예정
-	UCamera* Cam = TargetClient->GetCamera();
-	PilotModeStartCameraLocation = Cam->GetLocation();
-	PilotModeStartCameraRotation = Cam->GetRotation();
+	// 현재 뷰포트 위치 저장, 이후 해제 시 복원 예정
+	PilotModeStartCameraLocation = TargetClient->GetViewLocation();
+	PilotModeStartCameraRotation = TargetClient->GetViewRotation();
 
-	// Actor의 Transform을 카메라에 적용
+	// Actor의 Transform을 뷰포트에 적용
 	if (USceneComponent* RootComp = PilotedActor->GetRootComponent())
 	{
 		FVector ActorLocation = RootComp->GetWorldLocation();
 		FQuaternion ActorRotationQuat = RootComp->GetWorldRotationAsQuaternion();
 
-		Cam->SetLocation(ActorLocation);
-		Cam->SetRotationQuat(ActorRotationQuat);
+		// Quaternion을 (Pitch, Yaw, Roll) Euler angles로 변환
+		FVector EulerAngles = ActorRotationQuat.ToEuler();
+		FVector ViewRotation = FVector(EulerAngles.Y, EulerAngles.Z, EulerAngles.X); // (Pitch, Yaw, Roll)
+
+		TargetClient->SetViewLocation(ActorLocation);
+		TargetClient->SetViewRotation(ViewRotation);
 
 		// 기즈모를 원래 Actor 위치에 고정
 		PilotModeFixedGizmoLocation = ActorLocation;
 		Gizmo.SetFixedLocation(PilotModeFixedGizmoLocation);
 
 		UE_LOG_INFO("Pilot Mode: Entered (Actor: %s)", PilotedActor->GetName().ToString().data());
+	}
+}
+
+/**
+ * @brief 뷰포트 카메라 입력 처리
+ * Perspective: WASDQE 이동 + 마우스 드래그 회전
+ * Ortho: 마우스 드래그로 InDelta 직접 적용하여 패닝
+ */
+void UEditor::UpdateViewportCameraInput()
+{
+	const UInputManager& Input = UInputManager::GetInstance();
+	auto& ViewportManager = UViewportManager::GetInstance();
+
+	// 활성 뷰포트 및 InputEnabled 체크
+	for (int32 i = 0; i < ViewportManager.GetClients().Num(); ++i)
+	{
+		FViewportClient* Client = ViewportManager.GetClients()[i];
+		if (!Client || !Client->GetInputEnabled())
+		{
+			continue;
+		}
+
+		// Perspective 뷰포트 처리
+		if (!Client->IsOrtho())
+		{
+			FVector Direction = FVector::Zero();
+
+			// WASDQE 키 이동
+			if (Input.IsKeyDown(EKeyInput::A)) { Direction += -Client->GetRight() * 2; }
+			if (Input.IsKeyDown(EKeyInput::D)) { Direction += Client->GetRight() * 2; }
+			if (Input.IsKeyDown(EKeyInput::W)) { Direction += Client->GetForward() * 2; }
+			if (Input.IsKeyDown(EKeyInput::S)) { Direction += -Client->GetForward() * 2; }
+			if (Input.IsKeyDown(EKeyInput::Q)) { Direction += FVector(0, 0, -2); }
+			if (Input.IsKeyDown(EKeyInput::E)) { Direction += FVector(0, 0, 2); }
+
+			if (Direction.LengthSquared() > MATH_EPSILON)
+			{
+				Direction.Normalize();
+			}
+
+			constexpr float MoveSpeed = 20.0f;
+			FVector NewLocation = Client->GetViewLocation() + Direction * MoveSpeed * DT;
+			Client->SetViewLocation(NewLocation);
+
+			// 마우스 드래그로 회전
+			const FVector MouseDelta = Input.GetMouseDelta();
+			constexpr float KeySensitivityDegPerPixel = 0.1f;
+
+			const float YawDelta = MouseDelta.X * KeySensitivityDegPerPixel * 2;
+			const float PitchDelta = -MouseDelta.Y * KeySensitivityDegPerPixel * 2;
+
+			FVector CurrentRotation = Client->GetViewRotation();
+			CurrentRotation.Y += YawDelta;   // Yaw
+			CurrentRotation.X += PitchDelta; // Pitch
+			CurrentRotation.Z = 0.0f;        // Roll
+
+			// Pitch 클램핑
+			constexpr float MaxPitch = 89.9f;
+			CurrentRotation.X = clamp(CurrentRotation.X, -MaxPitch, MaxPitch);
+
+			Client->SetViewRotation(CurrentRotation);
+		}
+		// Ortho 뷰포트 처리 (InDelta 직접 적용)
+		else
+		{
+			const FVector MouseDelta = Input.GetMouseDelta();
+
+			// InDelta: 마우스 이동량을 뷰포트 로컬 좌표로 직접 적용
+			const FVector2 InDelta(MouseDelta.X, MouseDelta.Y);
+
+			// Right/Up 벡터 가져오기
+			const FVector Right = Client->GetRight();
+			const FVector Up = Client->GetUp();
+
+			// InDelta를 바로 적용 (스케일은 OrthoZoom 기반으로 조정)
+			const float OrthoZoom = Client->GetOrthoZoom();
+			constexpr float OrthoZoomFactor = 0.01f; // 조정 계수
+			const float DragScale = OrthoZoom * OrthoZoomFactor;
+
+			FVector PanDelta = Right * -InDelta.X * DragScale + Up * InDelta.Y * DragScale;
+			FVector NewLocation = Client->GetViewLocation() + PanDelta;
+			Client->SetViewLocation(NewLocation);
+		}
 	}
 }
 
@@ -1793,26 +1961,30 @@ void UEditor::UpdatePilotMode()
 		return;
 	}
 
-	// 카메라의 현재 Transform을 Actor에 적용
+	// 뷰포트의 현재 Transform을 Actor에 적용
 	UViewportManager& ViewportManager = UViewportManager::GetInstance();
 	auto& Clients = ViewportManager.GetClients();
 
 	if (PilotModeViewportIndex >= 0 && PilotModeViewportIndex < Clients.Num())
 	{
 		FViewportClient* PilotClient = Clients[PilotModeViewportIndex];
-		if (PilotClient && PilotClient->GetCamera())
+		if (PilotClient)
 		{
-			UCamera* Cam = PilotClient->GetCamera();
 			USceneComponent* RootComp = PilotedActor->GetRootComponent();
 
 			if (RootComp)
 			{
-				FVector CameraLocation = Cam->GetLocation();
-				FQuaternion CameraRotationQuat = Cam->GetRotationQuat();
+				FVector ViewportLocation = PilotClient->GetViewLocation();
+				FVector ViewportRotation = PilotClient->GetViewRotation(); // (Pitch, Yaw, Roll)
 
-				// Actor에 카메라 Transform 직접 적용 (Camera가 내부적으로 Quaternion 사용)
-				RootComp->SetWorldLocation(CameraLocation);
-				RootComp->SetWorldRotation(CameraRotationQuat);
+				// ViewRotation을 Quaternion으로 변환
+				FVector Radians = FVector::GetDegreeToRadian(ViewportRotation);
+				FMatrix RotationMatrix = FMatrix::CreateFromYawPitchRoll(Radians.Y, Radians.X, Radians.Z);
+				FQuaternion RotationQuat = FQuaternion::FromRotationMatrix(RotationMatrix);
+
+				// Actor에 Transform 적용
+				RootComp->SetWorldLocation(ViewportLocation);
+				RootComp->SetWorldRotation(RotationQuat);
 			}
 		}
 	}
@@ -1828,18 +2000,17 @@ void UEditor::ExitPilotMode()
 		return;
 	}
 
-	// 카메라를 시작 위치로 복원
+	// 뷰포트를 시작 위치로 복원
 	UViewportManager& ViewportManager = UViewportManager::GetInstance();
 	auto& Clients = ViewportManager.GetClients();
 
 	if (PilotModeViewportIndex >= 0 && PilotModeViewportIndex < Clients.Num())
 	{
 		FViewportClient* PilotClient = Clients[PilotModeViewportIndex];
-		if (PilotClient && PilotClient->GetCamera())
+		if (PilotClient)
 		{
-			UCamera* Cam = PilotClient->GetCamera();
-			Cam->SetLocation(PilotModeStartCameraLocation);
-			Cam->SetRotation(PilotModeStartCameraRotation);
+			PilotClient->SetViewLocation(PilotModeStartCameraLocation);
+			PilotClient->SetViewRotation(PilotModeStartCameraRotation);
 		}
 	}
 

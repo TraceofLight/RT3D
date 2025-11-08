@@ -23,8 +23,8 @@ struct FGizmoTranslationCollisionConfig
 {
 	FGizmoTranslationCollisionConfig() = default;
 
-	float Radius = 0.04f;
-	float Height = 0.9f;
+	float Radius = 0.04f;  // 렌더링 Shaft 반지름(0.025)과 비슷하게, 호버링 여유를 위해 약간 큼
+	float Height = 0.8f;   // 렌더링 Shaft 길이와 일치
 	float Scale = 2.f;
 };
 

@@ -61,7 +61,7 @@ public:
     UWorld* GetWorldForViewport(int32 ViewportIndex);
     EPIEState GetPIEState() const { return PIEState; }
     UEditor* GetEditorModule() const { return EditorModule; }
-	class UCamera* GetMainCamera() const;
+
 
     bool IsPIESessionActive() const;
 

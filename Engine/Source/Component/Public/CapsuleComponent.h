@@ -9,6 +9,7 @@ class UCapsuleComponent : public UShapeComponent
 
 public:
 	UCapsuleComponent();
+	~UCapsuleComponent() override;
 
 	// Capsule properties (unscaled)
 	float GetCapsuleRadius() const { return CapsuleRadius; }

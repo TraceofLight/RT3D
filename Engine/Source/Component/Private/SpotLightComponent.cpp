@@ -3,8 +3,8 @@
 #include "Render/UI/Widget/Public/SpotLightComponentWidget.h"
 #include "Utility/Public/JsonSerializer.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Editor/Public/Camera.h"
 #include "Editor/Public/EditorPrimitive.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
 
 IMPLEMENT_CLASS(USpotLightComponent, UPointLightComponent)
 
@@ -67,9 +67,9 @@ void USpotLightComponent::SetInnerAngle(float const InAttenuationAngleRad)
     InnerConeAngleRad = std::clamp(InAttenuationAngleRad, 0.0f, OuterConeAngleRad);
 }
 
-void USpotLightComponent::RenderLightDirectionGizmo(UCamera* InCamera, const D3D11_VIEWPORT& InViewport)
+void USpotLightComponent::RenderLightDirectionGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
 {
-	if (!InCamera)
+	if (!InClient)
 	{
 	    return;
 	}
@@ -77,10 +77,11 @@ void USpotLightComponent::RenderLightDirectionGizmo(UCamera* InCamera, const D3D
 	FVector LightLocation = GetWorldLocation();
 	FQuaternion LightRotation = GetWorldRotationAsQuaternion();
 
-	// Gizmo와 동일한 Screen Space Scale 계산
-	const FCameraConstants& CameraConstants = InCamera->GetFViewProjConstants();
-	const FMatrix& ProjMatrix = CameraConstants.Projection;
-	const ECameraType CameraType = InCamera->GetCameraType();
+	// Gizmo와 동일한 Screen Space Scale 계산 (ViewportClient 사용)
+	const float AspectRatio = InViewport.Width / InViewport.Height;
+	const FMatrix ViewMatrix = InClient->GetViewMatrix();
+	const FMatrix ProjMatrix = InClient->GetProjectionMatrix(AspectRatio);
+	const bool bIsOrtho = InClient->IsOrtho();
 	const float ViewportHeight = InViewport.Height;
 
 	float Scale = 1.0f;
@@ -91,9 +92,8 @@ void USpotLightComponent::RenderLightDirectionGizmo(UCamera* InCamera, const D3D
 		float ProjYY = abs(ProjMatrix.Data[1][1]);
 		if (ProjYY > 0.0001f)
 		{
-			if (CameraType == ECameraType::ECT_Perspective)
+			if (!bIsOrtho)  // Perspective
 			{
-				const FMatrix& ViewMatrix = CameraConstants.View;
 				FVector4 GizmoPos4(LightLocation.X, LightLocation.Y, LightLocation.Z, 1.0f);
 				FVector4 ViewSpacePos = GizmoPos4 * ViewMatrix;
 				float ProjectedDepth = std::max(abs(ViewSpacePos.Z), 1.0f);

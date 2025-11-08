@@ -1,22 +1,5 @@
 #include "pch.h"
 
-
-FMatrix FMatrix::UEToDx = FMatrix(
-	{
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-	});
-
-FMatrix FMatrix::DxToUE = FMatrix(
-	{
-		0.0f, 0.0f, 1.0f, 0.0f,
-		1.0f, 0.0f, 0.0f, 0.0f,
-		0.0f, 1.0f, 0.0f, 0.0f,
-		0.0f, 0.0f, 0.0f, 1.0f,
-	});
-
 /**
 * @brief float 타입의 배열을 사용한 FMatrix의 기본 생성자
 */
@@ -62,11 +45,12 @@ FMatrix::FMatrix(const FVector4& x, const FVector4& y, const FVector4& z)
 */
 FMatrix FMatrix::Identity()
 {
-	return FMatrix(
+	return {
 		1, 0, 0, 0,
 		0, 1, 0, 0,
 		0, 0, 1, 0,
-		0, 0, 0, 1);
+		0, 0, 0, 1
+	};
 }
 
 
