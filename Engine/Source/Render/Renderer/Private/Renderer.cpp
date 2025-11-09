@@ -44,7 +44,6 @@
 #include "Render/UI/Viewport/Public/GameViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
-#include "Render/UI/Window/Public/PreviewScene.h"
 
 class UGameInstance;
 
@@ -1227,7 +1226,7 @@ void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive
 void URenderer::RenderExternalViewport(FViewport* VP, FViewportClient* VC,
 								   ID3D11RenderTargetView* RTV,
 								   ID3D11DepthStencilView* DSV,
-								   FPreviewScene* Scene)
+								   UWorld* WorldOverride)
 {
 	if (!VP || !VC || !RTV || !DSV)
 	{
@@ -1239,6 +1238,20 @@ void URenderer::RenderExternalViewport(FViewport* VP, FViewportClient* VC,
 	{
 		return;
 	}
+
+	UWorld* TargetWorld = WorldOverride ? WorldOverride : GWorld;
+	if (!TargetWorld || !TargetWorld->GetLevel())
+	{
+		return;
+	}
+
+	ID3D11RenderTargetView* PreviousRTV = nullptr;
+	ID3D11DepthStencilView* PreviousDSV = nullptr;
+	Context->OMGetRenderTargets(1, &PreviousRTV, &PreviousDSV);
+
+	UINT PrevViewportCount = D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE;
+	D3D11_VIEWPORT PrevViewports[D3D11_VIEWPORT_AND_SCISSORRECT_OBJECT_COUNT_PER_PIPELINE];
+	Context->RSGetViewports(&PrevViewportCount, PrevViewports);
 
 	ID3D11RenderTargetView* Targets[] = { RTV };
 	Context->OMSetRenderTargets(1, Targets, DSV);
@@ -1256,12 +1269,17 @@ void URenderer::RenderExternalViewport(FViewport* VP, FViewportClient* VC,
 	Pipeline->SetConstantBuffer(1, EShaderType::VS, ConstantBufferViewProj);
 	Pipeline->SetConstantBuffer(1, EShaderType::PS, ConstantBufferViewProj);
 
-	if (!Scene || !Scene->HasRenderableContent())
+	// TODO: Collect primitives from TargetWorld once FBX viewport rendering is implemented.
+
+	if (PrevViewportCount > 0)
 	{
-		return;
+		Context->RSSetViewports(PrevViewportCount, PrevViewports);
 	}
 
-	UE_LOG_WARNING("Renderer: RenderExternalViewport is a stub; preview content is not rendered yet.");
+	ID3D11RenderTargetView* RestoreTargets[1] = { PreviousRTV };
+	Context->OMSetRenderTargets(1, RestoreTargets, PreviousDSV);
+	SafeRelease(PreviousRTV);
+	SafeRelease(PreviousDSV);
 }
 
 void URenderer::RenderEnd() const
@@ -1681,3 +1699,4 @@ void URenderer::RenderLevelForGameInstance(UWorld* InWorld, const FSceneView* In
 	// Note: StandAlone에서는 Game UI만 렌더링 (Editor UI 없음)
 	FD2DOverlayManager::GetInstance().FlushAndRender();
 }
+

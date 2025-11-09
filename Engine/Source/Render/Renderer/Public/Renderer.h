@@ -12,8 +12,8 @@
 #include "Render/RenderPass/Public/FXAAPass.h"
 
 class FSceneView;
-class FPreviewScene;
 class FClusteredRenderingGridPass;
+class UWorld;
 class FFXAAPass;
 class FHitProxyPass;
 class FLightPass;
@@ -96,7 +96,7 @@ public:
 	void RenderExternalViewport(FViewport* VP, FViewportClient* VC,
 							   ID3D11RenderTargetView* RTV,
 							   ID3D11DepthStencilView* DSV,
-							   FPreviewScene* Scene);
+							   UWorld* WorldOverride = nullptr);
 
 	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0) const;
 
@@ -259,3 +259,4 @@ private:
 	TMap<std::wstring, TSet<ShaderUsage>> ShaderFileUsageMap;
 	TMap<std::wstring, std::filesystem::file_time_type> ShaderFileLastWriteTimeMap;
 };
+

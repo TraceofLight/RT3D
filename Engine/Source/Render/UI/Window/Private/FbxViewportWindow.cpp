@@ -1,25 +1,12 @@
 #include "pch.h"
 #include "Render/UI/Window/Public/FbxViewportWindow.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/UI/Window/Public/PreviewScene.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "ImGui/imgui.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
-
-void UFbxViewportWindow::BuildPreviewSceneAfterImport()
-{
-	if (!PreviewScene)
-	{
-		UE_LOG_WARNING("FbxViewportWindow: PreviewScene is not initialized yet.");
-		return;
-	}
-
-	PreviewScene->Reset();
-	UE_LOG("FbxViewportWindow: Preview scene reset");
-}
 
 void UFbxViewportWindow::RouteInputToClient()
 {
@@ -50,17 +37,8 @@ void UFbxViewportWindow::RouteInputToClient()
 
 void UFbxViewportWindow::LoadFbxFile(const path& File)
 {
-	if (!PreviewScene)
-	{
-		UE_LOG_WARNING("FbxViewportWindow: Cannot load FBX because preview scene is null.");
-		return;
-	}
-
 	const std::string FileName = File.string();
 	UE_LOG_WARNING("FbxViewportWindow: LoadFbxFile is not implemented yet (%s).", FileName.c_str());
-
-	PreviewScene->Reset();
-	BuildPreviewSceneAfterImport();
 }
 
 void UFbxViewportWindow::Initialize()
@@ -74,9 +52,6 @@ void UFbxViewportWindow::Initialize()
     // 카메라 기본(퍼스펙티브)
     PreviewClient->SetViewType(EViewType::Perspective);
     PreviewClient->SetViewMode(EViewModeIndex::VMI_BlinnPhong);
-
-    // 2) 프리뷰 씬(미니 월드) 생성
-    PreviewScene = new FPreviewScene();
 
     UE_LOG("FbxViewportWindow: initialized");
 }
@@ -99,22 +74,26 @@ void UFbxViewportWindow::Release()
         SafeDelete(PreviewViewport);
     }
     SafeDelete(PreviewClient);
-
-    // 씬
-    SafeDelete(PreviewScene);
 }
 
 void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& Size)
 {
     const int w = (int)std::max(1.0f, Size.x);
     const int h = (int)std::max(1.0f, Size.y);
-    if ((int)CachedViewportSize.x == w && (int)CachedViewportSize.y == h && SRV) return;
+    if ((int)CachedViewportSize.x == w && (int)CachedViewportSize.y == h && SRV)
+    {
+        return;
+    }
 
     CachedViewportSize = ImVec2((float)w, (float)h);
     SRV.Reset(); RTV.Reset(); ColorRT.Reset();
     DSV.Reset(); DepthTex.Reset();
 
     auto* Device = URenderer::GetInstance().GetDevice();
+    if (!Device)
+    {
+        return;
+    }
 
     // Color RT
     D3D11_TEXTURE2D_DESC td = {};
@@ -134,9 +113,29 @@ void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& Size)
     Device->CreateTexture2D(&td, nullptr, DepthTex.ReleaseAndGetAddressOf());
     Device->CreateDepthStencilView(DepthTex.Get(), nullptr, DSV.ReleaseAndGetAddressOf());
 
+    if (!PreviewViewport)
+    {
+        return;
+    }
+
     // 뷰포트 크기 동기화
     FRect R{0,0,w,h};
     PreviewViewport->SetRect(R);
+
+    D3D11_VIEWPORT View = {};
+    View.TopLeftX = 0.0f;
+    View.TopLeftY = 0.0f;
+    View.Width = static_cast<float>(w);
+    View.Height = static_cast<float>(h);
+    View.MinDepth = 0.0f;
+    View.MaxDepth = 1.0f;
+    PreviewViewport->SetRenderRect(View);
+
+    if (PreviewClient)
+    {
+        const FPoint NewViewportSize{ w, h };
+        PreviewClient->OnResize(NewViewportSize);
+    }
 }
 
 void UFbxViewportWindow::OnPostRenderWindow()
@@ -152,6 +151,12 @@ void UFbxViewportWindow::OnPostRenderWindow()
     // 2) RT 보장 + 뷰포트 렌더
     EnsureRenderTargets(avail);
     RenderPreview();
+
+    if (!SRV)
+    {
+        ImGui::TextDisabled("FBX viewport render target is not ready.");
+        return;
+    }
 
     // 3) ImGui에 SRV로 붙여 그리기
     ImGui::InvisibleButton("FbxViewportHit", avail);
@@ -176,17 +181,29 @@ void UFbxViewportWindow::RenderPreview()
 {
     RouteInputToClient();
 
-    if (!PreviewViewport || !PreviewClient || !PreviewScene)
+    if (!PreviewViewport || !PreviewClient || !RTV || !DSV)
     {
         return;
     }
+
+    static bool bLoggedWorldWarning = false;
+    if (!GWorld || !GWorld->GetLevel())
+    {
+        if (!bLoggedWorldWarning)
+        {
+            UE_LOG_WARNING("FbxViewportWindow: GWorld or its level is not ready for rendering.");
+            bLoggedWorldWarning = true;
+        }
+        return;
+    }
+    bLoggedWorldWarning = false;
 
     URenderer::GetInstance().RenderExternalViewport(
         PreviewViewport,
         PreviewClient,
         RTV.Get(),
         DSV.Get(),
-        PreviewScene
+        GWorld
     );
 }
 

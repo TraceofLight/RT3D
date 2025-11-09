@@ -2,11 +2,9 @@
 #include "Render/UI/Window/Public/UIWindow.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 
-class FPreviewScene;
-
 /**
- * @brief Placeholder popup window for the FBX viewport viewer.
- *        Rendering is stubbed for now until the viewport manager hookup is ready.
+ * @brief Popup window that renders the shared editor world with an independent viewport client.
+ *        Currently clears the off-screen RT/DSV using the FBX viewport camera settings.
  */
 UCLASS()
 class UFbxViewportWindow : public UUIWindow
@@ -26,10 +24,9 @@ protected:
 	void OnPostRenderWindow() override;
 
 private:
-	// --- 프리뷰 전용 뷰포트/클라이언트/씬 ---
+	// --- 전용 뷰포트/클라이언트 (GWorld 공유) ---
 	FViewport*       PreviewViewport   = nullptr;
 	FViewportClient* PreviewClient     = nullptr;
-	FPreviewScene*   PreviewScene      = nullptr; // 간단한 미니 월드(아래 1-3 참고)
 
 	// --- RT/DSV & SRV ---
 	ComPtr<ID3D11Texture2D>          ColorRT;
@@ -46,6 +43,4 @@ private:
 	void RouteInputToClient(); // 창 위에 있을 때만 입력 라우팅
 
 	void RenderPlaceholderViewport() const;
-	// 편의: 모델 로드 후 씬 구성
-	void BuildPreviewSceneAfterImport();
 };
