@@ -1,6 +1,7 @@
 #pragma once
 
-struct FArchive; // @note: 직렬화 지원용 헤더
+struct FVector4;
+struct FArchive;
 struct FMatrix;
 
 struct FVector

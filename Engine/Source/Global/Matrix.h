@@ -4,6 +4,7 @@ struct FRotator;
 struct FVector;
 struct FVector4;
 struct FQuaternion;
+struct FArchive;
 
 struct FMatrix
 {
@@ -144,3 +145,6 @@ struct FMatrix
 	static FMatrix CreateFromRotator(const FRotator& InRotator);
 	FQuaternion ToQuaternion() const;
 };
+
+// Archive serialization
+FArchive& operator<<(FArchive& Ar, FMatrix& Matrix);

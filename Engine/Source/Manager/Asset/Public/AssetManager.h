@@ -60,6 +60,11 @@ public:
 	void AddSkeletalMeshToCache(const FName& InFbxPath, USkeletalMesh* InMesh);
 	FSkeletalMeshBuffers* GetSkeletalMeshBuffers(const FName& InFbxPath);
 
+	// SkeletalMesh 바이너리 캐싱 함수
+	static bool SaveSkeletalMeshBinary(const FName& InFbxPath, const FSkeletalMesh* InMesh);
+	static FSkeletalMesh* LoadSkeletalMeshBinary(const FName& InBinPath);
+	static bool IsBinaryUpToDate(const FName& InFbxPath, const FName& InBinPath);
+
 	// Helper Functions (public for runtime loading)
 	ID3D11Buffer* CreateVertexBuffer(TArray<FNormalVertex> InVertices);
 	ID3D11Buffer* CreateIndexBuffer(TArray<uint32> InIndices);
@@ -70,12 +75,12 @@ private:
 	// Vertex Resource
 	TMap<EPrimitiveType, ID3D11Buffer*> VertexBuffers;
 	TMap<EPrimitiveType, uint32> NumVertices;
-	TMap<EPrimitiveType, TArray<FNormalVertex>*> VertexDatas;
+	TMap<EPrimitiveType, TArray<FNormalVertex>*> VertexData;
 
 	// 인덱스 리소스
 	TMap<EPrimitiveType, ID3D11Buffer*> IndexBuffers;
 	TMap<EPrimitiveType, uint32> NumIndices;
-	TMap<EPrimitiveType, TArray<uint32>*> IndexDatas;
+	TMap<EPrimitiveType, TArray<uint32>*> IndexData;
 
 	// Texture Resource
 

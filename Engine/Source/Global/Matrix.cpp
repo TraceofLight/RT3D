@@ -704,3 +704,15 @@ float FMatrix::Determinant3x3() const
          - Data[0][1] * (Data[1][0] * Data[2][2] - Data[1][2] * Data[2][0])
          + Data[0][2] * (Data[1][0] * Data[2][1] - Data[1][1] * Data[2][0]);
 }
+
+FArchive& operator<<(FArchive& Ar, FMatrix& Matrix)
+{
+    for (int i = 0; i < 4; ++i)
+    {
+        for (int j = 0; j < 4; ++j)
+        {
+            Ar << Matrix.Data[i][j];
+        }
+    }
+    return Ar;
+}

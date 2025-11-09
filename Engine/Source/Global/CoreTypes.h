@@ -1,7 +1,7 @@
 #pragma once
-#include "Global/Vector.h"
-#include "Global/Matrix.h"
-#include "Global/Types.h"
+#include "Vector.h"
+#include "Matrix.h"
+#include "Core/Public/Archive.h"
 
 #define HAS_DIFFUSE_MAP	 (1 << 0)
 #define HAS_AMBIENT_MAP	 (1 << 1)
@@ -37,6 +37,16 @@ struct FNormalVertex
 	FVector4 Tangent;  // XYZ: Tangent, W: Handedness(+1/-1)
 };
 
+inline FArchive& operator<<(FArchive& Ar, FNormalVertex& Vertex)
+{
+	Ar << Vertex.Position;
+	Ar << Vertex.Normal;
+	Ar << Vertex.Color;
+	Ar << Vertex.TexCoord;
+	Ar << Vertex.Tangent;
+	return Ar;
+}
+
 struct FRay
 {
 	FVector4 Origin;
@@ -69,6 +79,14 @@ struct FTransform
 	{
 	}
 };
+
+inline FArchive& operator<<(FArchive& Ar, FTransform& Transform)
+{
+	Ar << Transform.Location;
+	Ar << Transform.Rotation;
+	Ar << Transform.Scale;
+	return Ar;
+}
 
 /**
  * @brief 2차원 좌표의 정보를 담는 구조체
