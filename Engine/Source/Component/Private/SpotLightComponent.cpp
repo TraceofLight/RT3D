@@ -13,7 +13,7 @@ USpotLightComponent::USpotLightComponent()
 	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 
 	// 화살표 프리미티브 설정 (빛 방향 표시용)
-	LightDirectionArrow.VertexBuffer = ResourceManager.GetVertexbuffer(EPrimitiveType::Arrow);
+	LightDirectionArrow.VertexBuffer = ResourceManager.GetVertexBuffer(EPrimitiveType::Arrow);
 	LightDirectionArrow.NumVertices = ResourceManager.GetNumVertices(EPrimitiveType::Arrow);
 	LightDirectionArrow.Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	LightDirectionArrow.Color = FVector4(1.0f, 1.0f, 1.0f, 1.0f);

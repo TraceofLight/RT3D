@@ -188,11 +188,11 @@ ComPtr<ID3D11ShaderResourceView> FTextureManager::CreateTextureFromFile(const pa
 
             if (SUCCEEDED(ResultHandle))
             {
-                UE_LOG_SUCCESS("TextureManager: DDS 텍스처 로드 성공 - %ls", InFilePath.c_str());
+                UE_LOG_SUCCESS("TextureManager: DDS 텍스처 로드 성공: %ls", InFilePath.c_str());
             }
             else
             {
-                UE_LOG_ERROR("TextureManager: DDS 텍스처 로드 실패 - %ls (HRESULT: 0x%08lX)", InFilePath.c_str(), ResultHandle);
+                UE_LOG_ERROR("TextureManager: DDS 텍스처 로드 실패: %ls (HRESULT: 0x%08lX)", InFilePath.c_str(), ResultHandle);
             }
         }
         else
@@ -203,11 +203,11 @@ ComPtr<ID3D11ShaderResourceView> FTextureManager::CreateTextureFromFile(const pa
 
             if (SUCCEEDED(ResultHandle))
             {
-                UE_LOG_SUCCESS("TextureManager: WIC 텍스처 로드 성공 - %ls", InFilePath.c_str());
+                UE_LOG_SUCCESS("TextureManager: WIC 텍스처 로드 성공: %ls", InFilePath.c_str());
             }
             else
             {
-                UE_LOG_ERROR("TextureManager: WIC 텍스처 로드 실패 - %ls (HRESULT: 0x%08lX)" , InFilePath.c_str(), ResultHandle);
+                UE_LOG_ERROR("TextureManager: WIC 텍스처 로드 실패: %ls (HRESULT: 0x%08lX)" , InFilePath.c_str(), ResultHandle);
             }
         }
     }

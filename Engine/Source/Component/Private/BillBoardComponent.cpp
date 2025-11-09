@@ -17,7 +17,7 @@ UBillBoardComponent::UBillBoardComponent()
     UAssetManager& ResourceManager = UAssetManager::GetInstance();
 
 	Vertices = ResourceManager.GetVertexData(EPrimitiveType::Sprite);
-	VertexBuffer = ResourceManager.GetVertexbuffer(EPrimitiveType::Sprite);
+	VertexBuffer = ResourceManager.GetVertexBuffer(EPrimitiveType::Sprite);
 	NumVertices = ResourceManager.GetNumVertices(EPrimitiveType::Sprite);
 
 	Indices = ResourceManager.GetIndexData(EPrimitiveType::Sprite);

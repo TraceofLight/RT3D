@@ -225,7 +225,6 @@
     <ClInclude Include="Source\Component\Public\SpringArmComponent.h" />
     <ClInclude Include="Source\Global\CurveTypes.h" />
     <ClInclude Include="Source\Level\Public\CurveLibrary.h" />
-    <ClInclude Include="Source\Manager\Asset\Public\FbxLoader.h" />
     <ClInclude Include="Source\Manager\Sound\Public\SoundManager.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier_CameraShake.h" />
@@ -299,7 +298,7 @@
     <ClInclude Include="Source\Level\Public\GameInstance.h" />
     <ClInclude Include="Source\Level\Public\World.h" />
     <ClInclude Include="Source\Render\UI\Viewport\Public\GameViewportClient.h" />
-    <ClInclude Include="Source\Manager\Asset\Public\FbxParser.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\FbxImporter.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjManager.h" />
     <ClInclude Include="Source\Manager\Asset\Public\TextureManager.h" />
@@ -476,7 +475,6 @@
     <ClCompile Include="Source\Component\Mesh\Private\SkinnedMeshComponent.cpp" />
     <ClCompile Include="Source\Component\Private\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Level\Private\CurveLibrary.cpp" />
-    <ClCompile Include="Source\Manager\Asset\Private\FbxLoader.cpp" />
     <ClCompile Include="Source\Render\Camera\Private\CameraModifier.cpp" />
     <ClCompile Include="Source\Render\Camera\Private\CameraModifier_CameraShake.cpp" />
     <ClCompile Include="pch.cpp">
@@ -553,7 +551,7 @@
     <ClCompile Include="Source\Level\Private\World.cpp" />
     <ClCompile Include="Source\Render\UI\Viewport\Private\GameViewportClient.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp" />
-    <ClCompile Include="Source\Manager\Asset\Private\FbxParser.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\FbxImporter.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjManager.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\TextureManager.cpp" />

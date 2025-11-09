@@ -4,11 +4,11 @@
 #include "Component/Mesh/Public/MeshComponent.h"
 #include "Manager/Asset/Public/ObjManager.h"
 #include "Manager/Asset/Public/AssetManager.h"
+#include "Manager/Asset/Public/FbxImporter.h"
 #include "Physics/Public/AABB.h"
 #include "Render/UI/Widget/Public/StaticMeshComponentWidget.h"
 #include "Utility/Public/JsonSerializer.h"
 #include "Texture/Public/Texture.h"
-#include "Manager/Asset/Public/FbxLoader.h"
 #include "Texture/Public/Material.h"
 
 IMPLEMENT_CLASS(UStaticMeshComponent, UMeshComponent)
@@ -108,19 +108,18 @@ void UStaticMeshComponent::SetStaticMesh(const FName& InObjPath)
 	}
 	else if (Ext == ".fbx")
 	{
-		// FbxLoader를 사용하여 로드
-		FbxLoader Loader;
-		if (Loader.Initialize() && Loader.ImportFromFile(InObjPath.ToString().c_str()))
-		{
-			FStaticMesh* StaticMeshData = new FStaticMesh();
-			StaticMeshData->PathFileName = InObjPath;
-			StaticMeshData->Vertices = Loader.OutVertices;
-			StaticMeshData->Indices = Loader.OutIndices;
+		// FbxImporter를 사용하여 로드
+		FFbxImporter& Importer = FFbxImporter::GetInstance();
+		FStaticMesh* StaticMeshData = new FStaticMesh();
 
+		if (Importer.LoadStaticMesh(InObjPath.ToString(), *StaticMeshData))
+		{
 			NewStaticMesh = new UStaticMesh();
 			NewStaticMesh->SetStaticMeshAsset(StaticMeshData);
-
-			Loader.Release();
+		}
+		else
+		{
+			delete StaticMeshData;
 		}
 	}
 	else

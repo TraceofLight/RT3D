@@ -1,6 +1,7 @@
 #pragma once
 
 struct FMaterial;
+class UMaterial;
 
 /** 영향을 주는 Vertex을 저장한 구조체 */
 struct FSkinInfluence
@@ -112,13 +113,15 @@ public:
 	TArray<FNormalVertex>& GetVertices();
 	const TArray<uint32>& GetIndices() const;
 
-	//Material Data
+	// Material Data
+	UMaterial* GetMaterial(int32 MaterialIndex) const;
+	void SetMaterial(int32 MaterialIndex, UMaterial* Material);
+	int32 GetNumMaterials() const;
 
-
-	//유효성 검사
+	// 유효성 검사
 	bool IsValid() const { return SkeletalMesh != nullptr; }
+
 private:
 	FSkeletalMesh* SkeletalMesh;
-
-
+	TArray<UMaterial*> Materials;
 };
