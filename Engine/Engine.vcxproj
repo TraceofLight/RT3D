@@ -400,6 +400,7 @@
     <ClInclude Include="Source\Render\UI\Widget\Public\ScriptComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\SkeletalMeshComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\CurveEditorWindow.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\FbxViewportWindow.h" />
     <ClInclude Include="Source\Runtime\Core\Public\Containers\TArray.h" />
     <ClInclude Include="Source\Runtime\Core\Public\Containers\TMap.h" />
     <ClInclude Include="Source\Runtime\Core\Public\Containers\TSet.h" />
@@ -638,6 +639,7 @@
     <ClCompile Include="Source\Subsystem\Private\EngineSubsystem.cpp" />
     <ClCompile Include="Source\Subsystem\Private\Subsystem.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\CurveEditorWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\FbxViewportWindow.cpp" />
     <ClCompile Include="Source\Texture\Private\ShadowMapResources.cpp" />
     <ClCompile Include="Source\Render\UI\Factory\Private\UIWindowFactory.cpp" />
     <ClCompile Include="Source\Render\UI\ImGui\Private\ImGuiHelper.cpp" />

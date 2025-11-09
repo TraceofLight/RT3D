@@ -6,8 +6,46 @@
 #include "Render/UI/Window/Public/UIWindow.h"
 #include "Level/Public/Level.h"
 #include "Render/Renderer/Public/Renderer.h"
+#include "Render/UI/Factory/Public/UIWindowFactory.h"
+#include "Render/UI/Window/Public/FbxViewportWindow.h"
 
 IMPLEMENT_CLASS(UMainBarWidget, UWidget)
+
+namespace
+{
+	void ShowFbxViewportPopup()
+	{
+		auto& UIManager = UUIManager::GetInstance();
+		const FName WindowTitle = "FBX Viewport";
+
+		if (UUIWindow* ExistingWindow = UIManager.FindUIWindow(WindowTitle))
+		{
+			ExistingWindow->SetWindowState(EUIWindowState::Visible);
+			UIManager.SetFocusedWindow(ExistingWindow);
+			UE_LOG("MainBarWidget: FBX viewport 창을 다시 활성화했습니다");
+			return;
+		}
+		
+		UFbxViewportWindow* NewWindow = UUIWindowFactory::CreateFbxViewportWindow();
+		if (!NewWindow)
+		{
+			UE_LOG_ERROR("MainBarWidget: FBX viewport 창 생성 실패");
+			return;
+		}
+		
+		if (!UIManager.RegisterUIWindow(NewWindow))
+		{
+			UE_LOG_ERROR("MainBarWidget: FBX viewport 창 등록 실패");
+			SafeDelete(NewWindow);
+			return;
+		}
+		
+		NewWindow->SetWindowState(EUIWindowState::Visible);
+		UIManager.SetFocusedWindow(NewWindow);
+		UE_LOG_SUCCESS("MainBarWidget: FBX viewport 창을 생성했습니다");
+	}
+}
+
 
 /**
  * @brief MainBarWidget 초기화 함수
@@ -521,6 +559,12 @@ void UMainBarWidget::RenderToolsMenu()
 			URenderer::GetInstance().HotReloadShaders();
 			UE_LOG("Vertex Shader, PixelShader 핫 리로드 완료");
 		}
+
+		if (ImGui::MenuItem("FBX viewport"))
+		{
+			ShowFbxViewportPopup();
+		}
+
 		ImGui::EndMenu();
 	}
 }
@@ -815,3 +859,5 @@ void UMainBarWidget::RenderWindowControls() const
 	}
 	ImGui::PopStyleColor(3);
 }
+
+
