@@ -11,42 +11,6 @@
 
 IMPLEMENT_CLASS(UMainBarWidget, UWidget)
 
-namespace
-{
-	void ShowFbxViewportPopup()
-	{
-		auto& UIManager = UUIManager::GetInstance();
-		const FName WindowTitle = "FBX Viewport";
-
-		if (UUIWindow* ExistingWindow = UIManager.FindUIWindow(WindowTitle))
-		{
-			ExistingWindow->SetWindowState(EUIWindowState::Visible);
-			UIManager.SetFocusedWindow(ExistingWindow);
-			UE_LOG("MainBarWidget: FBX viewport 창을 다시 활성화했습니다");
-			return;
-		}
-		
-		UFbxViewportWindow* NewWindow = UUIWindowFactory::CreateFbxViewportWindow();
-		if (!NewWindow)
-		{
-			UE_LOG_ERROR("MainBarWidget: FBX viewport 창 생성 실패");
-			return;
-		}
-		
-		if (!UIManager.RegisterUIWindow(NewWindow))
-		{
-			UE_LOG_ERROR("MainBarWidget: FBX viewport 창 등록 실패");
-			SafeDelete(NewWindow);
-			return;
-		}
-		
-		NewWindow->SetWindowState(EUIWindowState::Visible);
-		UIManager.SetFocusedWindow(NewWindow);
-		UE_LOG_SUCCESS("MainBarWidget: FBX viewport 창을 생성했습니다");
-	}
-}
-
-
 /**
  * @brief MainBarWidget 초기화 함수
  * UIManager 인스턴스를 여기서 가져온다
@@ -511,7 +475,7 @@ void UMainBarWidget::RenderShowFlagsMenu()
 			}
 			CurrentLevel->SetShowFlags(ShowFlags);
 		}
-		
+
 		// Octree 표시 옵션
 		bool bShowOctree = (ShowFlags & EEngineShowFlags::SF_Octree) != 0;
 		if (ImGui::MenuItem("Octree 표시", nullptr, bShowOctree))
@@ -562,7 +526,35 @@ void UMainBarWidget::RenderToolsMenu()
 
 		if (ImGui::MenuItem("FBX viewport"))
 		{
-			ShowFbxViewportPopup();
+			auto& UIManager = UUIManager::GetInstance();
+			const FName WindowTitle = "FBX Viewport";
+
+			if (UUIWindow* ExistingWindow = UIManager.FindUIWindow(WindowTitle))
+			{
+				ExistingWindow->SetWindowState(EUIWindowState::Visible);
+				UIManager.SetFocusedWindow(ExistingWindow);
+				UE_LOG("MainBarWidget: FBX viewport 창을 다시 활성화했습니다");
+				return;
+			}
+
+			UFbxViewportWindow* NewWindow = UUIWindowFactory::CreateFbxViewportWindow();
+			if (!NewWindow)
+			{
+				UE_LOG_ERROR("MainBarWidget: FBX viewport 창 생성 실패");
+				return;
+			}
+
+			if (!UIManager.RegisterUIWindow(NewWindow))
+			{
+				UE_LOG_ERROR("MainBarWidget: FBX viewport 창 등록 실패");
+				SafeDelete(NewWindow);
+				return;
+			}
+
+			NewWindow->Initialize();
+			NewWindow->SetWindowState(EUIWindowState::Visible);
+			UIManager.SetFocusedWindow(NewWindow);
+			UE_LOG_SUCCESS("MainBarWidget: FBX viewport 창을 생성했습니다");
 		}
 
 		ImGui::EndMenu();
@@ -596,10 +588,10 @@ void UMainBarWidget::CreateNewLevel()
 		UE_LOG_ERROR("MainBarWidget: GEditor가 초기화되지 않았습니다");
 		return;
 	}
-	
+
 	// TODO: 레벨 이름 입력 다이얼로그 추가 가능
 	FString LevelName = "NewLevel";
-	
+
 	bool bSuccess = GEditor->CreateNewLevel(LevelName);
 	if (bSuccess)
 	{
@@ -621,14 +613,14 @@ void UMainBarWidget::LoadLevel()
 		UE_LOG_ERROR("MainBarWidget: GEditor가 초기화되지 않았습니다");
 		return;
 	}
-	
+
 	path FilePath = OpenLoadFileDialog();
 	if (FilePath.empty())
 	{
 		UE_LOG("MainBarWidget: 레벨 열기 취소됨");
 		return;
 	}
-	
+
 	bool bSuccess = GEditor->LoadLevel(FilePath.string());
 	if (bSuccess)
 	{
@@ -650,14 +642,14 @@ void UMainBarWidget::SaveCurrentLevel()
 		UE_LOG_ERROR("MainBarWidget: GEditor가 초기화되지 않았습니다");
 		return;
 	}
-	
+
 	path FilePath = OpenSaveFileDialog();
 	if (FilePath.empty())
 	{
 		UE_LOG("MainBarWidget: 레벨 저장 취소됨");
 		return;
 	}
-	
+
 	bool bSuccess = GEditor->SaveCurrentLevel(FilePath.string());
 	if (bSuccess)
 	{
@@ -676,20 +668,20 @@ path UMainBarWidget::OpenLoadFileDialog()
 {
 	path ResultPath = L"";
 	HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-	
+
 	// COM 초기화 실패 시 early return
 	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
 	{
 		return ResultPath;
 	}
-	
+
 	// COM이 이미 초기화되어 있는지 확인 (S_FALSE 또는 RPC_E_CHANGED_MODE)
 	bool bNeedUninitialize = (hr == S_OK);
-	
+
 	IFileOpenDialog* pFileOpen = nullptr;
 	hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL,
 		IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpen));
-	
+
 	if (SUCCEEDED(hr) && pFileOpen)
 	{
 		COMDLG_FILTERSPEC fileTypes[] = {
@@ -699,11 +691,11 @@ path UMainBarWidget::OpenLoadFileDialog()
 		pFileOpen->SetFileTypes(ARRAYSIZE(fileTypes), fileTypes);
 		pFileOpen->SetFileTypeIndex(1);
 		pFileOpen->SetTitle(L"Load Level");
-		
+
 		DWORD dwFlags;
 		pFileOpen->GetOptions(&dwFlags);
 		pFileOpen->SetOptions(dwFlags | FOS_PATHMUSTEXIST | FOS_FILEMUSTEXIST);
-		
+
 		hr = pFileOpen->Show(GetActiveWindow());
 		if (SUCCEEDED(hr))
 		{
@@ -723,13 +715,13 @@ path UMainBarWidget::OpenLoadFileDialog()
 		}
 		pFileOpen->Release();
 	}
-	
+
 	// COM을 우리가 초기화한 경우에만 Uninitialize
 	if (bNeedUninitialize)
 	{
 		CoUninitialize();
 	}
-	
+
 	return ResultPath;
 }
 
@@ -740,20 +732,20 @@ path UMainBarWidget::OpenSaveFileDialog()
 {
 	path ResultPath = L"";
 	HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE);
-	
+
 	// COM 초기화 실패 시 early return
 	if (FAILED(hr) && hr != RPC_E_CHANGED_MODE)
 	{
 		return ResultPath;
 	}
-	
+
 	// COM이 이미 초기화되어 있는지 확인 (S_FALSE 또는 RPC_E_CHANGED_MODE)
 	bool bNeedUninitialize = (hr == S_OK);
-	
+
 	IFileSaveDialog* pFileSave = nullptr;
 	hr = CoCreateInstance(CLSID_FileSaveDialog, nullptr, CLSCTX_ALL,
 		IID_IFileSaveDialog, reinterpret_cast<void**>(&pFileSave));
-	
+
 	if (SUCCEEDED(hr) && pFileSave)
 	{
 		COMDLG_FILTERSPEC fileTypes[] = {
@@ -764,11 +756,11 @@ path UMainBarWidget::OpenSaveFileDialog()
 		pFileSave->SetFileTypeIndex(1);
 		pFileSave->SetDefaultExtension(L"Scene");
 		pFileSave->SetTitle(L"Save Level");
-		
+
 		DWORD dwFlags;
 		pFileSave->GetOptions(&dwFlags);
 		pFileSave->SetOptions(dwFlags | FOS_OVERWRITEPROMPT | FOS_PATHMUSTEXIST);
-		
+
 		hr = pFileSave->Show(GetActiveWindow());
 		if (SUCCEEDED(hr))
 		{
@@ -788,13 +780,13 @@ path UMainBarWidget::OpenSaveFileDialog()
 		}
 		pFileSave->Release();
 	}
-	
+
 	// COM을 우리가 초기화한 경우에만 Uninitialize
 	if (bNeedUninitialize)
 	{
 		CoUninitialize();
 	}
-	
+
 	return ResultPath;
 }
 

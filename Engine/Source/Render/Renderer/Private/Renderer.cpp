@@ -1223,6 +1223,46 @@ void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive
 	}
 }
 
+void URenderer::RenderExternalViewport(FViewport* VP, FViewportClient* VC,
+									   ID3D11RenderTargetView* RTV,
+									   ID3D11DepthStencilView* DSV,
+									   FPreviewScene* Scene)
+{
+	if (!VP || !VC || !RTV || !DSV || !Scene) return;
+
+	auto* D3D = GetD3DDevice();
+	auto* Ctx = D3D->Context;
+
+	// 1) 타겟 바인딩 + 클리어
+	ID3D11RenderTargetView* rtvs[] = { RTV };
+	Ctx->OMSetRenderTargets(1, rtvs, DSV);
+	const float clear[4] = { 0.09f, 0.09f, 0.10f, 1.0f };
+	Ctx->ClearRenderTargetView(RTV, clear);
+	Ctx->ClearDepthStencilView(DSV, D3D11_CLEAR_DEPTH|D3D11_CLEAR_STENCIL, 1.0f, 0);
+
+	// 2) 뷰포트 설정
+	const D3D11_VIEWPORT VPDesc = VP->GetRenderRect();
+	Ctx->RSSetViewports(1, &VPDesc);
+
+	// 3) 뷰/프로젝션 상수 셋업(VC에서 꺼내기)
+	FViewConstants view = BuildViewConstantsFromClient(VC, VPDesc);
+	UploadViewConstants(view);
+
+	// 4) 광원 업로드
+	UploadLights(Scene->Lights);
+
+	// 5) 지오메트리 드로우
+	//    - StaticMeshes
+	for (auto* smc : Scene->StaticComps)
+		DrawStaticMeshComponent(smc);
+
+	//    - SkeletalMeshes (GPU 스키닝 경로)
+	for (auto* skc : Scene->SkelComps)
+		DrawSkeletalMeshComponent(skc); // 본 팔레트/스킨 매트릭스 셋업 포함
+
+	// 6) 후처리(원하면 간단 톤맵/FXAA 등)
+}
+
 void URenderer::RenderEnd() const
 {
 	TIME_PROFILE(DrawCall)

@@ -97,7 +97,6 @@ UFbxViewportWindow* UUIWindowFactory::CreateFbxViewportWindow(EUIDockDirection I
 	return Window;
 }
 
-
 void UUIWindowFactory::CreateDefaultUILayout()
 {
 	auto& UIManager = UUIManager::GetInstance();
