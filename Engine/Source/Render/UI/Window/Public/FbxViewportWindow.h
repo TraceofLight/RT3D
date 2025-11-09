@@ -2,6 +2,8 @@
 #include "Render/UI/Window/Public/UIWindow.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 
+class FPreviewScene;
+
 /**
  * @brief Placeholder popup window for the FBX viewport viewer.
  *        Rendering is stubbed for now until the viewport manager hookup is ready.
@@ -27,7 +29,7 @@ private:
 	// --- 프리뷰 전용 뷰포트/클라이언트/씬 ---
 	FViewport*       PreviewViewport   = nullptr;
 	FViewportClient* PreviewClient     = nullptr;
-	class FPreviewScene* PreviewScene  = nullptr; // 간단한 미니 월드(아래 1-3 참고)
+	FPreviewScene*   PreviewScene      = nullptr; // 간단한 미니 월드(아래 1-3 참고)
 
 	// --- RT/DSV & SRV ---
 	ComPtr<ID3D11Texture2D>          ColorRT;

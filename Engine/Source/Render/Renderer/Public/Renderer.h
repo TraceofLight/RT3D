@@ -12,6 +12,7 @@
 #include "Render/RenderPass/Public/FXAAPass.h"
 
 class FSceneView;
+class FPreviewScene;
 class FClusteredRenderingGridPass;
 class FFXAAPass;
 class FHitProxyPass;

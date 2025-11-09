@@ -551,7 +551,6 @@ void UMainBarWidget::RenderToolsMenu()
 				return;
 			}
 
-			NewWindow->Initialize();
 			NewWindow->SetWindowState(EUIWindowState::Visible);
 			UIManager.SetFocusedWindow(NewWindow);
 			UE_LOG_SUCCESS("MainBarWidget: FBX viewport 창을 생성했습니다");
@@ -851,5 +850,3 @@ void UMainBarWidget::RenderWindowControls() const
 	}
 	ImGui::PopStyleColor(3);
 }
-
-

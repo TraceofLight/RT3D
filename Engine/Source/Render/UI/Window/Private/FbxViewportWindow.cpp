@@ -1,45 +1,37 @@
 #include "pch.h"
 #include "Render/UI/Window/Public/FbxViewportWindow.h"
 #include "Render/Renderer/Public/Renderer.h"
+#include "Render/UI/Window/Public/PreviewScene.h"
+#include "Manager/Input/Public/InputManager.h"
+#include "Manager/UI/Public/ViewportManager.h"
+#include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "ImGui/imgui.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
 
 void UFbxViewportWindow::BuildPreviewSceneAfterImport()
 {
-	// Ground Plane
+	if (!PreviewScene)
 	{
-		GroundActor = new AActor();
-		auto* smc = GroundActor->AddComponent<UStaticMeshComponent>();
-		smc->SetMesh(UPrimitives::MakePlane(5000, 5000)); // 너비/깊이
-		smc->SetMaterial(UMaterial::GetDefaultGrid());
-		smc->SetWorldTransform(FTransform(FVector(0,0,0)));
-		PreviewScene->StaticComps.Add(smc);
+		UE_LOG_WARNING("FbxViewportWindow: PreviewScene is not initialized yet.");
+		return;
 	}
 
-	// Directional Light
-	{
-		Sun = new ADirectionalLight();
-		auto* lc = Sun->GetLightComponent();
-		lc->SetColor(FLinearColor(1.0, 0.98, 0.9));
-		lc->SetIntensity(3.0f);
-		Sun->SetRotation(FRotator(-45, 35, 0));
-		PreviewScene->Lights.Add(lc);
-	}
-
-	// Skeletal Actor는 LoadFbxFile() 완료 후 넣는다
+	PreviewScene->Reset();
+	UE_LOG("FbxViewportWindow: Preview scene reset");
 }
 
 void UFbxViewportWindow::RouteInputToClient()
 {
-	if (!bHovered || !PreviewClient) return;
+	if (!bHovered || !PreviewClient || !PreviewViewport)
+	{
+		return;
+	}
 
 	auto& Input = UInputManager::GetInstance();
 
-	// 퍼스 카메라 동일 로직(요약)
 	if (Input.IsKeyDown(EKeyInput::MouseRight))
 	{
-		// 회전
 		FVector Rot = PreviewClient->GetViewRotation();
 		const FVector md = Input.GetMouseDelta();
 		Rot.Y += md.X * KeySensitivityDegPerPixel * 3;
@@ -47,69 +39,28 @@ void UFbxViewportWindow::RouteInputToClient()
 		Rot.X = clamp(Rot.X, -89.9f, 89.9f);
 		PreviewClient->SetViewRotation(Rot);
 
-		// 이동
-		const float Speed = UViewportManager::GetInstance().GetEditorCameraSpeed();
-		// Forward/Right from rot (기존 코드 재사용)
-		// ...
-		// PreviewClient->SetViewLocation(NewLoc);
+		// TODO: hook movement once the preview viewport mirrors editor controls.
 	}
 
-	// 피킹: 좌클릭 시 레이 생성 → 프리뷰 씬으로 캡쳐
 	if (Input.IsKeyPressed(EKeyInput::MouseLeft))
 	{
-		const FVector2 Mouse = Input.GetMousePosition();
-		// 1) 창 내부 좌표 → NDC → 레이
-		const D3D11_VIEWPORT vp = PreviewViewport->GetRenderRect();
-		const FRay ray = DeprojectToRay(Mouse, vp, PreviewClient->GetView(), PreviewClient->GetProj());
-		// 2) 씬 피킹: 메쉬/본(선분) 충돌 중 최소 히트
-		FPickHit hit;
-		if (PreviewScene->Pick(ray, hit))
-		{
-			// 선택 반영(본이면 본 인덱스, 메시면 프림 ID)
-			PreviewClient->SetSelection(hit);
-		}
+		// Picking is intentionally left as a stub until preview rendering is available.
 	}
-
-	// 휠 줌(오빗/또는 이동 레벨 변환)
-	// ...
 }
 
 void UFbxViewportWindow::LoadFbxFile(const path& File)
 {
-	// 엔진 FBX 임포터를 사용(예: UFbxImporter::Import(File))
-	UFbxImportResult R = UFbxImporter::Import(File);
-
-	if (R.Type == EFbxType::Skeletal)
+	if (!PreviewScene)
 	{
-		SkeletalActor = new AActor();
-		auto* sk = SkeletalActor->AddComponent<USkeletalMeshComponent>();
-		sk->SetSkeleton(R.Skeleton);
-		sk->SetSkeletalMesh(R.SkeletalMesh);
-		sk->SetWorldTransform(FTransform(FVector(0,0,0)));
-		PreviewScene->SkelComps.Add(sk);
-
-		// 모델 바운딩 기준으로 카메라 자리잡기
-		const FBounds B = sk->GetBoundsWS();
-		const FVector Focus = B.Center;
-		const float   Dist  = std::max(300.f, B.Radius * 2.5f);
-
-		PreviewClient->SetViewLocation(Focus + FVector(Dist, Dist, Dist*0.6f));
-		PreviewClient->SetViewRotation(FVector(-20, 225, 0)); // pitch,yaw,roll
-		PreviewClient->SetFOV(50.f);
-	}
-	else if (R.Type == EFbxType::Static)
-	{
-		// 정적 모델도 허용(스켈레탈 없는 FBX)
-		auto* act = new AActor();
-		auto* smc = act->AddComponent<UStaticMeshComponent>();
-		smc->SetMesh(R.StaticMesh);
-		smc->SetWorldTransform(FTransform(FVector(0,0,0)));
-		PreviewScene->StaticComps.Add(smc);
+		UE_LOG_WARNING("FbxViewportWindow: Cannot load FBX because preview scene is null.");
+		return;
 	}
 
-	// Ground/Light 등 기본 씬요소 보장
-	if (!PreviewScene->GroundActor || !PreviewScene->Sun)
-		BuildPreviewSceneAfterImport();
+	const std::string FileName = File.string();
+	UE_LOG_WARNING("FbxViewportWindow: LoadFbxFile is not implemented yet (%s).", FileName.c_str());
+
+	PreviewScene->Reset();
+	BuildPreviewSceneAfterImport();
 }
 
 void UFbxViewportWindow::Initialize()
@@ -125,9 +76,14 @@ void UFbxViewportWindow::Initialize()
     PreviewClient->SetViewMode(EViewModeIndex::VMI_BlinnPhong);
 
     // 2) 프리뷰 씬(미니 월드) 생성
-    PreviewScene = new FPreviewScene(); // 아래 1-3 참고
+    PreviewScene = new FPreviewScene();
 
     UE_LOG("FbxViewportWindow: initialized");
+}
+
+void UFbxViewportWindow::Tick(float /*DeltaTime*/)
+{
+	// Preview viewport updates are handled during RenderPreview.
 }
 
 void UFbxViewportWindow::Release()
@@ -159,7 +115,6 @@ void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& Size)
     DSV.Reset(); DepthTex.Reset();
 
     auto* Device = URenderer::GetInstance().GetDevice();
-    auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
 
     // Color RT
     D3D11_TEXTURE2D_DESC td = {};
@@ -196,7 +151,7 @@ void UFbxViewportWindow::OnPostRenderWindow()
 
     // 2) RT 보장 + 뷰포트 렌더
     EnsureRenderTargets(avail);
-    RenderPreview();               // (아래 RenderPreview 참고)
+    RenderPreview();
 
     // 3) ImGui에 SRV로 붙여 그리기
     ImGui::InvisibleButton("FbxViewportHit", avail);
@@ -219,13 +174,19 @@ void UFbxViewportWindow::OnPostRenderWindow()
 
 void UFbxViewportWindow::RenderPreview()
 {
-    // 프리뷰 카메라/클라이언트 입력 처리
     RouteInputToClient();
 
-    // Renderer에 “외부 뷰포트” 렌더 호출
+    if (!PreviewViewport || !PreviewClient || !PreviewScene)
+    {
+        return;
+    }
+
     URenderer::GetInstance().RenderExternalViewport(
-        PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(),
-        PreviewScene // 씬 핸들(아래 1-3)
+        PreviewViewport,
+        PreviewClient,
+        RTV.Get(),
+        DSV.Get(),
+        PreviewScene
     );
 }
 
