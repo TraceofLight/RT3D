@@ -29,15 +29,15 @@ public:
     ULightComponent() = default;
 
     virtual ~ULightComponent() = default;
-    
+
     /*-----------------------------------------------------------------------------
         UObject Features
      -----------------------------------------------------------------------------*/
 public:
-    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    virtual void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
     virtual UObject* Duplicate() override;
-        
+
     virtual void DuplicateSubObjects(UObject* DuplicatedObject) override;
 
     /*-----------------------------------------------------------------------------
@@ -45,7 +45,7 @@ public:
      -----------------------------------------------------------------------------*/
 public:
     virtual void BeginPlay() override { Super::BeginPlay(); }
-    
+
     virtual void TickComponent(float DeltaTime) override { Super::TickComponent(DeltaTime); }
 
     virtual void EndPlay() override { Super::EndPlay(); }
@@ -63,7 +63,7 @@ public:
     // virtual FBox GetBoundingBox() const;
 
     // virtual FSphere GetBoundingSphere() const;
-    
+
     /** @note Sets the light intensity and clamps it to the same range as Unreal Engine (0.0 - 20.0). */
 
     void SetIntensity(float InIntensity) override;
@@ -103,7 +103,7 @@ public:
             UE_LOG_WARNING("Warning: You tried to set shadow resolution with invalid value. Resolution is set with default value.");
             return;
         }
-        
+
         ShadowResolutionScale = static_cast<float>(ShadowResolutionScaleInt);
     }
 

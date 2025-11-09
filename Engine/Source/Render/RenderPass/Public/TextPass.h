@@ -1,6 +1,7 @@
 #pragma once
 #include "Render/RenderPass/Public/RenderPass.h"
 
+class UTexture;
 struct FFontVertex
 {
     FVector Position;        // 3D 월드 좌표

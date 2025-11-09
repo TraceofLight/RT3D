@@ -117,7 +117,7 @@ TArray<FNormalVertex> VerticesCubeArrow = {
     { {0.00f, -0.025f, 0.025f}, {}, {1,1,0,1}, {} }, // (0.00, -0.025, 0.025)
     { {0.80f, -0.025f, 0.025f}, {}, {1,1,0,1}, {} }, // (0.80, -0.025, 0.025)
     { {0.80f, 0.025f, 0.025f}, {}, {1,1,0,1}, {} },
-    
+
     { {0.00f, -0.025f, 0.025f}, {}, {1,1,0,1}, {} },
     { {0.80f, 0.025f, 0.025f}, {}, {1,1,0,1}, {} },
     { {0.00f, 0.025f, 0.025f}, {}, {1,1,0,1}, {} }, // (0.00, 0.025, 0.025)
@@ -207,7 +207,7 @@ TArray<FNormalVertex> VerticesCubeArrow = {
 
 TArray<FNormalVertex> VerticesRing = {
     // X, Y, Z 순서에서 Z, X, Y 순서로 변경됨 (X: 이전의 Z-축, Y: 이전의 X-축, Z: 이전의 Y-축)
-    
+
     // Z=0.000000, X=0.900000, Y=0.000000
     {{0.000000f, 0.900000f, 0.000000f}, {}, {1.0f, 1.0f, 0.0f, 1.0f}, {} },
     // Z=0.000000, X=1.000000, Y=0.000000
@@ -4064,7 +4064,7 @@ TArray<FNormalVertex> VerticesVerticalSquare =
 TArray<uint32> IndicesVerticalSquare =
 {
 	// First Triangle
-	0, 2, 1,
+	0, 1, 2,
 	// Second Triangle
-	1, 2, 3
+	1, 3, 2
 };

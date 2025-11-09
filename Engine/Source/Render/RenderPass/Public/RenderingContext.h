@@ -24,6 +24,7 @@ struct FRenderingContext
     TArray<class UPrimitiveComponent*> AllPrimitives;
     // Components By Render Pass
     TArray<class UStaticMeshComponent*> StaticMeshes;
+    TArray<class USkeletalMeshComponent*> SkeletalMeshes;
     TArray<class UBillBoardComponent*> BillBoards;
     TArray<class UEditorIconComponent*> EditorIcons;
     TArray<class UTextComponent*> Texts;

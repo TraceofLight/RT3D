@@ -1,6 +1,7 @@
 #pragma once
 #include "Render/UI/Widget/Public/Widget.h"
 
+class UTexture;
 class UStaticMeshComponent;
 class UMaterial;
 

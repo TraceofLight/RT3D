@@ -5,6 +5,6 @@
 
 IMPLEMENT_CLASS(UMaterial, UObject)
 
-UMaterial::~UMaterial()
-{
-}
+UMaterial::UMaterial() = default;
+
+UMaterial::~UMaterial() = default;

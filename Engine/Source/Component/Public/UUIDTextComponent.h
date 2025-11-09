@@ -20,7 +20,7 @@ public:
 	void SetOffset(float Offset) { ZOffset = Offset; }
 
 	FMatrix GetRTMatrix() const override { return RTMatrix; }
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 	UClass* GetSpecificWidgetClass() const override;
 private:

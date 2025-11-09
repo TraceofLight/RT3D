@@ -9,10 +9,6 @@
       <Configuration>Release</Configuration>
       <Platform>x64</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="ObjViewerDebug|x64">
-      <Configuration>ObjViewerDebug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="StandAlone_Debug|x64">
       <Configuration>StandAlone_Debug</Configuration>
       <Platform>x64</Platform>
@@ -36,17 +32,17 @@
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'" Label="Configuration">
@@ -56,91 +52,56 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Develop|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Develop|x64'" Label="PropertySheets">
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <IncludePath>C:\Program Files (x86)\Visual Leak Detector\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">
-    <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <IncludePath>C:\Program Files (x86)\Visual Leak Detector\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);C:\Program Files (x86)\Visual Leak Detector\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
+    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">
+    <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
+    <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir)\Source</IncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">
     <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
     <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);C:\Program Files (x86)\Visual Leak Detector\include;$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>C:\Program Files (x86)\Visual Leak Detector\lib\Win64;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">
-    <OutDir>$(SolutionDir)Build\$(Configuration)\</OutDir>
-    <IntDir>$(SolutionDir)Build\$(Configuration)\Intermediate\</IntDir>
-    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(ProjectDir);$(ProjectDir);</IncludePath>
+    <ExternalIncludePath>$(ProjectDir);$(WindowsSDK_IncludePath);$(VC_IncludePath);$(ExternalIncludePath)</ExternalIncludePath>
+    <LibraryPath>$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_DEVELOP=1;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;FBXSDK_SHARED;_WINDOWS;_DEVELOP=1;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /FS /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -150,78 +111,15 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Debug;$(SolutionDir)External\DirectXTex\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmodL_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
       <Command>
         IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
         IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Debug\*" xcopy "$(SolutionDir)External\Bin\Debug\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Library\fmod\*.dll" xcopy "$(SolutionDir)External\Library\fmod\*.dll" "$(OutDir)" /E /I /Y
-        :VCEnd
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;_DEVELOP=1;STAND_ALONE=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include</AdditionalIncludeDirectories>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions) /FS /bigobj</AdditionalOptions>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <RuntimeTypeInfo>true</RuntimeTypeInfo>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Debug;$(SolutionDir)External\DirectXTex\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmodL_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-        IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
-        IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Debug\*" xcopy "$(SolutionDir)External\Bin\Debug\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Library\fmod\*.dll" xcopy "$(SolutionDir)External\Library\fmod\*.dll" "$(OutDir)" /E /I /Y
-        :VCEnd
-      </Command>
-    </PostBuildEvent>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;IS_OBJ_VIEWER=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include</AdditionalIncludeDirectories>
-      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
-      <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
-      <LanguageStandard>stdcpp17</LanguageStandard>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-    </ClCompile>
-    <Link>
-      <SubSystem>Windows</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Debug;$(SolutionDir)External\DirectXTex\lib\Debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmodL_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
-    </Link>
-    <PostBuildEvent>
-      <Command>
-        IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
-        IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\bin\Debug\*" xcopy "$(SolutionDir)External\bin\Debug\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Release\*" xcopy "$(SolutionDir)External\Bin\Release\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Library\fmod\*.dll" xcopy "$(SolutionDir)External\Library\fmod\*.dll" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Debug\*" xcopy "$(SolutionDir)ThirdParty\Bin\Debug\*" "$(OutDir)" /E /I /Y
         :VCEnd
       </Command>
     </PostBuildEvent>
@@ -232,10 +130,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;FBXSDK_SHARED;_WINDOWS;WITH_EDITOR=1;USE_DDS_CACHE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -244,17 +142,46 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Release;$(SolutionDir)External\DirectXTex\lib\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmod_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>;$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
       <Command>
         IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
         IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\bin\Debug\*" xcopy "$(SolutionDir)External\bin\Debug\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Release\*" xcopy "$(SolutionDir)External\Bin\Release\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Library\fmod\*.dll" xcopy "$(SolutionDir)External\Library\fmod\*.dll" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\bin\Debug\*" xcopy "$(SolutionDir)ThirdParty\bin\Debug\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Release\*" xcopy "$(SolutionDir)ThirdParty\Bin\Release\*" "$(OutDir)" /E /I /Y
+        :VCEnd
+      </Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;FBXSDK_SHARED;_WINDOWS;_DEVELOP=1;STAND_ALONE=1;USE_DDS_CACHE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;</AdditionalIncludeDirectories>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <AdditionalOptions>/utf-8 %(AdditionalOptions) /FS /bigobj</AdditionalOptions>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>;$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
+    </Link>
+    <PostBuildEvent>
+      <Command>
+        IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
+        IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Debug\*" xcopy "$(SolutionDir)ThirdParty\Bin\Debug\*" "$(OutDir)" /E /I /Y
         :VCEnd
       </Command>
     </PostBuildEvent>
@@ -265,10 +192,10 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;STAND_ALONE=1;USE_DDS_CACHE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;FBXSDK_SHARED;_WINDOWS;STAND_ALONE=1;USE_DDS_CACHE;%(PreprocessorDefinitions);</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)External\Include;$(SolutionDir)External\DirectXTex\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)Source;$(SolutionDir)ThirdParty\Include;$(SolutionDir)ThirdParty\Include\FBX;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalOptions>/utf-8 %(AdditionalOptions) /bigobj</AdditionalOptions>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -277,25 +204,29 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>;$(SolutionDir)External\Library;$(SolutionDir)External\Library\fmod;$(SolutionDir)External\Library\fmod\Release;$(SolutionDir)External\DirectXTex\lib\Release</AdditionalLibraryDirectories>
-      <AdditionalDependencies>fmod_vc.lib;DirectXTex.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>;$(SolutionDir)ThirdParty\Library</AdditionalLibraryDirectories>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
       <IgnoreSpecificWarnings>4099</IgnoreSpecificWarnings>
     </Link>
     <PostBuildEvent>
       <Command>
         IF EXIST "$(ProjectDir)Asset" xcopy "$(ProjectDir)Asset" "$(OutDir)Asset" /E /I /Y
         IF EXIST "$(ProjectDir)Data" xcopy "$(ProjectDir)Data" "$(OutDir)Data" /E /I /Y
-        IF EXIST "$(SolutionDir)External\bin\Release\*" xcopy "$(SolutionDir)External\bin\Release\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Bin\Release\*" xcopy "$(SolutionDir)External\Bin\Release\*" "$(OutDir)" /E /I /Y
-        IF EXIST "$(SolutionDir)External\Library\fmod\*.dll" xcopy "$(SolutionDir)External\Library\fmod\*.dll" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\bin\Release\*" xcopy "$(SolutionDir)ThirdParty\bin\Release\*" "$(OutDir)" /E /I /Y
+        IF EXIST "$(SolutionDir)ThirdParty\Bin\Release\*" xcopy "$(SolutionDir)ThirdParty\Bin\Release\*" "$(OutDir)" /E /I /Y
         :VCEnd
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Actor\Public\SkeletalMeshActor.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMesh.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMeshComponent.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\SkinnedMeshComponent.h" />
     <ClInclude Include="Source\Component\Public\SpringArmComponent.h" />
     <ClInclude Include="Source\Global\CurveTypes.h" />
     <ClInclude Include="Source\Level\Public\CurveLibrary.h" />
+    <ClInclude Include="Source\Manager\Sound\Public\SoundManager.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier.h" />
     <ClInclude Include="Source\Render\Camera\Public\CameraModifier_CameraShake.h" />
     <ClInclude Include="pch.h" />
@@ -367,7 +298,9 @@
     <ClInclude Include="Source\Global\Rotator.h" />
     <ClInclude Include="Source\Level\Public\GameInstance.h" />
     <ClInclude Include="Source\Level\Public\World.h" />
+    <ClInclude Include="Source\Render\RenderPass\Public\SkeletalMeshPass.h" />
     <ClInclude Include="Source\Render\UI\Viewport\Public\GameViewportClient.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\FbxImporter.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjManager.h" />
     <ClInclude Include="Source\Manager\Asset\Public\TextureManager.h" />
@@ -465,6 +398,7 @@
     <ClInclude Include="Source\Render\UI\Overlay\Public\D2DOverlayManager.h" />
     <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapFilterPass.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\ScriptComponentWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\SkeletalMeshComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\CurveEditorWindow.h" />
     <ClInclude Include="Source\Runtime\Core\Public\Containers\TArray.h" />
     <ClInclude Include="Source\Runtime\Core\Public\Containers\TMap.h" />
@@ -539,6 +473,10 @@
     <ClInclude Include="Source\Utility\Public\UELogParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Actor\Private\SkeletalMeshActor.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMesh.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMeshComponent.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\SkinnedMeshComponent.cpp" />
     <ClCompile Include="Source\Component\Private\SpringArmComponent.cpp" />
     <ClCompile Include="Source\Level\Private\CurveLibrary.cpp" />
     <ClCompile Include="Source\Render\Camera\Private\CameraModifier.cpp" />
@@ -615,8 +553,10 @@
     <ClCompile Include="Source\Global\Quaternion.cpp" />
     <ClCompile Include="Source\Level\Private\GameInstance.cpp" />
     <ClCompile Include="Source\Level\Private\World.cpp" />
+    <ClCompile Include="Source\Render\RenderPass\Private\SkeletalMeshPass.cpp" />
     <ClCompile Include="Source\Render\UI\Viewport\Private\GameViewportClient.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\FbxImporter.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\ObjManager.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\TextureManager.cpp" />
@@ -694,6 +634,7 @@
     <ClCompile Include="Source\Render\UI\Overlay\Private\D2DOverlayManager.cpp" />
     <ClCompile Include="Source\Render\UI\Overlay\Private\StatOverlay.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\ScriptComponentWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\SkeletalMeshComponentWidget.cpp" />
     <ClCompile Include="Source\Subsystem\Private\EngineSubsystem.cpp" />
     <ClCompile Include="Source\Subsystem\Private\Subsystem.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\CurveEditorWindow.cpp" />
@@ -752,94 +693,81 @@
     <ClCompile Include="Source\Utility\Private\UELogParser.cpp" />
     <FxCompile Include="Asset\Shader\DepthOnly.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\LinearDepthOnly.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\UberLit.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\ViewClusterCS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\ClusteredLightCullingCS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\ClusteredRenderingGrid.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\ClusterGizmoSetCS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\GizmoLine.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\HeightFogShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\HitProxyShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\BlitPS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\BlitVS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\FadePS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -853,80 +781,69 @@
   <ItemGroup>
     <FxCompile Include="Asset\Shader\SceneDepthShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\FXAAShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\DecalShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\TexturePS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\SampleShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\BatchLineShader.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\ShaderFont.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\TextureVS.hlsl">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\ClusteredRenderingCS.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <FxCompile Include="Asset\Shader\LightStructures.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </FxCompile>
     <None Include="Asset\Shader\LightingFunctions.hlsli">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='StandAlone_Release|x64'">true</ExcludedFromBuild>
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='ObjViewerDebug|x64'">true</ExcludedFromBuild>
     </None>
   </ItemGroup>
   <ItemGroup>

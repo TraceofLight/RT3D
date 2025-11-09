@@ -121,7 +121,7 @@ private:
 public:
     UClass* GetSpecificWidgetClass() const override;
     UObject* Duplicate() override;
-    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 };
 
 // ============================================================================

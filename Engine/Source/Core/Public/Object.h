@@ -35,7 +35,7 @@ public:
 	virtual ~UObject();
 
 	// 가상 함수 (인터페이스)
-	virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle);
+	virtual void Serialize(bool bInIsLoading, JSON& InOutHandle);
 
 	// Public 멤버 함수
 	bool IsA(UClass* InClass) const;

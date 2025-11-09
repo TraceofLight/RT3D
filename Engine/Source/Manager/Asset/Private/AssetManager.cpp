@@ -4,7 +4,9 @@
 #include "Component/Mesh/Public/VertexDatas.h"
 #include "Physics/Public/AABB.h"
 #include "Texture/Public/Texture.h"
+#include "Texture/Public/Material.h"
 #include "Manager/Asset/Public/ObjManager.h"
+#include "Manager/Asset/Public/FbxImporter.h"
 #include "Manager/Path/Public/PathManager.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 
@@ -21,6 +23,8 @@ void UAssetManager::Initialize()
 	TextureManager->LoadAllTexturesFromDirectory(UPathManager::GetInstance().GetDataPath());
 	// Data 폴더 속 모든 .obj 파일 로드 및 캐싱
 	LoadAllObjStaticMesh();
+	// Data/Fbx 폴더 속 모든 .fbx 파일 로드 및 캐싱 (Static/Skeletal 자동 판별)
+	LoadAllFbxMeshes();
 
 	VertexDatas.Emplace(EPrimitiveType::Torus, &VerticesTorus);
 	VertexDatas.Emplace(EPrimitiveType::Arrow, &VerticesArrow);
@@ -34,7 +38,7 @@ void UAssetManager::Initialize()
 		FRenderResourceFactory::CreateIndexBuffer(IndicesVerticalSquare.GetData(), static_cast<int>(IndicesVerticalSquare.Num()) * sizeof(uint32)));
 
 	NumIndices.Emplace(EPrimitiveType::Sprite, static_cast<uint32>(IndicesVerticalSquare.Num()));
-	
+
 	VertexBuffers.Emplace(EPrimitiveType::Torus, FRenderResourceFactory::CreateVertexBuffer(
 		VerticesTorus.GetData(), static_cast<int>(VerticesTorus.Num() * sizeof(FNormalVertex))));
 	VertexBuffers.Emplace(EPrimitiveType::Arrow, FRenderResourceFactory::CreateVertexBuffer(
@@ -54,7 +58,7 @@ void UAssetManager::Initialize()
 	NumVertices.Emplace(EPrimitiveType::Ring, static_cast<uint32>(VerticesRing.Num()));
 	NumVertices.Emplace(EPrimitiveType::Line, static_cast<uint32>(VerticesLine.Num()));
 	NumVertices.Emplace(EPrimitiveType::Sprite, static_cast<uint32>(VerticesVerticalSquare.Num()));
-	
+
 	// Calculate AABB for all primitive types (excluding StaticMesh)
 	for (const auto& Pair : VertexDatas)
 	{
@@ -116,7 +120,7 @@ void UAssetManager::Release()
 	// TMap.Empty()
 	VertexBuffers.Empty();
 	IndexBuffers.Empty();
-	
+
 	SafeDelete(TextureManager);
 }
 
@@ -128,7 +132,7 @@ void UAssetManager::LoadAllObjStaticMesh()
 	TArray<FName> ObjList;
 	const FString DataDirectory = "Data/"; // 검색할 기본 디렉토리
 	// 디렉토리가 실제로 존재하는지 먼저 확인합니다.
-	if (std::filesystem::exists(DataDirectory) && std::filesystem::is_directory(DataDirectory))
+	if (exists(DataDirectory) && std::filesystem::is_directory(DataDirectory))
 	{
 		// recursive_directory_iterator를 사용하여 디렉토리와 모든 하위 디렉토리를 순회합니다.
 		for (const auto& Entry : std::filesystem::recursive_directory_iterator(DataDirectory))
@@ -142,12 +146,13 @@ void UAssetManager::LoadAllObjStaticMesh()
 				// 찾은 파일 경로를 FName으로 변환하여 ObjList에 추가합니다.
 				ObjList.Emplace(FName(PathString));
 			}
+			// FBX 파일은 LoadAllFbxMeshes()에서 처리하므로 여기서는 제외
 		}
 	}
 
-	// Enable winding order flip for this OBJ file
+	// CW 와인딩
 	FObjImporter::Configuration Config;
-	Config.bFlipWindingOrder = false;
+	Config.bFlipWindingOrder = true;
 	Config.bIsBinaryEnabled = true;
 	Config.bPositionToUEBasis = true;
 	Config.bNormalToUEBasis = true;
@@ -182,12 +187,16 @@ ID3D11Buffer* UAssetManager::GetIndexBuffer(FName InObjPath)
 
 ID3D11Buffer* UAssetManager::CreateVertexBuffer(TArray<FNormalVertex> InVertices)
 {
-	return FRenderResourceFactory::CreateVertexBuffer(InVertices.GetData(), static_cast<int>(InVertices.Num()) * sizeof(FNormalVertex));
+	return FRenderResourceFactory::CreateVertexBuffer(
+		InVertices.GetData(), InVertices.Num() * sizeof(FNormalVertex)
+	);
 }
 
 ID3D11Buffer* UAssetManager::CreateIndexBuffer(TArray<uint32> InIndices)
 {
-	return FRenderResourceFactory::CreateIndexBuffer(InIndices.GetData(), static_cast<int>(InIndices.Num()) * sizeof(uint32));
+	return FRenderResourceFactory::CreateIndexBuffer(
+		InIndices.GetData(), InIndices.Num() * sizeof(uint32)
+	);
 }
 
 TArray<FNormalVertex>* UAssetManager::GetVertexData(EPrimitiveType InType)
@@ -195,7 +204,7 @@ TArray<FNormalVertex>* UAssetManager::GetVertexData(EPrimitiveType InType)
 	return VertexDatas[InType];
 }
 
-ID3D11Buffer* UAssetManager::GetVertexbuffer(EPrimitiveType InType)
+ID3D11Buffer* UAssetManager::GetVertexBuffer(EPrimitiveType InType)
 {
 	return VertexBuffers[InType];
 }
@@ -253,6 +262,170 @@ void UAssetManager::AddStaticMeshToCache(const FName& InObjPath, UStaticMesh* In
 	}
 }
 
+void UAssetManager::AddVertexBufferToCache(const FName& InObjPath, ID3D11Buffer* InBuffer)
+{
+	if (!InBuffer)
+	{
+		return;
+	}
+
+	if (!StaticMeshVertexBuffers.Contains(InObjPath))
+	{
+		StaticMeshVertexBuffers.Add(InObjPath, InBuffer);
+	}
+}
+
+void UAssetManager::AddIndexBufferToCache(const FName& InObjPath, ID3D11Buffer* InBuffer)
+{
+	if (!InBuffer)
+	{
+		return;
+	}
+
+	if (!StaticMeshIndexBuffers.Contains(InObjPath))
+	{
+		StaticMeshIndexBuffers.Add(InObjPath, InBuffer);
+	}
+}
+
+void UAssetManager::AddStaticMeshAABB(const FName& InObjPath, const FAABB& InAABB)
+{
+	if (!StaticMeshAABBs.Contains(InObjPath))
+	{
+		StaticMeshAABBs.Add(InObjPath, InAABB);
+	}
+}
+
+void UAssetManager::AddSkeletalMeshToCache(const FName& InFbxPath, USkeletalMesh* InMesh)
+{
+	if (!InMesh)
+	{
+		return;
+	}
+
+	if (!SkeletalMeshCache.Contains(InFbxPath))
+	{
+		SkeletalMeshCache.Add(InFbxPath, InMesh);
+	}
+}
+
+USkeletalMesh* UAssetManager::GetSkeletalMeshFromCache(const FName& InFbxPath)
+{
+	if (SkeletalMeshCache.Contains(InFbxPath))
+	{
+		return SkeletalMeshCache[InFbxPath];
+	}
+	return nullptr;
+}
+
+USkeletalMesh* UAssetManager::LoadSkeletalMesh(const FName& InFbxPath)
+{
+	// 캐시에 이미 있으면 반환
+	USkeletalMesh* CachedMesh = GetSkeletalMeshFromCache(InFbxPath);
+	if (CachedMesh)
+	{
+		return CachedMesh;
+	}
+
+	// 파일에서 로드
+	FString PathString = InFbxPath.ToString();
+	FFbxImporter& Parser = FFbxImporter::GetInstance();
+	FSkeletalMesh* SkeletalMeshData = new FSkeletalMesh();
+
+	if (Parser.LoadSkeletalMesh(PathString, *SkeletalMeshData))
+	{
+		USkeletalMesh* LoadedMesh = new USkeletalMesh();
+		LoadedMesh->SetSkeletalMeshAsset(SkeletalMeshData);
+		LoadedMesh->SetAssetPath(InFbxPath);
+
+		// FBX 파일이 있는 디렉토리 경로
+		path FbxPath(PathString);
+		path FbxDirectory = FbxPath.parent_path();
+
+		// MaterialInfo에서 UMaterial 생성 및 텍스처 로드
+		for (int32 MaterialIndex = 0; MaterialIndex < SkeletalMeshData->MaterialInfo.Num(); ++MaterialIndex)
+		{
+			const FMaterial& MaterialInfo = SkeletalMeshData->MaterialInfo[MaterialIndex];
+			UMaterial* Material = NewObject<UMaterial>();
+			Material->SetName(MaterialInfo.Name);
+			Material->SetMaterialData(MaterialInfo);
+
+			// Diffuse 텍스처 로드
+			if (!MaterialInfo.DiffuseTexturePath.IsEmpty())
+			{
+				FString TexturePathStr = (FbxDirectory / MaterialInfo.DiffuseTexturePath).generic_string();
+				if (exists(TexturePathStr))
+				{
+					UTexture* DiffuseTexture = LoadTexture(TexturePathStr);
+					if (DiffuseTexture)
+					{
+						Material->SetDiffuseTexture(DiffuseTexture);
+					}
+				}
+			}
+
+			// Normal 텍스처 로드
+			if (!MaterialInfo.NormalTexturePath.IsEmpty())
+			{
+				FString TexturePathStr = (FbxDirectory / MaterialInfo.NormalTexturePath).generic_string();
+				if (exists(TexturePathStr))
+				{
+					UTexture* NormalTexture = LoadTexture(TexturePathStr);
+					if (NormalTexture)
+					{
+						Material->SetNormalTexture(NormalTexture);
+					}
+				}
+			}
+
+			// Specular 텍스처 로드
+			if (!MaterialInfo.SpecularTexturePath.IsEmpty())
+			{
+				FString TexturePathStr = (FbxDirectory / MaterialInfo.SpecularTexturePath).generic_string();
+				if (exists(TexturePathStr))
+				{
+					UTexture* SpecularTexture = LoadTexture(TexturePathStr);
+					if (SpecularTexture)
+					{
+						Material->SetSpecularTexture(SpecularTexture);
+					}
+				}
+			}
+
+			LoadedMesh->SetMaterial(MaterialIndex, Material);
+		}
+
+		AddSkeletalMeshToCache(InFbxPath, LoadedMesh);
+
+		// GPU 버퍼 생성
+		FSkeletalMeshBuffers Buffers;
+		for (const auto& Section : SkeletalMeshData->Sections)
+		{
+			ID3D11Buffer* VertexBuffer = CreateSkeletalVertexBuffer(Section.Vertices);
+			ID3D11Buffer* IndexBuffer = CreateIndexBuffer(Section.Indices);
+			Buffers.SectionVertexBuffers.Add(VertexBuffer);
+			Buffers.SectionIndexBuffers.Add(IndexBuffer);
+		}
+		SkeletalMeshBuffers.Emplace(InFbxPath, Buffers);
+
+		return LoadedMesh;
+	}
+	else
+	{
+		delete SkeletalMeshData;
+		return nullptr;
+	}
+}
+
+FSkeletalMeshBuffers* UAssetManager::GetSkeletalMeshBuffers(const FName& InFbxPath)
+{
+	if (SkeletalMeshBuffers.Contains(InFbxPath))
+	{
+		return &SkeletalMeshBuffers[InFbxPath];
+	}
+	return nullptr;
+}
+
 /**
  * @brief Vertex 배열로부터 AABB(Axis-Aligned Bounding Box)를 계산하는 헬퍼 함수
  * @param Vertices 정점 데이터 배열
@@ -294,4 +467,93 @@ UTexture* UAssetManager::LoadTexture(const FName& InFilePath)
 const TMap<FName, UTexture*>& UAssetManager::GetTextureCache() const
 {
 	return TextureManager->GetTextureCache();
+}
+
+/**
+ * @brief Data/Fbx 경로 하위의 모든 .fbx 파일을 로드하여 캐싱 (Static/Skeletal 자동 판별)
+ */
+void UAssetManager::LoadAllFbxMeshes()
+{
+	TArray<FName> FbxList;
+	const FString DataDirectory = "Data/Fbx"; // FBX 전용 디렉토리
+
+	// 디렉토리 존재 확인
+	if (!exists(DataDirectory) || !std::filesystem::is_directory(DataDirectory))
+	{
+		return; // Data/Fbx 폴더가 없으면 조용히 반환
+	}
+
+	// .fbx 파일 찾기 (대소문자 구분 없이)
+	for (const auto& Entry : std::filesystem::recursive_directory_iterator(DataDirectory))
+	{
+		if (Entry.is_regular_file())
+		{
+			FString Extension = Entry.path().extension().string();
+			// 대소문자 구분 없이 .fbx 확인
+			if (Extension == ".fbx" || Extension == ".FBX" || Extension == ".Fbx")
+			{
+				FString PathString = Entry.path().generic_string();
+				FbxList.Emplace(FName(PathString));
+			}
+		}
+	}
+
+	// 각 FBX 파일을 Static/Skeletal 판별하여 로딩
+	for (const FName& FbxPath : FbxList)
+	{
+		FString PathString = FbxPath.ToString();
+
+		// Skeletal Mesh 여부 판별
+		bool bIsSkeletal = FFbxImporter::IsSkeletalMesh(PathString);
+
+		if (bIsSkeletal)
+		{
+			// LoadSkeletalMesh 함수 호출 (Material 로딩 포함)
+			USkeletalMesh* LoadedMesh = LoadSkeletalMesh(FbxPath);
+			if (LoadedMesh)
+			{
+				UE_LOG("AssetManager: Loaded Skeletal Mesh: %s (Materials: %d)",
+					PathString.c_str(), LoadedMesh->GetNumMaterials());
+			}
+		}
+		else
+		{
+			// Static Mesh 로딩
+			FFbxImporter& Parser = FFbxImporter::GetInstance();
+			FStaticMesh* StaticMeshData = new FStaticMesh();
+			if (Parser.LoadStaticMesh(PathString, *StaticMeshData))
+			{
+				UStaticMesh* LoadedMesh = new UStaticMesh();
+				LoadedMesh->SetStaticMeshAsset(StaticMeshData);
+
+				// Cache에 추가 (Add 함수 사용)
+				AddStaticMeshToCache(FbxPath, LoadedMesh);
+
+				// GPU 버퍼 생성 (Add 함수 사용)
+				ID3D11Buffer* VertexBuffer = CreateVertexBuffer(StaticMeshData->Vertices);
+				ID3D11Buffer* IndexBuffer = CreateIndexBuffer(StaticMeshData->Indices);
+				AddVertexBufferToCache(FbxPath, VertexBuffer);
+				AddIndexBufferToCache(FbxPath, IndexBuffer);
+
+				// AABB 계산 (Add 함수 사용)
+				FAABB MeshAABB = CalculateAABB(StaticMeshData->Vertices);
+				AddStaticMeshAABB(FbxPath, MeshAABB);
+
+				UE_LOG("AssetManager: Loaded Static Mesh: %s (Vertices: %d)", PathString.c_str(), StaticMeshData->Vertices.Num());
+			}
+			else
+			{
+				delete StaticMeshData;
+			}
+		}
+	}
+}
+
+ID3D11Buffer* UAssetManager::CreateSkeletalVertexBuffer(const TArray<FSkeletalVertex>& InVertices)
+{
+	// FSkeletalVertex를 FNormalVertex*로 reinterpret_cast (구조체 레이아웃 호환)
+	return FRenderResourceFactory::CreateVertexBuffer(
+		reinterpret_cast<FNormalVertex*>(const_cast<FSkeletalVertex*>(InVertices.GetData())),
+		static_cast<int>(InVertices.Num() * sizeof(FSkeletalVertex))
+	);
 }

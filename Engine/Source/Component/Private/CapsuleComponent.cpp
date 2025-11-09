@@ -134,7 +134,7 @@ UObject* UCapsuleComponent::Duplicate()
 	return NewCapsule;
 }
 
-void UCapsuleComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UCapsuleComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

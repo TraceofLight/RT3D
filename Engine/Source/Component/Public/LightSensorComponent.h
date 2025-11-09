@@ -41,7 +41,7 @@ public:
 	    UObject Features
 	 -----------------------------------------------------------------------------*/
 public:
-	virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	virtual void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 	virtual UObject* Duplicate() override;
 
 	/*-----------------------------------------------------------------------------

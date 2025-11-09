@@ -35,7 +35,7 @@ public:
 
 	virtual void Init();
 
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 	const TArray<AActor*>& GetLevelActors() const { return LevelActors; }
 	const TArray<AActor*>& GetTemplateActors() const { return TemplateActors; }
@@ -117,6 +117,7 @@ private:
 	uint64 ShowFlags =
 		static_cast<uint64>(EEngineShowFlags::SF_Billboard) |
 		static_cast<uint64>(EEngineShowFlags::SF_StaticMesh) |
+		static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh) |
 		static_cast<uint64>(EEngineShowFlags::SF_Text) |
 		static_cast<uint64>(EEngineShowFlags::SF_Decal) |
 		static_cast<uint64>(EEngineShowFlags::SF_Fog) |

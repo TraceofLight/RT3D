@@ -93,7 +93,7 @@ void UUUIDTextComponent::UpdateRotationMatrix(const FVector& InCameraForward)
 	RTMatrix *= FMatrix::TranslationMatrix(Translation);
 }
 
-void UUUIDTextComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UUUIDTextComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	UTextComponent::Serialize(bInIsLoading, InOutHandle);
 	if (bInIsLoading)

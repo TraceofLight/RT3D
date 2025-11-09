@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Public/Class.h"       // UObject 기반 클래스 및 매크로
+#include "Core/Public/Class.h"
 #include "Source/Component/Public/PrimitiveComponent.h"
 
 UCLASS();

@@ -13,7 +13,7 @@ UActorComponent::~UActorComponent()
 	SetOuter(nullptr);
 }
 
-void UActorComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UActorComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 	if (bInIsLoading)
@@ -21,7 +21,7 @@ void UActorComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
 		FString IsEditorOnlyString;
 		FJsonSerializer::ReadString(InOutHandle, "IsEditorOnly", IsEditorOnlyString, "false");
 		bIsEditorOnly = IsEditorOnlyString == "true";
-		
+
 		FString IsVisualizationString;
 		FJsonSerializer::ReadString(InOutHandle, "IsVisualizationComponent", IsVisualizationString, "false");
 		bIsVisualizationComponent =  IsVisualizationString == "true";
@@ -40,7 +40,7 @@ void UActorComponent::BeginPlay()
 }
 
 void UActorComponent::TickComponent(float DeltaTime)
-{   
+{
 
 }
 

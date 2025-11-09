@@ -140,6 +140,38 @@ ID3D11Buffer* FRenderResourceFactory::CreateIndexBuffer(const void* InIndices, u
 	return IndexBuffer;
 }
 
+ID3D11Buffer* FRenderResourceFactory::CreateDynamicVertexBuffer(const void* InVertices, int32 InByteWidth)
+{
+	D3D11_BUFFER_DESC Desc = {};
+	Desc.ByteWidth = InByteWidth;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	D3D11_SUBRESOURCE_DATA InitData = {};
+	InitData.pSysMem = InVertices;
+
+	ID3D11Buffer* VertexBuffer = nullptr;
+	URenderer::GetInstance().GetDevice()->CreateBuffer(&Desc, &InitData, &VertexBuffer);
+	return VertexBuffer;
+}
+
+ID3D11Buffer* FRenderResourceFactory::CreateDynamicIndexBuffer(const void* InIndices, int32 InByteWidth)
+{
+	D3D11_BUFFER_DESC Desc = {};
+	Desc.ByteWidth = InByteWidth;
+	Desc.Usage = D3D11_USAGE_DYNAMIC;
+	Desc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	Desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
+	D3D11_SUBRESOURCE_DATA InitData = {};
+	InitData.pSysMem = InIndices;
+
+	ID3D11Buffer* IndexBuffer = nullptr;
+	URenderer::GetInstance().GetDevice()->CreateBuffer(&Desc, &InitData, &IndexBuffer);
+	return IndexBuffer;
+}
+
 void FRenderResourceFactory::CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** OutPixelShader)
 {
 	const char* EntryPoint = "mainPS";
@@ -300,7 +332,7 @@ ID3D11RasterizerState* FRenderResourceFactory::GetRasterizerState(const FRenderS
 	D3D11_RASTERIZER_DESC RasterizerDesc = {};
 	RasterizerDesc.FillMode = Key.FillMode;
 	RasterizerDesc.CullMode = Key.CullMode;
-	RasterizerDesc.FrontCounterClockwise = TRUE;
+	RasterizerDesc.FrontCounterClockwise = FALSE;
 	RasterizerDesc.DepthClipEnable = TRUE;
 
 	ID3D11RasterizerState* RasterizerState = nullptr;

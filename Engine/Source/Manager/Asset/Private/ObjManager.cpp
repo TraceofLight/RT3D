@@ -221,20 +221,20 @@ FStaticMesh* FObjManager::LoadObjStaticMeshAsset(const FName& PathFileName, cons
 			if (MaterialName == ObjInfo.ObjectMaterialInfoList[j].Name)
 			{
 				StaticMesh->MaterialInfo[CurrentMaterialSlot].Name = std::move(ObjInfo.ObjectMaterialInfoList[j].Name);
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].Ka = ObjInfo.ObjectMaterialInfoList[j].Ka;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].Kd = ObjInfo.ObjectMaterialInfoList[j].Kd;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].Ks = ObjInfo.ObjectMaterialInfoList[j].Ks;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].Ke = ObjInfo.ObjectMaterialInfoList[j].Ke;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].Ns = ObjInfo.ObjectMaterialInfoList[j].Ns;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].Ni = ObjInfo.ObjectMaterialInfoList[j].Ni;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].D = ObjInfo.ObjectMaterialInfoList[j].D;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].Illumination = ObjInfo.ObjectMaterialInfoList[j].Illumination;
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].KaMap = std::move(ObjInfo.ObjectMaterialInfoList[j].KaMap);
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].KdMap = std::move(ObjInfo.ObjectMaterialInfoList[j].KdMap);
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].KsMap = std::move(ObjInfo.ObjectMaterialInfoList[j].KsMap);
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].NsMap = std::move(ObjInfo.ObjectMaterialInfoList[j].NsMap);
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].DMap = std::move(ObjInfo.ObjectMaterialInfoList[j].DMap);
-				StaticMesh->MaterialInfo[CurrentMaterialSlot].BumpMap = std::move(ObjInfo.ObjectMaterialInfoList[j].BumpMap);
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].Ambient = ObjInfo.ObjectMaterialInfoList[j].Ka;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].Diffuse = ObjInfo.ObjectMaterialInfoList[j].Kd;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].Specular = ObjInfo.ObjectMaterialInfoList[j].Ks;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].Emissive = ObjInfo.ObjectMaterialInfoList[j].Ke;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].Shininess = ObjInfo.ObjectMaterialInfoList[j].Ns;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].RefractiveIndex = ObjInfo.ObjectMaterialInfoList[j].Ni;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].Opacity = ObjInfo.ObjectMaterialInfoList[j].D;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].IlluminationModel = ObjInfo.ObjectMaterialInfoList[j].Illumination;
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].AmbientTexturePath = std::move(ObjInfo.ObjectMaterialInfoList[j].KaMap);
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].DiffuseTexturePath = std::move(ObjInfo.ObjectMaterialInfoList[j].KdMap);
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].SpecularTexturePath = std::move(ObjInfo.ObjectMaterialInfoList[j].KsMap);
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].ShininessTexturePath = std::move(ObjInfo.ObjectMaterialInfoList[j].NsMap);
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].OpacityTexturePath = std::move(ObjInfo.ObjectMaterialInfoList[j].DMap);
+				StaticMesh->MaterialInfo[CurrentMaterialSlot].NormalTexturePath = std::move(ObjInfo.ObjectMaterialInfoList[j].BumpMap);
 
 				MaterialNameToSlot.Emplace(MaterialName, CurrentMaterialSlot);
 				CurrentMaterialSlot++;
@@ -247,11 +247,11 @@ FStaticMesh* FObjManager::LoadObjStaticMeshAsset(const FName& PathFileName, cons
 		// Use a shared default material name to prevent duplicates
 		StaticMesh->MaterialInfo.SetNum(1);
 		StaticMesh->MaterialInfo[0].Name = "DefaultMaterial";
-		StaticMesh->MaterialInfo[0].Kd = FVector(0.9f, 0.9f, 0.9f);
-		StaticMesh->MaterialInfo[0].Ka = FVector(0.2f, 0.2f, 0.2f);
-		StaticMesh->MaterialInfo[0].Ks = FVector(0.5f, 0.5f, 0.5f);
-		StaticMesh->MaterialInfo[0].Ns = 32.0f;
-		StaticMesh->MaterialInfo[0].D = 1.0f;
+		StaticMesh->MaterialInfo[0].Diffuse = FVector(0.9f, 0.9f, 0.9f);
+		StaticMesh->MaterialInfo[0].Ambient = FVector(0.2f, 0.2f, 0.2f);
+		StaticMesh->MaterialInfo[0].Specular = FVector(0.5f, 0.5f, 0.5f);
+		StaticMesh->MaterialInfo[0].Shininess = 32.0f;
+		StaticMesh->MaterialInfo[0].Opacity = 1.0f;
 	}
 
 	/** #4. 오브젝트의 서브메쉬 정보를 저장 */
@@ -336,10 +336,10 @@ void FObjManager::CreateMaterialsFromMTL(UStaticMesh* StaticMesh, FStaticMesh* S
 		}
 
 		// Diffuse 텍스처 로드 (map_Kd)
-		if (!MaterialInfo.KdMap.IsEmpty())
+		if (!MaterialInfo.DiffuseTexturePath.IsEmpty())
 		{
 			// .generic_string()을 사용하여 경로를 '/'로 통일하고 std::replace 제거
-			FString TexturePathStr = (ObjDirectory / MaterialInfo.KdMap).generic_string();
+			FString TexturePathStr = (ObjDirectory / MaterialInfo.DiffuseTexturePath).generic_string();
 
 			if (std::filesystem::exists(TexturePathStr))
 			{
@@ -352,9 +352,9 @@ void FObjManager::CreateMaterialsFromMTL(UStaticMesh* StaticMesh, FStaticMesh* S
 		}
 
 		// Ambient 텍스처 로드 (map_Ka)
-		if (!MaterialInfo.KaMap.IsEmpty())
+		if (!MaterialInfo.AmbientTexturePath.IsEmpty())
 		{
-			FString TexturePathStr = (ObjDirectory / MaterialInfo.KaMap).generic_string();
+			FString TexturePathStr = (ObjDirectory / MaterialInfo.AmbientTexturePath).generic_string();
 
 			if (std::filesystem::exists(TexturePathStr))
 			{
@@ -367,9 +367,9 @@ void FObjManager::CreateMaterialsFromMTL(UStaticMesh* StaticMesh, FStaticMesh* S
 		}
 
 		// Specular 텍스처 로드 (map_Ks)
-		if (!MaterialInfo.KsMap.IsEmpty())
+		if (!MaterialInfo.SpecularTexturePath.IsEmpty())
 		{
-			FString TexturePathStr = (ObjDirectory / MaterialInfo.KsMap).generic_string();
+			FString TexturePathStr = (ObjDirectory / MaterialInfo.SpecularTexturePath).generic_string();
 
 			if (std::filesystem::exists(TexturePathStr))
 			{
@@ -382,23 +382,23 @@ void FObjManager::CreateMaterialsFromMTL(UStaticMesh* StaticMesh, FStaticMesh* S
 		}
 
 		// Alpha 텍스처 로드 (map_d)
-		if (!MaterialInfo.DMap.IsEmpty())
+		if (!MaterialInfo.OpacityTexturePath.IsEmpty())
 		{
-			FString TexturePathStr = (ObjDirectory / MaterialInfo.DMap).generic_string();
+			FString TexturePathStr = (ObjDirectory / MaterialInfo.OpacityTexturePath).generic_string();
 
 			if (std::filesystem::exists(TexturePathStr))
 			{
 				UTexture* AlphaTexture = AssetManager.LoadTexture(TexturePathStr);
 				if (AlphaTexture)
 				{
-					Material->SetAlphaTexture(AlphaTexture);
+					Material->SetOpacityTexture(AlphaTexture);
 				}
 			}
 		}
 		// Normal(=map_Bump) 텍스처 로드
-		if (!MaterialInfo.BumpMap.IsEmpty())
+		if (!MaterialInfo.NormalTexturePath.IsEmpty())
 		{
-			FString TexturePathStr = (ObjDirectory / MaterialInfo.BumpMap).generic_string();
+			FString TexturePathStr = (ObjDirectory / MaterialInfo.NormalTexturePath).generic_string();
 			if (std::filesystem::exists(TexturePathStr))
 			{
 				UTexture* NormalMapTexture = AssetManager.LoadTexture(TexturePathStr);

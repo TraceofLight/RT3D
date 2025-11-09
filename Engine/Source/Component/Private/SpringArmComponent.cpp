@@ -52,7 +52,7 @@ UObject* USpringArmComponent::Duplicate()
 	return NewSpringArm;
 }
 
-void USpringArmComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void USpringArmComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 
@@ -102,7 +102,7 @@ void USpringArmComponent::UpdateCamera(float DeltaTime)
 	if (Level->LineTraceSingle(Start, IdealEnd, Hit, GetOwner(), ECollisionTag::Score))
 	{
 		constexpr float SafeDistance = -10.0f;
-		FVector Dir = (IdealEnd - Start).GetNormalized();
+		FVector Dir = (IdealEnd - Start).GetSafeNormal();
 		FinalLocation = Hit.Location + Dir * SafeDistance;
 
 		// ArmLength를 실제 충돌 지점까지로 갱신

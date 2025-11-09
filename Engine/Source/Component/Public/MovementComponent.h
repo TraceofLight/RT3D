@@ -7,7 +7,7 @@ class UPrimitiveComponent;
 class UMovementComponent : public UActorComponent
 {
     DECLARE_CLASS(UMovementComponent, UActorComponent)
-    
+
 public:
     UMovementComponent();
     virtual ~UMovementComponent();
@@ -15,7 +15,7 @@ public:
     virtual void BeginPlay() override;
     void SetUpdatedComponent(USceneComponent* NewUpdatedComponent);
     void MoveUpdatedComponent(const FVector& Delta, const FQuaternion& NewRotation);
-    
+
 protected:
     USceneComponent* UpdatedComponent = nullptr;
     UPrimitiveComponent* UpdatedPrimitive = nullptr;
@@ -30,6 +30,6 @@ protected:
     FVector Velocity;
 
 public:
-    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
     UObject* Duplicate() override;
 };

@@ -68,7 +68,7 @@ void FGizmoGeometry::GenerateCircleLineMesh(const FVector& Axis0, const FVector&
 			const FVector Offset = ThicknessAxis1 * (HalfThickness * CosThick) + ThicknessAxis2 * (HalfThickness * SinThick);
 			FNormalVertex Vtx;
 			Vtx.Position = CirclePoint + Offset;
-			Vtx.Normal = Offset.GetNormalized();
+			Vtx.Normal = Offset.GetSafeNormal();
 			Vtx.Color = FVector4(1, 1, 1, 1);
 			OutVertices.Add(Vtx);
 		}
@@ -121,7 +121,7 @@ void FGizmoGeometry::GenerateRotationArcMesh(const FVector& Axis0, const FVector
 		FVector ProjectedStart = StartDirection - ZAxis * StartDirection.Dot(ZAxis);
 		if (ProjectedStart.LengthSquared() > 0.001f)
 		{
-			StartAxis = ProjectedStart.GetNormalized();
+			StartAxis = ProjectedStart.GetSafeNormal();
 		}
 	}
 	const float SignedAngle = AngleInRadians;

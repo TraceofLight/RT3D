@@ -8,7 +8,7 @@
 #include "Utility/Public/TextureConverter.h"
 
 #ifdef USE_DDS_CACHE
-#include <DirectXTex.h>
+#include <DirectXTex/DirectXTex.h>
 #endif
 
 bool FTextureConverter::ConvertToDDS(

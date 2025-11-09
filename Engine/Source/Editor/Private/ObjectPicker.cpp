@@ -364,7 +364,7 @@ bool UObjectPicker::IsCollisionPointInQuarterRing(const FVector& CollisionPoint,
 
 	// 플립 판정
 	const FVector CameraLoc = InClient->GetViewLocation();
-	const FVector DirectionToWidget = (GizmoLocation - CameraLoc).GetNormalized();
+	const FVector DirectionToWidget = (GizmoLocation - CameraLoc).GetSafeNormal();
 	const bool bMirrorAxis0 = (BaseAxis0.Dot(DirectionToWidget) <= 0.0f);
 	const bool bMirrorAxis1 = (BaseAxis1.Dot(DirectionToWidget) <= 0.0f);
 	const FVector StartDir = bMirrorAxis0 ? BaseAxis0 : -BaseAxis0;

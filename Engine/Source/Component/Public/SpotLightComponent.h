@@ -17,12 +17,12 @@ public:
     USpotLightComponent();
 
     virtual ~USpotLightComponent() = default;
-    
+
     /*-----------------------------------------------------------------------------
         UObject Features
      -----------------------------------------------------------------------------*/
 public:
-    virtual void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    virtual void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
     virtual UObject* Duplicate() override;
 
@@ -31,12 +31,12 @@ public:
      -----------------------------------------------------------------------------*/
 public:
     virtual void BeginPlay() override { Super::BeginPlay(); }
-    
+
     virtual void TickComponent(float DeltaTime) override { Super::TickComponent(DeltaTime); }
 
     virtual void EndPlay() override { Super::EndPlay(); }
 
-    virtual UClass* GetSpecificWidgetClass() const override; 
+    virtual UClass* GetSpecificWidgetClass() const override;
 
     /*-----------------------------------------------------------------------------
         UPointLightComponent Features
@@ -52,11 +52,11 @@ public:
 
     // 월드 좌표계에서의 forward vector를 반환합니다.
     FVector GetForwardVector() const;
-    
+
     float GetAngleFalloffExponent() const { return AngleFalloffExponent; }
     float GetOuterConeAngle() const { return OuterConeAngleRad; }
     float GetInnerConeAngle() const { return InnerConeAngleRad; }
-    
+
     void SetAngleFalloffExponent(float const InAngleFalloffExponent) { AngleFalloffExponent = std::clamp(InAngleFalloffExponent, 1.0f, 128.0f); }
     void SetOuterAngle(float const InAttenuationAngleRad);
     void SetInnerAngle(float const InAttenuationAngleRad);

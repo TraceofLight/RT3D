@@ -27,7 +27,7 @@ void URotatingMovementComponent::TickComponent(float DeltaTime)
     MoveUpdatedComponent(DeltaLocation, NewRotation);
 }
 
-void URotatingMovementComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void URotatingMovementComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 

@@ -16,6 +16,8 @@ public:
 	static ID3D11Buffer* CreateVertexBuffer(FNormalVertex* InVertices, uint32 InByteWidth);
 	static ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth, bool bCpuAccess);
 	static ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth);
+	static ID3D11Buffer* CreateDynamicVertexBuffer(const void* InVertices, int32 InByteWidth);
+	static ID3D11Buffer* CreateDynamicIndexBuffer(const void* InIndices, int32 InByteWidth);
 	static void CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** InPixelShader);
 	static void CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** InPixelShader,
 		const char* InEntryPoint, const D3D_SHADER_MACRO* InMacros = nullptr);

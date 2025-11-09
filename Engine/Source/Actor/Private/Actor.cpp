@@ -60,7 +60,7 @@ AActor::~AActor()
 	OwnedComponents.Empty();
 }
 
-void AActor::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void AActor::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
 

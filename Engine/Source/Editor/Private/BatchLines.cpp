@@ -101,7 +101,7 @@ void UBatchLines::UpdateConeVertices(const FVector& InCenter, float InGenerating
 {
 	// SpotLight는 scale의 영향을 받지 않으므로 world transformation matrix 직접 계산
 	FMatrix TranslationMat = FMatrix::TranslationMatrix(InCenter);
-	FMatrix ScaleMat = FMatrix::ScaleMatrix(FVector(InGeneratingLineLength, InGeneratingLineLength, InGeneratingLineLength));
+	FMatrix ScaleMat = FMatrix::ScalingMatrix(FVector(InGeneratingLineLength, InGeneratingLineLength, InGeneratingLineLength));
 	FMatrix RotationMat = InRotation.ToRotationMatrix();
 
 	if (InGeneratingLineLength <= 0.0f)

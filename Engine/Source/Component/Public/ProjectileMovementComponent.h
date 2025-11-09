@@ -18,7 +18,7 @@ public:
     void SetGravityScale(float Scale) { GravityScale = Scale; }
     bool GetRotationFollowsVelocity() const { return bRotationFollowsVelocity; }
     void SetRotationFollowsVelocity(bool InRotationFollowsVelocity) { bRotationFollowsVelocity = InRotationFollowsVelocity; }
-    
+
 protected:
     float InitialSpeed = 0;
     // 0 Is No Limit
@@ -27,7 +27,7 @@ protected:
     bool bRotationFollowsVelocity = false;
 
 public:
-    void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+    void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
     UObject* Duplicate() override;
     UClass* GetSpecificWidgetClass() const override;
 };

@@ -1,12 +1,10 @@
 #include "pch.h"
 #include <fmod/fmod.hpp>
 #include "Manager/Sound/Public/SoundManager.h"
-#include "Global/Macro.h"
 
 IMPLEMENT_SINGLETON_CLASS(USoundManager, UObject)
 
-
-USoundManager::USoundManager() {}
+USoundManager::USoundManager() = default;
 USoundManager::~USoundManager() = default;
 
 static bool CheckFMODResult(FMOD_RESULT Result, const char* Context)

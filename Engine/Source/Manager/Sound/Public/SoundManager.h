@@ -1,6 +1,5 @@
 #pragma once
 #include "Core/Public/Object.h"
-#include "Global/Vector.h"
 
 // FMOD forward declarations at global scope
 namespace FMOD
@@ -12,7 +11,7 @@ namespace FMOD
 }
 
 UCLASS()
-class USoundManager :public UObject
+class USoundManager : public UObject
 {
     GENERATED_BODY()
     DECLARE_SINGLETON_CLASS(USoundManager, UObject)

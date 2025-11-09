@@ -313,7 +313,7 @@ FPSMBoundingCone::FPSMBoundingCone(
 
 	// 최적 방향을 찾기 위한 경계 구 계산
 	FPSMBoundingSphere BSphere(PPPoints);
-	Direction = (BSphere.Center - Apex).GetNormalized();
+	Direction = (BSphere.Center - Apex).GetSafeNormal();
 
 	// 업 벡터 선택 (FutureEngine은 Z-Up이지만, 뷰 공간에서는 다를 수 있음)
 	FVector Up(0, 0, 1);
@@ -350,7 +350,7 @@ FPSMBoundingCone::FPSMBoundingCone(
 	const FMatrix& Projection,
 	const FVector& InApex,
 	const FVector& InDirection)
-	: Apex(InApex), Direction(InDirection.GetNormalized())
+	: Apex(InApex), Direction(InDirection.GetSafeNormal())
 {
 	// 업 벡터 선택
 	FVector Up(0, 0, 1);

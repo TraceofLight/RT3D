@@ -174,13 +174,14 @@ enum class EEngineShowFlags : uint64
 	SF_Billboard = 1 << 0,
 	SF_Bounds = 1 << 1,
 	SF_StaticMesh = 1 << 2,
-	SF_Text = 1 << 3,
-	SF_Decal = 1 << 4,
-	SF_FXAA = 1 << 5,
-	SF_Fog = 1 << 6,
-	SF_Octree = 1 << 7,
-	SF_UUID = 1 << 8,
-	SF_Collision = 1 << 9,
+	SF_SkeletalMesh = 1 << 3,
+	SF_Text = 1 << 4,
+	SF_Decal = 1 << 5,
+	SF_FXAA = 1 << 6,
+	SF_Fog = 1 << 7,
+	SF_Octree = 1 << 8,
+	SF_UUID = 1 << 9,
+	SF_Collision = 1 << 10,
 };
 
 inline uint64 operator|(EEngineShowFlags lhs, EEngineShowFlags rhs)

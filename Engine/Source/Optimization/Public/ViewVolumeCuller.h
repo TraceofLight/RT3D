@@ -1,8 +1,8 @@
 #pragma once
-
 #include "Component/Public/PrimitiveComponent.h"
 #include "Physics/Public/AABB.h"
 
+struct FCameraConstants;
 class FOctree;
 
 enum class EBoundCheckResult
@@ -58,7 +58,13 @@ struct FFrustum
 
     }
 
-    void Clear() { for (int i = 0; i < 6; ++i) { Planes[i] = FVector4::Zero(); }; }
+    void Clear()
+    {
+	    for (int i = 0; i < 6; ++i)
+	    {
+		    Planes[i] = FVector4::Zero();
+	    }
+    }
 };
 
 class ViewVolumeCuller

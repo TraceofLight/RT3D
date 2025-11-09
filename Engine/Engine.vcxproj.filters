@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <FxCompile Include="Asset\Shader\ClusteredLightCullingCS.hlsl">
@@ -51,6 +51,9 @@
     <FxCompile Include="Asset\Shader\LinearDepthOnly.hlsl" />
     <FxCompile Include="Asset\Shader\ClusteredRenderingCS.hlsli" />
     <FxCompile Include="Asset\Shader\LightStructures.hlsli" />
+    <FxCompile Include="Asset\Shader\BlitPS.hlsl" />
+    <FxCompile Include="Asset\Shader\BlitVS.hlsl" />
+    <FxCompile Include="Asset\Shader\FadePS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Utility\Private\ScopeCycleCounter.cpp">
@@ -382,9 +385,6 @@
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp">
       <Filter>Source\Manager\Asset\Private</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp">
-      <Filter>Source\Manager\Asset\Private</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Manager\Asset\Private\ObjManager.cpp">
       <Filter>Source\Manager\Asset\Private</Filter>
     </ClCompile>
@@ -540,6 +540,51 @@
     <ClCompile Include="Source\Render\UI\Widget\Private\SphereComponentWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\BoxComponentWidget.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\CapsuleComponentWidget.cpp" />
+    <ClCompile Include="Source\Component\Private\SpringArmComponent.cpp" />
+    <ClCompile Include="Source\Level\Private\CurveLibrary.cpp" />
+    <ClCompile Include="Source\Render\Camera\Private\CameraModifier.cpp" />
+    <ClCompile Include="Source\Render\Camera\Private\CameraModifier_CameraShake.cpp" />
+    <ClCompile Include="Source\Actor\Private\CameraActor.cpp" />
+    <ClCompile Include="Source\Actor\Private\EnemySpawnerActor.cpp" />
+    <ClCompile Include="Source\Actor\Private\GameMode.cpp" />
+    <ClCompile Include="Source\Actor\Private\PlayerCameraManager.cpp" />
+    <ClCompile Include="Source\Actor\Private\PlayerStart.cpp" />
+    <ClCompile Include="Source\Component\Private\CameraComponent.cpp" />
+    <ClCompile Include="Source\Component\Private\LightSensorComponent.cpp" />
+    <ClCompile Include="Source\Demo\Private\Player.cpp" />
+    <ClCompile Include="Source\Global\CameraTypes.cpp" />
+    <ClCompile Include="Source\Level\Private\GameInstance.cpp" />
+    <ClCompile Include="Source\Render\UI\Viewport\Private\GameViewportClient.cpp" />
+    <ClCompile Include="Source\Manager\Lua\Private\LuaBinder.cpp" />
+    <ClCompile Include="Source\Manager\Sound\Private\SoundManager.cpp" />
+    <ClCompile Include="Source\Render\Renderer\Private\SceneRenderer.cpp" />
+    <ClCompile Include="Source\Render\Renderer\Private\SceneView.cpp" />
+    <ClCompile Include="Source\Render\Renderer\Private\SceneViewFamily.cpp" />
+    <ClCompile Include="Source\Render\RenderPass\Private\CameraPostProcessPass.cpp" />
+    <ClCompile Include="Source\Render\RenderPass\Private\CameraPrePass.cpp" />
+    <ClCompile Include="Source\Render\RenderPass\Private\ColorCopyPass.cpp" />
+    <ClCompile Include="Source\Render\RenderPass\Private\LightSensorPass.cpp" />
+    <ClCompile Include="Source\Subsystem\Private\EngineSubsystem.cpp" />
+    <ClCompile Include="Source\Subsystem\Private\Subsystem.cpp" />
+    <ClCompile Include="Source\Render\UI\Window\Private\CurveEditorWindow.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\LightSensorComponentWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\CameraComponentWidget.cpp" />
+    <ClCompile Include="Source\Utility\Private\TextureConverter.cpp" />
+    <ClCompile Include="Source\Manager\Asset\Private\ObjImporter.cpp">
+      <Filter>Source\Manager\Asset\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Manager\Asset\Private\FbxLoader.cpp">
+      <Filter>Source\Manager\Asset\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Manager\Asset\Private\FFBXManager.cpp">
+      <Filter>Source\Manager\Asset\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\SkinnedMeshComponent.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Component\Private\SkeletalMeshComponent.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Global\BVH.h">
@@ -1096,6 +1141,52 @@
     <ClInclude Include="Source\Render\UI\Widget\Public\SphereComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\BoxComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\CapsuleComponentWidget.h" />
+    <ClInclude Include="Source\Component\Public\SpringArmComponent.h" />
+    <ClInclude Include="Source\Global\CurveTypes.h" />
+    <ClInclude Include="Source\Level\Public\CurveLibrary.h" />
+    <ClInclude Include="Source\Render\Camera\Public\CameraModifier.h" />
+    <ClInclude Include="Source\Render\Camera\Public\CameraModifier_CameraShake.h" />
+    <ClInclude Include="Source\Actor\Public\CameraActor.h" />
+    <ClInclude Include="Source\Actor\Public\EnemySpawnerActor.h" />
+    <ClInclude Include="Source\Actor\Public\GameMode.h" />
+    <ClInclude Include="Source\Actor\Public\PlayerCameraManager.h" />
+    <ClInclude Include="Source\Actor\Public\PlayerStart.h" />
+    <ClInclude Include="Source\Component\Public\CameraComponent.h" />
+    <ClInclude Include="Source\Component\Public\LightSensorComponent.h" />
+    <ClInclude Include="Source\Demo\Public\Player.h" />
+    <ClInclude Include="Source\Global\BuildConfig.h" />
+    <ClInclude Include="Source\Global\CameraTypes.h" />
+    <ClInclude Include="Source\Level\Public\GameInstance.h" />
+    <ClInclude Include="Source\Render\UI\Viewport\Public\GameViewportClient.h" />
+    <ClInclude Include="Source\Manager\Lua\Public\LuaBinder.h" />
+    <ClInclude Include="Source\Render\Renderer\Public\SceneRenderer.h" />
+    <ClInclude Include="Source\Render\Renderer\Public\SceneView.h" />
+    <ClInclude Include="Source\Render\Renderer\Public\SceneViewFamily.h" />
+    <ClInclude Include="Source\Render\RenderPass\Public\CameraPostProcessPass.h" />
+    <ClInclude Include="Source\Render\RenderPass\Public\CameraPrePass.h" />
+    <ClInclude Include="Source\Render\RenderPass\Public\ColorCopyPass.h" />
+    <ClInclude Include="Source\Render\RenderPass\Public\LightSensorPass.h" />
+    <ClInclude Include="Source\Render\RenderPass\Public\SharedLightResources.h" />
+    <ClInclude Include="Source\Render\UI\Window\Public\CurveEditorWindow.h" />
+    <ClInclude Include="Source\Runtime\Core\Public\Templates\ObjectPtr.h" />
+    <ClInclude Include="Source\Subsystem\Public\EngineSubsystem.h" />
+    <ClInclude Include="Source\Subsystem\Public\Subsystem.h" />
+    <ClInclude Include="Source\Subsystem\Public\SubsystemCollection.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\LightSensorComponentWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\CameraComponentWidget.h" />
+    <ClInclude Include="Source\Utility\Public\TextureConverter.h" />
+    <ClInclude Include="Source\Manager\Asset\Public\FbxLoader.h">
+      <Filter>Source\Manager\Asset\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Manager\Asset\Public\FFBXManager.h">
+      <Filter>Source\Manager\Asset\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Component\Mesh\Public\SkinnedMeshComponent.h">
+      <Filter>Source\Component\Mesh\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Component\Public\SkeletalMeshComponent.h">
+      <Filter>Source\Component\Mesh\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Asset">
@@ -1356,6 +1447,32 @@
     <Filter Include="Source\Render\Shadow\Private">
       <UniqueIdentifier>{cde83c49-b938-4180-8c80-3ce4999f87ea}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\Component\Mesh\Private\SkeletalMesh.cpp">
+      <Filter>Source\Component\Mesh\Private</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\Component\Mesh\Public\SkeletalMesh.h">
+      <Filter>Source\Component\Mesh\Public</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Source\\Component\\Mesh\\Private\\SkinnedMeshComponent.cpp">
+      <Filter>Source\\Component\\Mesh\\Private</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\\Component\\Private\\SkeletalMeshComponent.cpp">
+      <Filter>Source\\Component\\Private</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\\Component\\Mesh\\Public\\SkinnedMeshComponent.h">
+      <Filter>Source\\Component\\Mesh\\Public</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\\Component\\Mesh\\Public\\SkeletalMeshBuilder.h">
+      <Filter>Source\\Component\\Mesh\\Public</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Engine.rc" />

@@ -1,5 +1,7 @@
-#include "pch.h" // 프로젝트의 Precompiled Header
-#include "Source/Component/Mesh/Public/StaticMesh.h" // UStaticMesh 클래스 자신의 헤더
+#include "pch.h"
+#include "Source/Component/Mesh/Public/StaticMesh.h"
+
+#include "Texture/Public/Material.h"
 
 // FStaticMesh 구조체에 대한 정의가 UStaticMesh.h에 이미 포함되어 있다고 가정합니다.
 

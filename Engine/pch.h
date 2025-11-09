@@ -8,16 +8,6 @@
 #include <wrl/client.h>
 #include <dwmapi.h>
 
-// D3D Library
-#include <d3d11.h>
-#include <d3dcompiler.h>
-
-// D2D Library
-#include <d2d1.h>
-#include <d2d1_1.h>
-#include <dwrite.h>
-#include <dxgi1_3.h>
-
 // Standard Library
 #include <cmath>
 #include <cassert>
@@ -35,6 +25,19 @@
 #include <atomic>
 #include <mutex>
 #include <xmmintrin.h>
+
+// D3D Library
+#include <d3d11.h>
+#include <d3dcompiler.h>
+
+// D2D Library
+#include <d2d1.h>
+#include <d2d1_1.h>
+#include <dwrite.h>
+#include <dxgi1_3.h>
+
+// FBX
+#include <FBX/fbxsdk.h>
 
 // JSON
 #include <json.hpp>
@@ -104,14 +107,16 @@ using JSON = json::JSON;
 // 빌드 조건에 따른 Library 분류
 #ifdef _DEBUG
 #define DIRECTX_TOOL_KIT R"(DirectXTK\DirectXTK_debug)"
+#define DIRECTX_TEX R"(DirectXTex\Debug\DirectXTex)"
+#define LUA_LIB R"(Lua\Debug\lua)"
+#define FBX_SDK R"(FBX\Debug\libfbxsdk)"
+#define FMOD_LIB R"(fmod\Debug\fmodL_vc)"
 #else
 #define DIRECTX_TOOL_KIT R"(DirectXTK\DirectXTK)"
-#endif
-
-#ifdef _DEBUG
-#define LUA_LIB R"(Lua\Debug\lua)"
-#else
+#define DIRECTX_TEX R"(DirectXTex\Release\DirectXTex)"
 #define LUA_LIB R"(Lua\Release\lua)"
+#define FBX_SDK R"(FBX\Release\libfbxsdk)"
+#define FMOD_LIB R"(fmod\Release\fmod_vc)"
 #endif
 
 // Library Linking
@@ -123,4 +128,7 @@ using JSON = json::JSON;
 #pragma comment(lib, "dwrite")
 #pragma comment(lib, "dwmapi")
 #pragma comment(lib, DIRECTX_TOOL_KIT)
+#pragma comment(lib, DIRECTX_TEX)
 #pragma comment(lib, LUA_LIB)
+#pragma comment(lib, FBX_SDK)
+#pragma comment(lib, FMOD_LIB)

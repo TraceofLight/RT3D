@@ -81,7 +81,7 @@ struct FMatrix
 	/**
 	* @brief Scale의 정보를 행렬로 변환하여 제공하는 함수
 	*/
-	static FMatrix ScaleMatrix(const FVector& InOtherVector);
+	static FMatrix ScalingMatrix(const FVector& InOtherVector);
 	static FMatrix ScaleMatrixInverse(const FVector& InOtherVector);
 
 	/**
@@ -128,6 +128,7 @@ struct FMatrix
 	FVector GetLocation() const;
 	FVector GetRotation() const;
 	FVector GetScale() const;
+	float Determinant3x3() const;
 	FVector TransformPosition(const FVector& V) const;
 
 	// PSM helper functions

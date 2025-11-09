@@ -5,7 +5,7 @@
 
 IMPLEMENT_ABSTRACT_CLASS(ULightComponentBase, USceneComponent)
 
-void ULightComponentBase::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void ULightComponentBase::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
     Super::Serialize(bInIsLoading, InOutHandle);
     if (bInIsLoading)
@@ -14,7 +14,7 @@ void ULightComponentBase::Serialize(const bool bInIsLoading, JSON& InOutHandle)
         FVector LoadedColor = LightColor;
         FString VisibleString;
         FString LightEnabledString;
-        int32 LoadedShadowModeIndex; 
+        int32 LoadedShadowModeIndex;
         FString CastShadowsString;
         FJsonSerializer::ReadFloat(InOutHandle, "Intensity", LoadedIntensity);
         FJsonSerializer::ReadVector(InOutHandle, "LightColor", LoadedColor);

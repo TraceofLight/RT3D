@@ -6,7 +6,7 @@
 
 IMPLEMENT_CLASS(UPointLightComponent, ULightComponent)
 
-void UPointLightComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UPointLightComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 	if (bInIsLoading)

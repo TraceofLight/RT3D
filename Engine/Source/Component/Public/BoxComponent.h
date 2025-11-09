@@ -23,7 +23,7 @@ public:
 
 	// Overrides
 	UObject* Duplicate() override;
-	void Serialize(const bool bInIsLoading, JSON& InOutHandle) override;
+	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 	virtual UClass* GetSpecificWidgetClass() const override;
 	void RenderDebugShape(UBatchLines& BatchLines) override;
 

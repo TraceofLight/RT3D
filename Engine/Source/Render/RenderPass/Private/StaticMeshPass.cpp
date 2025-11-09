@@ -1,18 +1,17 @@
 ﻿#include "pch.h"
 #include "Render/RenderPass/Public/StaticMeshPass.h"
+
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Render/Renderer/Public/Pipeline.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 #include "Texture/Public/Texture.h"
 #include "Render/RenderPass/Public/ShadowMapPass.h"
-#include "Component/Public/DirectionalLightComponent.h"
-#include "Component/Public/SpotLightComponent.h"
 #include "Component/Public/PointLightComponent.h"
 #include "Texture/Public/ShadowMapResources.h"
-#include "Render/RenderPass/Public/ShadowData.h"
+#include "Texture/Public/Material.h"
 
 FStaticMeshPass::FStaticMeshPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferCamera, ID3D11Buffer* InConstantBufferModel,
-	ID3D11VertexShader* InVS, ID3D11PixelShader* InPS, ID3D11InputLayout* InLayout, ID3D11DepthStencilState* InDS)
+                                 ID3D11VertexShader* InVS, ID3D11PixelShader* InPS, ID3D11InputLayout* InLayout, ID3D11DepthStencilState* InDS)
 	: FRenderPass(InPipeline, InConstantBufferCamera, InConstantBufferModel), VS(InVS), PS(InPS), InputLayout(InLayout), DS(InDS)
 {
 	ConstantBufferMaterial = FRenderResourceFactory::CreateConstantBuffer<FMaterialConstants>();
@@ -98,8 +97,21 @@ void FStaticMeshPass::Execute(FRenderingContext& Context)
 			CurrentMeshAsset = MeshAsset;
 		}
 
-		FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferModel, MeshComp->GetWorldTransformMatrix());
+		const FMatrix& WorldMatrix = MeshComp->GetWorldTransformMatrix();
+		FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferModel, WorldMatrix);
 		Pipeline->SetConstantBuffer(0, EShaderType::VS, ConstantBufferModel);
+
+		// Determinant 체크: 음수면 와인딩 순서 반전되므로 CullMode 변경
+		float Det = WorldMatrix.Determinant3x3();
+		ECullMode DynamicCullMode = (Det < 0.0f) ? ECullMode::Front : ECullMode::Back;
+
+		if (Context.ViewMode != EViewModeIndex::VMI_Wireframe && RenderState.CullMode != DynamicCullMode)
+		{
+			RenderState.CullMode = DynamicCullMode;
+			ID3D11RasterizerState* DynamicRS = FRenderResourceFactory::GetRasterizerState(RenderState);
+			FPipelineInfo DynamicPipeline = { InputLayout, VS, DynamicRS, DS, PS, nullptr, D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST };
+			Pipeline->UpdatePipeline(DynamicPipeline);
+		}
 
 		if (MeshAsset->MaterialInfo.IsEmpty() || MeshComp->GetStaticMesh()->GetNumMaterials() == 0)
 		{
@@ -120,9 +132,9 @@ void FStaticMeshPass::Execute(FRenderingContext& Context)
 				FVector AmbientColor = Material->GetAmbientColor(); MaterialConstants.Ka = FVector4(AmbientColor.X, AmbientColor.Y, AmbientColor.Z, 1.0f);
 				FVector DiffuseColor = Material->GetDiffuseColor(); MaterialConstants.Kd = FVector4(DiffuseColor.X, DiffuseColor.Y, DiffuseColor.Z, 1.0f);
 				FVector SpecularColor = Material->GetSpecularColor(); MaterialConstants.Ks = FVector4(SpecularColor.X, SpecularColor.Y, SpecularColor.Z, 1.0f);
-				MaterialConstants.Ns = Material->GetSpecularExponent();
-				MaterialConstants.Ni = Material->GetRefractionIndex();
-				MaterialConstants.D = Material->GetDissolveFactor();
+				MaterialConstants.Ns = Material->GetShininess();
+				MaterialConstants.Ni = Material->GetRefractiveIndex();
+				MaterialConstants.D = Material->GetOpacity();
 				MaterialConstants.MaterialFlags = 0;
 				if (Material->GetDiffuseTexture())  { MaterialConstants.MaterialFlags |= HAS_DIFFUSE_MAP; }
 				if (Material->GetAmbientTexture())  { MaterialConstants.MaterialFlags |= HAS_AMBIENT_MAP; }
@@ -132,7 +144,7 @@ void FStaticMeshPass::Execute(FRenderingContext& Context)
 				{
 					MaterialConstants.MaterialFlags &= ~HAS_NORMAL_MAP;
 				}
-				if (Material->GetAlphaTexture())    { MaterialConstants.MaterialFlags |= HAS_ALPHA_MAP; }
+				if (Material->GetOpacityTexture())    { MaterialConstants.MaterialFlags |= HAS_ALPHA_MAP; }
 				if (Material->GetBumpTexture())     { MaterialConstants.MaterialFlags |= HAS_BUMP_MAP; }
 				MaterialConstants.Time = MeshComp->GetElapsedTime();
 
@@ -156,7 +168,7 @@ void FStaticMeshPass::Execute(FRenderingContext& Context)
 				{
 					Pipeline->SetShaderResourceView(3, EShaderType::PS, Material->GetNormalTexture()->GetTextureSRV());
 				}
-				if (UTexture* AlphaTexture = Material->GetAlphaTexture())
+				if (UTexture* AlphaTexture = Material->GetOpacityTexture())
 				{
 					Pipeline->SetShaderResourceView(4, EShaderType::PS, AlphaTexture->GetTextureSRV());
 				}

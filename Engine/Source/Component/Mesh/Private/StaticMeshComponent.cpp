@@ -4,10 +4,12 @@
 #include "Component/Mesh/Public/MeshComponent.h"
 #include "Manager/Asset/Public/ObjManager.h"
 #include "Manager/Asset/Public/AssetManager.h"
+#include "Manager/Asset/Public/FbxImporter.h"
 #include "Physics/Public/AABB.h"
 #include "Render/UI/Widget/Public/StaticMeshComponentWidget.h"
 #include "Utility/Public/JsonSerializer.h"
 #include "Texture/Public/Texture.h"
+#include "Texture/Public/Material.h"
 
 IMPLEMENT_CLASS(UStaticMeshComponent, UMeshComponent)
 
@@ -23,7 +25,7 @@ UStaticMeshComponent::~UStaticMeshComponent()
 {
 }
 
-void UStaticMeshComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UStaticMeshComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 
@@ -96,7 +98,35 @@ void UStaticMeshComponent::SetStaticMesh(const FName& InObjPath)
 {
 	UAssetManager& AssetManager = UAssetManager::GetInstance();
 
-	UStaticMesh* NewStaticMesh = FObjManager::LoadObjStaticMesh(InObjPath);
+	path PathEx(InObjPath.ToString());
+	FString Ext = PathEx.extension().string();
+
+	UStaticMesh* NewStaticMesh = nullptr;
+	if (Ext == ".obj")
+	{
+		NewStaticMesh = FObjManager::LoadObjStaticMesh(InObjPath);
+	}
+	else if (Ext == ".fbx")
+	{
+		// FbxImporter를 사용하여 로드
+		FFbxImporter& Importer = FFbxImporter::GetInstance();
+		FStaticMesh* StaticMeshData = new FStaticMesh();
+
+		if (Importer.LoadStaticMesh(InObjPath.ToString(), *StaticMeshData))
+		{
+			NewStaticMesh = new UStaticMesh();
+			NewStaticMesh->SetStaticMeshAsset(StaticMeshData);
+		}
+		else
+		{
+			delete StaticMeshData;
+		}
+	}
+	else
+	{
+		UE_LOG("확장자를 찾을 수 없습니다. ");
+		return;
+	}
 
 	if (NewStaticMesh)
 	{

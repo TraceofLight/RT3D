@@ -17,7 +17,7 @@ UEditorIconComponent::UEditorIconComponent()
 	UAssetManager& ResourceManager = UAssetManager::GetInstance();
 
 	Vertices = ResourceManager.GetVertexData(EPrimitiveType::Sprite);
-	VertexBuffer = ResourceManager.GetVertexbuffer(EPrimitiveType::Sprite);
+	VertexBuffer = ResourceManager.GetVertexBuffer(EPrimitiveType::Sprite);
 	NumVertices = ResourceManager.GetNumVertices(EPrimitiveType::Sprite);
 
 	Indices = ResourceManager.GetIndexData(EPrimitiveType::Sprite);
@@ -43,7 +43,7 @@ UEditorIconComponent::UEditorIconComponent()
 
 UEditorIconComponent::~UEditorIconComponent() = default;
 
-void UEditorIconComponent::Serialize(const bool bInIsLoading, JSON& InOutHandle)
+void UEditorIconComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 {
 	Super::Serialize(bInIsLoading, InOutHandle);
 
