@@ -342,10 +342,15 @@ USkeletalMesh* UAssetManager::LoadSkeletalMesh(const FName& InFbxPath)
 	// 바이너리 캐시 확인
 	if (exists(BinFilePath) && IsBinaryUpToDate(InFbxPath, FName(BinFilePath.generic_string())))
 	{
+		auto StartTime = std::chrono::high_resolution_clock::now();
 		SkeletalMeshData = LoadSkeletalMeshBinary(FName(BinFilePath.generic_string()));
+		auto EndTime = std::chrono::high_resolution_clock::now();
+		auto Duration = std::chrono::duration_cast<std::chrono::milliseconds>(EndTime - StartTime);
+
 		if (SkeletalMeshData && SkeletalMeshData->IsValid())
 		{
 			bLoadedFromBinary = true;
+			UE_LOG_SUCCESS("SkeletalMeshCache: Loaded from fbxbin in %lld ms: '%s'", Duration.count(), PathString.c_str());
 		}
 		else
 		{
@@ -358,6 +363,8 @@ USkeletalMesh* UAssetManager::LoadSkeletalMesh(const FName& InFbxPath)
 	// 바이너리에서 로드 실패하면 FBX 파싱
 	if (!SkeletalMeshData)
 	{
+		auto StartTime = std::chrono::high_resolution_clock::now();
+
 		FFbxImporter& Parser = FFbxImporter::GetInstance();
 		SkeletalMeshData = new FSkeletalMesh();
 
@@ -366,6 +373,10 @@ USkeletalMesh* UAssetManager::LoadSkeletalMesh(const FName& InFbxPath)
 			delete SkeletalMeshData;
 			return nullptr;
 		}
+
+		auto EndTime = std::chrono::high_resolution_clock::now();
+		auto Duration = std::chrono::duration_cast<std::chrono::milliseconds>(EndTime - StartTime);
+		UE_LOG_INFO("SkeletalMeshCache: Parsed FBX in %lld ms: '%s'", Duration.count(), PathString.c_str());
 	}
 
 	if (SkeletalMeshData && SkeletalMeshData->IsValid())
@@ -514,7 +525,7 @@ const TMap<FName, UTexture*>& UAssetManager::GetTextureCache() const
 void UAssetManager::LoadAllFbxMeshes()
 {
 	TArray<FName> FbxList;
-	path FbxDirectory = UPathManager::GetInstance().GetDataPath() / "FBXData";
+	path FbxDirectory = UPathManager::GetInstance().GetDataPath() / "FBX";
 
 	// 디렉토리 존재 확인
 	if (!exists(FbxDirectory) || !std::filesystem::is_directory(FbxDirectory))
