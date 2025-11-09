@@ -1,5 +1,8 @@
 #include "pch.h"
 #include "Component/Mesh/Public/SkinnedMeshComponent.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
+
+IMPLEMENT_CLASS(USkinnedMeshComponent, UMeshComponent)
 
 void USkinnedMeshComponent::SetSkeletalMesh(USkeletalMesh* InMesh)
 {
@@ -13,6 +16,12 @@ void USkinnedMeshComponent::SetSkeletalMesh(USkeletalMesh* InMesh)
         for (int32 i = 0; i < FinalSkinMatrices.Num(); ++i)
         {
             FinalSkinMatrices[i] = FMatrix::Identity();
+        }
+
+        // USkeletalMeshComponent인 경우 UseReferencePose 호출
+        if (USkeletalMeshComponent* SkelComp = Cast<USkeletalMeshComponent>(this))
+        {
+            SkelComp->UseReferencePose();
         }
     }
 }

@@ -219,6 +219,7 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Actor\Public\SkeletalMeshActor.h" />
     <ClInclude Include="Source\Component\Mesh\Public\SkeletalMesh.h" />
     <ClInclude Include="Source\Component\Mesh\Public\SkeletalMeshComponent.h" />
     <ClInclude Include="Source\Component\Mesh\Public\SkinnedMeshComponent.h" />
@@ -297,6 +298,7 @@
     <ClInclude Include="Source\Global\Rotator.h" />
     <ClInclude Include="Source\Level\Public\GameInstance.h" />
     <ClInclude Include="Source\Level\Public\World.h" />
+    <ClInclude Include="Source\Render\RenderPass\Public\SkeletalMeshPass.h" />
     <ClInclude Include="Source\Render\UI\Viewport\Public\GameViewportClient.h" />
     <ClInclude Include="Source\Manager\Asset\Public\FbxImporter.h" />
     <ClInclude Include="Source\Manager\Asset\Public\ObjImporter.h" />
@@ -396,6 +398,7 @@
     <ClInclude Include="Source\Render\UI\Overlay\Public\D2DOverlayManager.h" />
     <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapFilterPass.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\ScriptComponentWidget.h" />
+    <ClInclude Include="Source\Render\UI\Widget\Public\SkeletalMeshComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\CurveEditorWindow.h" />
     <ClInclude Include="Source\Runtime\Core\Public\Containers\TArray.h" />
     <ClInclude Include="Source\Runtime\Core\Public\Containers\TMap.h" />
@@ -470,6 +473,7 @@
     <ClInclude Include="Source\Utility\Public\UELogParser.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Actor\Private\SkeletalMeshActor.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\SkeletalMesh.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\SkinnedMeshComponent.cpp" />
@@ -549,6 +553,7 @@
     <ClCompile Include="Source\Global\Quaternion.cpp" />
     <ClCompile Include="Source\Level\Private\GameInstance.cpp" />
     <ClCompile Include="Source\Level\Private\World.cpp" />
+    <ClCompile Include="Source\Render\RenderPass\Private\SkeletalMeshPass.cpp" />
     <ClCompile Include="Source\Render\UI\Viewport\Private\GameViewportClient.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\AssetManager.cpp" />
     <ClCompile Include="Source\Manager\Asset\Private\FbxImporter.cpp" />
@@ -629,6 +634,7 @@
     <ClCompile Include="Source\Render\UI\Overlay\Private\D2DOverlayManager.cpp" />
     <ClCompile Include="Source\Render\UI\Overlay\Private\StatOverlay.cpp" />
     <ClCompile Include="Source\Render\UI\Widget\Private\ScriptComponentWidget.cpp" />
+    <ClCompile Include="Source\Render\UI\Widget\Private\SkeletalMeshComponentWidget.cpp" />
     <ClCompile Include="Source\Subsystem\Private\EngineSubsystem.cpp" />
     <ClCompile Include="Source\Subsystem\Private\Subsystem.cpp" />
     <ClCompile Include="Source\Render\UI\Window\Private\CurveEditorWindow.cpp" />

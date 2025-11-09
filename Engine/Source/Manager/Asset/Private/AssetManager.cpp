@@ -4,6 +4,7 @@
 #include "Component/Mesh/Public/VertexDatas.h"
 #include "Physics/Public/AABB.h"
 #include "Texture/Public/Texture.h"
+#include "Texture/Public/Material.h"
 #include "Manager/Asset/Public/ObjManager.h"
 #include "Manager/Asset/Public/FbxImporter.h"
 #include "Manager/Path/Public/PathManager.h"
@@ -131,7 +132,7 @@ void UAssetManager::LoadAllObjStaticMesh()
 	TArray<FName> ObjList;
 	const FString DataDirectory = "Data/"; // 검색할 기본 디렉토리
 	// 디렉토리가 실제로 존재하는지 먼저 확인합니다.
-	if (std::filesystem::exists(DataDirectory) && std::filesystem::is_directory(DataDirectory))
+	if (exists(DataDirectory) && std::filesystem::is_directory(DataDirectory))
 	{
 		// recursive_directory_iterator를 사용하여 디렉토리와 모든 하위 디렉토리를 순회합니다.
 		for (const auto& Entry : std::filesystem::recursive_directory_iterator(DataDirectory))
@@ -308,6 +309,123 @@ void UAssetManager::AddSkeletalMeshToCache(const FName& InFbxPath, USkeletalMesh
 	}
 }
 
+USkeletalMesh* UAssetManager::GetSkeletalMeshFromCache(const FName& InFbxPath)
+{
+	if (SkeletalMeshCache.Contains(InFbxPath))
+	{
+		return SkeletalMeshCache[InFbxPath];
+	}
+	return nullptr;
+}
+
+USkeletalMesh* UAssetManager::LoadSkeletalMesh(const FName& InFbxPath)
+{
+	// 캐시에 이미 있으면 반환
+	USkeletalMesh* CachedMesh = GetSkeletalMeshFromCache(InFbxPath);
+	if (CachedMesh)
+	{
+		return CachedMesh;
+	}
+
+	// 파일에서 로드
+	FString PathString = InFbxPath.ToString();
+	FFbxImporter& Parser = FFbxImporter::GetInstance();
+	FSkeletalMesh* SkeletalMeshData = new FSkeletalMesh();
+
+	if (Parser.LoadSkeletalMesh(PathString, *SkeletalMeshData))
+	{
+		USkeletalMesh* LoadedMesh = new USkeletalMesh();
+		LoadedMesh->SetSkeletalMeshAsset(SkeletalMeshData);
+		LoadedMesh->SetAssetPath(InFbxPath);
+
+		// FBX 파일이 있는 디렉토리 경로
+		path FbxPath(PathString);
+		path FbxDirectory = FbxPath.parent_path();
+
+		// MaterialInfo에서 UMaterial 생성 및 텍스처 로드
+		for (int32 MaterialIndex = 0; MaterialIndex < SkeletalMeshData->MaterialInfo.Num(); ++MaterialIndex)
+		{
+			const FMaterial& MaterialInfo = SkeletalMeshData->MaterialInfo[MaterialIndex];
+			UMaterial* Material = NewObject<UMaterial>();
+			Material->SetName(MaterialInfo.Name);
+			Material->SetMaterialData(MaterialInfo);
+
+			// Diffuse 텍스처 로드
+			if (!MaterialInfo.DiffuseTexturePath.IsEmpty())
+			{
+				FString TexturePathStr = (FbxDirectory / MaterialInfo.DiffuseTexturePath).generic_string();
+				if (exists(TexturePathStr))
+				{
+					UTexture* DiffuseTexture = LoadTexture(TexturePathStr);
+					if (DiffuseTexture)
+					{
+						Material->SetDiffuseTexture(DiffuseTexture);
+					}
+				}
+			}
+
+			// Normal 텍스처 로드
+			if (!MaterialInfo.NormalTexturePath.IsEmpty())
+			{
+				FString TexturePathStr = (FbxDirectory / MaterialInfo.NormalTexturePath).generic_string();
+				if (exists(TexturePathStr))
+				{
+					UTexture* NormalTexture = LoadTexture(TexturePathStr);
+					if (NormalTexture)
+					{
+						Material->SetNormalTexture(NormalTexture);
+					}
+				}
+			}
+
+			// Specular 텍스처 로드
+			if (!MaterialInfo.SpecularTexturePath.IsEmpty())
+			{
+				FString TexturePathStr = (FbxDirectory / MaterialInfo.SpecularTexturePath).generic_string();
+				if (exists(TexturePathStr))
+				{
+					UTexture* SpecularTexture = LoadTexture(TexturePathStr);
+					if (SpecularTexture)
+					{
+						Material->SetSpecularTexture(SpecularTexture);
+					}
+				}
+			}
+
+			LoadedMesh->SetMaterial(MaterialIndex, Material);
+		}
+
+		AddSkeletalMeshToCache(InFbxPath, LoadedMesh);
+
+		// GPU 버퍼 생성
+		FSkeletalMeshBuffers Buffers;
+		for (const auto& Section : SkeletalMeshData->Sections)
+		{
+			ID3D11Buffer* VertexBuffer = CreateSkeletalVertexBuffer(Section.Vertices);
+			ID3D11Buffer* IndexBuffer = CreateIndexBuffer(Section.Indices);
+			Buffers.SectionVertexBuffers.Add(VertexBuffer);
+			Buffers.SectionIndexBuffers.Add(IndexBuffer);
+		}
+		SkeletalMeshBuffers.Emplace(InFbxPath, Buffers);
+
+		return LoadedMesh;
+	}
+	else
+	{
+		delete SkeletalMeshData;
+		return nullptr;
+	}
+}
+
+FSkeletalMeshBuffers* UAssetManager::GetSkeletalMeshBuffers(const FName& InFbxPath)
+{
+	if (SkeletalMeshBuffers.Contains(InFbxPath))
+	{
+		return &SkeletalMeshBuffers[InFbxPath];
+	}
+	return nullptr;
+}
+
 /**
  * @brief Vertex 배열로부터 AABB(Axis-Aligned Bounding Box)를 계산하는 헬퍼 함수
  * @param Vertices 정점 데이터 배열
@@ -390,33 +508,12 @@ void UAssetManager::LoadAllFbxMeshes()
 
 		if (bIsSkeletal)
 		{
-			// Skeletal Mesh 로딩
-			FFbxImporter& Parser = FFbxImporter::GetInstance();
-			FSkeletalMesh* SkeletalMeshData = new FSkeletalMesh();
-			if (Parser.LoadSkeletalMesh(PathString, *SkeletalMeshData))
+			// LoadSkeletalMesh 함수 호출 (Material 로딩 포함)
+			USkeletalMesh* LoadedMesh = LoadSkeletalMesh(FbxPath);
+			if (LoadedMesh)
 			{
-				USkeletalMesh* LoadedMesh = new USkeletalMesh();
-				LoadedMesh->SetSkeletalMeshAsset(SkeletalMeshData);
-
-				// Cache에 추가 (Add 함수 사용)
-				AddSkeletalMeshToCache(FbxPath, LoadedMesh);
-
-				// GPU 버퍼 생성 (Section별로)
-				FSkeletalMeshBuffers Buffers;
-				for (const auto& Section : SkeletalMeshData->Sections)
-				{
-					ID3D11Buffer* VertexBuffer = CreateSkeletalVertexBuffer(Section.Vertices);
-					ID3D11Buffer* IndexBuffer = CreateIndexBuffer(Section.Indices);
-					Buffers.SectionVertexBuffers.Add(VertexBuffer);
-					Buffers.SectionIndexBuffers.Add(IndexBuffer);
-				}
-				SkeletalMeshBuffers.Emplace(FbxPath, Buffers);
-
-				UE_LOG("AssetManager: Loaded Skeletal Mesh: %s (Sections: %d)", PathString.c_str(), SkeletalMeshData->Sections.Num());
-			}
-			else
-			{
-				delete SkeletalMeshData;
+				UE_LOG("AssetManager: Loaded Skeletal Mesh: %s (Materials: %d)",
+					PathString.c_str(), LoadedMesh->GetNumMaterials());
 			}
 		}
 		else

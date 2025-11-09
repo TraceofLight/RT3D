@@ -121,7 +121,12 @@ public:
 	// 유효성 검사
 	bool IsValid() const { return SkeletalMesh != nullptr; }
 
+	// Asset Path
+	void SetAssetPath(const FName& InPath) { AssetPath = InPath; }
+	FName GetAssetPath() const { return AssetPath; }
+
 private:
 	FSkeletalMesh* SkeletalMesh;
 	TArray<UMaterial*> Materials;
+	FName AssetPath;
 };

@@ -55,7 +55,10 @@ public:
 	void AddStaticMeshAABB(const FName& InObjPath, const FAABB& InAABB);
 
 	// SkeletalMesh 관련 함수
+	USkeletalMesh* LoadSkeletalMesh(const FName& InFbxPath);
+	USkeletalMesh* GetSkeletalMeshFromCache(const FName& InFbxPath);
 	void AddSkeletalMeshToCache(const FName& InFbxPath, USkeletalMesh* InMesh);
+	FSkeletalMeshBuffers* GetSkeletalMeshBuffers(const FName& InFbxPath);
 
 	// Helper Functions (public for runtime loading)
 	ID3D11Buffer* CreateVertexBuffer(TArray<FNormalVertex> InVertices);

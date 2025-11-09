@@ -11,11 +11,11 @@ class USkeletalMeshComponent : public USkinnedMeshComponent
 
 public:
 	USkeletalMeshComponent();
-	~USkeletalMeshComponent();
+	~USkeletalMeshComponent() override;
 
 	void Serialize(bool bInIsLoading, JSON& InOutHandle ) override;
+	UClass* GetSpecificWidgetClass() const override;
 
-public:
 	/** RefPos를 위한 Matrix 세팅 */
 	void UseReferencePose();
 

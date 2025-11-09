@@ -117,6 +117,7 @@ private:
 	uint64 ShowFlags =
 		static_cast<uint64>(EEngineShowFlags::SF_Billboard) |
 		static_cast<uint64>(EEngineShowFlags::SF_StaticMesh) |
+		static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh) |
 		static_cast<uint64>(EEngineShowFlags::SF_Text) |
 		static_cast<uint64>(EEngineShowFlags::SF_Decal) |
 		static_cast<uint64>(EEngineShowFlags::SF_Fog) |

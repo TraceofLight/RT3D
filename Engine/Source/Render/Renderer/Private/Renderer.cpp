@@ -2,6 +2,7 @@
 #include <algorithm>
 #include "Component/Mesh/Public/StaticMesh.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Component/Public/AmbientLightComponent.h"
 #include "Component/Public/DecalComponent.h"
 #include "Component/Public/DirectionalLightComponent.h"
@@ -31,6 +32,7 @@
 #include "Render/RenderPass/Public/ShadowMapFilterPass.h"
 #include "Render/RenderPass/Public/ShadowMapPass.h"
 #include "Render/RenderPass/Public/StaticMeshPass.h"
+#include "Render/RenderPass/Public/SkeletalMeshPass.h"
 #include "Render/RenderPass/Public/TextPass.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 #include "Render/Renderer/Public/Renderer.h"
@@ -93,6 +95,10 @@ void URenderer::Init(HWND InWindowHandle)
 	FStaticMeshPass* StaticMeshPass = new FStaticMeshPass(Pipeline, ConstantBufferViewProj, ConstantBufferModels,
 		UberLitVertexShader, UberLitPixelShader, UberLitInputLayout, DefaultDepthStencilState);
 	RenderPasses.Add(StaticMeshPass);
+
+	FSkeletalMeshPass* SkeletalMeshPass = new FSkeletalMeshPass(Pipeline, ConstantBufferViewProj, ConstantBufferModels,
+		UberLitVertexShader, UberLitPixelShader, UberLitInputLayout, DefaultDepthStencilState);
+	RenderPasses.Add(SkeletalMeshPass);
 
 	FDecalPass* DecalPass = new FDecalPass(Pipeline, ConstantBufferViewProj,
 		DecalVertexShader, DecalPixelShader, DecalInputLayout, DecalDepthStencilState, AlphaBlendState);
@@ -1041,6 +1047,10 @@ void URenderer::RenderLevel(FViewport* InViewport, int32 ViewportIndex)
 		{
 			RenderingContext.StaticMeshes.Add(StaticMesh);
 		}
+		else if (auto SkeletalMesh = Cast<USkeletalMeshComponent>(Prim))
+		{
+			RenderingContext.SkeletalMeshes.Add(SkeletalMesh);
+		}
 		else if (auto BillBoard = Cast<UBillBoardComponent>(Prim))
 		{
 			RenderingContext.BillBoards.Add(BillBoard);
@@ -1370,6 +1380,10 @@ void URenderer::RenderHitProxyPass(FViewportClient* InClient, const D3D11_VIEWPO
 		{
 			Context.StaticMeshes.Add(StaticMesh);
 		}
+		else if (auto SkeletalMesh = Cast<USkeletalMeshComponent>(Prim))
+		{
+			Context.SkeletalMeshes.Add(SkeletalMesh);
+		}
 		else if (auto EditorIcon = Cast<UEditorIconComponent>(Prim))
 		{
 			// Pilot Mode: 현재 조종 중인 Actor의 아이콘은 렌더링 스킵
@@ -1505,6 +1519,10 @@ void URenderer::RenderLevelForGameInstance(UWorld* InWorld, const FSceneView* In
 		if (auto StaticMesh = Cast<UStaticMeshComponent>(Prim))
 		{
 			RenderingContext.StaticMeshes.Add(StaticMesh);
+		}
+		else if (auto SkeletalMesh = Cast<USkeletalMeshComponent>(Prim))
+		{
+			RenderingContext.SkeletalMeshes.Add(SkeletalMesh);
 		}
 		else if (auto BillBoard = Cast<UBillBoardComponent>(Prim))
 		{
