@@ -30,12 +30,15 @@ public:
 
 	ID3D11ShaderResourceView* GetSourceSRV() const { return FrameBufferSRV[SourceIdx]; }
 	ID3D11RenderTargetView* GetSourceRTV() const { return FrameBufferRTV[SourceIdx]; }
-	ID3D11RenderTargetView* GetDestinationRTV() const { return FrameBufferRTV[DestinationIdx]; }
+	ID3D11RenderTargetView* GetDestinationRTV() const
+	{
+		 return bUseExternalTargets ? ExternalRenderTargetView : FrameBufferRTV[DestinationIdx];
+	}
 
 	ID3D11RenderTargetView* GetNormalBufferRTV() const { return NormalBufferRTV; }
 	ID3D11ShaderResourceView* GetNormalBufferSRV() const { return NormalBufferSRV; }
 
-	ID3D11DepthStencilView* GetDepthBufferDSV() const { return DepthBufferDSV; }
+	ID3D11DepthStencilView* GetDepthBufferDSV() const {  return bUseExternalTargets ? ExternalDepthStencilView : DepthBufferDSV; }
 	ID3D11ShaderResourceView* GetDepthBufferSRV() const { return DepthBufferSRV; }
 
 	ID3D11RenderTargetView* GetHitProxyRTV() const { return HitProxyTextureRTV; }
@@ -54,6 +57,10 @@ public:
 
 	uint64 GetTotalRenderTargetMemory() const;
 
+	void PushExternalTargets(ID3D11RenderTargetView* InRenderTargetView,
+							 ID3D11DepthStencilView* InDepthStencilView,
+							 const D3D11_VIEWPORT& InViewport);
+	void PopExternalTargets();
 private:
 	void CreateBackBuffer();
 	void ReleaseBackBuffer();
@@ -98,6 +105,12 @@ private:
 	ID3D11Texture2D* HitProxyTexture = nullptr;
 	ID3D11RenderTargetView* HitProxyTextureRTV = nullptr;
 	ID3D11ShaderResourceView* HitProxyTextureSRV = nullptr;
+
+	// External
+	bool                        bUseExternalTargets = false;
+	ID3D11RenderTargetView*     ExternalRenderTargetView = nullptr;
+	ID3D11DepthStencilView*     ExternalDepthStencilView = nullptr;
+	D3D11_VIEWPORT              ExternalViewport = {};
 
 	D3D11_VIEWPORT ViewportInfo = {};
 
