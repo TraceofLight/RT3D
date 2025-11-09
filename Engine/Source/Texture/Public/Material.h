@@ -1,5 +1,6 @@
 #pragma once
 #include "Core/Public/Object.h"
+#include "Core/Public/Archive.h"
 
 class UTexture;
 
@@ -28,6 +29,26 @@ struct FMaterial
 	FString OpacityTexturePath;
 	FString NormalTexturePath;
 };
+
+inline FArchive& operator<<(FArchive& Ar, FMaterial& Material)
+{
+	Ar << Material.Name;
+	Ar << Material.Ambient;
+	Ar << Material.Diffuse;
+	Ar << Material.Specular;
+	Ar << Material.Emissive;
+	Ar << Material.Shininess;
+	Ar << Material.RefractiveIndex;
+	Ar << Material.Opacity;
+	Ar << Material.IlluminationModel;
+	Ar << Material.AmbientTexturePath;
+	Ar << Material.DiffuseTexturePath;
+	Ar << Material.SpecularTexturePath;
+	Ar << Material.ShininessTexturePath;
+	Ar << Material.OpacityTexturePath;
+	Ar << Material.NormalTexturePath;
+	return Ar;
+}
 
 UCLASS()
 class UMaterial : public UObject

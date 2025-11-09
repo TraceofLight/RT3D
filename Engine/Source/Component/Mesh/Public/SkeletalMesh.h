@@ -1,6 +1,8 @@
 #pragma once
 
-struct FMaterial;
+#include "Core/Public/Archive.h"
+#include "Texture/Public/Material.h"
+
 class UMaterial;
 
 /** 영향을 주는 Vertex을 저장한 구조체 */
@@ -24,6 +26,19 @@ struct FSkinInfluence
     }
 };
 
+inline FArchive& operator<<(FArchive& Ar, FSkinInfluence& SkinInfluence)
+{
+	for (int i = 0; i < 4; ++i)
+	{
+		Ar << SkinInfluence.BoneIndices[i];
+	}
+	for (int i = 0; i < 4; ++i)
+	{
+		Ar << SkinInfluence.BoneWeights[i];
+	}
+	return Ar;
+}
+
 /**
 *	Skeletal Mesh를 읽는 Vertex
 *
@@ -35,6 +50,13 @@ struct FSkeletalVertex
     FSkinInfluence Skin;
 };
 
+inline FArchive& operator<<(FArchive& Ar, FSkeletalVertex& SkeletalVertex)
+{
+	Ar << SkeletalVertex.Vertex;
+	Ar << SkeletalVertex.Skin;
+	return Ar;
+}
+
 /** Mesh의 한 부분을 정의한다 */
 struct FSkeletalMeshSection
 {
@@ -43,6 +65,15 @@ struct FSkeletalMeshSection
     TArray<uint16>          BoneMap;			/** 영향을 주는 Bone들, BoneMap의Indices == Verties.Skin.Indices */
     uint32                  MaterialSlot = 0;
 };
+
+inline FArchive& operator<<(FArchive& Ar, FSkeletalMeshSection& Section)
+{
+	Ar << Section.Vertices;
+	Ar << Section.Indices;
+	Ar << Section.BoneMap;
+	Ar << Section.MaterialSlot;
+	return Ar;
+}
 
 // 1. 처음 로드 했을 때
 // Vertex는 local space // Root가 0,0,0 일 때, 상대좌표로
@@ -76,6 +107,16 @@ struct FSkeleton
     int32 GetNumBones() const { return static_cast<int32>(BoneNames.Num()); }
 };
 
+inline FArchive& operator<<(FArchive& Ar, FSkeleton& Skeleton)
+{
+	Ar << Skeleton.BoneNames;
+	Ar << Skeleton.Parents;
+	Ar << Skeleton.RefPoseLocal;
+	Ar << Skeleton.RefPoseGlobal;
+	Ar << Skeleton.InvRefPoseGlobal;
+	return Ar;
+}
+
 struct FSkeletalMesh
 {
 	FName               PathFileName;
@@ -91,6 +132,39 @@ struct FSkeletalMesh
 
 	bool IsValid() const { return Skeleton != nullptr && Sections.Num() > 0; }
 };
+
+inline FArchive& operator<<(FArchive& Ar, FSkeletalMesh& SkeletalMesh)
+{
+	Ar << SkeletalMesh.PathFileName;
+
+	// Skeleton 포인터 직렬화
+	bool bHasSkeleton = (SkeletalMesh.Skeleton != nullptr);
+	Ar << bHasSkeleton;
+
+	if (Ar.IsLoading())
+	{
+		if (bHasSkeleton)
+		{
+			if (!SkeletalMesh.Skeleton)
+			{
+				SkeletalMesh.Skeleton = new FSkeleton();
+			}
+			Ar << (*SkeletalMesh.Skeleton);
+		}
+	}
+	else
+	{
+		if (bHasSkeleton && SkeletalMesh.Skeleton)
+		{
+			Ar << (*SkeletalMesh.Skeleton);
+		}
+	}
+
+	Ar << SkeletalMesh.Sections;
+	Ar << SkeletalMesh.MaterialInfo;
+
+	return Ar;
+}
 
 UCLASS()
 class USkeletalMesh : public UObject

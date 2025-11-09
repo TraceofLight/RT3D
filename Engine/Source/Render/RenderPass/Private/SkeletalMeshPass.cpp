@@ -116,47 +116,41 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 			Pipeline->UpdatePipeline(DynamicPipeline);
 		}
 
-		// Section별 CPU Skinning 및 렌더링
+		// Component에서 캐시된 Skinned Vertices 가져오기 (Dirty Flag 체크 포함)
+		const TArray<FNormalVertex>& SkinnedVertices = MeshComp->GetSkinnedVertices();
+		const TArray<uint32>& SkinnedIndices = MeshComp->GetSkinnedIndices();
+
+		if (SkinnedVertices.IsEmpty() || SkinnedIndices.IsEmpty())
+		{
+			continue;
+		}
+
+		// 단일 Vertex/Index Buffer 생성 (모든 Section 통합)
+		ID3D11Buffer* DynamicVB = FRenderResourceFactory::CreateDynamicVertexBuffer(
+			SkinnedVertices.GetData(),
+			static_cast<int32>(SkinnedVertices.Num() * sizeof(FNormalVertex))
+		);
+
+		ID3D11Buffer* DynamicIB = FRenderResourceFactory::CreateDynamicIndexBuffer(
+			SkinnedIndices.GetData(),
+			static_cast<int32>(SkinnedIndices.Num() * sizeof(uint32))
+		);
+
+		if (!DynamicVB || !DynamicIB)
+		{
+			SafeRelease(DynamicVB);
+			SafeRelease(DynamicIB);
+			continue;
+		}
+
+		Pipeline->SetVertexBuffer(DynamicVB, sizeof(FNormalVertex));
+		Pipeline->SetIndexBuffer(DynamicIB, 0);
+
+		// Section별로 Material 바인딩 및 DrawIndexed 호출
+		uint32 CurrentIndexOffset = 0;
 		for (const FSkeletalMeshSection& Section : MeshData->Sections)
 		{
-			if (Section.Vertices.IsEmpty() || Section.Indices.IsEmpty()) { continue; }
-
-			// CPU Skinning: SkeletalVertex → NormalVertex 변환
-			TArray<FNormalVertex> SkinnedVertices;
-			SkinnedVertices.SetNum(Section.Vertices.Num());
-
-			for (int32 i = 0; i < Section.Vertices.Num(); ++i)
-			{
-				const FSkeletalVertex& SkelVert = Section.Vertices[i];
-				FNormalVertex& OutVert = SkinnedVertices[i];
-
-				OutVert.Position = USkinnedMeshComponent::SkinPosition(SkelVert, Section, SkinMatrices);
-				OutVert.Normal = USkinnedMeshComponent::SkinNormal(SkelVert, Section, SkinMatrices);
-				OutVert.Color = SkelVert.Vertex.Color;
-				OutVert.TexCoord = SkelVert.Vertex.TexCoord;
-				OutVert.Tangent = SkelVert.Vertex.Tangent;
-			}
-
-			// 동적 Vertex Buffer 생성 (CPU Skinning 결과 업로드)
-			ID3D11Buffer* DynamicVB = FRenderResourceFactory::CreateDynamicVertexBuffer(
-				SkinnedVertices.GetData(),
-				static_cast<int32>(SkinnedVertices.Num() * sizeof(FNormalVertex))
-			);
-
-			ID3D11Buffer* DynamicIB = FRenderResourceFactory::CreateDynamicIndexBuffer(
-				Section.Indices.GetData(),
-				static_cast<int32>(Section.Indices.Num() * sizeof(uint32))
-			);
-
-			if (!DynamicVB || !DynamicIB)
-			{
-				SafeRelease(DynamicVB);
-				SafeRelease(DynamicIB);
-				continue;
-			}
-
-			Pipeline->SetVertexBuffer(DynamicVB, sizeof(FNormalVertex));
-			Pipeline->SetIndexBuffer(DynamicIB, 0);
+			if (Section.Indices.IsEmpty()) { continue; }
 
 			// Material 바인딩
 			UMaterial* Material = SkeletalMeshAsset->GetMaterial(Section.MaterialSlot);
@@ -212,13 +206,15 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 				}
 			}
 
-			// DrawIndexed
-			Pipeline->DrawIndexed(static_cast<uint32>(Section.Indices.Num()), 0, 0);
+			// DrawIndexed (offset 사용)
+			Pipeline->DrawIndexed(static_cast<uint32>(Section.Indices.Num()), CurrentIndexOffset, 0);
 
-			// 동적 버퍼 해제
-			SafeRelease(DynamicVB);
-			SafeRelease(DynamicIB);
+			CurrentIndexOffset += static_cast<uint32>(Section.Indices.Num());
 		}
+
+		// 버퍼 해제
+		SafeRelease(DynamicVB);
+		SafeRelease(DynamicIB);
 	}
 
 	Pipeline->SetConstantBuffer(2, EShaderType::PS, nullptr);

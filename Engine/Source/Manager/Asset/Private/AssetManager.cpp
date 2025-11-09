@@ -9,6 +9,8 @@
 #include "Manager/Asset/Public/FbxImporter.h"
 #include "Manager/Path/Public/PathManager.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Core/Public/WindowsBinReader.h"
+#include "Core/Public/WindowsBinWriter.h"
 
 IMPLEMENT_SINGLETON_CLASS(UAssetManager, UObject)
 UAssetManager::UAssetManager()
@@ -26,16 +28,16 @@ void UAssetManager::Initialize()
 	// Data/Fbx 폴더 속 모든 .fbx 파일 로드 및 캐싱 (Static/Skeletal 자동 판별)
 	LoadAllFbxMeshes();
 
-	VertexDatas.Emplace(EPrimitiveType::Torus, &VerticesTorus);
-	VertexDatas.Emplace(EPrimitiveType::Arrow, &VerticesArrow);
-	VertexDatas.Emplace(EPrimitiveType::CubeArrow, &VerticesCubeArrow);
-	VertexDatas.Emplace(EPrimitiveType::Ring, &VerticesRing);
-	VertexDatas.Emplace(EPrimitiveType::Line, &VerticesLine);
-	VertexDatas.Emplace(EPrimitiveType::Sprite, &VerticesVerticalSquare);
+	VertexData.Emplace(EPrimitiveType::Torus, &VerticesTorus);
+	VertexData.Emplace(EPrimitiveType::Arrow, &VerticesArrow);
+	VertexData.Emplace(EPrimitiveType::CubeArrow, &VerticesCubeArrow);
+	VertexData.Emplace(EPrimitiveType::Ring, &VerticesRing);
+	VertexData.Emplace(EPrimitiveType::Line, &VerticesLine);
+	VertexData.Emplace(EPrimitiveType::Sprite, &VerticesVerticalSquare);
 
-	IndexDatas.Emplace(EPrimitiveType::Sprite, &IndicesVerticalSquare);
+	IndexData.Emplace(EPrimitiveType::Sprite, &IndicesVerticalSquare);
 	IndexBuffers.Emplace(EPrimitiveType::Sprite,
-		FRenderResourceFactory::CreateIndexBuffer(IndicesVerticalSquare.GetData(), static_cast<int>(IndicesVerticalSquare.Num()) * sizeof(uint32)));
+		FRenderResourceFactory::CreateIndexBuffer(IndicesVerticalSquare.GetData(), IndicesVerticalSquare.Num() * sizeof(uint32)));
 
 	NumIndices.Emplace(EPrimitiveType::Sprite, static_cast<uint32>(IndicesVerticalSquare.Num()));
 
@@ -60,7 +62,7 @@ void UAssetManager::Initialize()
 	NumVertices.Emplace(EPrimitiveType::Sprite, static_cast<uint32>(VerticesVerticalSquare.Num()));
 
 	// Calculate AABB for all primitive types (excluding StaticMesh)
-	for (const auto& Pair : VertexDatas)
+	for (const auto& Pair : VertexData)
 	{
 		EPrimitiveType Type = Pair.first;
 		const auto* Vertices = Pair.second;
@@ -113,7 +115,7 @@ void UAssetManager::Release()
 		SafeRelease(Pair.second);
 	}
 
-	StaticMeshCache.Empty();	// unique ptr 이라서 자동으로 해제됨
+	StaticMeshCache.Empty();
 	StaticMeshVertexBuffers.Empty();
 	StaticMeshIndexBuffers.Empty();
 
@@ -201,7 +203,7 @@ ID3D11Buffer* UAssetManager::CreateIndexBuffer(TArray<uint32> InIndices)
 
 TArray<FNormalVertex>* UAssetManager::GetVertexData(EPrimitiveType InType)
 {
-	return VertexDatas[InType];
+	return VertexData[InType];
 }
 
 ID3D11Buffer* UAssetManager::GetVertexBuffer(EPrimitiveType InType)
@@ -216,7 +218,7 @@ uint32 UAssetManager::GetNumVertices(EPrimitiveType InType)
 
 TArray<uint32>* UAssetManager::GetIndexData(EPrimitiveType InType)
 {
-	return IndexDatas[InType];
+	return IndexData[InType];
 }
 
 ID3D11Buffer* UAssetManager::GetIndexBuffer(EPrimitiveType InType)
@@ -327,12 +329,57 @@ USkeletalMesh* UAssetManager::LoadSkeletalMesh(const FName& InFbxPath)
 		return CachedMesh;
 	}
 
-	// 파일에서 로드
-	FString PathString = InFbxPath.ToString();
-	FFbxImporter& Parser = FFbxImporter::GetInstance();
-	FSkeletalMesh* SkeletalMeshData = new FSkeletalMesh();
+	// 바이너리 파일 경로 생성 (Cooked 폴더에 .fbxbin)
+	path CookedPath = UPathManager::GetInstance().GetCookedPath();
+	path FbxPath(InFbxPath.ToString());
+	path BinFilePath = CookedPath / (FbxPath.stem().wstring() + L".fbxbin");
 
-	if (Parser.LoadSkeletalMesh(PathString, *SkeletalMeshData))
+	FSkeletalMesh* SkeletalMeshData = nullptr;
+	bool bLoadedFromBinary = false;
+
+	FString PathString = InFbxPath.ToString();
+
+	// 바이너리 캐시 확인
+	if (exists(BinFilePath) && IsBinaryUpToDate(InFbxPath, FName(BinFilePath.generic_string())))
+	{
+		auto StartTime = std::chrono::high_resolution_clock::now();
+		SkeletalMeshData = LoadSkeletalMeshBinary(FName(BinFilePath.generic_string()));
+		auto EndTime = std::chrono::high_resolution_clock::now();
+		auto Duration = std::chrono::duration_cast<std::chrono::milliseconds>(EndTime - StartTime);
+
+		if (SkeletalMeshData && SkeletalMeshData->IsValid())
+		{
+			bLoadedFromBinary = true;
+			UE_LOG_SUCCESS("SkeletalMeshCache: Loaded from fbxbin in %lld ms: '%s'", Duration.count(), PathString.c_str());
+		}
+		else
+		{
+			delete SkeletalMeshData;
+			SkeletalMeshData = nullptr;
+			UE_LOG_INFO("SkeletalMeshCache: fbxbin outdated, reloading from FBX '%s'", PathString.c_str());
+		}
+	}
+
+	// 바이너리에서 로드 실패하면 FBX 파싱
+	if (!SkeletalMeshData)
+	{
+		auto StartTime = std::chrono::high_resolution_clock::now();
+
+		FFbxImporter& Parser = FFbxImporter::GetInstance();
+		SkeletalMeshData = new FSkeletalMesh();
+
+		if (!Parser.LoadSkeletalMesh(PathString, *SkeletalMeshData))
+		{
+			delete SkeletalMeshData;
+			return nullptr;
+		}
+
+		auto EndTime = std::chrono::high_resolution_clock::now();
+		auto Duration = std::chrono::duration_cast<std::chrono::milliseconds>(EndTime - StartTime);
+		UE_LOG_INFO("SkeletalMeshCache: Parsed FBX in %lld ms: '%s'", Duration.count(), PathString.c_str());
+	}
+
+	if (SkeletalMeshData && SkeletalMeshData->IsValid())
 	{
 		USkeletalMesh* LoadedMesh = new USkeletalMesh();
 		LoadedMesh->SetSkeletalMeshAsset(SkeletalMeshData);
@@ -408,13 +455,16 @@ USkeletalMesh* UAssetManager::LoadSkeletalMesh(const FName& InFbxPath)
 		}
 		SkeletalMeshBuffers.Emplace(InFbxPath, Buffers);
 
+		// 바이너리 캐시 저장 (FBX에서 로드한 경우에만)
+		if (!bLoadedFromBinary)
+		{
+			SaveSkeletalMeshBinary(InFbxPath, SkeletalMeshData);
+		}
+
 		return LoadedMesh;
 	}
-	else
-	{
-		delete SkeletalMeshData;
-		return nullptr;
-	}
+
+	return nullptr;
 }
 
 FSkeletalMeshBuffers* UAssetManager::GetSkeletalMeshBuffers(const FName& InFbxPath)
@@ -447,7 +497,7 @@ FAABB UAssetManager::CalculateAABB(const TArray<FNormalVertex>& Vertices)
 		MaxPoint.Z = std::max(MaxPoint.Z, Vertex.Position.Z);
 	}
 
-	return FAABB(MinPoint, MaxPoint);
+	return {MinPoint, MaxPoint};
 }
 
 /**
@@ -475,16 +525,16 @@ const TMap<FName, UTexture*>& UAssetManager::GetTextureCache() const
 void UAssetManager::LoadAllFbxMeshes()
 {
 	TArray<FName> FbxList;
-	const FString DataDirectory = "Data/Fbx"; // FBX 전용 디렉토리
+	path FbxDirectory = UPathManager::GetInstance().GetDataPath() / "FBX";
 
 	// 디렉토리 존재 확인
-	if (!exists(DataDirectory) || !std::filesystem::is_directory(DataDirectory))
+	if (!exists(FbxDirectory) || !std::filesystem::is_directory(FbxDirectory))
 	{
-		return; // Data/Fbx 폴더가 없으면 조용히 반환
+		return; // 폴더가 없으면 조용히 반환
 	}
 
 	// .fbx 파일 찾기 (대소문자 구분 없이)
-	for (const auto& Entry : std::filesystem::recursive_directory_iterator(DataDirectory))
+	for (const auto& Entry : std::filesystem::recursive_directory_iterator(FbxDirectory))
 	{
 		if (Entry.is_regular_file())
 		{
@@ -513,7 +563,7 @@ void UAssetManager::LoadAllFbxMeshes()
 			if (LoadedMesh)
 			{
 				UE_LOG("AssetManager: Loaded Skeletal Mesh: %s (Materials: %d)",
-					PathString.c_str(), LoadedMesh->GetNumMaterials());
+					PathString.data(), LoadedMesh->GetNumMaterials());
 			}
 		}
 		else
@@ -556,4 +606,69 @@ ID3D11Buffer* UAssetManager::CreateSkeletalVertexBuffer(const TArray<FSkeletalVe
 		reinterpret_cast<FNormalVertex*>(const_cast<FSkeletalVertex*>(InVertices.GetData())),
 		static_cast<int>(InVertices.Num() * sizeof(FSkeletalVertex))
 	);
+}
+
+/**
+ * @brief FBX 파일에서 로드한 SkeletalMesh를 바이너리로 저장
+ * @param InFbxPath 원본 FBX 파일 경로
+ * @param InMesh 저장할 FSkeletalMesh 포인터
+ * @return 저장 성공 여부
+ */
+bool UAssetManager::SaveSkeletalMeshBinary(const FName& InFbxPath, const FSkeletalMesh* InMesh)
+{
+	if (!InMesh || !InMesh->IsValid())
+	{
+		return false;
+	}
+
+	path CookedPath = UPathManager::GetInstance().GetCookedPath();
+	path FbxPath(InFbxPath.ToString());
+	path BinFilePath = CookedPath / (FbxPath.stem().wstring() + L".fbxbin");
+
+	FWindowsBinWriter BinWriter(BinFilePath);
+	FSkeletalMesh* MeshData = const_cast<FSkeletalMesh*>(InMesh);
+	BinWriter << (*MeshData);
+
+	UE_LOG_SUCCESS("SkeletalMeshCache: Saved fbxbin '%ls'", BinFilePath.c_str());
+	return true;
+}
+
+/**
+ * @brief 바이너리 파일에서 SkeletalMesh 로드
+ * @param InBinPath 바이너리 파일 경로
+ * @return 로드된 FSkeletalMesh 포인터 (실패 시 nullptr)
+ */
+FSkeletalMesh* UAssetManager::LoadSkeletalMeshBinary(const FName& InBinPath)
+{
+	FString BinPathString = InBinPath.ToString();
+	if (!exists(BinPathString))
+	{
+		return nullptr;
+	}
+
+	FSkeletalMesh* SkeletalMeshData = new FSkeletalMesh();
+	FWindowsBinReader BinReader(BinPathString);
+	BinReader << (*SkeletalMeshData);
+
+	UE_LOG_SUCCESS("SkeletalMeshCache: Loaded cached fbxbin '%s'", BinPathString.data());
+	return SkeletalMeshData;
+}
+
+/**
+ * @brief 바이너리 파일이 FBX 파일보다 최신인지 확인
+ * @param InFbxPath 원본 FBX 파일 경로
+ * @param InBinPath 바이너리 파일 경로
+ * @return 바이너리 파일이 최신이면 true
+ */
+bool UAssetManager::IsBinaryUpToDate(const FName& InFbxPath, const FName& InBinPath)
+{
+	if (!exists(InFbxPath.ToString()) || !exists(InBinPath.ToString()))
+	{
+		return false;
+	}
+
+	auto FbxTime = std::filesystem::last_write_time(InFbxPath.ToString());
+	auto BinTime = std::filesystem::last_write_time(InBinPath.ToString());
+
+	return BinTime >= FbxTime;
 }

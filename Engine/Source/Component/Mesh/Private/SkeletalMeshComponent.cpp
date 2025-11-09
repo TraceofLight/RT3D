@@ -60,6 +60,7 @@ void USkeletalMeshComponent::UseReferencePose()
 
 	BuildComponentWorldSpacePose();
     BuildSkinMatrices();
+    bSkinnedVerticesDirty = true;
 }
 
 void USkeletalMeshComponent::SetLocalPose(const TArray<FTransform>& InLocalPose)
@@ -74,6 +75,7 @@ void USkeletalMeshComponent::SetLocalPose(const TArray<FTransform>& InLocalPose)
 	    return;
     }
     LocalPose = InLocalPose;
+    bSkinnedVerticesDirty = true;
 }
 
 void USkeletalMeshComponent::BuildComponentWorldSpacePose()
@@ -131,6 +133,7 @@ void USkeletalMeshComponent::BuildSkinMatrices()
     {
 		FinalSkinMatrices[i] = GlobalPose[i] * Skel.InvRefPoseGlobal[i];
 	}
+    bSkinnedVerticesDirty = true;
 }
 
 /** 매틱 Matrix 를 업데이트 해준다. GlobalPose은 업데이트, InvGlobalPose는 X */
