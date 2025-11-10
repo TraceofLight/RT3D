@@ -11,6 +11,7 @@
 #include "Component/Public/ScriptComponent.h"  // FDelegateInfo 템플릿 구현용
 #include "Editor/Public/Editor.h"
 #include "Level/Public/Level.h"
+#include "Level/Public/World.h"
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Utility/Public/JsonSerializer.h"
 
@@ -409,7 +410,10 @@ void AActor::RegisterComponent(UActorComponent* InNewComponent)
 		OwnedComponents.Add(InNewComponent);
 	}
 
-	GWorld->GetLevel()->RegisterComponent(InNewComponent);
+	if (UWorld* OwnerWorld = GetWorld())
+	{
+		OwnerWorld->GetLevel()->RegisterComponent(InNewComponent);
+	}
 }
 
 bool AActor::RemoveComponent(UActorComponent* InComponentToDelete, bool bShouldDetachChildren)
@@ -435,7 +439,10 @@ bool AActor::RemoveComponent(UActorComponent* InComponentToDelete, bool bShouldD
 		}
 
 		// 라이트 컴포넌트 자체를 등록 해제
-		GWorld->GetLevel()->UnregisterComponent(LightComponent);
+		if (UWorld* OwnerWorld = GetWorld())
+		{
+			OwnerWorld->GetLevel()->UnregisterComponent(LightComponent);
+		}
 	}
 
 	if (UDecalComponent* DecalComponent = Cast<UDecalComponent>(InComponentToDelete))
@@ -450,7 +457,10 @@ bool AActor::RemoveComponent(UActorComponent* InComponentToDelete, bool bShouldD
 	}
     if (UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(InComponentToDelete))
     {
-         GWorld->GetLevel()->UnregisterComponent(PrimitiveComponent);
+		if (UWorld* OwnerWorld = GetWorld())
+		{
+			OwnerWorld->GetLevel()->UnregisterComponent(PrimitiveComponent);
+		}
     }
 
     if (USceneComponent* SceneComponent = Cast<USceneComponent>(InComponentToDelete))
@@ -753,7 +763,10 @@ AActor* AActor::DuplicateFromTemplate(ULevel* TargetLevel, const FVector& InLoca
 			// TargetLevel이 지정되지 않으면 현재 활성 World의 Level 사용 (PIE World 대응)
 			if (GWorld)
 			{
-				LevelToAddTo = GWorld->GetLevel();
+				if (UWorld* OwnerWorld = GetWorld())
+				{
+					LevelToAddTo = OwnerWorld->GetLevel();
+				}
 			}
 			else
 			{
