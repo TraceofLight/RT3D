@@ -101,6 +101,10 @@ void FPreviewScene::InjectDefaultContent()
 		UE_LOG_ERROR("PreviewScene: failed to spawn preview fbx model.");
 		return;
 	}
+	else
+	{
+		PreviewSkeletalActor->SetActorScale3D(FVector(0.02f, 0.02f, 0.02f));
+	}
 
 	PreviewSkeletal = Cast<USkeletalMeshComponent>(PreviewSkeletalActor->GetRootComponent());
 	if (!PreviewSkeletal)
