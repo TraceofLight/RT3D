@@ -50,7 +50,7 @@ void USkeletalMeshComponentWidget::RenderWidget()
 		RenderMaterialSections();
 	}
 
-	RenderBoneHierachy(SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton);
+	RenderBoneHierachy(SkeletalMeshComponent);
 
 	ImGui::PopStyleColor(5);
 }
@@ -250,7 +250,7 @@ void USkeletalMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotInde
 	}
 }
 
-void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx) const
+void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx)
 {
 	ImGuiTreeNodeFlags NodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth |
 		ImGuiTreeNodeFlags_DefaultOpen;
@@ -261,8 +261,19 @@ void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx
 		NodeFlags |= ImGuiTreeNodeFlags_Leaf;
 	}
 
+	FName CurName = Skeleton->BoneNames[idx];
+	if (SelectedBoneName == CurName)
+	{
+		NodeFlags |= ImGuiTreeNodeFlags_Selected;
+	}
+
 	if (ImGui::TreeNodeEx(Skeleton->BoneNames[idx].ToString().c_str(), NodeFlags))
 	{
+		if (ImGui::IsItemClicked())
+		{
+			SelectedBoneName = Skeleton->BoneNames[idx];
+			SelectedBoneIdx = idx;
+		}
 		for (int ChildIdx : Skeleton->Childs[idx])
 		{
 			DrawSkeletalBone(Skeleton, ChildIdx);
@@ -271,10 +282,23 @@ void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx
 		ImGui::TreePop();
 	}
 }
-void USkeletalMeshComponentWidget::RenderBoneHierachy(FSkeleton* Skeleton) const
+void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent)
 {
+	FSkeleton* Skeleton = SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton;
 	uint32 BoneCount = Skeleton->BoneNames.Num();
 	DrawSkeletalBone(Skeleton, 0);
+	ImGui::Text("Transform");
+
+	if (SelectedBoneIdx != -1)
+	{
+		FTransform& BoneTransform = SkeletalMeshComponent->GetLocalPose(SelectedBoneIdx);
+		ImGui::DragFloat3("Location", &BoneTransform.Location.X, 0.1f);
+		ImGui::DragFloat3("Rotation", &BoneTransform.Rotation.X, 0.001f);
+		ImGui::DragFloat3("Scale", &BoneTransform.Scale.X, 0.1f);
+
+		SkeletalMeshComponent->SetLocalPose(SelectedBoneIdx, BoneTransform);
+	}
+	
 }
 
 FString USkeletalMeshComponentWidget::GetMaterialDisplayName(UMaterial* Material)

@@ -77,7 +77,16 @@ void USkeletalMeshComponent::SetLocalPose(const TArray<FTransform>& InLocalPose)
     LocalPose = InLocalPose;
     bSkinnedVerticesDirty = true;
 }
-
+FTransform& USkeletalMeshComponent::GetLocalPose(const uint32 Idx)
+{
+	return LocalPose[Idx];
+}
+void USkeletalMeshComponent::SetLocalPose(const uint32 Idx, const FTransform& InLocalPose)
+{
+	LocalPose[Idx] = InLocalPose;
+	BuildComponentWorldSpacePose();
+	BuildSkinMatrices();
+}
 void USkeletalMeshComponent::BuildComponentWorldSpacePose()
 {
 	if (!SkeletalMesh || !SkeletalMesh->GetSkeleton())
