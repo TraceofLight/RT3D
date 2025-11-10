@@ -1,11 +1,13 @@
 ﻿#include "pch.h"
 #include "Render/UI/Window/Public/FbxViewportWindow.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
+#include "Render/UI/Widget/Public/SkeletalMeshComponentWidget.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "Manager/Time/Public/TimeManager.h"
+#include "Core/Public/NewObject.h"
 #include "ImGui/imgui.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
@@ -24,6 +26,8 @@ void UFbxViewportWindow::Initialize()
         UE_LOG_ERROR("FbxViewportWindow: Preview setup failed during Initialize().");
         return;
     }
+
+    UpdateSkeletalWidgetTargets();
 
     UE_LOG("FbxViewportWindow: initialized");
 }
@@ -55,6 +59,9 @@ void UFbxViewportWindow::Cleanup()
     PreviewClient = nullptr;
 
     bPreviewReady = false;
+
+    SafeDelete(SkeletalWidget);
+    SkeletalWidget = nullptr;
 }
 
 
@@ -157,13 +164,48 @@ void UFbxViewportWindow::OnPostRenderWindow()
 		return;
 	}
 
-	const ImVec2 avail = ImGui::GetContentRegionAvail();
-	if (avail.x < 1 || avail.y < 1) return;
+	UpdateSkeletalWidgetTargets();
 
-	EnsureRenderTargets(avail);      // 전용 RT/DSV 준비
+	const ImVec2 totalAvail = ImGui::GetContentRegionAvail();
+	if (totalAvail.x < 1 || totalAvail.y < 1) return;
 
-	// ImGui에 전용 SRV를 그리기  (절대 백버퍼 SRV를 쓰지 말 것!)
-	ImGui::InvisibleButton("FBXViewportArea", avail);
+	const bool bHasInspector = (SkeletalWidget && PreviewScene && PreviewScene->GetPreviewSkeletalComponent());
+	const float desiredInspectorWidth = 320.0f;
+	float inspectorWidth = bHasInspector ? desiredInspectorWidth : 0.0f;
+	float viewportWidth = totalAvail.x;
+	const float spacing = bHasInspector ? ImGui::GetStyle().ItemSpacing.x : 0.0f;
+
+	if (inspectorWidth > 0.0f && totalAvail.x > (inspectorWidth + spacing + 50.0f))
+	{
+		viewportWidth = totalAvail.x - inspectorWidth - spacing;
+	}
+	else
+	{
+		inspectorWidth = 0.0f;
+	}
+
+	RenderPreviewViewport(ImVec2(viewportWidth, totalAvail.y));
+
+	if (inspectorWidth > 0.0f)
+	{
+		ImGui::SameLine();
+		RenderSkeletalInspector(ImVec2(inspectorWidth, totalAvail.y));
+	}
+}
+
+void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
+{
+	ImVec2 ChildSize(std::max(1.0f, InSize.x), std::max(1.0f, InSize.y));
+	ImGui::BeginChild("FBXViewportRegion", ChildSize, false, ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+	const ImVec2 viewportAvail = ImGui::GetContentRegionAvail();
+	if (viewportAvail.x < 1 || viewportAvail.y < 1)
+	{
+		ImGui::EndChild();
+		return;
+	}
+
+	EnsureRenderTargets(viewportAvail);
+	ImGui::InvisibleButton("FBXViewportArea", viewportAvail);
 	const ImVec2 p0 = ImGui::GetItemRectMin();
 	const ImVec2 p1 = ImGui::GetItemRectMax();
 	ImDrawList* dl = ImGui::GetWindowDrawList();
@@ -176,10 +218,46 @@ void UFbxViewportWindow::OnPostRenderWindow()
 	const float DeltaTime = UTimeManager::GetInstance().GetDeltaTime();
 	PreviewClient->UpdateEditorCamera(DeltaTime);
 
-	// 프리뷰 렌더 호출 (아래 3단계 참고)
 	UWorld* SceneWorld = PreviewScene ? PreviewScene->GetWorld() : nullptr;
 	URenderer::GetInstance().RenderExternalViewport(
-		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), /*WorldOverride*/SceneWorld);
+		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), SceneWorld);
+
+	ImGui::EndChild();
+}
+
+void UFbxViewportWindow::RenderSkeletalInspector(const ImVec2& InSize)
+{
+	if (!SkeletalWidget)
+	{
+		return;
+	}
+
+	ImVec2 PanelSize(std::max(1.0f, InSize.x), std::max(1.0f, InSize.y));
+	ImGui::BeginChild("FBXBoneInspector", PanelSize, true);
+	SkeletalWidget->RenderWidget();
+	ImGui::EndChild();
+}
+
+void UFbxViewportWindow::UpdateSkeletalWidgetTargets()
+{
+	if (!SkeletalWidget)
+	{
+		SkeletalWidget = NewObject<USkeletalMeshComponentWidget>(this);
+		if (SkeletalWidget)
+		{
+			SkeletalWidget->Initialize();
+		}
+	}
+
+	if (!SkeletalWidget)
+	{
+		return;
+	}
+
+	UWorld* SceneWorld = PreviewScene ? PreviewScene->GetWorld() : nullptr;
+	SkeletalWidget->SetTargetWorld(SceneWorld);
+	USkeletalMeshComponent* PreviewComponent = PreviewScene ? PreviewScene->GetPreviewSkeletalComponent() : nullptr;
+	SkeletalWidget->SetTargetComponent(PreviewComponent);
 }
 
 UFbxViewportWindow::UFbxViewportWindow()

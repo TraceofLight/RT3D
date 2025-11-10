@@ -4,15 +4,42 @@
 #include "Component/Mesh/Public/SkeletalMesh.h"
 
 #include "Level/Public/Level.h"
+#include "Level/Public/World.h"
 #include "Core/Public/ObjectIterator.h"
 #include "Texture/Public/Material.h"
 #include "Texture/Public/Texture.h"
+#include "Editor/Public/EditorEngine.h"
 
 IMPLEMENT_CLASS(USkeletalMeshComponentWidget, UWidget)
 
+void USkeletalMeshComponentWidget::Initialize()
+{
+	if (!World)
+	{
+		World = GWorld;
+	}
+}
+
+void USkeletalMeshComponentWidget::SetTargetWorld(UWorld* InWorld)
+{
+	World = InWorld ? InWorld : GWorld;
+}
+
+void USkeletalMeshComponentWidget::SetTargetComponent(USkeletalMeshComponent* InComponent)
+{
+	OverrideTargetComponent = InComponent;
+}
+
 void USkeletalMeshComponentWidget::RenderWidget()
 {
-	ULevel* CurrentLevel = GWorld->GetLevel();
+	UWorld* TargetWorld = World ? World : GWorld;
+	if (!TargetWorld)
+	{
+		ImGui::TextUnformatted("No World");
+		return;
+	}
+
+	ULevel* CurrentLevel = TargetWorld->GetLevel();
 
 	if (!CurrentLevel)
 	{
@@ -21,18 +48,14 @@ void USkeletalMeshComponentWidget::RenderWidget()
 	}
 
 	UActorComponent* Component = GEditor->GetEditorModule()->GetSelectedComponent();
-	if (!Component)
+	USkeletalMeshComponent* TargetComponent = OverrideTargetComponent ? OverrideTargetComponent : Cast<USkeletalMeshComponent>(Component);
+	if (!TargetComponent)
 	{
-		ImGui::TextUnformatted("No Object Selected");
+		ImGui::TextUnformatted("No SkeletalMeshComponent");
 		return;
 	}
-	SkeletalMeshComponent = Cast<USkeletalMeshComponent>(Component);
 
-	if (!SkeletalMeshComponent)
-	{
-		ImGui::TextUnformatted("Component is not SkeletalMeshComponent");
-		return;
-	}
+	SkeletalMeshComponent = TargetComponent;
 
 	// 모든 입력 필드를 검은색으로 설정
 	ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
@@ -48,7 +71,10 @@ void USkeletalMeshComponentWidget::RenderWidget()
 	{
 		ImGui::Separator();
 		RenderMaterialSections();
-		RenderBoneHierachy(SkeletalMeshComponent);
+		if (TargetWorld->GetWorldType() == EWorldType::EditorPreview)
+		{
+			RenderBoneHierachy(SkeletalMeshComponent);
+		}
 	}
 
 
@@ -298,7 +324,7 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 
 		SkeletalMeshComponent->SetLocalPose(SelectedBoneIdx, BoneTransform);
 	}
-	
+
 }
 
 FString USkeletalMeshComponentWidget::GetMaterialDisplayName(UMaterial* Material)
