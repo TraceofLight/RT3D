@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "Render/UI/Window/Public/UIWindow.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 
@@ -17,8 +17,7 @@ class UFbxViewportWindow : public UUIWindow
 public:
 	UFbxViewportWindow();
 	void Initialize() override;
-	void Release() override;
-	void Tick(float DeltaTime) override;
+	void Cleanup() override;
 
 	void LoadFbxFile(const path& File);
 
@@ -34,9 +33,12 @@ private:
 	ImVec2 CachedSize = ImVec2(0,0);
 
 	void EnsureRenderTargets(const ImVec2& size);
+	void EnsurePreviewInfrastructure();
 	FViewport*       PreviewViewport   = nullptr;
 	FViewportClient* PreviewClient     = nullptr;
 	FPreviewScene*   PreviewScene      = nullptr;
 
+	bool bPreviewReady = false;
 	bool bHovered = false;
 };
+

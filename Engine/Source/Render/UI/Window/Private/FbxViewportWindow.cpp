@@ -1,10 +1,11 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Render/UI/Window/Public/FbxViewportWindow.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
+#include "Manager/Time/Public/TimeManager.h"
 #include "ImGui/imgui.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
@@ -17,52 +18,46 @@ void UFbxViewportWindow::LoadFbxFile(const path& File)
 
 void UFbxViewportWindow::Initialize()
 {
-    PreviewViewport = new FViewport();
-    PreviewClient   = new FViewportClient();
-    PreviewViewport->SetViewportClient(PreviewClient);
-    PreviewClient->SetOwningViewport(PreviewViewport);
-    PreviewClient->SetViewType(EViewType::Perspective);
-    PreviewClient->SetViewMode(EViewModeIndex::VMI_BlinnPhong);
-
-	PreviewClient->EnableEditorCamera(true);
-	PreviewClient->SetViewLocation(FVector(0, -300, 150));
-	PreviewClient->SetViewRotation(FVector(-15, 0, 0));
-
-	PreviewScene = new FPreviewScene();
-	if (!PreviewScene->Initialize(this))
-	{
-		UE_LOG_ERROR("FbxViewportWindow: Failed to initialize preview scene.");
-	}
+    EnsurePreviewInfrastructure();
+    if (!bPreviewReady)
+    {
+        UE_LOG_ERROR("FbxViewportWindow: Preview setup failed during Initialize().");
+        return;
+    }
 
     UE_LOG("FbxViewportWindow: initialized");
 }
 
-void UFbxViewportWindow::Release()
+void UFbxViewportWindow::Cleanup()
 {
-	if (PreviewScene)
-	{
-		PreviewScene->Shutdown();
-		SafeDelete(PreviewScene);
-	}
+    CachedSize = ImVec2(0, 0);
+    SRV.Reset();
+    RTV.Reset();
+    ColorRT.Reset();
+    DSV.Reset();
+    DepthTex.Reset();
+
+    if (PreviewScene)
+    {
+        PreviewScene->Shutdown();
+        SafeDelete(PreviewScene);
+        PreviewScene = nullptr;
+    }
 
     if (PreviewViewport)
     {
         PreviewViewport->SetViewportClient(nullptr);
         SafeDelete(PreviewViewport);
+        PreviewViewport = nullptr;
     }
+
     SafeDelete(PreviewClient);
+    PreviewClient = nullptr;
+
+    bPreviewReady = false;
 }
 
-void UFbxViewportWindow::Tick(float DeltaTime)
-{
-	if (!PreviewViewport || !PreviewClient) return;
-	if (PreviewScene)
-	{
-		PreviewScene->Tick(DeltaTime);
-	}
-	PreviewViewport->PumpMouseFromInputManager();
-	PreviewClient->UpdateEditorCamera(DeltaTime);
-}
+
 
 void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& size)
 {
@@ -98,8 +93,70 @@ void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& size)
 		PreviewViewport->SetRect({0,0,(int)w,(int)h});
 }
 
+void UFbxViewportWindow::EnsurePreviewInfrastructure()
+{
+    if (bPreviewReady && PreviewScene && PreviewScene->GetWorld())
+    {
+        return;
+    }
+
+    if (!PreviewViewport)
+    {
+        PreviewViewport = new FViewport();
+    }
+
+    const bool bClientWasNull = (PreviewClient == nullptr);
+    if (!PreviewClient)
+    {
+        PreviewClient = new FViewportClient();
+    }
+
+    if (PreviewViewport && PreviewClient)
+    {
+        PreviewViewport->SetViewportClient(PreviewClient);
+        PreviewClient->SetOwningViewport(PreviewViewport);
+    }
+
+    if (bClientWasNull && PreviewClient)
+    {
+        PreviewClient->SetViewType(EViewType::Perspective);
+        PreviewClient->SetViewMode(EViewModeIndex::VMI_BlinnPhong);
+        PreviewClient->EnableEditorCamera(true);
+        PreviewClient->SetViewLocation(FVector(0, -300, 150));
+        PreviewClient->SetViewRotation(FVector(-15, 0, 0));
+    }
+
+    if (PreviewScene && !PreviewScene->GetWorld())
+    {
+        PreviewScene->Shutdown();
+        SafeDelete(PreviewScene);
+    }
+
+    if (!PreviewScene)
+    {
+        PreviewScene = new FPreviewScene();
+        if (!PreviewScene->Initialize(this))
+        {
+            UE_LOG_ERROR("FbxViewportWindow: Failed to initialize preview scene.");
+            SafeDelete(PreviewScene);
+        }
+    }
+
+    bPreviewReady = (PreviewViewport && PreviewClient && PreviewScene && PreviewScene->GetWorld());
+    if (!bPreviewReady)
+    {
+        UE_LOG_ERROR("FbxViewportWindow: Preview infrastructure is not ready.");
+    }
+}
+
 void UFbxViewportWindow::OnPostRenderWindow()
 {
+	EnsurePreviewInfrastructure();
+	if (!bPreviewReady)
+	{
+		return;
+	}
+
 	const ImVec2 avail = ImGui::GetContentRegionAvail();
 	if (avail.x < 1 || avail.y < 1) return;
 
@@ -114,6 +171,10 @@ void UFbxViewportWindow::OnPostRenderWindow()
 
 	bHovered = ImGui::IsItemHovered();
 	if (PreviewClient) PreviewClient->SetInputEnabled(bHovered);
+
+	PreviewViewport->PumpMouseFromInputManager();
+	const float DeltaTime = UTimeManager::GetInstance().GetDeltaTime();
+	PreviewClient->UpdateEditorCamera(DeltaTime);
 
 	// 프리뷰 렌더 호출 (아래 3단계 참고)
 	UWorld* SceneWorld = PreviewScene ? PreviewScene->GetWorld() : nullptr;

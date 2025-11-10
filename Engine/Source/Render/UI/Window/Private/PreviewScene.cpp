@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
 #include "Core/Public/NewObject.h"
 #include "Level/Public/World.h"
@@ -6,6 +6,7 @@
 #include "Actor/Public/StaticMeshActor.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Component/Public/AmbientLightComponent.h"
+#include "Editor/Public/EditorEngine.h"
 
 FPreviewScene::~FPreviewScene()
 {
@@ -35,14 +36,6 @@ void FPreviewScene::Shutdown()
     DestroyPreviewWorld();
 }
 
-void FPreviewScene::Tick(float DeltaTime)
-{
-    if (PreviewWorld)
-    {
-        PreviewWorld->Tick(DeltaTime);
-    }
-}
-
 void FPreviewScene::CreatePreviewWorld()
 {
     if (PreviewWorld)
@@ -65,12 +58,26 @@ void FPreviewScene::CreatePreviewWorld()
 
     PreviewWorld->SetWorldType(EWorldType::EditorPreview);
     PreviewWorld->CreateNewLevel();
+
+    if (GEditor && !bWorldRegistered)
+    {
+        GEditor->RegisterPreviewWorld(PreviewWorld);
+        bWorldRegistered = true;
+    }
 }
 
 void FPreviewScene::DestroyPreviewWorld()
 {
     if (!PreviewWorld)
     {
+        return;
+    }
+
+    if (GEditor && bWorldRegistered)
+    {
+        GEditor->UnregisterPreviewWorld(PreviewWorld);
+        bWorldRegistered = false;
+        PreviewWorld = nullptr;
         return;
     }
 

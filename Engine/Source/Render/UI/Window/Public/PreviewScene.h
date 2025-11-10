@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include "Global/Types.h"
 
@@ -20,7 +20,6 @@ public:
 
 	bool Initialize(UObject* InOuter);
 	void Shutdown();
-	void Tick(float DeltaTime);
 
 	UWorld* GetWorld() const { return PreviewWorld; }
 
@@ -36,4 +35,5 @@ private:
 	UStaticMeshComponent* PreviewMesh = nullptr;
 	UAmbientLightComponent* PreviewAmbient = nullptr;
 	bool bContentInjected = false;
+	bool bWorldRegistered = false;
 };
