@@ -50,6 +50,8 @@ void USkeletalMeshComponentWidget::RenderWidget()
 		RenderMaterialSections();
 	}
 
+	RenderBoneHierachy(SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton);
+
 	ImGui::PopStyleColor(5);
 }
 
@@ -246,6 +248,33 @@ void USkeletalMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotInde
 			ImGui::SetItemDefaultFocus();
 		}
 	}
+}
+
+void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx) const
+{
+	ImGuiTreeNodeFlags NodeFlags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth |
+		ImGuiTreeNodeFlags_DefaultOpen;
+
+	bool bHasChild = Skeleton->Childs.Num() > 0;
+	if (bHasChild == false)
+	{
+		NodeFlags |= ImGuiTreeNodeFlags_Leaf;
+	}
+
+	if (ImGui::TreeNodeEx(Skeleton->BoneNames[idx].ToString().c_str(), NodeFlags))
+	{
+		for (int ChildIdx : Skeleton->Childs[idx])
+		{
+			DrawSkeletalBone(Skeleton, ChildIdx);
+		}
+
+		ImGui::TreePop();
+	}
+}
+void USkeletalMeshComponentWidget::RenderBoneHierachy(FSkeleton* Skeleton) const
+{
+	uint32 BoneCount = Skeleton->BoneNames.Num();
+	DrawSkeletalBone(Skeleton, 0);
 }
 
 FString USkeletalMeshComponentWidget::GetMaterialDisplayName(UMaterial* Material)

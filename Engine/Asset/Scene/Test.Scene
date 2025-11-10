@@ -1,0 +1,286 @@
+{
+  "Actors" : {
+    "356" : {
+      "CollisionTag" : 0,
+      "Components" : [{
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "Intensity" : 0.050000,
+          "IsEditorOnly" : "false",
+          "IsVisualizationComponent" : "false",
+          "LightColor" : [1.000000, 1.000000, 1.000000],
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Name" : "UAmbientLightComponent_1",
+          "ParentName" : "",
+          "Rotation" : [-0.000000, 0.000000, 0.000000],
+          "Scale" : [1.000000, 1.000000, 1.000000],
+          "ShadowBias" : 0.005000,
+          "ShadowModeIndex" : 1,
+          "ShadowResolutionScale" : 1024.000000,
+          "ShadowSharpen" : 0.500000,
+          "ShadowSlopeBias" : 1.000000,
+          "Type" : "UAmbientLightComponent",
+          "bCastShadows" : "true",
+          "bLightEnabled" : "true",
+          "bVisible" : "true"
+        }, {
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "IsEditorOnly" : "true",
+          "IsVisualizationComponent" : "true",
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Mobility" : "Movable",
+          "Name" : "UUUIDTextComponent_3",
+          "ParentName" : "UAmbientLightComponent_1",
+          "Rotation" : [-0.000000, 0.000000, 0.000000],
+          "Scale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "UUUIDTextComponent",
+          "bGenerateOverlapEvents" : "false",
+          "bVisible" : "true"
+        }],
+      "Location" : [0.000000, 0.000000, 0.000000],
+      "Name" : "AmbientLight",
+      "Rotation" : [-0.000000, 0.000000, 0.000000],
+      "Scale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "AAmbientLight",
+      "bCanEverTick" : "false",
+      "bIsTemplate" : "false",
+      "bTickInEditor" : "false"
+    },
+    "360" : {
+      "CollisionTag" : 0,
+      "Components" : [{
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "IsEditorOnly" : "false",
+          "IsVisualizationComponent" : "false",
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Mobility" : "Movable",
+          "Name" : "USkeletalMeshComponent_1",
+          "ParentName" : "",
+          "Rotation" : [-0.000000, 0.000000, 0.000000],
+          "Scale" : [0.020000, 0.020000, 0.020000],
+          "SkeletalMeshAsset" : "C:/Users/Jungle/Desktop/git/Week10/FutureEngine/Build/Debug/Data/FBX/SKM_Manny_Simple.fbx",
+          "Type" : "USkeletalMeshComponent",
+          "bGenerateOverlapEvents" : "false",
+          "bVisible" : "true"
+        }, {
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "IsEditorOnly" : "true",
+          "IsVisualizationComponent" : "true",
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Mobility" : "Movable",
+          "Name" : "UUUIDTextComponent_4",
+          "ParentName" : "USkeletalMeshComponent_1",
+          "Rotation" : [-0.000000, 0.000000, 0.000000],
+          "Scale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "UUUIDTextComponent",
+          "bGenerateOverlapEvents" : "false",
+          "bVisible" : "true"
+        }],
+      "Location" : [0.000000, 0.000000, 0.000000],
+      "Name" : "ASkeletalMeshActor_1",
+      "Rotation" : [-0.000000, 0.000000, 0.000000],
+      "Scale" : [0.020000, 0.020000, 0.020000],
+      "Type" : "ASkeletalMeshActor",
+      "bCanEverTick" : "false",
+      "bIsTemplate" : "false",
+      "bTickInEditor" : "false"
+    },
+    "364" : {
+      "CollisionTag" : 0,
+      "Components" : [{
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "Intensity" : 3.000000,
+          "IsEditorOnly" : "false",
+          "IsVisualizationComponent" : "false",
+          "LightColor" : [1.000000, 1.000000, 1.000000],
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Name" : "UDirectionalLightComponent_1",
+          "PSMMinInfinityZ" : 1.500000,
+          "PSMSlideBackEnabled" : true,
+          "PSMUnitCubeClip" : true,
+          "ParentName" : "",
+          "Rotation" : [-0.000000, -34.999992, 46.999996],
+          "Scale" : [1.000000, 1.000000, 1.000000],
+          "ShadowBias" : 0.005000,
+          "ShadowModeIndex" : 1,
+          "ShadowProjectionMode" : 4,
+          "ShadowResolutionScale" : 1024.000000,
+          "ShadowSharpen" : 0.500000,
+          "ShadowSlopeBias" : 1.000000,
+          "Type" : "UDirectionalLightComponent",
+          "bCastShadows" : "true",
+          "bLightEnabled" : "true",
+          "bVisible" : "true"
+        }, {
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "IsEditorOnly" : "true",
+          "IsVisualizationComponent" : "true",
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Mobility" : "Movable",
+          "Name" : "UUUIDTextComponent_5",
+          "ParentName" : "UDirectionalLightComponent_1",
+          "Rotation" : [-0.000000, 0.000000, 0.000000],
+          "Scale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "UUUIDTextComponent",
+          "bGenerateOverlapEvents" : "false",
+          "bVisible" : "true"
+        }],
+      "Location" : [0.000000, 0.000000, 0.000000],
+      "Name" : "ADirectionalLight_1",
+      "Rotation" : [-0.000000, -34.999992, 46.999996],
+      "Scale" : [1.000000, 1.000000, 1.000000],
+      "Type" : "ADirectionalLight",
+      "bCanEverTick" : "false",
+      "bIsTemplate" : "false",
+      "bTickInEditor" : "false"
+    },
+    "371" : {
+      "CollisionTag" : 0,
+      "Components" : [{
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "IsEditorOnly" : "false",
+          "IsVisualizationComponent" : "false",
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Mobility" : "Movable",
+          "Name" : "UStaticMeshComponent_0",
+          "ObjStaticMeshAsset" : "Data/Dice.obj",
+          "ParentName" : "",
+          "Rotation" : [-0.000000, 0.000000, 0.000000],
+          "Scale" : [20.000000, 20.000000, 20.000000],
+          "Type" : "UStaticMeshComponent",
+          "bGenerateOverlapEvents" : "false",
+          "bVisible" : "true"
+        }, {
+          "AbsoluteLocation" : false,
+          "AbsoluteRotation" : false,
+          "AbsoluteScale" : false,
+          "IsEditorOnly" : "true",
+          "IsVisualizationComponent" : "true",
+          "Location" : [0.000000, 0.000000, 0.000000],
+          "Mobility" : "Movable",
+          "Name" : "UUUIDTextComponent_6",
+          "ParentName" : "UStaticMeshComponent_0",
+          "Rotation" : [-0.000000, 0.000000, 0.000000],
+          "Scale" : [1.000000, 1.000000, 1.000000],
+          "Type" : "UUUIDTextComponent",
+          "bGenerateOverlapEvents" : "false",
+          "bVisible" : "true"
+        }],
+      "Location" : [0.000000, 0.000000, -23.053436],
+      "Name" : "AStaticMeshActor_0",
+      "Rotation" : [-0.000000, 0.000000, 0.000000],
+      "Scale" : [20.000000, 20.000000, 20.000000],
+      "Type" : "AStaticMeshActor",
+      "bCanEverTick" : "false",
+      "bIsTemplate" : "false",
+      "bTickInEditor" : "false"
+    }
+  },
+  "Curves" : {
+    "EaseIn" : {
+      "CP1_X" : 0.420000,
+      "CP1_Y" : 0.000000,
+      "CP2_X" : 1.000000,
+      "CP2_Y" : 1.000000,
+      "Name" : "Untitled"
+    },
+    "EaseInBack" : {
+      "CP1_X" : 0.600000,
+      "CP1_Y" : -0.280000,
+      "CP2_X" : 0.735000,
+      "CP2_Y" : 0.045000,
+      "Name" : "Untitled"
+    },
+    "EaseInOut" : {
+      "CP1_X" : 0.420000,
+      "CP1_Y" : 0.000000,
+      "CP2_X" : 0.580000,
+      "CP2_Y" : 1.000000,
+      "Name" : "Untitled"
+    },
+    "EaseOut" : {
+      "CP1_X" : 0.000000,
+      "CP1_Y" : 0.000000,
+      "CP2_X" : 0.580000,
+      "CP2_Y" : 1.000000,
+      "Name" : "Untitled"
+    },
+    "EaseOutBack" : {
+      "CP1_X" : 0.175000,
+      "CP1_Y" : 0.885000,
+      "CP2_X" : 0.320000,
+      "CP2_Y" : 1.275000,
+      "Name" : "Untitled"
+    },
+    "Linear" : {
+      "CP1_X" : 0.333000,
+      "CP1_Y" : 0.333000,
+      "CP2_X" : 0.666000,
+      "CP2_Y" : 0.666000,
+      "Name" : "Untitled"
+    }
+  },
+  "NextUUID" : 0,
+  "ViewportSystem" : {
+    "Viewports" : [{
+        "Index" : 0,
+        "ViewMode" : 4,
+        "ViewType" : 1
+      }, {
+        "Index" : 1,
+        "ViewMode" : 4,
+        "ViewType" : 5
+      }, {
+        "Index" : 2,
+        "ViewMode" : 2,
+        "ViewType" : 0
+      }, {
+        "Index" : 3,
+        "ViewMode" : 4,
+        "ViewType" : 4
+      }]
+  },
+  "ViewportTransforms" : {
+    "0" : {
+      "FOV" : 60.000000,
+      "FarZ" : 5000.000000,
+      "Location" : [0.000000, 0.000000, 100.000000],
+      "NearZ" : 0.100000,
+      "Rotation" : [-90.000000, 0.000000, 0.000000]
+    },
+    "1" : {
+      "FOV" : 60.000000,
+      "FarZ" : 5000.000000,
+      "Location" : [-100.000000, 0.000000, 0.000000],
+      "NearZ" : 0.100000,
+      "Rotation" : [0.000000, 0.000000, 0.000000]
+    },
+    "2" : {
+      "FOV" : 60.000000,
+      "FarZ" : 1000.000000,
+      "Location" : [16.370346, -68.499107, 48.171894],
+      "NearZ" : 0.100000,
+      "Rotation" : [-29.349905, 104.999886, 0.000000]
+    },
+    "3" : {
+      "FOV" : 60.000000,
+      "FarZ" : 5000.000000,
+      "Location" : [0.000000, -100.000000, 0.000000],
+      "NearZ" : 0.100000,
+      "Rotation" : [0.000000, 90.000000, 0.000000]
+    }
+  }
+}

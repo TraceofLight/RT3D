@@ -92,13 +92,17 @@ inline FArchive& operator<<(FArchive& Ar, FSkeletalMeshSection& Section)
 // 모든 SKeletal Mesh Bone  대한 정보
 struct FSkeleton
 {
+	TArray<FString>		BoneNamesString;
     TArray<FName>		BoneNames;				/** 모든 Bone 이름의 배열 */
 	TArray<int32>		Parents;				/** 부모 인덱스 배열, -1은 Root */
-	//ARRAY<ARRAY<>> Children;
+	TArray<TArray<int32>> Childs = {};
 	TArray<FTransform>	RefPoseLocal;			/** 부모 뼈에 대한 상대 변환 값 */
     TArray<FMatrix>		RefPoseGlobal;			/** 각 bone을 Root가 0,0,0인 Space로 변환하는 행렬 */
     TArray<FMatrix>		InvRefPoseGlobal;		/** Root 기준 모델 Space에서 각 뼈의 local Space로 변환 */
 
+
+
+	void SetName();
 	/**
 	* RefPoseLocal,RefPoseGlobal, InvRefPoseGlobal 를 세팅해주는 함수
 	*/
@@ -107,13 +111,24 @@ struct FSkeleton
     int32 GetNumBones() const { return static_cast<int32>(BoneNames.Num()); }
 };
 
+inline void FSkeleton::SetName()
+{
+	uint32 BoneSize = BoneNamesString.Num();
+	BoneNames.SetNum(BoneSize);
+	for (int i = 0; i < BoneSize; i++)
+	{
+		BoneNames[i] = FName(BoneNamesString[i]);
+	}
+}
 inline FArchive& operator<<(FArchive& Ar, FSkeleton& Skeleton)
 {
-	Ar << Skeleton.BoneNames;
+	Ar << Skeleton.BoneNamesString;
 	Ar << Skeleton.Parents;
+	Ar << Skeleton.Childs;
 	Ar << Skeleton.RefPoseLocal;
 	Ar << Skeleton.RefPoseGlobal;
 	Ar << Skeleton.InvRefPoseGlobal;
+	Skeleton.SetName();
 	return Ar;
 }
 

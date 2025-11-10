@@ -441,6 +441,7 @@ bool FFbxImporter::ProcessStaticMeshAsSkeletal(FbxNode* MeshNode, FSkeletalMesh&
 
 	// 단일 Root Bone을 가진 더미 Skeleton 생성
 	OutMesh.Skeleton = new FSkeleton();
+	OutMesh.Skeleton->BoneNamesString.Add("Root");
 	OutMesh.Skeleton->BoneNames.Add(FName("Root"));
 	OutMesh.Skeleton->Parents.Add(-1);
 
@@ -525,8 +526,10 @@ void FFbxImporter::CollectBones(FbxSkin* Skin, TArray<FbxNode*>& OutBoneNodes)
 void FFbxImporter::BuildBoneHierarchy(const TArray<FbxNode*>& BoneNodes, FSkeleton& OutSkeleton)
 {
 	int32 NumBones = BoneNodes.Num();
+	OutSkeleton.BoneNamesString.SetNum(NumBones);
 	OutSkeleton.BoneNames.SetNum(NumBones);
 	OutSkeleton.Parents.SetNum(NumBones);
+	OutSkeleton.Childs.SetNum(NumBones);
 	OutSkeleton.RefPoseLocal.SetNum(NumBones);
 
 	for (int32 i = 0; i < NumBones; i++)
@@ -534,14 +537,21 @@ void FFbxImporter::BuildBoneHierarchy(const TArray<FbxNode*>& BoneNodes, FSkelet
 		FbxNode* BoneNode = BoneNodes[i];
 
 		// Bone 이름
-		OutSkeleton.BoneNames[i] = FName(BoneNode->GetName());
+		OutSkeleton.BoneNamesString[i] = BoneNode->GetName();
 
 		// 부모 인덱스 찾기
 		OutSkeleton.Parents[i] = FindParentBoneIndex(BoneNode, BoneNodes);
 
+		//부모의 자식인덱스에 현재 i 추가
+		if (OutSkeleton.Parents[i] >= 0)
+		{
+			OutSkeleton.Childs[OutSkeleton.Parents[i]].Add(i);
+		}
+
 		// RefPoseLocal (부모 상대 Transform)
 		OutSkeleton.RefPoseLocal[i] = ConvertTransform(BoneNode);
 	}
+	OutSkeleton.SetName();
 }
 
 int32 FFbxImporter::FindParentBoneIndex(FbxNode* BoneNode, const TArray<FbxNode*>& BoneNodes)

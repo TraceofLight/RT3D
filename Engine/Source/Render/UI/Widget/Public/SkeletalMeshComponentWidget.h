@@ -4,6 +4,7 @@
 class UTexture;
 class USkeletalMeshComponent;
 class UMaterial;
+class FSkeleton;
 
 UCLASS()
 class USkeletalMeshComponentWidget : public UWidget
@@ -23,6 +24,9 @@ private:
 	void RenderSkeletalMeshSelector() const;
 	void RenderMaterialSections();
 	void RenderAvailableMaterials(int32 TargetSlotIndex) const;
+
+	void DrawSkeletalBone(FSkeleton* Skeleton, int idx) const;
+	void RenderBoneHierachy(FSkeleton* Skeleton) const;
 
 	// 유틸리티 함수
 	static FString GetMaterialDisplayName(UMaterial* Material);
