@@ -127,7 +127,7 @@ public:
 // ============================================================================
 // FDelegateInfo 템플릿 구현 (forward declaration 문제 해결)
 // ============================================================================
-#include "Core/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
 
 template<typename... Args>
 uint32 FDelegateInfo<Args...>::AddLuaHandler(UScriptComponent* Script)

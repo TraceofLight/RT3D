@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "Core/Public/ClientApp.h"
+#include "Runtime/CoreUObject/Public/ClientApp.h"
 
-#include "Core/Public/AppWindow.h"
+#include "Runtime/CoreUObject/Public/AppWindow.h"
 #include "Manager/Input/Public/InputManager.h"
 
 #include "Manager/Asset/Public/AssetManager.h"

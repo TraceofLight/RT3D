@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Public/WeakObjectPtr.h"
+#include "Runtime/CoreUObject/Public/WeakObjectPtr.h"
 #include <functional>
 
 // Forward declarations only - do not include headers to avoid circular dependency

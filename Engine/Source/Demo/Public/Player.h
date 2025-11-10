@@ -1,6 +1,6 @@
 #pragma once
 #include "Actor/Public/Actor.h"
-#include "Core/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
 
 // Player 추적 정보 Delegate (LightLevel, PlayerLocation)
 DECLARE_DELEGATE(FOnPlayerTracking, float, FVector);

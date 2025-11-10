@@ -3,7 +3,7 @@
 #include <filesystem>
 #include <fstream>
 
-#include "Core/Public/Archive.h"
+#include "Runtime/CoreUObject/Public/Archive.h"
 #include "Global/Macro.h"
 
 struct FWindowsBinWriter : public FArchive

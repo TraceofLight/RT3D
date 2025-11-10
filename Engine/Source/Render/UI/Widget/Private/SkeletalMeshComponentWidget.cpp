@@ -5,7 +5,7 @@
 
 #include "Level/Public/Level.h"
 #include "Level/Public/World.h"
-#include "Core/Public/ObjectIterator.h"
+#include "Runtime/CoreUObject/Public/ObjectIterator.h"
 #include "Texture/Public/Material.h"
 #include "Texture/Public/Texture.h"
 #include "Editor/Public/EditorEngine.h"

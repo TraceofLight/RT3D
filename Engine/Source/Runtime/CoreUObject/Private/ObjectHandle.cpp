@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "Core/Public/ObjectHandle.h"
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/ObjectHandle.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 
 FObjectHandle::FObjectHandle(const UObject* Object)
 {

@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 
 // FMOD forward declarations at global scope
 namespace FMOD

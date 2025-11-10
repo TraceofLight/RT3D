@@ -4,7 +4,7 @@
 #include "Component/Mesh/Public/StaticMesh.h"
 
 #include "Level/Public/Level.h"
-#include "Core/Public/ObjectIterator.h"
+#include "Runtime/CoreUObject/Public/ObjectIterator.h"
 #include "Texture/Public/Material.h"
 #include "Texture/Public/Texture.h"
 #include "Manager/Asset/Public/ObjManager.h"

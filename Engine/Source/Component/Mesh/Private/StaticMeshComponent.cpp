@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Core/Public/ObjectIterator.h"
+#include "Runtime/CoreUObject/Public/ObjectIterator.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Component/Mesh/Public/MeshComponent.h"
 #include "Manager/Asset/Public/ObjManager.h"

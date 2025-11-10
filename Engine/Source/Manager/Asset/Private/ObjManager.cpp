@@ -1,6 +1,6 @@
 #include "pch.h"
 
-#include "Core/Public/ObjectIterator.h"
+#include "Runtime/CoreUObject/Public/ObjectIterator.h"
 #include "Manager/Asset/Public/ObjManager.h"
 #include "Manager/Asset/Public/ObjImporter.h"
 #include "Manager/Asset/Public/AssetManager.h"

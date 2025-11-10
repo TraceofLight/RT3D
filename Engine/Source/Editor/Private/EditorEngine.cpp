@@ -1,5 +1,5 @@
 ﻿#include "pch.h"
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 #include "Editor/Public/EditorEngine.h"
 #include "Editor/Public/Editor.h"
 #include "Level/Public/Level.h"

@@ -2,7 +2,7 @@
 #include "Global/Types.h"
 #include <filesystem>
 #include "DeviceResources.h"
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 #include "Component/Public/PrimitiveComponent.h"
 #include "Editor/Public/EditorPrimitive.h"
 #include "Render/Renderer/Public/Pipeline.h"

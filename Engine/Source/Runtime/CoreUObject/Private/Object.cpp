@@ -1,9 +1,9 @@
 #include "pch.h"
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 
-#include "Core/Public/EngineStatics.h"
-#include "Core/Public/Name.h"
-#include "Core/Public/NewObject.h"
+#include "Runtime/CoreUObject/Public/EngineStatics.h"
+#include "Runtime/CoreUObject/Public/Name.h"
+#include "Runtime/CoreUObject/Public/NewObject.h"
 
 uint32 UEngineStatics::NextUUID = 0;
 

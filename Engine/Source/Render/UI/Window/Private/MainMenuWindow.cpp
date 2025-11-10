@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Render/UI/Window/Public/MainMenuWindow.h"
 #include "Render/UI/Widget/Public/MainBarWidget.h"
-#include "Core/Public/NewObject.h"
+#include "Runtime/CoreUObject/Public/NewObject.h"
 
 IMPLEMENT_SINGLETON_CLASS(UMainMenuWindow, UUIWindow)
 

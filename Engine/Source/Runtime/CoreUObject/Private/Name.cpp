@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Core/Public/Name.h"
+#include "Runtime/CoreUObject/Public/Name.h"
 #include <algorithm> // for std::transform
 #include <cctype>    // for std::tolower
 
@@ -24,7 +24,7 @@ FName::FName(const char* Str) : FName(FString(Str))
 
 /**
 * @brief NameTable에서 UniqueName을 만들 때 사용하는 생성자
-* 
+*
 */
 FName::FName(int32 InDisplayIndex, int32 InComparisonIndex, int32 InNumber)
     : ComparisonIndex(InComparisonIndex),

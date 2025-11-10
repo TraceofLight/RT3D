@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Public/Object.h"
-#include "Core/Public/IDelegateProvider.h"
+#include "Runtime/CoreUObject/Public/IDelegateProvider.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 
 class AActor;
 class UWidget;

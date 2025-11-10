@@ -10,45 +10,26 @@ enum class EGizmoAxisType : uint8
 	Y = 2,
 	Z = 3,
 	Center = 4,
-	XY = 5,  // XY 평면
-	XZ = 6,  // XZ 평면
-	YZ = 7   // YZ 평면
+	XY = 5, // XY 평면
+	XZ = 6, // XZ 평면
+	YZ = 7 // YZ 평면
 };
 
-// HitProxy ID (RGB 값으로 인코딩)
+// HitProxy ID
 struct FHitProxyId
 {
-	uint32 Index;  // RGB를 uint32로 변환 (R << 16 | G << 8 | B)
+	// RGB를 uint32로 변환 (R << 16 | G << 8 | B)
+	uint32 Index;
 
-	FHitProxyId() : Index(0) {}
-	explicit FHitProxyId(uint32 InIndex) : Index(InIndex) {}
-	FHitProxyId(uint8 R, uint8 G, uint8 B)
-		: Index((static_cast<uint32>(R) << 16) | (static_cast<uint32>(G) << 8) | static_cast<uint32>(B))
-	{
-	}
+	FHitProxyId();
+	explicit FHitProxyId(uint32 InIndex);
+	FHitProxyId(uint8 Red, uint8 Green, uint8 Blue);
 
-	bool IsValid() const
-	{
-		return Index != 0;  // Index 0은 배경(검은색)
-	}
+	bool IsValid() const;
+	FVector4 GetColor() const;
 
-	FVector4 GetColor() const
-	{
-		uint8 R = (Index >> 16) & 0xFF;
-		uint8 G = (Index >> 8) & 0xFF;
-		uint8 B = (Index >> 0) & 0xFF;
-		return FVector4(R / 255.0f, G / 255.0f, B / 255.0f, 1.0f);
-	}
-
-	bool operator==(const FHitProxyId& Other) const
-	{
-		return Index == Other.Index;
-	}
-
-	bool operator!=(const FHitProxyId& Other) const
-	{
-		return Index != Other.Index;
-	}
+	bool operator==(const FHitProxyId& Other) const;
+	bool operator!=(const FHitProxyId& Other) const;
 };
 
 // Invalid HitProxy ID
@@ -60,11 +41,11 @@ class HHitProxy
 public:
 	FHitProxyId Id;
 
-	HHitProxy(FHitProxyId InId) : Id(InId) {}
-	virtual ~HHitProxy() = default;
+	HHitProxy(FHitProxyId InId);
+	virtual ~HHitProxy();
 
-	virtual bool IsWidgetAxis() const { return false; }
-	virtual bool IsComponent() const { return false; }
+	virtual bool IsWidgetAxis() const;
+	virtual bool IsComponent() const;
 };
 
 // 기즈모 축 HitProxy
@@ -73,12 +54,8 @@ class HWidgetAxis : public HHitProxy
 public:
 	EGizmoAxisType Axis;
 
-	HWidgetAxis(EGizmoAxisType InAxis, FHitProxyId InId)
-		: HHitProxy(InId), Axis(InAxis)
-	{
-	}
-
-	virtual bool IsWidgetAxis() const override { return true; }
+	HWidgetAxis(EGizmoAxisType InAxis, FHitProxyId InId);
+	bool IsWidgetAxis() const override;
 };
 
 // 컴포넌트 HitProxy
@@ -87,74 +64,32 @@ class HComponent : public HHitProxy
 public:
 	UPrimitiveComponent* Component;
 
-	HComponent(UPrimitiveComponent* InComponent, FHitProxyId InId)
-		: HHitProxy(InId), Component(InComponent)
-	{
-	}
-
-	virtual bool IsComponent() const override { return true; }
+	HComponent(UPrimitiveComponent* InComponent, FHitProxyId InId);
+	bool IsComponent() const override;
 };
 
-// HitProxy 관리자 (싱글톤)
+// HitProxy 관리자
 class FHitProxyManager
 {
 public:
-	static FHitProxyManager& GetInstance()
-	{
-		static FHitProxyManager Instance;
-		return Instance;
-	}
+	static FHitProxyManager& GetInstance();
 
 	// HitProxy 할당 및 ID 반환
-	FHitProxyId AllocateHitProxyId(HHitProxy* HitProxy)
-	{
-		if (!HitProxy)
-		{
-			return InvalidHitProxyId;
-		}
-
-		// 새로운 ID 할당 (1부터 시작, 0은 배경)
-		uint32 NewIndex = NextIndex++;
-		FHitProxyId NewId(NewIndex);
-		HitProxy->Id = NewId;
-
-		// 맵에 등록
-		HitProxyMap[NewIndex] = HitProxy;
-		return NewId;
-	}
+	FHitProxyId AllocateHitProxyId(HHitProxy* HitProxy);
 
 	// ID로 HitProxy 조회
-	HHitProxy* GetHitProxy(FHitProxyId Id) const
-	{
-		auto It = HitProxyMap.find(Id.Index);
-		if (It != HitProxyMap.end())
-		{
-			return It->second;
-		}
-		return nullptr;
-	}
+	HHitProxy* GetHitProxy(FHitProxyId Id) const;
 
 	// 모든 HitProxy 제거 (프레임 시작 시 호출)
-	void ClearAllHitProxies()
-	{
-		for (auto& Pair : HitProxyMap)
-		{
-			delete Pair.second;
-		}
-		HitProxyMap.clear();
-		NextIndex = 1;  // 0은 배경
-	}
+	void ClearAllHitProxies();
 
-	~FHitProxyManager()
-	{
-		ClearAllHitProxies();
-	}
+	~FHitProxyManager();
 
 private:
-	FHitProxyManager() : NextIndex(1) {}  // 0은 배경용
+	TMap<uint32, HHitProxy*> HitProxyMap;
+	uint32 NextIndex;
+
+	FHitProxyManager();
 	FHitProxyManager(const FHitProxyManager&) = delete;
 	FHitProxyManager& operator=(const FHitProxyManager&) = delete;
-
-	std::unordered_map<uint32, HHitProxy*> HitProxyMap;
-	uint32 NextIndex;
 };

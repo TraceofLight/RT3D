@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Render/UI/Factory/Public/UIWindowFactory.h"
-#include "Core/Public/NewObject.h"
+#include "Runtime/CoreUObject/Public/NewObject.h"
 
 #include "Manager/UI/Public/UIManager.h"
 #include "Render/UI/Window/Public/ConsoleWindow.h"

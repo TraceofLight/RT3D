@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
 
-#include "Core/Public/NewObject.h"
+#include "Runtime/CoreUObject/Public/NewObject.h"
 #include "Level/Public/World.h"
 #include "Level/Public/Level.h"
 #include "Actor/Public/Actor.h"

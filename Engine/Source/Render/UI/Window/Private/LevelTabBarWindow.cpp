@@ -3,7 +3,7 @@
 #include "Render/UI/Window/public/MainMenuWindow.h"
 #include "Render/UI/Widget/public/LevelTabBarWidget.h"
 #include "Render/UI/Widget/Public/ViewportControlWidget.h"
-#include "Core/Public/NewObject.h"
+#include "Runtime/CoreUObject/Public/NewObject.h"
 
 IMPLEMENT_SINGLETON_CLASS(ULevelTabBarWindow,UUIWindow)
 

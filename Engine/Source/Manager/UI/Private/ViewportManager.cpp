@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/Window.h"
-#include "Core/Public/AppWindow.h"
+#include "Runtime/CoreUObject/Public/AppWindow.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "Manager/UI/Public/UIManager.h"

@@ -2,7 +2,10 @@
 #include "Level/Public/World.h"
 #include "Level/Public/Level.h"
 #include "Actor/Public/AmbientLight.h"
+#include "Actor/Public/DirectionalLight.h"
 #include "Actor/Public/GameMode.h"
+#include "Component/Public/AmbientLightComponent.h"
+#include "Component/Public/DirectionalLightComponent.h"
 #include "Utility/Public/JsonSerializer.h"
 #include "Manager/Config/Public/ConfigManager.h"
 #include "Manager/Path/Public/PathManager.h"
@@ -468,12 +471,31 @@ void UWorld::CreateNewLevel(const FName& InLevelName)
 	NewLevel->SetOuter(this);
 	SwitchToLevel(NewLevel);
 
-	// 기본 AmbientLight 추가
+	// 기본 AmbientLight 추가 (Intensity: 0.2)
 	AActor* SpawnedActor = SpawnActor(AAmbientLight::StaticClass());
 	if (AAmbientLight* AmbientLight = Cast<AAmbientLight>(SpawnedActor))
 	{
-		AmbientLight->SetActorLocation(FVector(0.0f, 0.0f, 0.0f));
+		AmbientLight->SetActorLocation(FVector(0.0f, 0.0f, 10.0f));
 		AmbientLight->SetName("AmbientLight");
+
+		if (UAmbientLightComponent* AmbientComp = AmbientLight->GetComponentByClass<UAmbientLightComponent>())
+		{
+			AmbientComp->SetIntensity(0.2f);
+		}
+	}
+
+	// 기본 DirectionalLight 추가 (Intensity: 0.3)
+	AActor* DirLightActor = SpawnActor(ADirectionalLight::StaticClass());
+	if (ADirectionalLight* DirLight = Cast<ADirectionalLight>(DirLightActor))
+	{
+		DirLight->SetActorLocation(FVector(0.0f, 0.0f, 20.0f));
+		DirLight->SetActorRotation(FQuaternion::FromEuler(FVector(0.0f, -45.0f, 0.0f)));
+		DirLight->SetName("DirectionalLight");
+
+		if (UDirectionalLightComponent* DirComp = DirLight->GetComponentByClass<UDirectionalLightComponent>())
+		{
+			DirComp->SetIntensity(0.3f);
+		}
 	}
 
 	BeginPlay();

@@ -4,11 +4,11 @@
 class UTexture;
 class USkeletalMeshComponent;
 class UMaterial;
-class FSkeleton;
 class UWorld;
-
 class UFbxViewportWindow;
 class USkeletalMesh;
+
+struct FSkeleton;
 
 UCLASS()
 class USkeletalMeshComponentWidget : public UWidget

@@ -1,6 +1,6 @@
 #pragma once
 #include "Actor/Public/Actor.h"
-#include "Core/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
 
 // Delegate 선언: FVector를 인자로 받음
 DECLARE_DELEGATE(FOnEnemySpawnRequested);

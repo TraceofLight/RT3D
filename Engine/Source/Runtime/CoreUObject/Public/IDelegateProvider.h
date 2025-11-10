@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
 
 /**
  * @brief Lua 스크립트에 Delegate를 노출하는 객체를 위한 인터페이스

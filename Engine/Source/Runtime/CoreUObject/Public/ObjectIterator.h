@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 template<typename TObject>
 class TObjectIterator
 {
