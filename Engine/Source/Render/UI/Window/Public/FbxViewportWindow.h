@@ -8,6 +8,7 @@
  */
 class FPreviewScene;
 class USkeletalMeshComponentWidget;
+class USkeletalMesh;
 
 UCLASS()
 class UFbxViewportWindow : public UUIWindow
@@ -21,6 +22,7 @@ public:
 	void Cleanup() override;
 
 	void LoadFbxFile(const path& File);
+	void SetPreviewSkeletalMesh(USkeletalMesh* SkeletalMesh);
 
 protected:
 	void OnPostRenderWindow() override;

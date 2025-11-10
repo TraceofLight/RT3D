@@ -9,6 +9,10 @@
 #include "Texture/Public/Material.h"
 #include "Texture/Public/Texture.h"
 #include "Editor/Public/EditorEngine.h"
+#include "Manager/UI/Public/UIManager.h"
+#include "Render/UI/Factory/Public/UIWindowFactory.h"
+#include "Render/UI/Window/Public/FbxViewportWindow.h"
+#include "Render/UI/Window/Public/UIWindow.h"
 
 IMPLEMENT_CLASS(USkeletalMeshComponentWidget, UWidget)
 
@@ -81,7 +85,7 @@ void USkeletalMeshComponentWidget::RenderWidget()
 	ImGui::PopStyleColor(5);
 }
 
-void USkeletalMeshComponentWidget::RenderSkeletalMeshSelector() const
+void USkeletalMeshComponentWidget::RenderSkeletalMeshSelector()
 {
 	USkeletalMesh* CurrentSkeletalMesh = SkeletalMeshComponent->GetSkeletalMesh();
 	FString PreviewName = "None";
@@ -111,8 +115,21 @@ void USkeletalMeshComponentWidget::RenderSkeletalMeshSelector() const
 				ImGui::SetItemDefaultFocus();
 			}
 		}
-
 		ImGui::EndCombo();
+	}
+
+	const bool bHasMesh = (SkeletalMeshComponent->GetSkeletalMesh() != nullptr);
+	if (!bHasMesh)
+	{
+		ImGui::BeginDisabled();
+	}
+	if (ImGui::Button("Open FBX Preview"))
+	{
+		OpenFbxPreviewViewport(SkeletalMeshComponent->GetSkeletalMesh());
+	}
+	if (!bHasMesh)
+	{
+		ImGui::EndDisabled();
 	}
 }
 
@@ -325,6 +342,42 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 		SkeletalMeshComponent->SetLocalPose(SelectedBoneIdx, BoneTransform);
 	}
 
+}
+
+void USkeletalMeshComponentWidget::OpenFbxPreviewViewport(USkeletalMesh* SkeletalMesh)
+{
+	if (!SkeletalMesh)
+	{
+		return;
+	}
+
+	UUIManager& UIManager = UUIManager::GetInstance();
+	const FName PreviewWindowName = FName("FBX Viewport");
+	UFbxViewportWindow* PreviewWindow = nullptr;
+	if (UUIWindow* Existing = UIManager.FindUIWindow(PreviewWindowName))
+	{
+		PreviewWindow = Cast<UFbxViewportWindow>(Existing);
+	}
+
+	if (!PreviewWindow)
+	{
+		PreviewWindow = UUIWindowFactory::CreateFbxViewportWindow(EUIDockDirection::None);
+		if (!PreviewWindow)
+		{
+			UE_LOG_ERROR("SkeletalMeshComponentWidget: failed to allocate FBX viewport window.");
+			return;
+		}
+
+		if (!UIManager.RegisterUIWindow(PreviewWindow))
+		{
+			UE_LOG_ERROR("SkeletalMeshComponentWidget: failed to register FBX viewport window.");
+			return;
+		}
+	}
+
+	PreviewWindow->SetPreviewSkeletalMesh(SkeletalMesh);
+	PreviewWindow->SetWindowState(EUIWindowState::Visible);
+	UIManager.SetFocusedWindow(PreviewWindow);
 }
 
 FString USkeletalMeshComponentWidget::GetMaterialDisplayName(UMaterial* Material)

@@ -7,6 +7,9 @@ class UMaterial;
 class FSkeleton;
 class UWorld;
 
+class UFbxViewportWindow;
+class USkeletalMesh;
+
 UCLASS()
 class USkeletalMeshComponentWidget : public UWidget
 {
@@ -30,12 +33,13 @@ private:
 	UWorld* World = nullptr;
 
 	// 섹션별 렌더링을 위한 헬퍼 함수
-	void RenderSkeletalMeshSelector() const;
+	void RenderSkeletalMeshSelector();
 	void RenderMaterialSections();
 	void RenderAvailableMaterials(int32 TargetSlotIndex) const;
 
 	void DrawSkeletalBone(FSkeleton* Skeleton, int idx);
 	void RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent);
+	void OpenFbxPreviewViewport(USkeletalMesh* SkeletalMesh);
 
 	// 유틸리티 함수
 	static FString GetMaterialDisplayName(UMaterial* Material);

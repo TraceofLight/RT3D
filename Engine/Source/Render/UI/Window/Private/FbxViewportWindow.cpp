@@ -3,6 +3,7 @@
 #include "Render/UI/Window/Public/PreviewScene.h"
 #include "Render/UI/Widget/Public/SkeletalMeshComponentWidget.h"
 #include "Render/Renderer/Public/Renderer.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
@@ -16,6 +17,36 @@ void UFbxViewportWindow::LoadFbxFile(const path& File)
 {
 	const std::string FileName = File.string();
 	UE_LOG_WARNING("FbxViewportWindow: LoadFbxFile is not implemented yet (%s).", FileName.c_str());
+}
+
+void UFbxViewportWindow::SetPreviewSkeletalMesh(USkeletalMesh* SkeletalMesh)
+{
+	if (!SkeletalMesh)
+	{
+		return;
+	}
+
+	EnsurePreviewInfrastructure();
+	if (!bPreviewReady)
+	{
+		UE_LOG_ERROR("FbxViewportWindow: cannot apply preview mesh because preview scene is not ready.");
+		return;
+	}
+
+	USkeletalMeshComponent* PreviewComponent = PreviewScene ? PreviewScene->GetPreviewSkeletalComponent() : nullptr;
+	if (!PreviewComponent)
+	{
+		UE_LOG_ERROR("FbxViewportWindow: preview skeletal component is missing.");
+		return;
+	}
+
+	PreviewComponent->SetSkeletalMesh(SkeletalMesh);
+	PreviewComponent->UseReferencePose();
+
+	if (SkeletalWidget)
+	{
+		SkeletalWidget->SetTargetComponent(PreviewComponent);
+	}
 }
 
 void UFbxViewportWindow::Initialize()
