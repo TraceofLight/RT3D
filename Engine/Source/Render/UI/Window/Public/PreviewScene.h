@@ -2,17 +2,15 @@
 
 #include "Global/Types.h"
 
+class UObject;
+class UWorld;
 class AActor;
-class ADirectionalLight;
 class UStaticMeshComponent;
-class USkeletalMeshComponent;
-class ULightComponent;
+class UAmbientLightComponent;
 
 /**
- * @brief Lightweight scene container used by the FBX viewport preview.
- *        Owns temporary actors/components created for inspection and exposes
- *        raw arrays that can be consumed by the renderer when the feature is
- *        fully implemented.
+ * @brief Lightweight helper that owns the mini preview world used by FBX viewport windows.
+ *        Handles world lifecycle plus any temporary actors that should live only inside that preview world.
  */
 class FPreviewScene
 {
@@ -20,14 +18,22 @@ public:
 	FPreviewScene() = default;
 	~FPreviewScene();
 
-	void Reset();
-	bool HasRenderableContent() const;
+	bool Initialize(UObject* InOuter);
+	void Shutdown();
+	void Tick(float DeltaTime);
 
-	AActor* SkeletalActor = nullptr;
-	AActor* GroundActor = nullptr;
-	ADirectionalLight* Sun = nullptr;
+	UWorld* GetWorld() const { return PreviewWorld; }
 
-	TArray<UStaticMeshComponent*> StaticComps;
-	TArray<USkeletalMeshComponent*> SkelComps;
-	TArray<ULightComponent*> Lights;
+private:
+	void CreatePreviewWorld();
+	void DestroyPreviewWorld();
+	void InjectDefaultContent();
+	void RemoveInjectedContent();
+
+	UObject* Outer = nullptr;
+	UWorld* PreviewWorld = nullptr;
+	AActor* PreviewActor = nullptr;
+	UStaticMeshComponent* PreviewMesh = nullptr;
+	UAmbientLightComponent* PreviewAmbient = nullptr;
+	bool bContentInjected = false;
 };

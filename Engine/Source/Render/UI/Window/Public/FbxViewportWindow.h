@@ -6,11 +6,7 @@
  * @brief Popup window that renders the shared editor world with an independent viewport client.
  *        Currently mirrors the main viewport output inside an ImGui window.
  */
-class UStaticMeshComponent;
-class UAmbientLightComponent;
-class UWorld;
-class ULevel;
-class AActor;
+class FPreviewScene;
 
 UCLASS()
 class UFbxViewportWindow : public UUIWindow
@@ -30,17 +26,6 @@ protected:
 	void OnPostRenderWindow() override;
 
 private:
-	AActor*						PreviewTestActor = nullptr;
-	UStaticMeshComponent*		PreviewTestMesh  = nullptr;
-	UAmbientLightComponent*		PreviewAmLight = nullptr;
-	bool						bPreviewInjected = false;
-
-	void InjectTestMeshIntoPreviewWorld();
-	void RemoveInjectedTestMesh();
-
-	void CreatePreviewWorld();
-	void DestroyPreviewWorld();
-
 	ComPtr<ID3D11Texture2D>          ColorRT;
 	ComPtr<ID3D11RenderTargetView>   RTV;
 	ComPtr<ID3D11ShaderResourceView> SRV;
@@ -51,7 +36,7 @@ private:
 	void EnsureRenderTargets(const ImVec2& size);
 	FViewport*       PreviewViewport   = nullptr;
 	FViewportClient* PreviewClient     = nullptr;
-	UWorld*          PreviewWorld      = nullptr;
+	FPreviewScene*   PreviewScene      = nullptr;
 
 	bool bHovered = false;
 };
