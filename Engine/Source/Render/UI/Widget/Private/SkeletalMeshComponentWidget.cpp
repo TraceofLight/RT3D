@@ -48,9 +48,9 @@ void USkeletalMeshComponentWidget::RenderWidget()
 	{
 		ImGui::Separator();
 		RenderMaterialSections();
+		RenderBoneHierachy(SkeletalMeshComponent);
 	}
 
-	RenderBoneHierachy(SkeletalMeshComponent);
 
 	ImGui::PopStyleColor(5);
 }
@@ -284,11 +284,6 @@ void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx
 }
 void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent)
 {
-	if (SkeletalMeshComponent->GetSkeletalMesh() == nullptr || SkeletalMeshComponent->GetSkeletalMesh()->IsValid() == false)
-	{
-		return;
-	}
-
 	FSkeleton* Skeleton = SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton;
 	uint32 BoneCount = Skeleton->BoneNames.Num();
 	DrawSkeletalBone(Skeleton, 0);
