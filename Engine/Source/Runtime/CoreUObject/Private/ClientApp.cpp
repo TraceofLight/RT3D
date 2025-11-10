@@ -1,7 +1,7 @@
 #include "pch.h"
-#include "Core/Public/ClientApp.h"
+#include "Runtime/CoreUObject/Public/ClientApp.h"
 
-#include "Core/Public/AppWindow.h"
+#include "Runtime/CoreUObject/Public/AppWindow.h"
 #include "Manager/Input/Public/InputManager.h"
 
 #include "Manager/Asset/Public/AssetManager.h"
@@ -9,7 +9,7 @@
 #include "Manager/Time/Public/TimeManager.h"
 
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/Renderer/Public/SceneView.h"
+#include "Runtime/Renderer/Public/SceneView.h"
 #include "Render/UI/Viewport/Public/GameViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 #include "Utility/Public/ScopeCycleCounter.h"

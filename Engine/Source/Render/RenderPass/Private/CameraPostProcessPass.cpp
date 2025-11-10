@@ -4,7 +4,7 @@
 #include "Actor/Public/PlayerCameraManager.h"
 #include "Render/Renderer/Public/DeviceResources.h"
 #include "Render/Renderer/Public/Pipeline.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 
 FCameraPostProcessPass::FCameraPostProcessPass(UPipeline* InPipeline, ID3D11DepthStencilState* InDS, ID3D11BlendState* InBS)
 	: FRenderPass(InPipeline), DS(InDS), BS(InBS)

@@ -3,6 +3,7 @@
 
 #include "Editor/Public/Editor.h"
 #include "Editor/Public/Gizmo.h"
+#include "Editor/Public/GizmoMath.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
@@ -40,11 +41,15 @@ void UObjectPicker::PickGizmo(FViewportClient* InClient, const FRay& WorldRay, U
 		}
 	}
 
-	// 현재 뷰포트 기준으로 Scale 재계산 (멀티 뷰포트에서 각 뷰포트마다 다른 Scale 사용)
-	if (CurrentViewportIndex != -1 && Gizmo.GetTargetComponent())
+	// 현재 뷰포트 정보 가져오기 (스케일 계산에 사용)
+	D3D11_VIEWPORT CurrentViewportInfo = {};
+	if (CurrentViewportIndex != -1)
 	{
-		const D3D11_VIEWPORT& CurrentViewportInfo = Viewports[CurrentViewportIndex]->GetRenderRect();
-		Gizmo.UpdateScale(InClient, CurrentViewportInfo);
+		CurrentViewportInfo = Viewports[CurrentViewportIndex]->GetRenderRect();
+		if (Gizmo.GetTargetComponent())
+		{
+			Gizmo.UpdateScale(InClient, CurrentViewportInfo);
+		}
 	}
 
 	FVector GizmoLocation = Gizmo.GetGizmoLocation();
@@ -69,32 +74,29 @@ void UObjectPicker::PickGizmo(FViewportClient* InClient, const FRay& WorldRay, U
 	case EGizmoMode::Translate:
 	case EGizmoMode::Scale:
 	{
-		// 먼저 평면 충돌 검사 (우선순위 높음)
-		const float GizmoScale = Gizmo.GetTranslateScale();
-		const float PlaneSize = PLANE_GIZMO_SIZE * GizmoScale;
-		const float PlaneOffset = PLANE_GIZMO_OFFSET * GizmoScale;
+		// 먼저 평면 기즈모 선분(실린더) 충돌 검사 (우선순위 높음)
+		// 렌더링과 동일한 스케일 계산
+		const float GizmoScale = FGizmoMath::CalculateScreenSpaceScale(InClient, CurrentViewportInfo, GizmoLocation, 120.0f);
+		const float HandleRadius = 0.02f * GizmoScale;
 
-		// 평면 정보: {방향, 탄젠트1, 탄젠트2, 법선}
-		struct FPlaneTestInfo
+		// 평면 기즈모 구성: 두 개의 선분
+		struct FPlaneSegmentInfo
 		{
 			EGizmoDirection Direction;
-			FVector Tangent1;
-			FVector Tangent2;
-			FVector Normal;
+			FVector Tangent1;  // 선분 1의 방향
+			FVector Tangent2;  // 선분 2의 방향
 		};
 
-		FPlaneTestInfo Planes[3] = {
-			{EGizmoDirection::XY_Plane, {1, 0, 0}, {0, 1, 0}, {0, 0, 1}},  // XY 평면
-			{EGizmoDirection::XZ_Plane, {1, 0, 0}, {0, 0, 1}, {0, 1, 0}},  // XZ 평면
-			{EGizmoDirection::YZ_Plane, {0, 1, 0}, {0, 0, 1}, {1, 0, 0}}   // YZ 평면
+		FPlaneSegmentInfo Planes[3] = {
+			{EGizmoDirection::XY_Plane, {1, 0, 0}, {0, 1, 0}},  // XY 평면: X축, Y축 선분
+			{EGizmoDirection::XZ_Plane, {1, 0, 0}, {0, 0, 1}},  // XZ 평면: X축, Z축 선분
+			{EGizmoDirection::YZ_Plane, {0, 1, 0}, {0, 0, 1}}   // YZ 평면: Y축, Z축 선분
 		};
 
-		for (const FPlaneTestInfo& PlaneInfo : Planes)
+		for (const FPlaneSegmentInfo& PlaneInfo : Planes)
 		{
-			// 로컬 좌표계 벡터
 			FVector T1 = PlaneInfo.Tangent1;
 			FVector T2 = PlaneInfo.Tangent2;
-			FVector Normal = PlaneInfo.Normal;
 
 			// World/Local 모드에 따라 회전 적용
 			FQuaternion q = FQuaternion::Identity();
@@ -104,32 +106,56 @@ void UObjectPicker::PickGizmo(FViewportClient* InClient, const FRay& WorldRay, U
 				q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
 				T1 = q.RotateVector(T1);
 				T2 = q.RotateVector(T2);
-				Normal = q.RotateVector(Normal);
 			}
 
-			// 레이와 평면 교차 테스트
-			FVector HitPoint;
-			if (IsRayCollideWithPlane(WorldRay, GizmoLocation, Normal, HitPoint))
+			// Translate vs Scale 모드에 따른 선분 정의
+			FVector Seg1Start, Seg1End, Seg2Start, Seg2End;
+			if (Gizmo.GetGizmoMode() == EGizmoMode::Translate)
 			{
-				// 교차점을 평면 로컬 좌표로 변환
-				FVector WorldHit = HitPoint - GizmoLocation;
+				const float CornerPos = 0.3f * GizmoScale;
+				// 선분 1: (CornerPos, 0) -> (CornerPos, CornerPos)
+				Seg1Start = GizmoLocation + T1 * CornerPos;
+				Seg1End = GizmoLocation + T1 * CornerPos + T2 * CornerPos;
+				// 선분 2: (0, CornerPos) -> (CornerPos, CornerPos)
+				Seg2Start = GizmoLocation + T2 * CornerPos;
+				Seg2End = GizmoLocation + T1 * CornerPos + T2 * CornerPos;
+			}
+			else // Scale
+			{
+				const float MidPoint = 0.5f * GizmoScale;
+				FVector Point1 = GizmoLocation + T1 * MidPoint;
+				FVector Point2 = GizmoLocation + T2 * MidPoint;
+				FVector MidCenter = GizmoLocation + (T1 + T2) * MidPoint * 0.5f;
+				// 선분 1: (0.5, 0) -> (0.25, 0.25)
+				Seg1Start = Point1;
+				Seg1End = MidCenter;
+				// 선분 2: (0, 0.5) -> (0.25, 0.25)
+				Seg2Start = Point2;
+				Seg2End = MidCenter;
+			}
 
-				// 회전이 적용된 경우, 역회전하여 로컬 좌표로 변환
-				FVector LocalHit = WorldHit;
-				if (bNeedRotation)
+			// 두 선분에 대해 실린더 충돌 검사
+			FVector Seg1Axis = (Seg1End - Seg1Start);
+			float Seg1Length = Seg1Axis.Length();
+			if (Seg1Length > MATH_EPSILON)
+			{
+				Seg1Axis = Seg1Axis / Seg1Length;
+				if (CheckRayCylinderCollision(WorldRayOrigin, WorldRayDirection, Seg1Start, Seg1Axis,
+				                              HandleRadius, Seg1Length, CollisionPoint))
 				{
-					LocalHit = q.Inverse().RotateVector(WorldHit);
+					Gizmo.SetGizmoDirection(PlaneInfo.Direction);
+					return;
 				}
+			}
 
-				// 로컬 좌표계에서 U, V 계산
-				float U = LocalHit.Dot(PlaneInfo.Tangent1);
-				float V = LocalHit.Dot(PlaneInfo.Tangent2);
-
-				// 평면 사각형 내부에 있는지 확인
-				if (U >= PlaneOffset && U <= PlaneOffset + PlaneSize &&
-				    V >= PlaneOffset && V <= PlaneOffset + PlaneSize)
+			FVector Seg2Axis = (Seg2End - Seg2Start);
+			float Seg2Length = Seg2Axis.Length();
+			if (Seg2Length > MATH_EPSILON)
+			{
+				Seg2Axis = Seg2Axis / Seg2Length;
+				if (CheckRayCylinderCollision(WorldRayOrigin, WorldRayDirection, Seg2Start, Seg2Axis,
+				                              HandleRadius, Seg2Length, CollisionPoint))
 				{
-					CollisionPoint = HitPoint;
 					Gizmo.SetGizmoDirection(PlaneInfo.Direction);
 					return;
 				}

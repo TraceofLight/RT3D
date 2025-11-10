@@ -3,7 +3,7 @@
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Physics/Public/AABB.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Render/UI/Widget/Public/SpriteSelectionWidget.h"
 #include "Texture/Public/Texture.h"
 #include "Utility/Public/JsonSerializer.h"

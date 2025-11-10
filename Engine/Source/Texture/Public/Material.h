@@ -1,6 +1,6 @@
 #pragma once
-#include "Core/Public/Object.h"
-#include "Core/Public/Archive.h"
+#include "Runtime/CoreUObject/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Archive.h"
 
 class UTexture;
 

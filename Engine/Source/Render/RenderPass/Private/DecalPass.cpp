@@ -7,7 +7,7 @@
 #include "Render/RenderPass/Public/DecalPass.h"
 #include "Render/RenderPass/Public/RenderingContext.h"
 #include "Render/Renderer/Public/Pipeline.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Texture/Public/Texture.h"
 #include "Render/UI/Overlay/Public/StatOverlay.h"
 

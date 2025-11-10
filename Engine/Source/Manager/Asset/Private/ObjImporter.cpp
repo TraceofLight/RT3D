@@ -1,7 +1,7 @@
 #include "pch.h"
 
-#include "Core/Public/WindowsBinReader.h"
-#include "Core/Public/WindowsBinWriter.h"
+#include "Runtime/CoreUObject/Public/WindowsBinReader.h"
+#include "Runtime/CoreUObject/Public/WindowsBinWriter.h"
 #include "Manager/Asset/Public/ObjImporter.h"
 #include "Manager/Path/Public/PathManager.h"
 
@@ -831,15 +831,15 @@ bool FObjImporter::SaveObj(const path& FilePath, const FObjInfo* ObjInfo, Config
 		bool bHasTexCoords = !ObjectInfo.TexCoordIndexList.IsEmpty();
 		bool bHasNormals = !ObjectInfo.NormalIndexList.IsEmpty();
 
-		size_t FaceCount = ObjectInfo.VertexIndexList.Num() / 3;
-		size_t CurrentMaterialIndex = 0;
+		int32 FaceCount = ObjectInfo.VertexIndexList.Num() / 3;
+		int32 CurrentMaterialIndex = 0;
 
-		for (size_t FaceIndex = 0; FaceIndex < FaceCount; ++FaceIndex)
+		for (int32 FaceIndex = 0; FaceIndex < FaceCount; ++FaceIndex)
 		{
 			// 머티리얼 변경 확인
 			if (CurrentMaterialIndex < ObjectInfo.MaterialIndexList.Num())
 			{
-				if (FaceIndex >= ObjectInfo.MaterialIndexList[CurrentMaterialIndex])
+				if (FaceIndex >= static_cast<int32>(ObjectInfo.MaterialIndexList[CurrentMaterialIndex]))
 				{
 					File << "usemtl " << ObjectInfo.MaterialNameList[CurrentMaterialIndex] << "\n";
 					++CurrentMaterialIndex;
@@ -860,7 +860,7 @@ bool FObjImporter::SaveObj(const path& FilePath, const FObjInfo* ObjInfo, Config
 			{
 				size_t GlobalVertexIndex = FaceIndex * 3 + LocalVertexIndex;
 
-				size_t VertexIndex = ObjectInfo.VertexIndexList[GlobalVertexIndex] + 1; // OBJ는 1-based index
+				size_t VertexIndex = ObjectInfo.VertexIndexList[static_cast<int32>(GlobalVertexIndex)] + 1; // OBJ는 1-based index
 
 				File << " " << VertexIndex;
 
@@ -869,14 +869,14 @@ bool FObjImporter::SaveObj(const path& FilePath, const FObjInfo* ObjInfo, Config
 					File << "/";
 					if (bHasTexCoords)
 					{
-						size_t TexCoordIndex = ObjectInfo.TexCoordIndexList[GlobalVertexIndex] + 1;
+						size_t TexCoordIndex = ObjectInfo.TexCoordIndexList[static_cast<int32>(GlobalVertexIndex)] + 1;
 						File << TexCoordIndex;
 					}
 
 					if (bHasNormals)
 					{
 						File << "/";
-						size_t NormalIndex = ObjectInfo.NormalIndexList[GlobalVertexIndex] + 1;
+						size_t NormalIndex = ObjectInfo.NormalIndexList[static_cast<int32>(GlobalVertexIndex)] + 1;
 						File << NormalIndex;
 					}
 				}

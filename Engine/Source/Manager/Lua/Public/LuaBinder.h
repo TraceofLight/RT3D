@@ -1,6 +1,6 @@
 #pragma once
 #include "sol/sol.hpp"
-#include "Core/Public/WeakObjectPtr.h"
+#include "Runtime/CoreUObject/Public/WeakObjectPtr.h"
 
 class FLuaBinder
 {

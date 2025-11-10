@@ -920,13 +920,7 @@ FQuaternion UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& World
 		// Tangent 방향: DirectionToMousePos에 수직 (시계방향 회전)
 		FVector2 TangentDir = FVector2(-DirectionToMousePos.Y, DirectionToMousePos.X);
 
-		// 각 축마다 TangentDir 방향 조정
-		if (Gizmo.GetGizmoDirection() == EGizmoDirection::Right)
-		{
-			TangentDir = -TangentDir;
-		}
-
-		// 스크린 공간 드래그 벡터 (UE5 표준: Y축 반전)
+		// 스크린 공간 드래그 벡터
 		const FVector2 PrevScreenPos = Gizmo.GetPreviousScreenPos();
 		const FVector2 DragDelta = CurrentScreenPos - PrevScreenPos;
 		const FVector2 DragDir = FVector2(DragDelta.X, -DragDelta.Y); // Y축 반전
@@ -944,6 +938,16 @@ FQuaternion UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& World
 			constexpr float PixelsToDegrees = 1.0f;
 			float DeltaAngleDegrees = PixelDelta * PixelsToDegrees;
 			float DeltaAngle = FVector::GetDegreeToRadian(DeltaAngleDegrees);
+
+			// 카메라 시점 방향에 따른 회전 방향 보정
+			// 카메라가 회전축의 반대편에 있으면 부호 반전
+			const FVector CameraLocation = InClient->GetViewLocation();
+			const FVector CamToGizmo = (GizmoLocation - CameraLocation).GetSafeNormal();
+			const float AxisDotCam = WorldRotationAxis.Dot(CamToGizmo);
+			if (AxisDotCam < 0.0f)
+			{
+				DeltaAngle = -DeltaAngle;
+			}
 
 			// 누적 각도 업데이트
 			float NewAngle = Gizmo.GetCurrentRotationAngle() + DeltaAngle;
@@ -1056,21 +1060,30 @@ FVector UEditor::GetGizmoDragScale(FViewportClient* InClient, FRay& WorldRay)
 
 		DragX = DragY = DragZ = MaxDrag * Sign;
 	}
-	// 평면 스케일: 두 축 동시
+	// 평면 스케일: 두 축 동일 비율로 스케일 (동배율)
 	else if (Direction == EGizmoDirection::XY_Plane)
 	{
-		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
-		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+		const float DX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		const float DY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+		const float MaxDrag = max(abs(DX), abs(DY));
+		const float Sign = (DX + DY) >= 0.0f ? 1.0f : -1.0f;
+		DragX = DragY = MaxDrag * Sign;
 	}
 	else if (Direction == EGizmoDirection::XZ_Plane)
 	{
-		DragX = FVector2::DotProduct(ScreenAxisX, DragDelta);
-		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+		const float DX = FVector2::DotProduct(ScreenAxisX, DragDelta);
+		const float DZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+		const float MaxDrag = max(abs(DX), abs(DZ));
+		const float Sign = (DX + DZ) >= 0.0f ? 1.0f : -1.0f;
+		DragX = DragZ = MaxDrag * Sign;
 	}
 	else if (Direction == EGizmoDirection::YZ_Plane)
 	{
-		DragY = FVector2::DotProduct(ScreenAxisY, DragDelta);
-		DragZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+		const float DY = FVector2::DotProduct(ScreenAxisY, DragDelta);
+		const float DZ = FVector2::DotProduct(ScreenAxisZ, DragDelta);
+		const float MaxDrag = max(abs(DY), abs(DZ));
+		const float Sign = (DY + DZ) >= 0.0f ? 1.0f : -1.0f;
+		DragY = DragZ = MaxDrag * Sign;
 	}
 	// 단일 축 스케일
 	else if (Direction == EGizmoDirection::Forward)
@@ -1125,7 +1138,7 @@ FVector UEditor::GetGizmoDragScale(FViewportClient* InClient, FRay& WorldRay)
 	const float ScaleDeltaY = DragY * ScaleSensitivity * SignY;
 	const float ScaleDeltaZ = DragZ * ScaleSensitivity * SignZ;
 
-	// 시작 스케일에서 변화량 적용 (음수 허용하여 뒤집기 가능)
+	// 시작 스케일에서 변화량 적용
 	const FVector DragStartScale = Gizmo.GetDragStartActorScale();
 	FVector NewScale;
 	NewScale.X = DragStartScale.X + ScaleDeltaX * DragStartScale.X;

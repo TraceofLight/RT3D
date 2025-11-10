@@ -8,7 +8,7 @@
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "Manager/Time/Public/TimeManager.h"
-#include "Core/Public/NewObject.h"
+#include "Runtime/CoreUObject/Public/NewObject.h"
 #include "ImGui/imgui.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)

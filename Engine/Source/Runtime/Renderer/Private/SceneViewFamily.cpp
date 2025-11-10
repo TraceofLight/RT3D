@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "Render/Renderer/Public/SceneViewFamily.h"
-#include "Render/Renderer/Public/SceneView.h"
+#include "Runtime/Renderer/Public/SceneViewFamily.h"
+#include "Runtime/Renderer/Public/SceneView.h"
 
 FSceneViewFamily::FSceneViewFamily()
 {

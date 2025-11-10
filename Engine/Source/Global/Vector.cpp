@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Vector.h"
 
-#include "Core/Public/Archive.h"
+#include "Runtime/CoreUObject/Public/Archive.h"
 
 /**
  * @brief FVector 기본 생성자

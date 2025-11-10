@@ -37,7 +37,7 @@ void UDirectionalLightComponentWidget::RenderWidget()
     }
 
     ImGui::Separator();
-    
+
     // 모든 입력 필드를 검은색으로 설정
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -55,32 +55,32 @@ void UDirectionalLightComponentWidget::RenderWidget()
     // Light Color
     FVector LightColor = DirectionalLightComponent->GetLightColor();
     float LightColorRGB[3] = { LightColor.X * 255.0f, LightColor.Y * 255.0f, LightColor.Z * 255.0f };
-    
+
     bool ColorChanged = false;
     ImDrawList* DrawList = ImGui::GetWindowDrawList();
     float BoxWidth = 65.0f;
-    
+
     ImGui::SetNextItemWidth(BoxWidth);
     ImVec2 PosR = ImGui::GetCursorScreenPos();
     ColorChanged |= ImGui::DragFloat("##R", &LightColorRGB[0], 1.0f, 0.0f, 255.0f, "R: %.0f");
     ImVec2 SizeR = ImGui::GetItemRectSize();
     DrawList->AddLine(ImVec2(PosR.x + 5, PosR.y + 2), ImVec2(PosR.x + 5, PosR.y + SizeR.y - 2), IM_COL32(255, 0, 0, 255), 2.0f);
     ImGui::SameLine();
-    
+
     ImGui::SetNextItemWidth(BoxWidth);
     ImVec2 PosG = ImGui::GetCursorScreenPos();
     ColorChanged |= ImGui::DragFloat("##G", &LightColorRGB[1], 1.0f, 0.0f, 255.0f, "G: %.0f");
     ImVec2 SizeG = ImGui::GetItemRectSize();
     DrawList->AddLine(ImVec2(PosG.x + 5, PosG.y + 2), ImVec2(PosG.x + 5, PosG.y + SizeG.y - 2), IM_COL32(0, 255, 0, 255), 2.0f);
     ImGui::SameLine();
-    
+
     ImGui::SetNextItemWidth(BoxWidth);
     ImVec2 PosB = ImGui::GetCursorScreenPos();
     ColorChanged |= ImGui::DragFloat("##B", &LightColorRGB[2], 1.0f, 0.0f, 255.0f, "B: %.0f");
     ImVec2 SizeB = ImGui::GetItemRectSize();
     DrawList->AddLine(ImVec2(PosB.x + 5, PosB.y + 2), ImVec2(PosB.x + 5, PosB.y + SizeB.y - 2), IM_COL32(0, 0, 255, 255), 2.0f);
     ImGui::SameLine();
-    
+
     float LightColor01[3] = { LightColorRGB[0] / 255.0f, LightColorRGB[1] / 255.0f, LightColorRGB[2] / 255.0f };
     if (ImGui::ColorEdit3("Light Color", LightColor01, ImGuiColorEditFlags_NoInputs))
     {
@@ -89,7 +89,7 @@ void UDirectionalLightComponentWidget::RenderWidget()
         LightColorRGB[2] = LightColor01[2] * 255.0f;
         ColorChanged = true;
     }
-    
+
     if (ColorChanged)
     {
         LightColor.X = LightColorRGB[0] / 255.0f;
@@ -116,7 +116,7 @@ void UDirectionalLightComponentWidget::RenderWidget()
      * 그림자 속성 관련 UI
      */
     ImGui::Separator();
-    
+
     bool CastShadow = DirectionalLightComponent->GetCastShadows();
     if (ImGui::Checkbox("Cast Shadow", &CastShadow))
     {
@@ -357,7 +357,7 @@ void UDirectionalLightComponentWidget::RenderWidget()
         if (ImGui::IsItemHovered())
             ImGui::SetTooltip("광원의 Shadow Map 출력");
     }
-    
+
     ImGui::PopStyleColor(3);
 
     ImGui::Separator();

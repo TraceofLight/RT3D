@@ -1,7 +1,8 @@
 #include "pch.h"
-#include "Core/Public/AppWindow.h"
-#include "Core/Public/resource.h"
+#include "resource.h"
+#include "Runtime/CoreUObject/Public/AppWindow.h"
 
+#include "Editor/Public/Editor.h"
 #include "ImGui/imgui.h"
 #include "Level/Public/GameInstance.h"
 #include "Manager/UI/Public/UIManager.h"
@@ -323,6 +324,13 @@ LRESULT CALLBACK FAppWindow::WndProc(HWND InWindowHandle, uint32 InMessage, WPAR
 	case WM_KILLFOCUS:
 		// 윈도우가 포커스를 잃었을 때 입력 비활성화
 		UInputManager::GetInstance().SetWindowFocus(false);
+#if WITH_EDITOR
+		// 드래그 중이면 강제 종료 (포커스 손실 시 드래그 상태가 유지되는 버그 방지)
+		if (GEditor && GEditor->GetEditorModule())
+		{
+			GEditor->GetEditorModule()->GetGizmo()->EndDrag();
+		}
+#endif
 		break;
 
 	case WM_ACTIVATE:
@@ -331,6 +339,13 @@ LRESULT CALLBACK FAppWindow::WndProc(HWND InWindowHandle, uint32 InMessage, WPAR
 		{
 			// 윈도우가 비활성화될 때
 			UInputManager::GetInstance().SetWindowFocus(false);
+#if WITH_EDITOR
+			// 드래그 중이면 강제 종료 (윈도우 비활성화 시 드래그 상태가 유지되는 버그 방지)
+			if (GEditor && GEditor->GetEditorModule())
+			{
+				GEditor->GetEditorModule()->GetGizmo()->EndDrag();
+			}
+#endif
 			// 주의: WM_ACTIVATE에서 OnWindowMinimized를 호출하지 않음 (최소화가 아닌 단순 비활성화)
 		}
 		else
@@ -341,6 +356,16 @@ LRESULT CALLBACK FAppWindow::WndProc(HWND InWindowHandle, uint32 InMessage, WPAR
 			UUIManager::GetInstance().OnWindowRestored();
 #endif
 		}
+		break;
+
+	case WM_CAPTURECHANGED:
+		// 마우스 캡처가 다른 윈도우로 이동했을 때 드래그 종료
+#if WITH_EDITOR
+		if (GEditor && GEditor->GetEditorModule())
+		{
+			GEditor->GetEditorModule()->GetGizmo()->EndDrag();
+		}
+#endif
 		break;
 
 	default:

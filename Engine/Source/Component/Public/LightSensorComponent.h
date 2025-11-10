@@ -1,6 +1,6 @@
 #pragma once
 #include "Component/Public/SceneComponent.h"
-#include "Core/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
 
 // Delegate 선언 - Lua 자동 바인딩 지원
 // float CurrentLuminance, float PreviousLuminance

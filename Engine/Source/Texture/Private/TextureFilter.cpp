@@ -3,7 +3,7 @@
 #include <filesystem>
 
 #include "Render/Renderer/Public/Pipeline.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Texture/Public/TextureFilter.h"
 
@@ -38,13 +38,13 @@ void FTextureFilter::FilterTexture(
     HRESULT hr = Resource.As(&Texture2D);
     if (FAILED(hr))
     {
-        return;    
+        return;
     }
 
     D3D11_TEXTURE2D_DESC Desc;
     Texture2D->GetDesc(&Desc);
     ResizeTexture(Desc.Width, Desc.Height);
-    
+
     // --- 1. 상수 버퍼 업데이트 ---
     FTextureInfo TextureInfo = {};
     TextureInfo.StartX = RegionStartX;
@@ -71,7 +71,7 @@ void FTextureFilter::FilterTexture(
 
     Pipeline.SetShaderResourceView(0, EShaderType::CS, nullptr);
     Pipeline.SetUnorderedAccessView(0, nullptr);
-    
+
     // --- 3. Column 방향 필터링 ---
     Pipeline.SetShaderResourceView(0, EShaderType::CS, TemporarySRV.Get());
     Pipeline.SetUnorderedAccessView(0, OutTexture);
@@ -102,13 +102,13 @@ void FTextureFilter::FilterTexture(
     HRESULT hr = Resource.As(&Texture2D);
     if (FAILED(hr))
     {
-        return;    
+        return;
     }
 
     D3D11_TEXTURE2D_DESC Desc;
     Texture2D->GetDesc(&Desc);
     ResizeTexture(Desc.Width, Desc.Height);
-    
+
     // --- 1. 상수 버퍼 업데이트 ---
     FTextureInfo TextureInfo = {};
     TextureInfo.StartX = RegionStartX;
@@ -120,7 +120,7 @@ void FTextureFilter::FilterTexture(
 
     FRenderResourceFactory::UpdateConstantBufferData(TextureInfoConstantBuffer.Get(), TextureInfo);
     Pipeline.SetConstantBuffer(0, EShaderType::CS, TextureInfoConstantBuffer.Get());
-    
+
     FFilterInfo FilterInfo = {};
     FilterInfo.FilterStrength = FilterStrength;
 
@@ -135,7 +135,7 @@ void FTextureFilter::FilterTexture(
 
     Pipeline.SetShaderResourceView(0, EShaderType::CS, nullptr);
     Pipeline.SetUnorderedAccessView(0, nullptr);
-    
+
     // --- 3. Column 방향 필터링 ---
     Pipeline.SetShaderResourceView(0, EShaderType::CS, TemporarySRV.Get());
     Pipeline.SetUnorderedAccessView(0, OutTexture);
@@ -143,7 +143,7 @@ void FTextureFilter::FilterTexture(
     Pipeline.DispatchCS(ComputeShaderColumn.Get(), ThreadGroupCount, 1, 1);
 
     Pipeline.SetShaderResourceView(0, EShaderType::CS, nullptr);
-    Pipeline.SetUnorderedAccessView(0, nullptr); 
+    Pipeline.SetUnorderedAccessView(0, nullptr);
 }
 
 void FTextureFilter::CreateShader(const FString& InShaderPath)

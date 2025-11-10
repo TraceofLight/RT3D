@@ -1,5 +1,5 @@
 #include "pch.h"
-#include "Core/Public/ClientApp.h"
+#include "Runtime/CoreUObject/Public/ClientApp.h"
 
 extern "C" {
 	__declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;

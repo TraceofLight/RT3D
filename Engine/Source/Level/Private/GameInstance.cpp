@@ -1,11 +1,11 @@
 #include "pch.h"
 #include "Level/Public/GameInstance.h"
 #include "Level/Public/World.h"
-#include "Core/Public/AppWindow.h"
+#include "Runtime/CoreUObject/Public/AppWindow.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 #include "Render/UI/Viewport/Public/GameViewportClient.h"
-#include "Render/Renderer/Public/SceneView.h"
-#include "Render/Renderer/Public/SceneViewFamily.h"
+#include "Runtime/Renderer/Public/SceneView.h"
+#include "Runtime/Renderer/Public/SceneViewFamily.h"
 #include "Manager/Lua/Public/LuaManager.h"
 
 IMPLEMENT_CLASS(UGameInstance, UEngineSubsystem)

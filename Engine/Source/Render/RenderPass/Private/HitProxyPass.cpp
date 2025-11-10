@@ -3,7 +3,7 @@
 #include "Render/Renderer/Public/Pipeline.h"
 #include "Render/Renderer/Public/DeviceResources.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Component/Public/EditorIconComponent.h"

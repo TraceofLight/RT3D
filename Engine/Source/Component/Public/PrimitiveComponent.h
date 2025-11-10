@@ -2,7 +2,7 @@
 #include "Component/Public/SceneComponent.h"
 #include "Physics/Public/BoundingVolume.h"
 #include "Global/OverlapInfo.h"
-#include "Core/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
 #include "Physics/Public/HitResult.h"
 
 // Component-level overlap event signatures

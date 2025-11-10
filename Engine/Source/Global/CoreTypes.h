@@ -1,7 +1,7 @@
 #pragma once
 #include "Vector.h"
 #include "Matrix.h"
-#include "Core/Public/Archive.h"
+#include "Runtime/CoreUObject/Public/Archive.h"
 
 #define HAS_DIFFUSE_MAP	 (1 << 0)
 #define HAS_AMBIENT_MAP	 (1 << 1)

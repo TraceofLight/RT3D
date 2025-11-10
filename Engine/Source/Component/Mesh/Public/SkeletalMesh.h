@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Public/Archive.h"
+#include "Runtime/CoreUObject/Public/Archive.h"
 #include "Texture/Public/Material.h"
 
 class UMaterial;
@@ -108,14 +108,14 @@ struct FSkeleton
 	*/
 	void BuildRefPoseGlobal();
 	int32 FindBoneIndex(const FName& BoneName) const;
-    int32 GetNumBones() const { return static_cast<int32>(BoneNames.Num()); }
+    int32 GetNumBones() const { return BoneNames.Num(); }
 };
 
 inline void FSkeleton::SetName()
 {
-	uint32 BoneSize = BoneNamesString.Num();
+	int32 BoneSize = BoneNamesString.Num();
 	BoneNames.SetNum(BoneSize);
-	for (int i = 0; i < BoneSize; i++)
+	for (int32 i = 0; i < BoneSize; i++)
 	{
 		BoneNames[i] = FName(BoneNamesString[i]);
 	}

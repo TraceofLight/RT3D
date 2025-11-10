@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Render/RenderPass/Public/TextPass.h"
 #include "Render/Renderer/Public/Pipeline.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Component/Public/TextComponent.h"
 #include "Component/Public/UUIDTextComponent.h"
 #include "Manager/Asset/Public/AssetManager.h"

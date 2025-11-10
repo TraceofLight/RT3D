@@ -1,7 +1,7 @@
 #pragma once
 #include <filesystem>
-#include "Core/Public/Object.h"
-#include "Core/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
 #include "Demo/Public/Player.h"
 #include "Global/Types.h"
 

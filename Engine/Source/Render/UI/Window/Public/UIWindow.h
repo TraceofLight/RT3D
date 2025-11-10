@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 #include "ImGui/imgui.h"
 #include "Render/UI/Factory/Public/UIWindowFactory.h"
 #include "Actor/Public/Actor.h"
@@ -168,9 +168,9 @@ protected:
 	FUIWindowConfig Config;
 private:
 	void ProcessDeleteWidgets();
-	
+
 	static int32 IssuedWindowID;
-	
+
 	EUIWindowState CurrentState;
 	uint32 WindowID;
 

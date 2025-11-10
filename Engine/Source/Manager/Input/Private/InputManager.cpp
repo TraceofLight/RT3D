@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Manager/Input/Public/InputManager.h"
-#include "Core/Public/AppWindow.h"
+#include "Runtime/CoreUObject/Public/AppWindow.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Window/Public/ConsoleWindow.h"
 

@@ -3,7 +3,7 @@
 // #include "Editor/Public/Camera.h"
 // #include "Render/RenderPass/Public/PointLightPass.h"
 // #include "Render/Renderer/Public/Renderer.h"
-// #include "Render/Renderer/Public/RenderResourceFactory.h"
+// #include "Runtime/Renderer/Public/RenderResourceFactory.h"
 //
 // FPointLightPass::FPointLightPass(UPipeline* InPipeline,
 //     ID3D11VertexShader* InVS, ID3D11PixelShader* InPS, ID3D11InputLayout* InLayout,

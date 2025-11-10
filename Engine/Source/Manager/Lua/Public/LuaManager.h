@@ -1,6 +1,6 @@
 ﻿#pragma once
-#include "Core/Public/Object.h"
-#include "Core/Public/WeakObjectPtr.h"
+#include "Runtime/CoreUObject/Public/Object.h"
+#include "Runtime/CoreUObject/Public/WeakObjectPtr.h"
 #include "Component/Public/ScriptComponent.h"
 #include "sol/sol.hpp"
 
@@ -27,7 +27,7 @@ public:
 private:
     void BindTypesToLua();
     void LoadAllLuaScripts();
-    
+
     sol::state MasterLuaState;
     TMap<FName, FLuaScriptInfo> LuaScriptCaches;
     path LuaScriptPath;

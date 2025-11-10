@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 
 enum class EStatType : uint8
 {

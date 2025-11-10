@@ -755,7 +755,7 @@ void FFbxImporter::ExtractMaterials(const FbxNode* Node, FSkeletalMesh& OutMesh)
 		DefaultMat.Diffuse = FVector(0.8f, 0.8f, 0.8f);
 		return;
 	}
-	 
+
 
 	OutMesh.MaterialInfo.SetNum(MaterialCount);
 
@@ -913,7 +913,7 @@ FString FFbxImporter::GetTextureFilePath(FbxProperty& Property, const FString& M
 	{
 		return "";
 	}
-	 
+
 	// Property에 연결된 텍스처 개수 확인
 	int32 TextureCount = Property.GetSrcObjectCount<FbxFileTexture>();
 	if (TextureCount > 0)
@@ -1202,12 +1202,10 @@ FVector FFbxImporter::ConvertPosition(const FbxVector4& FbxVec)
 	// FBX (좌표계 변환 후): Z-up Left-handed
 	// 프로젝트: Z-up Left-handed
 	// 이미 ConvertScene으로 변환했으므로 직접 매핑
-	// TEMP: 10배 스케일 (디버깅용)
-	const float Scale = 10.0f;
 	return {
-		static_cast<float>(FbxVec[0]) * Scale,
-		static_cast<float>(FbxVec[1]) * Scale,
-		static_cast<float>(FbxVec[2]) * Scale
+		static_cast<float>(FbxVec[0]),
+		static_cast<float>(FbxVec[1]),
+		static_cast<float>(FbxVec[2])
 	};
 }
 

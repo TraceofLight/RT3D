@@ -1,5 +1,5 @@
 #pragma once
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 #include "Editor/Public/Gizmo.h"
 #include "Editor/Public/Grid.h"
 #include "Editor/Public/ObjectPicker.h"

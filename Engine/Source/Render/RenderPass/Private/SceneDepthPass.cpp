@@ -2,7 +2,7 @@
 #include "Render/RenderPass/Public/SceneDepthPass.h"
 
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 
 FSceneDepthPass::FSceneDepthPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferCamera, ID3D11DepthStencilState* InDS)
     : FRenderPass(InPipeline, InConstantBufferCamera, nullptr), DS(InDS)

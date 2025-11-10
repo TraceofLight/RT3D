@@ -6,7 +6,7 @@
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Component/Public/AmbientLightComponent.h"
 #include "Component/Public/SpotLightComponent.h"
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 #include "Editor/Public/Editor.h"
 #include "Global/Octree.h"
 #include "Global/OverlapInfo.h"

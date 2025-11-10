@@ -4,7 +4,7 @@
 class FAppWindow;
 
 #if !WITH_EDITOR
-#include "Subsystem/Public/SubsystemCollection.h"
+#include "Runtime/Subsystem/Public/SubsystemCollection.h"
 class UGameInstance;
 #endif
 

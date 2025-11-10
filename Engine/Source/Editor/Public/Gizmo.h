@@ -1,7 +1,7 @@
 #pragma once
 #include "Editor/Public/EditorPrimitive.h"
 #include "Editor/Public/GizmoTypes.h"
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 #include "Actor/Public/Actor.h"
 
 class FViewportClient;

@@ -1,6 +1,6 @@
 #include "pch.h"
-#include "Core/Public/Class.h"
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Class.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 
 using std::stringstream;
 

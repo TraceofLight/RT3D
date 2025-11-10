@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Render/RenderPass/Public/ShadowMapPass.h"
 #include "Render/Renderer/Public/Pipeline.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Component/Public/SpotLightComponent.h"

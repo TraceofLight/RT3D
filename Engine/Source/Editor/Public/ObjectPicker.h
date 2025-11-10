@@ -37,8 +37,6 @@ private:
 
 	// Gizmo picking constants
 	static constexpr float CENTER_SPHERE_RADIUS_SCALE = 2.5f;   // Center 구체 반지름 배율 (렌더링 0.1 * Scale과 일치: 0.04 * 2.5 = 0.1)
-	static constexpr float PLANE_GIZMO_SIZE = 0.3f;             // 평면 기즈모 사각형 크기 (렌더링 CornerPos와 일치)
-	static constexpr float PLANE_GIZMO_OFFSET = 0.0f;           // 평면 기즈모 오프셋 (렌더링은 0부터 시작)
 	static constexpr float QUARTER_RING_MIN_PROJECTION = 0.001f; // Quarter Ring 최소 투영 길이
 	static constexpr float RAY_PLANE_PARALLEL_THRESHOLD = 0.01f; // Ray-Plane 평행 판정 임계값
 

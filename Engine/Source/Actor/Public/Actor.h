@@ -1,10 +1,10 @@
 #pragma once
-#include "Core/Public/Object.h"
+#include "Runtime/CoreUObject/Public/Object.h"
 #include "Component/Public/ActorComponent.h"
 #include "Component/Public/SceneComponent.h"
-#include "Core/Public/NewObject.h"
-#include "Core/Public/Delegate.h"
-#include "Core/Public/IDelegateProvider.h"
+#include "Runtime/CoreUObject/Public/NewObject.h"
+#include "Runtime/CoreUObject/Public/Delegate.h"
+#include "Runtime/CoreUObject/Public/IDelegateProvider.h"
 #include "Physics/Public/HitResult.h"
 
 class UUUIDTextComponent;
