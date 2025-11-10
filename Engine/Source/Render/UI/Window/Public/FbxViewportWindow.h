@@ -21,8 +21,8 @@ class UFbxViewportWindow : public UUIWindow
 public:
 	UFbxViewportWindow();
 	void Initialize() override;
-	void Release();
-	void Tick(float DeltaTime);
+	void Release() override;
+	void Tick(float DeltaTime) override;
 
 	void LoadFbxFile(const path& File);
 
@@ -35,8 +35,11 @@ private:
 	UAmbientLightComponent*		PreviewAmLight = nullptr;
 	bool						bPreviewInjected = false;
 
-	void InjectTestMeshIntoEditorLevel();
+	void InjectTestMeshIntoPreviewWorld();
 	void RemoveInjectedTestMesh();
+
+	void CreatePreviewWorld();
+	void DestroyPreviewWorld();
 
 	ComPtr<ID3D11Texture2D>          ColorRT;
 	ComPtr<ID3D11RenderTargetView>   RTV;
@@ -48,6 +51,7 @@ private:
 	void EnsureRenderTargets(const ImVec2& size);
 	FViewport*       PreviewViewport   = nullptr;
 	FViewportClient* PreviewClient     = nullptr;
+	UWorld*          PreviewWorld      = nullptr;
 
 	bool bHovered = false;
 };

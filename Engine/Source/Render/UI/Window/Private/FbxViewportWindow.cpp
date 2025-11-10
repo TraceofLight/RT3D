@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Render/UI/Window/Public/FbxViewportWindow.h"
+#include "Core/Public/NewObject.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
@@ -33,13 +34,17 @@ void UFbxViewportWindow::Initialize()
 	PreviewClient->SetViewLocation(FVector(0, -300, 150));
 	PreviewClient->SetViewRotation(FVector(-15, 0, 0));
 
-	InjectTestMeshIntoEditorLevel();
+	CreatePreviewWorld();
+	InjectTestMeshIntoPreviewWorld();
 
     UE_LOG("FbxViewportWindow: initialized");
 }
 
 void UFbxViewportWindow::Release()
 {
+	RemoveInjectedTestMesh();
+	DestroyPreviewWorld();
+
     if (PreviewViewport)
     {
         PreviewViewport->SetViewportClient(nullptr);
@@ -51,6 +56,10 @@ void UFbxViewportWindow::Release()
 void UFbxViewportWindow::Tick(float DeltaTime)
 {
 	if (!PreviewViewport || !PreviewClient) return;
+	if (PreviewWorld)
+	{
+		PreviewWorld->Tick(DeltaTime);
+	}
 	PreviewViewport->PumpMouseFromInputManager();
 	PreviewClient->UpdateEditorCamera(DeltaTime);
 }
@@ -108,7 +117,7 @@ void UFbxViewportWindow::OnPostRenderWindow()
 
 	// 프리뷰 렌더 호출 (아래 3단계 참고)
 	URenderer::GetInstance().RenderExternalViewport(
-		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), /*WorldOverride*/nullptr);
+		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), /*WorldOverride*/PreviewWorld);
 }
 
 UFbxViewportWindow::UFbxViewportWindow()
@@ -129,54 +138,69 @@ UFbxViewportWindow::UFbxViewportWindow()
 	SetWindowState(EUIWindowState::Hidden);
 }
 
-void UFbxViewportWindow::InjectTestMeshIntoEditorLevel()
+void UFbxViewportWindow::InjectTestMeshIntoPreviewWorld()
 {
-	if (bPreviewInjected) { return; }
+	if (bPreviewInjected || !PreviewWorld) { return; }
 
-	UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
-	if (!World) { return; }
-	ULevel* Level = World->GetLevel();
-	if (!Level) { return; }
+	PreviewTestActor = PreviewWorld->SpawnActor(AStaticMeshActor::StaticClass());
+	if (!PreviewTestActor)
+	{
+		UE_LOG_ERROR("FbxViewportWindow: Failed to spawn preview actor in mini world.");
+		return;
+	}
 
-	// 1) 액터 + 컴포넌트
-	PreviewTestActor = new AActor();
-	Level->AddActorToLevel(PreviewTestActor);
-
-	// 2) 메쉬 에셋
-	PreviewAmLight = new UAmbientLightComponent();
-	PreviewAmLight->SetLightEnabled(true);
-	PreviewAmLight->SetVisible(true);
-	PreviewAmLight->SetLightColor(FVector{ 1.0, 1.0, 1.0 });
-
-	//PreviewTestMesh = Cast<UStaticMeshComponent>(PreviewTestActor->AddComponent(UStaticMeshComponent::StaticClass()));
-	//if (!PreviewTestMesh)
-	//{
-	//	UE_LOG_ERROR("FbxViewportWindow: Failed to add UStaticMeshComponent to preview test actor.");
-	//	Level->DestroyActor(PreviewTestActor);
-	//	PreviewTestActor = nullptr;
-	//	return;
-	//}
-
-	/*PreviewTestMesh->SetStaticMesh("Data/Shapes/Cube.obj");
-	PreviewTestMesh->SetWorldLocation(FVector(10.f, 0.f, 0.f));
-	PreviewTestMesh->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
-	PreviewTestMesh->SetVisibility(true);*/
-
+	// TODO: Attach FBX mesh component once importer is ready
 	bPreviewInjected = true;
-	UE_LOG("FbxViewportWindow: injected a test StaticMesh into Editor Level.");
+	UE_LOG("FbxViewportWindow: spawned preview actor inside mini world.");
 }
 
 void UFbxViewportWindow::RemoveInjectedTestMesh()
 {
-	if (!bPreviewInjected) { return; }
+	if (!bPreviewInjected || !PreviewWorld)
+	{
+		return;
+	}
 
 	// 필요시 Level에서 등록 해제 API 호출
-	// Level->UnregisterDynamicPrimitive(PreviewTestMesh);
-
-	SafeDelete(PreviewTestMesh);
-	SafeDelete(PreviewTestActor);
+	if (PreviewTestActor)
+	{
+		PreviewWorld->DestroyActor(PreviewTestActor);
+	}
 
 	PreviewTestMesh  = nullptr;
 	PreviewTestActor = nullptr;
+	PreviewAmLight   = nullptr;
 	bPreviewInjected = false;
+}
+
+void UFbxViewportWindow::CreatePreviewWorld()
+{
+	if (PreviewWorld)
+	{
+		return;
+	}
+
+	PreviewWorld = NewObject<UWorld>(this);
+	if (!PreviewWorld)
+	{
+		UE_LOG_ERROR("FbxViewportWindow: Failed to allocate preview world.");
+		return;
+	}
+
+	PreviewWorld->SetWorldType(EWorldType::EditorPreview);
+	PreviewWorld->CreateNewLevel();
+	UE_LOG("FbxViewportWindow: preview world created.");
+}
+
+void UFbxViewportWindow::DestroyPreviewWorld()
+{
+	if (!PreviewWorld)
+	{
+		return;
+	}
+
+	PreviewWorld->EndPlay();
+	SafeDelete(PreviewWorld);
+	PreviewWorld = nullptr;
+	UE_LOG("FbxViewportWindow: preview world destroyed.");
 }
