@@ -7,6 +7,8 @@
 #include "Core/Public/ObjectIterator.h"
 #include "Texture/Public/Material.h"
 #include "Texture/Public/Texture.h"
+#include "Manager/Asset/Public/ObjManager.h"
+#include "Manager/Asset/Public/ObjImporter.h"
 
 IMPLEMENT_CLASS(UStaticMeshComponentWidget, UWidget)
 
@@ -273,6 +275,67 @@ void UStaticMeshComponentWidget::RenderOptions()
 		else
 		{
 			StaticMeshComponent->DisableNormalMap();
+		}
+	}
+
+	ImGui::Separator();
+
+	// Winding Order 변환 및 저장 버튼
+	if (ImGui::Button("Change Winding Order & Save"))
+	{
+		UStaticMesh* CurrentMesh = StaticMeshComponent->GetStaticMesh();
+		if (CurrentMesh && CurrentMesh->IsValid())
+		{
+			FStaticMesh* MeshAsset = CurrentMesh->GetStaticMeshAsset();
+			const FName& OriginalPath = CurrentMesh->GetAssetPathFileName();
+
+			// 원본 OBJ 파일 경로 찾기 (objbin이 아닌 .obj 파일)
+			std::filesystem::path ObjFilePath(OriginalPath.ToString());
+
+			// .objbin → .obj 변환
+			if (ObjFilePath.extension() == ".objbin")
+			{
+				ObjFilePath.replace_extension(".obj");
+			}
+
+			// 원본 파일이 존재하는지 확인
+			if (!std::filesystem::exists(ObjFilePath))
+			{
+				UE_LOG_ERROR("원본 OBJ 파일을 찾을 수 없습니다: %ls", ObjFilePath.c_str());
+			}
+			else
+			{
+				// _rewind 접미사 추가
+				path OutputPath = ObjFilePath.parent_path() / (ObjFilePath.stem().wstring() + L"_rewind.obj");
+
+				// 새로운 FStaticMesh 복사본 생성
+				FStaticMesh TempMesh;
+				TempMesh.PathFileName = MeshAsset->PathFileName;
+				TempMesh.Vertices = MeshAsset->Vertices;
+				TempMesh.Indices = MeshAsset->Indices;
+				TempMesh.MaterialInfo = MeshAsset->MaterialInfo;
+				TempMesh.Sections = MeshAsset->Sections;
+
+				// 복사본의 Winding order 뒤집기
+				TempMesh.FlipWindingOrder();
+
+				// 저장 설정
+				FObjImporter::Configuration SaveConfig;
+				SaveConfig.bFlipWindingOrder = false; // 이미 뒤집었으므로 false
+				SaveConfig.bPositionToUEBasis = true; // UE basis → 원본 좌표계 변환
+				SaveConfig.bNormalToUEBasis = true;
+				SaveConfig.bUVToUEBasis = true;
+
+				// 복사본으로 저장
+				if (FObjManager::SaveObjStaticMesh(&TempMesh, OutputPath, SaveConfig))
+				{
+					UE_LOG_SUCCESS("Winding order 변환 완료: %ls", OutputPath.c_str());
+				}
+				else
+				{
+					UE_LOG_ERROR("OBJ 저장 실패: %ls", OutputPath.c_str());
+				}
+			}
 		}
 	}
 }

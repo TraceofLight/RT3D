@@ -33,6 +33,19 @@ struct FStaticMesh
 	// --- 3. 연결 정보 (Sections) ---
 	// 각 재질을 어떤 기하 구간에 칠할지에 대한 지시서
 	TArray<FMeshSection> Sections;
+
+	/**
+	 * @brief 메쉬의 winding order를 뒤집습니다 (CW <-> CCW).
+	 * @note 삼각형마다 두 번째와 세 번째 vertex 순서를 swap합니다.
+	 */
+	void FlipWindingOrder()
+	{
+		// 삼각형마다 vertex 순서를 뒤집음 (0,1,2) -> (0,2,1)
+		for (int32 i = 0; i + 2 < Indices.Num(); i += 3)
+		{
+			std::swap(Indices[i + 1], Indices[i + 2]);
+		}
+	}
 };
 
 

@@ -447,6 +447,112 @@ UStaticMesh* FObjManager::LoadObjStaticMesh(const FName& PathFileName, const FOb
 	return nullptr;
 }
 
+/**
+ * @brief FStaticMesh를 OBJ 파일로 저장합니다.
+ * @param StaticMeshAsset 저장할 메쉬 데이터 (FStaticMesh 포인터)
+ * @param FilePath 저장할 OBJ 파일의 절대 또는 상대 경로
+ * @param Config Export 설정 (bFlipWindingOrder, bPositionToUEBasis 등)
+ * @return 파일 저장 성공 시 true, 실패 시 false
+ *
+ * @details
+ * - FStaticMesh의 vertex/index buffer를 FObjInfo 구조체로 변환 후 OBJ 형식으로 저장
+ * - Material 정보와 Section 정보를 함께 저장하여 multi-material 메쉬 지원
+ * - Vertex 정보: Position, Normal, TexCoord를 각각 v, vn, vt로 출력
+ * - Face 정보: Index buffer를 삼각형 단위로 변환하여 f vertex/texcoord/normal 형식으로 출력
+ * - Material 정보가 있으면 자동으로 .mtl 파일 생성 및 참조
+ * - Config 설정에 따라 winding order 변환 및 좌표계 변환 적용 가능
+ *
+ * @note 이 함수는 런타임 메쉬를 수정하지 않으며, 읽기 전용으로 동작합니다.
+ */
+bool FObjManager::SaveObjStaticMesh(const FStaticMesh* StaticMeshAsset, const std::filesystem::path& FilePath, const FObjImporter::Configuration& Config)
+{
+	if (!StaticMeshAsset)
+	{
+		UE_LOG_ERROR("SaveObjStaticMesh: StaticMeshAsset is null");
+		return false;
+	}
+
+	if (StaticMeshAsset->Vertices.IsEmpty() || StaticMeshAsset->Indices.IsEmpty())
+	{
+		UE_LOG_ERROR("SaveObjStaticMesh: Empty mesh data");
+		return false;
+	}
+
+	// FStaticMesh를 FObjInfo로 변환
+	FObjInfo ObjInfo;
+
+	// Vertex positions 추출
+	for (const FNormalVertex& Vertex : StaticMeshAsset->Vertices)
+	{
+		ObjInfo.VertexList.Add(Vertex.Position);
+	}
+
+	// Normals 추출
+	for (const FNormalVertex& Vertex : StaticMeshAsset->Vertices)
+	{
+		ObjInfo.NormalList.Add(Vertex.Normal);
+	}
+
+	// Texture coordinates 추출
+	for (const FNormalVertex& Vertex : StaticMeshAsset->Vertices)
+	{
+		ObjInfo.TexCoordList.Add(Vertex.TexCoord);
+	}
+
+	// Object info 생성 (단일 오브젝트)
+	FObjectInfo ObjectInfo;
+	ObjectInfo.Name = FilePath.stem().string();
+
+	// Index buffer를 face로 변환
+	for (uint32 Index : StaticMeshAsset->Indices)
+	{
+		ObjectInfo.VertexIndexList.Add(Index);
+		ObjectInfo.NormalIndexList.Add(Index);
+		ObjectInfo.TexCoordIndexList.Add(Index);
+	}
+
+	// Material 정보 추가
+	for (int32 i = 0; i < StaticMeshAsset->MaterialInfo.Num(); ++i)
+	{
+		const FMaterial& MaterialInfo = StaticMeshAsset->MaterialInfo[i];
+
+		FObjectMaterialInfo ObjMaterialInfo;
+		ObjMaterialInfo.Name = MaterialInfo.Name;
+		ObjMaterialInfo.Ka = MaterialInfo.Ambient;
+		ObjMaterialInfo.Kd = MaterialInfo.Diffuse;
+		ObjMaterialInfo.Ks = MaterialInfo.Specular;
+		ObjMaterialInfo.Ke = MaterialInfo.Emissive;
+		ObjMaterialInfo.Ns = MaterialInfo.Shininess;
+		ObjMaterialInfo.Ni = MaterialInfo.RefractiveIndex;
+		ObjMaterialInfo.D = MaterialInfo.Opacity;
+		ObjMaterialInfo.Illumination = MaterialInfo.IlluminationModel;
+		ObjMaterialInfo.KaMap = MaterialInfo.AmbientTexturePath;
+		ObjMaterialInfo.KdMap = MaterialInfo.DiffuseTexturePath;
+		ObjMaterialInfo.KsMap = MaterialInfo.SpecularTexturePath;
+		ObjMaterialInfo.NsMap = MaterialInfo.ShininessTexturePath;
+		ObjMaterialInfo.DMap = MaterialInfo.OpacityTexturePath;
+		ObjMaterialInfo.BumpMap = MaterialInfo.NormalTexturePath;
+
+		ObjInfo.ObjectMaterialInfoList.Add(ObjMaterialInfo);
+	}
+
+	// Section별 material 할당 정보 생성
+	for (const FMeshSection& Section : StaticMeshAsset->Sections)
+	{
+		if (static_cast<int32>(Section.MaterialSlot) < StaticMeshAsset->MaterialInfo.Num())
+		{
+			size_t FaceIndex = Section.StartIndex / 3;
+			ObjectInfo.MaterialNameList.Add(StaticMeshAsset->MaterialInfo[static_cast<int32>(Section.MaterialSlot)].Name);
+			ObjectInfo.MaterialIndexList.Add(FaceIndex);
+		}
+	}
+
+	ObjInfo.ObjectInfoList.Add(ObjectInfo);
+
+	// SaveObj 호출
+	return FObjImporter::SaveObj(FilePath, &ObjInfo, Config);
+}
+
 void FObjManager::Release()
 {
 	// Clean up the cached default material to prevent memory leak

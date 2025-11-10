@@ -54,12 +54,12 @@ struct FObjectInfo
 	/** Group Information */
 	TArray<FString> GroupNameList;
 	/** Stores the starting face index for each group defined by the 'g' tag. */
-	TArray<size_t> GroupIndexList; 
+	TArray<size_t> GroupIndexList;
 
 	/** Material Information */
 	TArray<FString> MaterialNameList;
 	/** Stores the starting face index for each material defined by the 'usemtl' tag. */
-	TArray<size_t> MaterialIndexList; 
+	TArray<size_t> MaterialIndexList;
 };
 
 inline FArchive& operator<<(FArchive& Ar, FObjectInfo& ObjectInfo)
@@ -177,6 +177,9 @@ struct FObjImporter
 	 * @return True if the material library was loaded successfully, false otherwise.
 	 */
 	static bool LoadMaterial(const std::filesystem::path& FilePath, FObjInfo* OutObjInfo);
+
+	static bool SaveObj(const path& FilePath, const FObjInfo* ObjInfo, Configuration Config = {});
+	static bool SaveMaterial(const path& FilePath, const FObjInfo* ObjInfo);
 
 private:
 	/**

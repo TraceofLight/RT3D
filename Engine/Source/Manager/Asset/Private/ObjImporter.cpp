@@ -739,3 +739,245 @@ bool FObjImporter::ParseFaceBuffer(const FString& FaceBuffer, FObjectInfo* OutOb
 
 	return true;
 }
+
+/**
+ * @brief FObjInfo 구조체를 .obj 파일로 저장합니다.
+ * @param FilePath 저장할 .obj 파일의 절대 또는 상대 경로
+ * @param ObjInfo 저장할 메쉬 데이터를 담고 있는 FObjInfo 구조체 포인터
+ * @param Config Export 옵션 (winding order 변환, 좌표계 변환 등)
+ * @return 파일 저장 성공 시 true, 실패 시 false
+ */
+bool FObjImporter::SaveObj(const path& FilePath, const FObjInfo* ObjInfo, Configuration Config)
+{
+	if (!ObjInfo)
+	{
+		UE_LOG_ERROR("ObjInfo is null");
+		return false;
+	}
+
+	std::ofstream File(FilePath);
+	if (!File)
+	{
+		UE_LOG_ERROR("파일을 생성하지 못했습니다: %ls", FilePath.c_str());
+		return false;
+	}
+
+	File << "# Exported by FutureEngine ObjImporter\n";
+	File << "# Vertices: " << ObjInfo->VertexList.Num() << "\n";
+	File << "# Normals: " << ObjInfo->NormalList.Num() << "\n";
+	File << "# TexCoords: " << ObjInfo->TexCoordList.Num() << "\n\n";
+
+	// MTL 파일 참조 (머티리얼이 있는 경우)
+	if (!ObjInfo->ObjectMaterialInfoList.IsEmpty())
+	{
+		path MtlFileName = FilePath.stem().wstring() + L".mtl";
+		File << "mtllib " << MtlFileName.string() << "\n\n";
+
+		// MTL 파일 저장
+		path MtlFilePath = FilePath.parent_path() / MtlFileName;
+		if (!SaveMaterial(MtlFilePath, ObjInfo))
+		{
+			UE_LOG_WARNING("머티리얼 저장 실패: %ls", MtlFilePath.c_str());
+		}
+	}
+
+	// Vertex positions
+	for (const FVector& Vertex : ObjInfo->VertexList)
+	{
+		FVector OutVertex = Vertex;
+		if (Config.bPositionToUEBasis)
+		{
+			// UE basis에서 다시 원본으로 변환 (Y축 반전)
+			OutVertex = FVector(Vertex.X, -Vertex.Y, Vertex.Z);
+		}
+		File << "v " << OutVertex.X << " " << OutVertex.Y << " " << OutVertex.Z << "\n";
+	}
+	File << "\n";
+
+	// Texture coordinates
+	for (const FVector2& TexCoord : ObjInfo->TexCoordList)
+	{
+		FVector2 OutTexCoord = TexCoord;
+		if (Config.bUVToUEBasis)
+		{
+			// UE basis에서 다시 원본으로 변환 (V축 반전)
+			OutTexCoord = FVector2(TexCoord.X, 1.0f - TexCoord.Y);
+		}
+		File << "vt " << OutTexCoord.X << " " << OutTexCoord.Y << "\n";
+	}
+	File << "\n";
+
+	// Vertex normals
+	for (const FVector& Normal : ObjInfo->NormalList)
+	{
+		FVector OutNormal = Normal;
+		if (Config.bNormalToUEBasis)
+		{
+			// UE basis에서 다시 원본으로 변환 (Y축 반전)
+			OutNormal = FVector(Normal.X, -Normal.Y, Normal.Z);
+		}
+		File << "vn " << OutNormal.X << " " << OutNormal.Y << " " << OutNormal.Z << "\n";
+	}
+	File << "\n";
+
+	// Objects and faces
+	for (const FObjectInfo& ObjectInfo : ObjInfo->ObjectInfoList)
+	{
+		if (!ObjectInfo.Name.empty())
+		{
+			File << "o " << ObjectInfo.Name << "\n";
+		}
+
+		bool bHasTexCoords = !ObjectInfo.TexCoordIndexList.IsEmpty();
+		bool bHasNormals = !ObjectInfo.NormalIndexList.IsEmpty();
+
+		size_t FaceCount = ObjectInfo.VertexIndexList.Num() / 3;
+		size_t CurrentMaterialIndex = 0;
+
+		for (size_t FaceIndex = 0; FaceIndex < FaceCount; ++FaceIndex)
+		{
+			// 머티리얼 변경 확인
+			if (CurrentMaterialIndex < ObjectInfo.MaterialIndexList.Num())
+			{
+				if (FaceIndex >= ObjectInfo.MaterialIndexList[CurrentMaterialIndex])
+				{
+					File << "usemtl " << ObjectInfo.MaterialNameList[CurrentMaterialIndex] << "\n";
+					++CurrentMaterialIndex;
+				}
+			}
+
+			File << "f";
+
+			// Winding order 처리
+			TArray<size_t> VertexOrder = {0, 1, 2};
+			if (Config.bFlipWindingOrder)
+			{
+				// Winding order 뒤집기: [0, 1, 2] -> [0, 2, 1]
+				VertexOrder = {0, 2, 1};
+			}
+
+			for (size_t LocalVertexIndex : VertexOrder)
+			{
+				size_t GlobalVertexIndex = FaceIndex * 3 + LocalVertexIndex;
+
+				size_t VertexIndex = ObjectInfo.VertexIndexList[GlobalVertexIndex] + 1; // OBJ는 1-based index
+
+				File << " " << VertexIndex;
+
+				if (bHasTexCoords || bHasNormals)
+				{
+					File << "/";
+					if (bHasTexCoords)
+					{
+						size_t TexCoordIndex = ObjectInfo.TexCoordIndexList[GlobalVertexIndex] + 1;
+						File << TexCoordIndex;
+					}
+
+					if (bHasNormals)
+					{
+						File << "/";
+						size_t NormalIndex = ObjectInfo.NormalIndexList[GlobalVertexIndex] + 1;
+						File << NormalIndex;
+					}
+				}
+			}
+
+			File << "\n";
+		}
+
+		File << "\n";
+	}
+
+	File.close();
+
+	UE_LOG_SUCCESS("OBJ 파일 저장 완료: %ls", FilePath.c_str());
+	return true;
+}
+
+/**
+ * @brief Material 정보를 .mtl 파일로 저장합니다.
+ * @param FilePath 저장할 .mtl 파일의 경로
+ * @param ObjInfo Material 데이터를 담고 있는 FObjInfo 구조체 포인터
+ * @return Material library 저장 성공 시 true, 실패 시 false
+ */
+bool FObjImporter::SaveMaterial(const path& FilePath, const FObjInfo* ObjInfo)
+{
+	if (!ObjInfo)
+	{
+		return false;
+	}
+
+	std::ofstream File(FilePath);
+	if (!File)
+	{
+		UE_LOG_ERROR("MTL 파일을 생성하지 못했습니다: %ls", FilePath.c_str());
+		return false;
+	}
+
+	File << "# Exported by FutureEngine ObjImporter\n\n";
+
+	for (const FObjectMaterialInfo& MaterialInfo : ObjInfo->ObjectMaterialInfoList)
+	{
+		File << "newmtl " << MaterialInfo.Name << "\n";
+
+		// Ambient
+		File << "Ka " << MaterialInfo.Ka.X << " " << MaterialInfo.Ka.Y << " " << MaterialInfo.Ka.Z << "\n";
+
+		// Diffuse
+		File << "Kd " << MaterialInfo.Kd.X << " " << MaterialInfo.Kd.Y << " " << MaterialInfo.Kd.Z << "\n";
+
+		// Specular
+		File << "Ks " << MaterialInfo.Ks.X << " " << MaterialInfo.Ks.Y << " " << MaterialInfo.Ks.Z << "\n";
+
+		// Emissive
+		if (MaterialInfo.Ke.X != 0.0f || MaterialInfo.Ke.Y != 0.0f || MaterialInfo.Ke.Z != 0.0f)
+		{
+			File << "Ke " << MaterialInfo.Ke.X << " " << MaterialInfo.Ke.Y << " " << MaterialInfo.Ke.Z << "\n";
+		}
+
+		// Specular exponent
+		File << "Ns " << MaterialInfo.Ns << "\n";
+
+		// Optical density
+		File << "Ni " << MaterialInfo.Ni << "\n";
+
+		// Dissolve
+		File << "d " << MaterialInfo.D << "\n";
+
+		// Illumination model
+		File << "illum " << MaterialInfo.Illumination << "\n";
+
+		// Texture maps
+		if (!MaterialInfo.KaMap.empty())
+		{
+			File << "map_Ka " << MaterialInfo.KaMap << "\n";
+		}
+		if (!MaterialInfo.KdMap.empty())
+		{
+			File << "map_Kd " << MaterialInfo.KdMap << "\n";
+		}
+		if (!MaterialInfo.KsMap.empty())
+		{
+			File << "map_Ks " << MaterialInfo.KsMap << "\n";
+		}
+		if (!MaterialInfo.NsMap.empty())
+		{
+			File << "map_Ns " << MaterialInfo.NsMap << "\n";
+		}
+		if (!MaterialInfo.DMap.empty())
+		{
+			File << "map_d " << MaterialInfo.DMap << "\n";
+		}
+		if (!MaterialInfo.BumpMap.empty())
+		{
+			File << "map_Bump " << MaterialInfo.BumpMap << "\n";
+		}
+
+		File << "\n";
+	}
+
+	File.close();
+
+	UE_LOG_SUCCESS("MTL 파일 저장 완료: %ls", FilePath.c_str());
+	return true;
+}
