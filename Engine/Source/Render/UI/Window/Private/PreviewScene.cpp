@@ -10,7 +10,6 @@
 
 FPreviewScene::~FPreviewScene()
 {
-    Shutdown();
 }
 
 bool FPreviewScene::Initialize(UObject* InOuter)
@@ -104,6 +103,10 @@ void FPreviewScene::InjectDefaultContent()
     if (PreviewMesh)
     {
         PreviewMesh->SetVisibility(true);
+    	PreviewMesh->SetStaticMesh("Data/Capsule.obj");
+    	PreviewMesh->SetRelativeScale3D(FVector(10.0, 10.0, 10.0));
+    	FVector Location = PreviewMesh->GetRelativeLocation();
+    	UE_LOG("UStaticMeshComponent : %f, %f, %f", Location.X, Location.Y, Location.Z);
     }
 
     PreviewAmbient = Cast<UAmbientLightComponent>(PreviewActor->AddComponent(UAmbientLightComponent::StaticClass()));
@@ -112,6 +115,9 @@ void FPreviewScene::InjectDefaultContent()
         PreviewAmbient->SetLightEnabled(true);
         PreviewAmbient->SetVisible(true);
         PreviewAmbient->SetLightColor(FVector(1.0, 1.0, 1.0));
+
+    	FVector Location = PreviewAmbient->GetRelativeLocation();
+    	UE_LOG("Ambient : %f, %f, %f", Location.X, Location.Y, Location.Z);
     }
 
     bContentInjected = true;
