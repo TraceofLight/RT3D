@@ -1275,7 +1275,7 @@ void URenderer::RenderExternalViewport(FViewport* InViewport,
     // 2) 외부 타깃 푸시 + 클리어
     DeviceResources->PushExternalTargets(InRenderTargetView, InDepthStencilView, ExternalViewport);
 
-    const float ClearColor[4] = {1.f, 1.f, 0.f, 1.0f};
+    const float ClearColor[4] = {0.f, 0.f, 0.f, 1.0f};
     DeviceContext->ClearRenderTargetView(InRenderTargetView, ClearColor);
     if (InDepthStencilView)
     {
@@ -1313,7 +1313,7 @@ void URenderer::RenderExternalViewport(FViewport* InViewport,
 
     TArray<UPrimitiveComponent*> VisiblePrimitives;
 
-    /*if (FOctree* StaticOctree = InWorldOverride->GetLevel()->GetStaticOctree())
+    if (FOctree* StaticOctree = InWorldOverride->GetLevel()->GetStaticOctree())
     {
         TArray<UPrimitiveComponent*> AllStatics;
         StaticOctree->GetAllPrimitives(AllStatics);
@@ -1324,7 +1324,8 @@ void URenderer::RenderExternalViewport(FViewport* InViewport,
                 VisiblePrimitives.Add(Primitive);
             }
         }
-    }*/
+    }
+
     {
         TArray<UPrimitiveComponent*> DynamicPrimitives = CurrentLevel->GetDynamicPrimitives();
         for (UPrimitiveComponent* Primitive : DynamicPrimitives)

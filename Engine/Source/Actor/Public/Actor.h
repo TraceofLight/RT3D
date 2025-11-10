@@ -26,6 +26,7 @@ DECLARE_DELEGATE(FActorEndOverlapSignature,
  */
 UCLASS()
 
+class UWorld;
 class AActor : public UObject, public IDelegateProvider
 {
 	GENERATED_BODY()
