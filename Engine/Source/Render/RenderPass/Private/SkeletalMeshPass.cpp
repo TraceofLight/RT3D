@@ -4,7 +4,7 @@
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Component/Mesh/Public/SkinnedMeshComponent.h"
 #include "Render/Renderer/Public/Pipeline.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Texture/Public/Texture.h"
 #include "Render/RenderPass/Public/ShadowMapPass.h"
 #include "Component/Public/PointLightComponent.h"

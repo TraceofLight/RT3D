@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Render/RenderPass/Public/EditorIconPass.h"
 
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Texture/Public/Texture.h"
 
 FEditorIconPass::FEditorIconPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferCamera, ID3D11Buffer* InConstantBufferModel,

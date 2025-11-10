@@ -9,7 +9,7 @@
 #include "Manager/Time/Public/TimeManager.h"
 
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/Renderer/Public/SceneView.h"
+#include "Runtime/Renderer/Public/SceneView.h"
 #include "Render/UI/Viewport/Public/GameViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 #include "Utility/Public/ScopeCycleCounter.h"

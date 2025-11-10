@@ -201,13 +201,6 @@ enum class EViewportLayout : uint8
 	Quad = 1
 };
 
-enum class EViewMode : uint8
-{
-	Lit,
-	Unlit,
-	WireFrame
-};
-
 enum class EViewType : uint8
 {
 	Perspective,
@@ -226,7 +219,9 @@ enum class ECollisionTag : uint8
 	Enemy = 2,
 	Wall = 3,
 	Score = 4,
-	Clear = 5
+	Clear = 5,
+
+	Num,
 };
 
 /**
@@ -250,5 +245,26 @@ enum class EComponentMobility : uint8
 	 * - Use for gameplay objects, characters, projectiles
 	 */
 	Movable = 1,
+
+	Num,
 };
 DECLARE_UINT8_ENUM_REFLECTION(EComponentMobility)
+
+/**
+ * @brief Depth/Stencil 비교 함수 열거형 (D3D11 기반)
+ */
+UENUM()
+enum class EComparisonFunc : uint8
+{
+	Never = 0,          // D3D11_COMPARISON_NEVER
+	Less,               // D3D11_COMPARISON_LESS
+	Equal,              // D3D11_COMPARISON_EQUAL
+	LessEqual,          // D3D11_COMPARISON_LESS_EQUAL
+	Greater,            // D3D11_COMPARISON_GREATER
+	NotEqual,           // D3D11_COMPARISON_NOT_EQUAL
+	GreaterEqual,       // D3D11_COMPARISON_GREATER_EQUAL
+	Always,              // D3D11_COMPARISON_ALWAYS
+
+	Num,
+};
+DECLARE_UINT8_ENUM_REFLECTION(EComparisonFunc)

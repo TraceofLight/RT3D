@@ -1,6 +1,6 @@
 #include "pch.h"
 #include "Render/RenderPass/Public/LightSensorPass.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Render/RenderPass/Public/SharedLightResources.h"
 #include "Render/RenderPass/Public/ShadowMapPass.h"
 #include "Render/Renderer/Public/Renderer.h"

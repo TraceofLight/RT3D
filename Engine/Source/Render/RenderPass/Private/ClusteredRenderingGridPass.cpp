@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "Render/RenderPass/Public/ClusteredRenderingGridPass.h"
 
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Render/RenderPass/Public/FogPass.h"
 
 FClusteredRenderingGridPass::FClusteredRenderingGridPass(UPipeline* InPipeline, ID3D11Buffer* InConstantBufferViewProj,

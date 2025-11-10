@@ -1,7 +1,7 @@
 ﻿#include "pch.h"
 #include "Render/RenderPass/Public/ColorCopyPass.h"
 
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 
 FColorCopyPass::FColorCopyPass(UPipeline* InPipeline, ID3D11DepthStencilState* InDS)
 	: FRenderPass(InPipeline, nullptr, nullptr), DS(InDS)

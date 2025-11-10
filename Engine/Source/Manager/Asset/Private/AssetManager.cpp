@@ -8,7 +8,7 @@
 #include "Manager/Asset/Public/ObjManager.h"
 #include "Manager/Asset/Public/FbxImporter.h"
 #include "Manager/Path/Public/PathManager.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Runtime/CoreUObject/Public/WindowsBinReader.h"
 #include "Runtime/CoreUObject/Public/WindowsBinWriter.h"
 

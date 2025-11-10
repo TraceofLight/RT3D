@@ -3,7 +3,7 @@
 #include "Actor/Public/GameMode.h"
 #include "Actor/Public/PlayerCameraManager.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 
 FCameraPrePass::FCameraPrePass(UPipeline* InPipeline)
 	: FRenderPass(InPipeline, nullptr, nullptr)

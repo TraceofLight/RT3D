@@ -3,7 +3,7 @@
 #include "Render/Renderer/Public/Renderer.h"
 #include "Editor/Public/EditorPrimitive.h"
 #include "Manager/Asset/Public/AssetManager.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Global/Octree.h"
 #include "Component/Public/DecalSpotLightComponent.h"
 #include "Level/Public/Level.h"

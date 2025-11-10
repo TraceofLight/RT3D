@@ -37,7 +37,7 @@ void USpotLightComponentWidget::RenderWidget()
     }
 
     ImGui::Separator();
-    
+
     // 모든 입력 필드를 검은색으로 설정
     ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
     ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
@@ -55,32 +55,32 @@ void USpotLightComponentWidget::RenderWidget()
     // Light Color
     FVector LightColor = SpotLightComponent->GetLightColor();
     float LightColorRGB[3] = { LightColor.X * 255.0f, LightColor.Y * 255.0f, LightColor.Z * 255.0f };
-    
+
     bool ColorChanged = false;
     ImDrawList* DrawList = ImGui::GetWindowDrawList();
     float BoxWidth = 65.0f;
-    
+
     ImGui::SetNextItemWidth(BoxWidth);
     ImVec2 PosR = ImGui::GetCursorScreenPos();
     ColorChanged |= ImGui::DragFloat("##R", &LightColorRGB[0], 1.0f, 0.0f, 255.0f, "R: %.0f");
     ImVec2 SizeR = ImGui::GetItemRectSize();
     DrawList->AddLine(ImVec2(PosR.x + 5, PosR.y + 2), ImVec2(PosR.x + 5, PosR.y + SizeR.y - 2), IM_COL32(255, 0, 0, 255), 2.0f);
     ImGui::SameLine();
-    
+
     ImGui::SetNextItemWidth(BoxWidth);
     ImVec2 PosG = ImGui::GetCursorScreenPos();
     ColorChanged |= ImGui::DragFloat("##G", &LightColorRGB[1], 1.0f, 0.0f, 255.0f, "G: %.0f");
     ImVec2 SizeG = ImGui::GetItemRectSize();
     DrawList->AddLine(ImVec2(PosG.x + 5, PosG.y + 2), ImVec2(PosG.x + 5, PosG.y + SizeG.y - 2), IM_COL32(0, 255, 0, 255), 2.0f);
     ImGui::SameLine();
-    
+
     ImGui::SetNextItemWidth(BoxWidth);
     ImVec2 PosB = ImGui::GetCursorScreenPos();
     ColorChanged |= ImGui::DragFloat("##B", &LightColorRGB[2], 1.0f, 0.0f, 255.0f, "B: %.0f");
     ImVec2 SizeB = ImGui::GetItemRectSize();
     DrawList->AddLine(ImVec2(PosB.x + 5, PosB.y + 2), ImVec2(PosB.x + 5, PosB.y + SizeB.y - 2), IM_COL32(0, 0, 255, 255), 2.0f);
     ImGui::SameLine();
-    
+
     float LightColor01[3] = { LightColorRGB[0] / 255.0f, LightColorRGB[1] / 255.0f, LightColorRGB[2] / 255.0f };
     if (ImGui::ColorEdit3("Light Color", LightColor01, ImGuiColorEditFlags_NoInputs))
     {
@@ -89,7 +89,7 @@ void USpotLightComponentWidget::RenderWidget()
         LightColorRGB[2] = LightColor01[2] * 255.0f;
         ColorChanged = true;
     }
-    
+
     if (ColorChanged)
     {
         LightColor.X = LightColorRGB[0] / 255.0f;
@@ -172,7 +172,7 @@ void USpotLightComponentWidget::RenderWidget()
      * 그림자 속성 관련 UI
      */
     ImGui::Separator();
-    
+
     bool CastShadow = SpotLightComponent->GetCastShadows();
     if (ImGui::Checkbox("Cast Shadow", &CastShadow))
     {
@@ -198,7 +198,7 @@ void USpotLightComponentWidget::RenderWidget()
                 break;
             }
         }
-        
+
         // ComboBox 생성
         if (ImGui::Combo("Shadow Resolution", &currentIndex, shadowResLabels, IM_ARRAYSIZE(shadowResLabels)))
         {
@@ -326,22 +326,22 @@ void USpotLightComponentWidget::RenderWidget()
         if (SpotLightIdx < IDX_MAX)
         {
             // 원하는 출력 크기 설정
-            ImVec2 ImageSize(256, 256); 
+            ImVec2 ImageSize(256, 256);
 
             ImVec2 startPos(0.125f * static_cast<float>(SpotLightIdx), 0.125f);
             ImVec2 endPos = startPos + ImVec2(
             1.0f / (8192.0f / SpotLightComponent->GetShadowResolutionScale()),
             1.0f / (8192.0f / SpotLightComponent->GetShadowResolutionScale())
             );
-            
+
             // ImGui::Image(텍스처 ID, 크기, UV 시작점, UV 끝점, Tint Color, Border Color)
             // 일반적으로 (0,0)에서 (1,1)까지의 UV를 사용하고, Tint Color는 흰색, Border Color는 투명으로 설정합니다.
-            ImGui::Image(TextureID, 
-                         ImageSize, 
+            ImGui::Image(TextureID,
+                         ImageSize,
                          startPos,
-                         endPos, 
-                         ImVec4(1, 1, 1, 1), 
-                         ImVec4(0, 0, 0, 0)); 
+                         endPos,
+                         ImVec4(1, 1, 1, 1),
+                         ImVec4(0, 0, 0, 0));
 
             if (ImGui::IsItemHovered())
             {
@@ -349,7 +349,7 @@ void USpotLightComponentWidget::RenderWidget()
             }
         }
     }
-    
+
     ImGui::PopStyleColor(3);
 
     ImGui::Separator();

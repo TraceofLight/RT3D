@@ -1,6 +1,4 @@
 #include "pch.h"
-#include <algorithm>
-#include "Component/Mesh/Public/StaticMesh.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Component/Public/AmbientLightComponent.h"
@@ -34,16 +32,14 @@
 #include "Render/RenderPass/Public/StaticMeshPass.h"
 #include "Render/RenderPass/Public/SkeletalMeshPass.h"
 #include "Render/RenderPass/Public/TextPass.h"
-#include "Render/Renderer/Public/RenderResourceFactory.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Level/Public/GameInstance.h"
-#include "Render/Renderer/Public/SceneView.h"
+#include "Runtime/Renderer/Public/SceneView.h"
 #include "Render/RenderPass/Public/CameraPostProcessPass.h"
 #include "Render/RenderPass/Public/ColorCopyPass.h"
 #include "Render/UI/Overlay/Public/D2DOverlayManager.h"
-#include "Render/UI/Viewport/Public/GameViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
-#include "Render/UI/Viewport/Public/ViewportClient.h"
 
 class UGameInstance;
 
