@@ -13,6 +13,7 @@
 
 class FSceneView;
 class FClusteredRenderingGridPass;
+class UWorld;
 class FFXAAPass;
 class FHitProxyPass;
 class FLightPass;
@@ -92,6 +93,10 @@ public:
 	void RenderEnd() const;
 	void RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride = 0, uint32 InIndexBufferStride = 0);
 	void RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride, uint32 StartIndexLocation, uint32 IndexCount);
+	void RenderExternalViewport(FViewport* VP, FViewportClient* VC,
+							   ID3D11RenderTargetView* RTV,
+							   ID3D11DepthStencilView* DSV,
+							   UWorld* WorldOverride = nullptr);
 
 	void OnResize(uint32 Inwidth = 0, uint32 InHeight = 0) const;
 
@@ -254,3 +259,4 @@ private:
 	TMap<std::wstring, TSet<ShaderUsage>> ShaderFileUsageMap;
 	TMap<std::wstring, std::filesystem::file_time_type> ShaderFileLastWriteTimeMap;
 };
+

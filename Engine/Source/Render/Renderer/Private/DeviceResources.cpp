@@ -476,3 +476,27 @@ uint64 UDeviceResources::GetTotalRenderTargetMemory() const
 
 	return TotalBytes;
 }
+
+void UDeviceResources::PushExternalTargets(ID3D11RenderTargetView* InRenderTargetView,
+	ID3D11DepthStencilView* InDepthStencilView, const D3D11_VIEWPORT& InViewport)
+{
+	ExternalRenderTargetView = InRenderTargetView;
+	ExternalDepthStencilView = InDepthStencilView;
+	ExternalViewport         = InViewport;
+	bUseExternalTargets      = true;
+
+	ID3D11DeviceContext* DeviceContext = GetDeviceContext();
+	if (DeviceContext)
+	{
+		DeviceContext->OMSetRenderTargets(1, &ExternalRenderTargetView, ExternalDepthStencilView);
+		DeviceContext->RSSetViewports(1, &ExternalViewport);
+	}
+}
+
+void UDeviceResources::PopExternalTargets()
+{
+	bUseExternalTargets      = false;
+	ExternalRenderTargetView = nullptr;
+	ExternalDepthStencilView = nullptr;
+}
+

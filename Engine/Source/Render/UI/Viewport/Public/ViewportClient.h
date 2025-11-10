@@ -67,7 +67,6 @@ public:
     void Tick() const;
     void Draw(const FViewport* InViewport) const;
 
-
     static void MouseMove(FViewport* /*Viewport*/, int32 /*X*/, int32 /*Y*/) {}
     void CapturedMouseMove(FViewport* /*Viewport*/, int32 X, int32 Y)
     {
@@ -120,7 +119,16 @@ public:
      */
     void UpdateVisiblePrimitives(UWorld* InWorld);
 
+	void EnableEditorCamera(bool bEnable) { bEditorCameraEnabled = bEnable; }
+	void UpdateEditorCamera(float DeltaTime);
 private:
+	bool  bEditorCameraEnabled = false;
+
+	float MouseSensitivityDegPerPixel = 0.15f;
+	float MoveSpeedBase = 600.f;          // 유닛/초
+	float ShiftScale = 2.5f;              // Shift 가속
+	float CtrlScale  = 0.2f;
+
     // 상태
     EViewType       ViewType = EViewType::Perspective;
     EViewModeIndex  ViewMode = EViewModeIndex::VMI_Gouraud;

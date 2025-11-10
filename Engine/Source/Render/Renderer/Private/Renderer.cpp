@@ -1223,6 +1223,206 @@ void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive
 	}
 }
 
+void URenderer::RenderExternalViewport(FViewport* InViewport,
+									   FViewportClient* InViewportClient,
+									   ID3D11RenderTargetView* InRenderTargetView,
+									   ID3D11DepthStencilView* InDepthStencilView,
+									   UWorld* InWorldOverride)
+{
+      if (!InViewport || !InViewportClient || !InRenderTargetView)
+    {
+        return;
+    }
+
+    ID3D11DeviceContext* DeviceContext   = GetDeviceContext();
+    UDeviceResources*     DeviceResources = GetDeviceResources();
+    if (!DeviceContext || !DeviceResources)
+    {
+        return;
+    }
+
+	ID3D11RenderTargetView* PreviousRTVs[D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT] = {};
+	ID3D11DepthStencilView* PreviousDSV = nullptr;
+	UINT PreviousNumRTVs = D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT;
+	DeviceContext->OMGetRenderTargets(PreviousNumRTVs, PreviousRTVs, &PreviousDSV);
+
+	UINT PreviousNumViewports = 1;
+	D3D11_VIEWPORT PreviousViewport = {};
+	DeviceContext->RSGetViewports(&PreviousNumViewports, &PreviousViewport);
+
+
+    // 1) 외부 RTV의 크기로 뷰포트 구성
+    ComPtr<ID3D11Resource> DestinationResource;
+    InRenderTargetView->GetResource(&DestinationResource);
+    ComPtr<ID3D11Texture2D> DestinationTexture;
+    DestinationResource.As(&DestinationTexture);
+    if (!DestinationTexture)
+    {
+        return;
+    }
+
+    D3D11_TEXTURE2D_DESC DestinationDesc{};
+    DestinationTexture->GetDesc(&DestinationDesc);
+
+    D3D11_VIEWPORT ExternalViewport = {};
+    ExternalViewport.TopLeftX = 0.0f;
+    ExternalViewport.TopLeftY = 0.0f;
+    ExternalViewport.Width    = static_cast<float>(DestinationDesc.Width);
+    ExternalViewport.Height   = static_cast<float>(DestinationDesc.Height);
+    ExternalViewport.MinDepth = 0.0f;
+    ExternalViewport.MaxDepth = 1.0f;
+
+    // 2) 외부 타깃 푸시 + 클리어
+    DeviceResources->PushExternalTargets(InRenderTargetView, InDepthStencilView, ExternalViewport);
+
+    const float ClearColor[4] = {1.f, 1.f, 0.f, 1.0f};
+    DeviceContext->ClearRenderTargetView(InRenderTargetView, ClearColor);
+    if (InDepthStencilView)
+    {
+        DeviceContext->ClearDepthStencilView(InDepthStencilView, D3D11_CLEAR_DEPTH, 1.0f, 0);
+    }
+
+    // 3) 카메라 준비
+    InViewport->SetRenderRect(ExternalViewport);
+    InViewportClient->PrepareCamera(ExternalViewport);
+
+    const FCameraConstants& CameraConstants = InViewportClient->GetCameraConstants();
+    FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferViewProj, CameraConstants);
+    Pipeline->SetConstantBuffer(1, EShaderType::VS, ConstantBufferViewProj);
+
+    // 4) 렌더할 World 선택
+    UWorld* WorldToRender = InWorldOverride ? InWorldOverride
+        : (GEditor ? GEditor->GetEditorWorldContext().World() : nullptr);
+    if (!WorldToRender || !WorldToRender->GetLevel())
+    {
+        DeviceResources->PopExternalTargets();
+        return;
+    }
+    const ULevel* CurrentLevel = WorldToRender->GetLevel();
+
+    // 5) RenderingContext 구성 및 프리미티브 수집(간단히: 컬링 없이)
+    const FMinimalViewInfo& ViewInfo = InViewportClient->GetViewInfo();
+
+    FRenderingContext RenderingContext(
+        ViewInfo,
+        InViewportClient->GetViewMode(),
+        CurrentLevel->GetShowFlags(),
+        ExternalViewport,
+        { ExternalViewport.Width, ExternalViewport.Height }
+    );
+
+    TArray<UPrimitiveComponent*> VisiblePrimitives;
+
+    /*if (FOctree* StaticOctree = InWorldOverride->GetLevel()->GetStaticOctree())
+    {
+        TArray<UPrimitiveComponent*> AllStatics;
+        StaticOctree->GetAllPrimitives(AllStatics);
+        for (UPrimitiveComponent* Primitive : AllStatics)
+        {
+            if (Primitive && Primitive->IsVisible())
+            {
+                VisiblePrimitives.Add(Primitive);
+            }
+        }
+    }*/
+    {
+        TArray<UPrimitiveComponent*> DynamicPrimitives = CurrentLevel->GetDynamicPrimitives();
+        for (UPrimitiveComponent* Primitive : DynamicPrimitives)
+        {
+            if (Primitive && Primitive->IsVisible())
+            {
+                VisiblePrimitives.Add(Primitive);
+            }
+        }
+    }
+
+    RenderingContext.AllPrimitives = VisiblePrimitives;
+    for (UPrimitiveComponent* Primitive : VisiblePrimitives)
+    {
+        if (auto StaticMesh    = Cast<UStaticMeshComponent>(Primitive))   { RenderingContext.StaticMeshes.Add(StaticMesh); }
+        else if (auto Skeletal = Cast<USkeletalMeshComponent>(Primitive)) { RenderingContext.SkeletalMeshes.Add(Skeletal); }
+        else if (auto Bill     = Cast<UBillBoardComponent>(Primitive))    { RenderingContext.BillBoards.Add(Bill); }
+        else if (auto Icon     = Cast<UEditorIconComponent>(Primitive))   { RenderingContext.EditorIcons.Add(Icon); }
+        else if (auto Text     = Cast<UTextComponent>(Primitive))
+        {
+            if (!Text->IsExactly(UUUIDTextComponent::StaticClass()))      { RenderingContext.Texts.Add(Text); }
+            else                                                          { RenderingContext.UUIDs.Add(Cast<UUUIDTextComponent>(Text)); }
+        }
+        else if (auto Decal    = Cast<UDecalComponent>(Primitive))        { RenderingContext.Decals.Add(Decal); }
+    }
+
+    for (const auto& LightComponent : CurrentLevel->GetLightComponents())
+    {
+        if (auto Directional = Cast<UDirectionalLightComponent>(LightComponent))
+        {
+            if (Directional->GetVisible() && Directional->GetLightEnabled() && RenderingContext.DirectionalLights.IsEmpty())
+            {
+                RenderingContext.DirectionalLights.Add(Directional);
+            }
+        }
+        if (auto Point = Cast<UPointLightComponent>(LightComponent))
+        {
+            if (Point->GetVisible() && Point->GetLightEnabled())
+            {
+                RenderingContext.PointLights.Add(Point);
+            }
+        }
+        if (auto Spot = Cast<USpotLightComponent>(LightComponent))
+        {
+            if (Spot->GetVisible() && Spot->GetLightEnabled())
+            {
+                RenderingContext.SpotLights.Add(Spot);
+            }
+        }
+        if (auto Ambient = Cast<UAmbientLightComponent>(LightComponent))
+        {
+            if (Ambient->GetVisible() && Ambient->GetLightEnabled() && RenderingContext.AmbientLights.IsEmpty())
+            {
+                RenderingContext.AmbientLights.Add(Ambient);
+            }
+        }
+    }
+
+    for (const auto& Actor : CurrentLevel->GetLevelActors())
+    {
+        for (const auto& Component : Actor->GetOwnedComponents())
+        {
+            if (auto Fog = Cast<UHeightFogComponent>(Component))
+            {
+                RenderingContext.Fogs.Add(Fog);
+            }
+        }
+    }
+
+    // 6) Pass 실행 (외부 RTV/DSV에 바로 출력)
+    for (FRenderPass* RenderPass : RenderPasses)
+    {
+        RenderPass->SetRenderTargets(DeviceResources);
+        RenderPass->Execute(RenderingContext);
+    }
+
+    // 외부 뷰포트에 포스트프로세스/FXAA를 적용하려면 여기서 호출하면 된다.
+    // CameraPostProcessPass->SetRenderTargets(DeviceResources);
+    // CameraPostProcessPass->Execute(RenderingContext);
+    // FXAAPass->SetRenderTargets(DeviceResources);
+    // FXAAPass->Execute(RenderingContext);
+
+    // 7) 외부 타깃 해제
+    DeviceResources->PopExternalTargets();
+
+	if (PreviousNumRTVs > 0)
+	{
+		DeviceContext->OMSetRenderTargets(PreviousNumRTVs, PreviousRTVs, PreviousDSV);
+		for (UINT i = 0; i < PreviousNumRTVs; ++i)
+			if (PreviousRTVs[i]) PreviousRTVs[i]->Release();
+		if (PreviousDSV) PreviousDSV->Release();
+	}
+	if (PreviousNumViewports > 0)
+	{
+		DeviceContext->RSSetViewports(PreviousNumViewports, &PreviousViewport);
+	}
+}
+
 void URenderer::RenderEnd() const
 {
 	TIME_PROFILE(DrawCall)
@@ -1640,3 +1840,5 @@ void URenderer::RenderLevelForGameInstance(UWorld* InWorld, const FSceneView* In
 	// Note: StandAlone에서는 Game UI만 렌더링 (Editor UI 없음)
 	FD2DOverlayManager::GetInstance().FlushAndRender();
 }
+
+

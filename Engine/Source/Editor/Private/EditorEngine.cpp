@@ -1,4 +1,4 @@
-#include "pch.h"
+﻿#include "pch.h"
 #include "Core/Public/Object.h"
 #include "Editor/Public/EditorEngine.h"
 #include "Editor/Public/Editor.h"
@@ -12,6 +12,7 @@
 #include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "Actor/Public/GameMode.h"
 #include "Actor/Public/PlayerCameraManager.h"
+#include "Global/Function.h"
 
 IMPLEMENT_CLASS(UEditorEngine, UObject)
 UEditorEngine* GEditor = nullptr;
@@ -71,6 +72,10 @@ void UEditorEngine::Tick(float DeltaSeconds)
         if (World)
         {
             if (World->GetWorldType() == EWorldType::Editor)
+            {
+                World->Tick(DeltaSeconds);
+            }
+            else if (World->GetWorldType() == EWorldType::EditorPreview)
             {
                 World->Tick(DeltaSeconds);
             }
@@ -470,6 +475,9 @@ void UEditorEngine::RemoveGameCameraFromPIEViewport(int32 ViewportIndex)
         return;
     }
 
+
+
+
     FViewport* PIEViewport = ViewportMgr.GetViewports()[ViewportIndex];
     if (!PIEViewport)
     {
@@ -538,4 +546,75 @@ void UEditorEngine::TogglePIEMouseDetach()
         // 커서 숨김
         while (ShowCursor(FALSE) >= 0);
     }
+}
+
+
+
+void UEditorEngine::RegisterPreviewWorld(UWorld* PreviewWorld)
+{
+    if (!PreviewWorld)
+    {
+        return;
+    }
+
+    if (FindWorldContext(PreviewWorld))
+    {
+        return;
+    }
+
+    if (PreviewWorld->GetWorldType() != EWorldType::EditorPreview)
+    {
+        PreviewWorld->SetWorldType(EWorldType::EditorPreview);
+    }
+
+    FWorldContext NewContext;
+    NewContext.SetWorld(PreviewWorld);
+    WorldContexts.Add(NewContext);
+}
+
+void UEditorEngine::UnregisterPreviewWorld(UWorld* PreviewWorld)
+{
+    if (!PreviewWorld)
+    {
+        return;
+    }
+
+    const int32 ContextIndex = FindWorldContextIndex(PreviewWorld);
+    if (ContextIndex == -1)
+    {
+        return;
+    }
+
+    WorldContexts.RemoveAtSwap(ContextIndex);
+
+    if (PreviewWorld->GetWorldType() == EWorldType::EditorPreview)
+    {
+        PreviewWorld->EndPlay();
+    }
+
+    SafeDelete(PreviewWorld);
+}
+
+FWorldContext* UEditorEngine::FindWorldContext(UWorld* World)
+{
+    for (FWorldContext& Context : WorldContexts)
+    {
+        if (Context.World() == World)
+        {
+            return &Context;
+        }
+    }
+    return nullptr;
+}
+
+int32 UEditorEngine::FindWorldContextIndex(UWorld* World) const
+{
+    for (int32 Index = 0; Index < WorldContexts.Num(); ++Index)
+    {
+        if (WorldContexts[Index].World() == World)
+        {
+            return Index;
+        }
+    }
+    return -1;
 }

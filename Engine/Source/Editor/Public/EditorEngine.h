@@ -56,6 +56,10 @@ public:
     static std::filesystem::path GetLevelDirectory();
     static std::filesystem::path GenerateLevelFilePath(const FString& InLevelName);
 
+    // Preview World Management
+    void RegisterPreviewWorld(UWorld* PreviewWorld);
+    void UnregisterPreviewWorld(UWorld* PreviewWorld);
+
     // Getter
     FWorldContext& GetEditorWorldContext() { return WorldContexts[0]; }
     UWorld* GetWorldForViewport(int32 ViewportIndex);
@@ -80,6 +84,9 @@ private:
     // Helper: Remove game camera from PIE viewport
     void RemoveGameCameraFromPIEViewport(int32 ViewportIndex);
 
+    FWorldContext* FindWorldContext(UWorld* World);
+    int32 FindWorldContextIndex(UWorld* World) const;
+
     EPIEState PIEState = EPIEState::Stopped;
     TArray<FWorldContext> WorldContexts;
     UEditor* EditorModule;
@@ -95,3 +102,4 @@ private:
 extern UEditorEngine* GEditor;
 // 현재 활성화된 UWorld 포인터
 extern UWorld* GWorld;
+

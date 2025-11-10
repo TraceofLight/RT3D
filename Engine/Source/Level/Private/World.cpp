@@ -130,6 +130,22 @@ void UWorld::Tick(float DeltaTimes)
 		}
 	}
 
+	if (WorldType == EWorldType::EditorPreview)
+	{
+		TArray<AActor*> ActorsToTick = Level->GetLevelActors();
+		for (AActor* Actor : ActorsToTick)
+		{
+			if(Actor->CanTick())
+			{
+				Actor->Tick(DeltaTimes);
+			}
+
+			if (Actor->IsPendingDestroy())
+			{
+				DestroyActor(Actor);
+			}
+		}
+	}
 	if (WorldType == EWorldType::Game || WorldType == EWorldType::PIE)
 	{
 		// 중앙집중식 overlap 업데이트 (Unreal Engine 방식)
