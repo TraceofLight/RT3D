@@ -32,8 +32,9 @@ protected:
     ///FSkeletalMesh* SkeletalMesh = nullptr;
 	USkeletalMesh* SkeletalMesh = nullptr;
     TArray<FMatrix> FinalSkinMatrices; // sized to Skeleton->GetNumBones()
+	//GlobalPose * InvGlobal
 
-    // Skinned Vertices 캐시 및 Dirty Flag
+	// Skinned Vertices 캐시 및 Dirty Flag
     mutable TArray<FNormalVertex> CachedSkinnedVertices;
     mutable TArray<uint32> CachedSkinnedIndices;
     mutable bool bSkinnedVerticesDirty = true;

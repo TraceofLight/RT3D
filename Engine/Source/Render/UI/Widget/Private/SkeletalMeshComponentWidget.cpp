@@ -48,9 +48,8 @@ void USkeletalMeshComponentWidget::RenderWidget()
 	{
 		ImGui::Separator();
 		RenderMaterialSections();
+		RenderBoneHierachy(SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton);
 	}
-
-	RenderBoneHierachy(SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton);
 
 	ImGui::PopStyleColor(5);
 }

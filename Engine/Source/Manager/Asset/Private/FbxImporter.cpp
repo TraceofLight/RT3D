@@ -5,6 +5,9 @@
 #include "Texture/Public/Material.h"
 #include "Manager/Path/Public/PathManager.h"
 
+// Current FBX file directory for resolving relative texture paths
+static std::filesystem::path GCurrentFbxDir;
+
 // ========================================
 // FFbxParser 구현
 // ========================================
@@ -193,6 +196,9 @@ bool FFbxImporter::ImportScene(const FString& FilePath)
 	// 상대 경로를 절대 경로로 변환
 	path AbsolutePath = std::filesystem::absolute(FilePath);
 	FString AbsolutePathString = AbsolutePath.string();
+
+	// Remember FBX directory for resolving relative texture paths
+	GCurrentFbxDir = AbsolutePath.parent_path();
 
 	// 파일 존재 확인
 	if (!exists(AbsolutePath))
@@ -749,6 +755,7 @@ void FFbxImporter::ExtractMaterials(const FbxNode* Node, FSkeletalMesh& OutMesh)
 		DefaultMat.Diffuse = FVector(0.8f, 0.8f, 0.8f);
 		return;
 	}
+	 
 
 	OutMesh.MaterialInfo.SetNum(MaterialCount);
 
@@ -815,6 +822,9 @@ void FFbxImporter::ExtractMaterials(const FbxNode* Node, FSkeletalMesh& OutMesh)
 			i, Mat.Name.c_str(), Mat.Diffuse.X, Mat.Diffuse.Y, Mat.Diffuse.Z,
 			Mat.DiffuseTexturePath.empty() ? "None" : Mat.DiffuseTexturePath.c_str());
 	}
+	/*
+	FString("C:\\Users\\Jungle\\Desktop\\GameEngine\\Week10\\Build\\Debug\\Data\\FBX\\castle_guard.fbm\\Guard_02__diffuse.png");
+	*/
 }
 
 void FFbxImporter::ExtractMaterialsForStatic(const FbxNode* Node, FStaticMesh& OutMesh)
@@ -903,7 +913,7 @@ FString FFbxImporter::GetTextureFilePath(FbxProperty& Property, const FString& M
 	{
 		return "";
 	}
-
+	 
 	// Property에 연결된 텍스처 개수 확인
 	int32 TextureCount = Property.GetSrcObjectCount<FbxFileTexture>();
 	if (TextureCount > 0)
@@ -915,6 +925,45 @@ FString FFbxImporter::GetTextureFilePath(FbxProperty& Property, const FString& M
 			if (TextureFileName && strlen(TextureFileName) > 0)
 			{
 				path TexturePath(TextureFileName);
+
+				// Try to resolve to an actual file first
+				const path& RootPath = UPathManager::GetInstance().GetRootPath();
+				const path& DataPath = UPathManager::GetInstance().GetDataPath();
+
+				// a) Absolute path and exists -> use it
+				if (TexturePath.is_absolute() && exists(TexturePath))
+				{
+					return canonical(TexturePath).string();
+				}
+
+				// b) Relative to FBX folder
+				path Candidate = GCurrentFbxDir / TexturePath;
+				if (exists(Candidate))
+				{
+					return canonical(Candidate).string();
+				}
+
+				// c) Relative to engine root
+				Candidate = RootPath / TexturePath;
+				if (exists(Candidate))
+				{
+					path RelativePath = relative(canonical(Candidate), RootPath);
+					return RelativePath.string();
+				}
+
+				// d) Search by exact filename within Data
+				{
+					FString TargetName = TexturePath.filename().string();
+					for (const auto& Entry : std::filesystem::recursive_directory_iterator(DataPath))
+					{
+						if (!Entry.is_regular_file()) continue;
+						if (Entry.path().filename().string() == TargetName)
+						{
+							path RelativePath = relative(Entry.path(), RootPath);
+							return RelativePath.string();
+						}
+					}
+				}
 
 				// 절대 경로인 경우 파일명만 추출
 				if (TexturePath.is_absolute())
@@ -949,6 +998,39 @@ FString FFbxImporter::GetTextureFilePath(FbxProperty& Property, const FString& M
 				if (TextureFileName && strlen(TextureFileName) > 0)
 				{
 					path TexturePath(TextureFileName);
+					// Try to resolve as above for layered texture
+					{
+						const path& RootPath = UPathManager::GetInstance().GetRootPath();
+						const path& DataPath = UPathManager::GetInstance().GetDataPath();
+						if (TexturePath.is_absolute() && exists(TexturePath))
+						{
+							return canonical(TexturePath).string();
+						}
+					// b) Relative to FBX folder
+					path Candidate = GCurrentFbxDir / TexturePath;
+					if (exists(Candidate))
+					{
+						return canonical(Candidate).string();
+					}
+
+					// c) Relative to engine root
+					Candidate = RootPath / TexturePath;
+						if (exists(Candidate))
+						{
+							path RelativePath = relative(canonical(Candidate), RootPath);
+							return RelativePath.string();
+						}
+						FString TargetName = TexturePath.filename().string();
+						for (const auto& Entry : std::filesystem::recursive_directory_iterator(DataPath))
+						{
+							if (!Entry.is_regular_file()) continue;
+							if (Entry.path().filename().string() == TargetName)
+							{
+								path RelativePath = relative(Entry.path(), RootPath);
+								return RelativePath.string();
+							}
+						}
+					}
 					if (TexturePath.is_absolute())
 					{
 						FString FileName = TexturePath.filename().string();
@@ -984,6 +1066,22 @@ FString FFbxImporter::ExtractEmbeddedTexture(FbxFileTexture* FileTexture, const 
 	if (RelativeFileName && strlen(RelativeFileName) > 0)
 	{
 		path TexturePath(RelativeFileName);
+
+		// Try resolve embedded texture by exact filename inside Data
+		{
+			const path& RootPath = UPathManager::GetInstance().GetRootPath();
+			const path& DataPath = UPathManager::GetInstance().GetDataPath();
+			FString TargetName = TexturePath.filename().string();
+			for (const auto& Entry : std::filesystem::recursive_directory_iterator(DataPath))
+			{
+				if (!Entry.is_regular_file()) continue;
+				if (Entry.path().filename().string() == TargetName)
+				{
+					path RelativePath = relative(Entry.path(), RootPath);
+					return RelativePath.string();
+				}
+			}
+		}
 
 		// 상대 경로에서 파일명 추출
 		FString FileName = TexturePath.filename().string();
@@ -1027,7 +1125,9 @@ FString FFbxImporter::FindTextureInDataFolder(const FString& MaterialName, const
 		if (FileNameWithoutExt.find(SearchPattern) != FString::npos ||
 			FileNameWithoutExt.find("T_" + SearchPattern) != FString::npos)
 		{
-			path RelativePath = relative(Entry.path(), "Data");
+					// Return path relative to engine root (e.g., Data/Texture/...)
+					path RelativePath = relative(Entry.path(), UPathManager::GetInstance().GetRootPath());
+					//path RelativePath = relative(Entry.path(), std::filesystem::current_path());
 			return RelativePath.string();
 		}
 
@@ -1055,16 +1155,16 @@ FString FFbxImporter::FindTextureInDataFolder(const FString& MaterialName, const
 				if (FileNameWithoutExt.find(SimplifiedMatName + TextureTypeShort) != FString::npos ||
 					FileNameWithoutExt.find("T_" + SimplifiedMatName + TextureTypeShort) != FString::npos)
 				{
-					path RelativePath = relative(Entry.path(), "Data");
-					return RelativePath.string();
+						path RelativePath = relative(Entry.path(), UPathManager::GetInstance().GetRootPath());
+						return RelativePath.string();
+					}
 				}
-			}
 		}
 
 		// 패턴 3: MaterialName만으로도 검색 (Suffix가 빈 문자열인 경우)
 		if (TextureSuffix.empty() && FileNameWithoutExt.find(MaterialName) != FString::npos)
 		{
-			path RelativePath = relative(Entry.path(), "Data");
+			path RelativePath = relative(Entry.path(), UPathManager::GetInstance().GetRootPath());
 			return RelativePath.string();
 		}
 	}
