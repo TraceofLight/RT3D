@@ -39,7 +39,7 @@ void UFbxViewportWindow::Cleanup()
 
     if (PreviewScene)
     {
-        PreviewScene->Shutdown();
+        // PreviewScene->Shutdown();
         SafeDelete(PreviewScene);
         PreviewScene = nullptr;
     }
