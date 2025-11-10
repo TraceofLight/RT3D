@@ -139,6 +139,5 @@ void FPreviewScene::RemoveInjectedContent()
 
     PreviewActor = nullptr;
     PreviewMesh = nullptr;
-    PreviewAmbient = nullptr;
     bContentInjected = false;
 }
