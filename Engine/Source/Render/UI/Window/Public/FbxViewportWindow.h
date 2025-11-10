@@ -6,6 +6,12 @@
  * @brief Popup window that renders the shared editor world with an independent viewport client.
  *        Currently mirrors the main viewport output inside an ImGui window.
  */
+class UStaticMeshComponent;
+class UAmbientLightComponent;
+class UWorld;
+class ULevel;
+class AActor;
+
 UCLASS()
 class UFbxViewportWindow : public UUIWindow
 {
@@ -24,11 +30,19 @@ protected:
 	void OnPostRenderWindow() override;
 
 private:
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>          ColorRT;
-	Microsoft::WRL::ComPtr<ID3D11RenderTargetView>   RTV;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> SRV;
-	Microsoft::WRL::ComPtr<ID3D11Texture2D>          DepthTex;
-	Microsoft::WRL::ComPtr<ID3D11DepthStencilView>   DSV;
+	AActor*						PreviewTestActor = nullptr;
+	UStaticMeshComponent*		PreviewTestMesh  = nullptr;
+	UAmbientLightComponent*		PreviewAmLight = nullptr;
+	bool						bPreviewInjected = false;
+
+	void InjectTestMeshIntoEditorLevel();
+	void RemoveInjectedTestMesh();
+
+	ComPtr<ID3D11Texture2D>          ColorRT;
+	ComPtr<ID3D11RenderTargetView>   RTV;
+	ComPtr<ID3D11ShaderResourceView> SRV;
+	ComPtr<ID3D11Texture2D>          DepthTex;
+	ComPtr<ID3D11DepthStencilView>   DSV;
 	ImVec2 CachedSize = ImVec2(0,0);
 
 	void EnsureRenderTargets(const ImVec2& size);
@@ -36,6 +50,4 @@ private:
 	FViewportClient* PreviewClient     = nullptr;
 
 	bool bHovered = false;
-
-	void RouteInputToClient();
 };

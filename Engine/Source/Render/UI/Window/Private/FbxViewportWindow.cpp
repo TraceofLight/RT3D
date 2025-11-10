@@ -5,28 +5,14 @@
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
 #include "ImGui/imgui.h"
+#include "Level/Public/Level.h"
+#include "Level/Public/World.h"
+#include "Actor/Public/StaticMeshActor.h"
+#include "Component/Mesh/Public/StaticMeshComponent.h"
+#include "Component/Public/AmbientLightComponent.h"
+#include "Component/Public/UUIDTextComponent.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
-
-void UFbxViewportWindow::RouteInputToClient()
-{
-	if (!bHovered || !PreviewClient || !PreviewViewport)
-	{
-		return;
-	}
-
-	auto& Input = UInputManager::GetInstance();
-
-	if (Input.IsKeyDown(EKeyInput::MouseRight))
-	{
-		FVector Rot = PreviewClient->GetViewRotation();
-		const FVector md = Input.GetMouseDelta();
-		Rot.Y += md.X * KeySensitivityDegPerPixel * 3;
-		Rot.X += -md.Y * KeySensitivityDegPerPixel * 3;
-		Rot.X = clamp(Rot.X, -89.9f, 89.9f);
-		PreviewClient->SetViewRotation(Rot);
-	}
-}
 
 void UFbxViewportWindow::LoadFbxFile(const path& File)
 {
@@ -43,6 +29,12 @@ void UFbxViewportWindow::Initialize()
     PreviewClient->SetViewType(EViewType::Perspective);
     PreviewClient->SetViewMode(EViewModeIndex::VMI_BlinnPhong);
 
+	PreviewClient->EnableEditorCamera(true);
+	PreviewClient->SetViewLocation(FVector(0, -300, 150));
+	PreviewClient->SetViewRotation(FVector(-15, 0, 0));
+
+	InjectTestMeshIntoEditorLevel();
+
     UE_LOG("FbxViewportWindow: initialized");
 }
 
@@ -54,6 +46,13 @@ void UFbxViewportWindow::Release()
         SafeDelete(PreviewViewport);
     }
     SafeDelete(PreviewClient);
+}
+
+void UFbxViewportWindow::Tick(float DeltaTime)
+{
+	if (!PreviewViewport || !PreviewClient) return;
+	PreviewViewport->PumpMouseFromInputManager();
+	PreviewClient->UpdateEditorCamera(DeltaTime);
 }
 
 void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& size)
@@ -96,13 +95,8 @@ void UFbxViewportWindow::OnPostRenderWindow()
 	if (avail.x < 1 || avail.y < 1) return;
 
 	EnsureRenderTargets(avail);      // 전용 RT/DSV 준비
-	RouteInputToClient();            // 입력(회전/줌) 처리
 
-	// 1) 프리뷰 렌더 호출 (아래 3단계 참고)
-	URenderer::GetInstance().RenderExternalViewport(
-		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), /*WorldOverride*/nullptr);
-
-	// 2) ImGui에 전용 SRV를 그리기  (절대 백버퍼 SRV를 쓰지 말 것!)
+	// ImGui에 전용 SRV를 그리기  (절대 백버퍼 SRV를 쓰지 말 것!)
 	ImGui::InvisibleButton("FBXViewportArea", avail);
 	const ImVec2 p0 = ImGui::GetItemRectMin();
 	const ImVec2 p1 = ImGui::GetItemRectMax();
@@ -110,6 +104,11 @@ void UFbxViewportWindow::OnPostRenderWindow()
 	dl->AddImage((ImTextureID)SRV.Get(), p0, p1);
 
 	bHovered = ImGui::IsItemHovered();
+	if (PreviewClient) PreviewClient->SetInputEnabled(bHovered);
+
+	// 프리뷰 렌더 호출 (아래 3단계 참고)
+	URenderer::GetInstance().RenderExternalViewport(
+		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), /*WorldOverride*/nullptr);
 }
 
 UFbxViewportWindow::UFbxViewportWindow()
@@ -128,4 +127,56 @@ UFbxViewportWindow::UFbxViewportWindow()
 
 	SetConfig(Config);
 	SetWindowState(EUIWindowState::Hidden);
+}
+
+void UFbxViewportWindow::InjectTestMeshIntoEditorLevel()
+{
+	if (bPreviewInjected) { return; }
+
+	UWorld* World = GEditor ? GEditor->GetEditorWorldContext().World() : nullptr;
+	if (!World) { return; }
+	ULevel* Level = World->GetLevel();
+	if (!Level) { return; }
+
+	// 1) 액터 + 컴포넌트
+	PreviewTestActor = new AActor();
+	Level->AddActorToLevel(PreviewTestActor);
+
+	// 2) 메쉬 에셋
+	PreviewAmLight = new UAmbientLightComponent();
+	PreviewAmLight->SetLightEnabled(true);
+	PreviewAmLight->SetVisible(true);
+	PreviewAmLight->SetLightColor(FVector{ 1.0, 1.0, 1.0 });
+
+	//PreviewTestMesh = Cast<UStaticMeshComponent>(PreviewTestActor->AddComponent(UStaticMeshComponent::StaticClass()));
+	//if (!PreviewTestMesh)
+	//{
+	//	UE_LOG_ERROR("FbxViewportWindow: Failed to add UStaticMeshComponent to preview test actor.");
+	//	Level->DestroyActor(PreviewTestActor);
+	//	PreviewTestActor = nullptr;
+	//	return;
+	//}
+
+	/*PreviewTestMesh->SetStaticMesh("Data/Shapes/Cube.obj");
+	PreviewTestMesh->SetWorldLocation(FVector(10.f, 0.f, 0.f));
+	PreviewTestMesh->SetRelativeScale3D(FVector(1.f, 1.f, 1.f));
+	PreviewTestMesh->SetVisibility(true);*/
+
+	bPreviewInjected = true;
+	UE_LOG("FbxViewportWindow: injected a test StaticMesh into Editor Level.");
+}
+
+void UFbxViewportWindow::RemoveInjectedTestMesh()
+{
+	if (!bPreviewInjected) { return; }
+
+	// 필요시 Level에서 등록 해제 API 호출
+	// Level->UnregisterDynamicPrimitive(PreviewTestMesh);
+
+	SafeDelete(PreviewTestMesh);
+	SafeDelete(PreviewTestActor);
+
+	PreviewTestMesh  = nullptr;
+	PreviewTestActor = nullptr;
+	bPreviewInjected = false;
 }

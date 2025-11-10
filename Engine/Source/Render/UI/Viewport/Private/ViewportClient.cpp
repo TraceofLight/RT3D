@@ -6,6 +6,7 @@
 #include "Actor/Public/PlayerCameraManager.h"
 #include "Level/Public/Level.h"
 #include "Level/Public/World.h"
+#include "Manager/Input/Public/InputManager.h"
 
 FViewportClient::FViewportClient() = default;
 
@@ -311,6 +312,48 @@ void FViewportClient::UpdateVisiblePrimitives(UWorld* InWorld)
         DynamicPrimitives,
         CameraConst
     );
+}
+
+void FViewportClient::UpdateEditorCamera(float DeltaTime)
+{
+	if (!bEditorCameraEnabled || PlayerCameraManager) return;
+	if (!bInputEnabled) return; // 프리뷰 창 hover 아닐 때 무시 (선택)
+
+	auto& Input = UInputManager::GetInstance();
+
+	// --- 회전 (RMB 드래그) ---
+	if (Input.IsKeyDown(EKeyInput::MouseRight))
+	{
+		const FVector md = Input.GetMouseDelta();
+		ViewRotation.Y += md.X * MouseSensitivityDegPerPixel;      // Yaw
+		ViewRotation.X += -md.Y * MouseSensitivityDegPerPixel;     // Pitch
+		ViewRotation.X = clamp(ViewRotation.X, -89.9f, 89.9f);
+		ViewRotation.Z = 0.0f;
+	}
+
+	// --- 이동 (WASD + QE) ---
+	if (!IsOrtho())
+	{
+		float Scale = MoveSpeedBase;
+
+		FVector Direction = FVector::Zero();
+		const FVector Forward   = GetForward();
+		const FVector Right = GetRight();
+		const FVector Up    = FVector(0,0,1);
+
+		if (Input.IsKeyDown(EKeyInput::W)) Direction += Forward;
+		if (Input.IsKeyDown(EKeyInput::S)) Direction -= Forward;
+		if (Input.IsKeyDown(EKeyInput::D)) Direction += Right;
+		if (Input.IsKeyDown(EKeyInput::A)) Direction -= Right;
+		if (Input.IsKeyDown(EKeyInput::E)) Direction += Up;
+		if (Input.IsKeyDown(EKeyInput::Q)) Direction -= Up;
+
+		if (Direction.LengthSquared() > MATH_EPSILON)
+		{
+			Direction.Normalize();
+			ViewLocation += Direction * Scale * DeltaTime;
+		}
+	}
 }
 
 /**

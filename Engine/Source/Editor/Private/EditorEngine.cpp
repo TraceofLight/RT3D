@@ -470,6 +470,9 @@ void UEditorEngine::RemoveGameCameraFromPIEViewport(int32 ViewportIndex)
         return;
     }
 
+
+
+
     FViewport* PIEViewport = ViewportMgr.GetViewports()[ViewportIndex];
     if (!PIEViewport)
     {
