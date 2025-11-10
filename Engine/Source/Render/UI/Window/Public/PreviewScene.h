@@ -7,6 +7,7 @@ class UWorld;
 class AActor;
 class UStaticMeshComponent;
 class UAmbientLightComponent;
+class UDirectionalLightComponent;
 
 /**
  * @brief Lightweight helper that owns the mini preview world used by FBX viewport windows.
@@ -33,7 +34,7 @@ private:
 	UWorld* PreviewWorld = nullptr;
 	AActor* PreviewActor = nullptr;
 	UStaticMeshComponent* PreviewMesh = nullptr;
-	UAmbientLightComponent* PreviewAmbient = nullptr;
+	UDirectionalLightComponent* PreviewDirectional = nullptr;
 	bool bContentInjected = false;
 	bool bWorldRegistered = false;
 };

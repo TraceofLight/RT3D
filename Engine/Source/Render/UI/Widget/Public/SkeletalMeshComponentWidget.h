@@ -19,14 +19,17 @@ public:
 
 private:
 	USkeletalMeshComponent* SkeletalMeshComponent{};
+	FName SelectedBoneName;
+	uint32 SelectedBoneIdx = -1;
+
 
 	// 섹션별 렌더링을 위한 헬퍼 함수
 	void RenderSkeletalMeshSelector() const;
 	void RenderMaterialSections();
 	void RenderAvailableMaterials(int32 TargetSlotIndex) const;
 
-	void DrawSkeletalBone(FSkeleton* Skeleton, int idx) const;
-	void RenderBoneHierachy(FSkeleton* Skeleton) const;
+	void DrawSkeletalBone(FSkeleton* Skeleton, int idx);
+	void RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent);
 
 	// 유틸리티 함수
 	static FString GetMaterialDisplayName(UMaterial* Material);

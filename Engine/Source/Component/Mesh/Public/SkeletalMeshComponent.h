@@ -21,6 +21,9 @@ public:
 
     void SetLocalPose(const TArray<FTransform>& InLocalPose);
 
+	FTransform& GetLocalPose(const uint32 Idx);
+	void SetLocalPose(const uint32 Idx, const FTransform& InLocalPose);
+
 	/** World Space로 변환 행렬 만들어주는 함수 => GlobalPose[i] = Local * GlobalPose[Parent]*/
     void BuildComponentWorldSpacePose();
 

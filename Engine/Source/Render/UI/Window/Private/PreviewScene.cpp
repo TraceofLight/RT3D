@@ -6,11 +6,11 @@
 #include "Actor/Public/StaticMeshActor.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Component/Public/AmbientLightComponent.h"
+#include "Component/Public/DirectionalLightComponent.h"
 #include "Editor/Public/EditorEngine.h"
 
 FPreviewScene::~FPreviewScene()
 {
-    Shutdown();
 }
 
 bool FPreviewScene::Initialize(UObject* InOuter)
@@ -104,15 +104,23 @@ void FPreviewScene::InjectDefaultContent()
     if (PreviewMesh)
     {
         PreviewMesh->SetVisibility(true);
+    	PreviewMesh->SetStaticMesh("Data/Shapes/Cube.obj");
+    	PreviewMesh->SetRelativeScale3D(FVector(100.0, 100.0, 1.0));
+    	FVector Location = PreviewMesh->GetRelativeLocation();
+    	UE_LOG("UStaticMeshComponent : %f, %f, %f", Location.X, Location.Y, Location.Z);
     }
 
-    PreviewAmbient = Cast<UAmbientLightComponent>(PreviewActor->AddComponent(UAmbientLightComponent::StaticClass()));
-    if (PreviewAmbient)
-    {
-        PreviewAmbient->SetLightEnabled(true);
-        PreviewAmbient->SetVisible(true);
-        PreviewAmbient->SetLightColor(FVector(1.0, 1.0, 1.0));
-    }
+	PreviewDirectional = Cast<UDirectionalLightComponent>(PreviewActor->AddComponent(UDirectionalLightComponent::StaticClass()));
+	if (PreviewDirectional)
+	{
+		PreviewDirectional->SetLightEnabled(true);
+		PreviewDirectional->SetVisible(true);
+		PreviewDirectional->SetLightColor(FVector(1.0, 1.0, 1.0));
+		PreviewDirectional->SetRelativeRotation(FQuaternion::FromEuler(FVector( 0.f, -20.f, 0.f)));
+
+		FVector Location = PreviewDirectional->GetRelativeLocation();
+		UE_LOG("Directional : %f, %f, %f", Location.X, Location.Y, Location.Z);
+	}
 
     bContentInjected = true;
 }
@@ -131,6 +139,5 @@ void FPreviewScene::RemoveInjectedContent()
 
     PreviewActor = nullptr;
     PreviewMesh = nullptr;
-    PreviewAmbient = nullptr;
     bContentInjected = false;
 }
