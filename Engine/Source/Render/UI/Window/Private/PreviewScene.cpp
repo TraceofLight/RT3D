@@ -1,11 +1,13 @@
 ﻿#include "pch.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
+
 #include "Core/Public/NewObject.h"
 #include "Level/Public/World.h"
 #include "Level/Public/Level.h"
-#include "Actor/Public/StaticMeshActor.h"
+#include "Actor/Public/Actor.h"
+#include "Actor/Public/SkeletalMeshActor.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
-#include "Component/Public/AmbientLightComponent.h"
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Editor/Public/EditorEngine.h"
 
@@ -93,14 +95,30 @@ void FPreviewScene::InjectDefaultContent()
         return;
     }
 
-    PreviewActor = PreviewWorld->SpawnActor(AStaticMeshActor::StaticClass());
-    if (!PreviewActor)
+	PreviewSkeletalActor  = PreviewWorld->SpawnActor(ASkeletalMeshActor::StaticClass());
+	if (!PreviewSkeletalActor)
+	{
+		UE_LOG_ERROR("PreviewScene: failed to spawn preview fbx model.");
+		return;
+	}
+
+	PreviewSkeletal = Cast<USkeletalMeshComponent>(PreviewSkeletalActor->GetRootComponent());
+	if (!PreviewSkeletal)
+	{
+		UE_LOG_ERROR("PreviewScene: skeletal mesh actor does not have a valid skeletal component.");
+		return;
+	}
+
+	PreviewSkeletal->SetVisibility(true);
+
+    PreviewBackgroundActor = PreviewWorld->SpawnActor(AActor::StaticClass());
+    if (!PreviewBackgroundActor)
     {
         UE_LOG_ERROR("PreviewScene: failed to spawn preview actor.");
         return;
     }
 
-    PreviewMesh = Cast<UStaticMeshComponent>(PreviewActor->AddComponent(UStaticMeshComponent::StaticClass()));
+    PreviewMesh = Cast<UStaticMeshComponent>(PreviewBackgroundActor->AddComponent(UStaticMeshComponent::StaticClass()));
     if (PreviewMesh)
     {
         PreviewMesh->SetVisibility(true);
@@ -110,7 +128,7 @@ void FPreviewScene::InjectDefaultContent()
     	UE_LOG("UStaticMeshComponent : %f, %f, %f", Location.X, Location.Y, Location.Z);
     }
 
-	PreviewDirectional = Cast<UDirectionalLightComponent>(PreviewActor->AddComponent(UDirectionalLightComponent::StaticClass()));
+	PreviewDirectional = Cast<UDirectionalLightComponent>(PreviewBackgroundActor->AddComponent(UDirectionalLightComponent::StaticClass()));
 	if (PreviewDirectional)
 	{
 		PreviewDirectional->SetLightEnabled(true);
@@ -132,12 +150,14 @@ void FPreviewScene::RemoveInjectedContent()
         return;
     }
 
-    if (PreviewActor)
+    if (PreviewBackgroundActor)
     {
-        PreviewWorld->DestroyActor(PreviewActor);
+        PreviewWorld->DestroyActor(PreviewBackgroundActor);
     }
 
-    PreviewActor = nullptr;
+    PreviewBackgroundActor = nullptr;
     PreviewMesh = nullptr;
     bContentInjected = false;
 }
+
+

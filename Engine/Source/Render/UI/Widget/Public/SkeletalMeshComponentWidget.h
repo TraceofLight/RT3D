@@ -5,6 +5,10 @@ class UTexture;
 class USkeletalMeshComponent;
 class UMaterial;
 class FSkeleton;
+class UWorld;
+
+class UFbxViewportWindow;
+class USkeletalMesh;
 
 UCLASS()
 class USkeletalMeshComponentWidget : public UWidget
@@ -13,23 +17,29 @@ class USkeletalMeshComponentWidget : public UWidget
 	DECLARE_CLASS(USkeletalMeshComponentWidget, UWidget)
 
 public:
-	void Initialize() override {}
+	void Initialize() override;
 	void Update() override {}
 	void RenderWidget() override;
 
+	void SetTargetWorld(UWorld* InWorld);
+	void SetTargetComponent(USkeletalMeshComponent* InComponent);
+
 private:
 	USkeletalMeshComponent* SkeletalMeshComponent{};
+	USkeletalMeshComponent* OverrideTargetComponent = nullptr;
 	FName SelectedBoneName;
 	uint32 SelectedBoneIdx = -1;
 
+	UWorld* World = nullptr;
 
 	// 섹션별 렌더링을 위한 헬퍼 함수
-	void RenderSkeletalMeshSelector() const;
+	void RenderSkeletalMeshSelector();
 	void RenderMaterialSections();
 	void RenderAvailableMaterials(int32 TargetSlotIndex) const;
 
 	void DrawSkeletalBone(FSkeleton* Skeleton, int idx);
 	void RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent);
+	void OpenFbxPreviewViewport(USkeletalMesh* SkeletalMesh);
 
 	// 유틸리티 함수
 	static FString GetMaterialDisplayName(UMaterial* Material);

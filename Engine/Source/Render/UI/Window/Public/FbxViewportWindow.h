@@ -7,6 +7,8 @@
  *        Currently mirrors the main viewport output inside an ImGui window.
  */
 class FPreviewScene;
+class USkeletalMeshComponentWidget;
+class USkeletalMesh;
 
 UCLASS()
 class UFbxViewportWindow : public UUIWindow
@@ -20,6 +22,7 @@ public:
 	void Cleanup() override;
 
 	void LoadFbxFile(const path& File);
+	void SetPreviewSkeletalMesh(USkeletalMesh* SkeletalMesh);
 
 protected:
 	void OnPostRenderWindow() override;
@@ -34,9 +37,14 @@ private:
 
 	void EnsureRenderTargets(const ImVec2& size);
 	void EnsurePreviewInfrastructure();
+	void RenderPreviewViewport(const ImVec2& InSize);
+	void RenderSkeletalInspector(const ImVec2& InSize);
+	void UpdateSkeletalWidgetTargets();
+
 	FViewport*       PreviewViewport   = nullptr;
 	FViewportClient* PreviewClient     = nullptr;
 	FPreviewScene*   PreviewScene      = nullptr;
+	USkeletalMeshComponentWidget* SkeletalWidget = nullptr;
 
 	bool bPreviewReady = false;
 	bool bHovered = false;

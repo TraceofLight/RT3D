@@ -136,15 +136,12 @@ void UUIManager::Update()
  */
 void UUIManager::Render()
 {
-    if (!bIsInitialized)
+    if (!bIsInitialized ||!ImGuiHelper)
     {
         return;
     }
 
-    if (!ImGuiHelper)
-    {
-        return;
-    }
+	bRendering = true;
 
     // ImGui 프레임 시작
     ImGuiHelper->BeginFrame();
@@ -176,8 +173,19 @@ void UUIManager::Render()
     // FutureEngine 철학: 스플리터 오버레이 렌더링 (Quad 모드에서 호버링 효과)
     UViewportManager::GetInstance().RenderOverlay();
 
+	bRendering = false;
+	CommitPending();
+
     // ImGui 프레임 종료
     ImGuiHelper->EndFrame();
+}
+
+void UUIManager::CommitPending()
+{
+	for (auto* Window : PendingAdd)   { InternalRegister(Window); }
+	PendingAdd.Empty();
+	for (auto* Window : PendingRemove){ InternalUnregister(Window); }
+	PendingRemove.Empty();
 }
 
 /**
@@ -193,32 +201,39 @@ bool UUIManager::RegisterUIWindow(UUIWindow* InWindow)
         return false;
     }
 
-    // 이미 등록된 윈도우인지 확인
-    auto Iter = std::find(UIWindows.begin(), UIWindows.end(), InWindow);
-    if (Iter != UIWindows.end())
-    {
-        UE_LOG("UIManager: Warning: Window Already Registered: %u", InWindow->GetWindowID());
-        return false;
-    }
+	if (bRendering) { PendingAdd.Add(InWindow); return true; }
 
-    // 윈도우 초기화
-    try
-    {
-        InWindow->Initialize();
-    }
-    catch (const exception& Exception)
-    {
-        UE_LOG("UIManager: Error: Window 생성에 실패했습니다 %u: %s", InWindow->GetWindowID(),
-               Exception.what());
-        return false;
-    }
+	return InternalRegister(InWindow);
+}
 
-    UIWindows.Add(InWindow);
+bool UUIManager::InternalRegister(UUIWindow*InWindow)
+{
+	// 이미 등록된 윈도우인지 확인
+	auto Iter = std::find(UIWindows.begin(), UIWindows.end(), InWindow);
+	if (Iter != UIWindows.end())
+	{
+		UE_LOG("UIManager: Warning: Window Already Registered: %u", InWindow->GetWindowID());
+		return false;
+	}
 
-    UE_LOG("UIManager: UI Window 등록: %s", InWindow->GetWindowTitle().ToString().data());
-    UE_LOG("UIManager: 전체 등록된 Window 갯수: %d", UIWindows.Num());
+	// 윈도우 초기화
+	try
+	{
+		InWindow->Initialize();
+	}
+	catch (const exception& Exception)
+	{
+		UE_LOG("UIManager: Error: Window 생성에 실패했습니다 %u: %s", InWindow->GetWindowID(),
+			   Exception.what());
+		return false;
+	}
 
-    return true;
+	UIWindows.Add(InWindow);
+
+	UE_LOG("UIManager: UI Window 등록: %s", InWindow->GetWindowTitle().ToString().data());
+	UE_LOG("UIManager: 전체 등록된 Window 갯수: %d", UIWindows.Num());
+
+	return true;
 }
 
 /**
@@ -233,28 +248,35 @@ bool UUIManager::UnregisterUIWindow(UUIWindow* InWindow)
         return false;
     }
 
-    int32 Index;
-    if (!UIWindows.Find(InWindow, Index))
-    {
-        UE_LOG("UIManager: Warning: Attempted to unregister non-existent window: %u",
-               InWindow->GetWindowID());
-        return false;
-    }
+	if (bRendering) { PendingRemove.Add(InWindow); return true; }
+	return InternalUnregister(InWindow);
+}
 
-    // 포커스된 윈도우였다면 포커스 해제
-    if (FocusedWindow == InWindow)
-    {
-        FocusedWindow = nullptr;
-    }
+bool UUIManager::InternalUnregister(UUIWindow* InWindow)
+{
 
-    // 윈도우 정리
-    InWindow->Cleanup();
-    UIWindows.RemoveAt(Index);
+	int32 Index;
+	if (!UIWindows.Find(InWindow, Index))
+	{
+		UE_LOG("UIManager: Warning: Attempted to unregister non-existent window: %u",
+			   InWindow->GetWindowID());
+		return false;
+	}
 
-    UE_LOG("UIManager: UI Window 등록 해제: %u", InWindow->GetWindowID());
-    UE_LOG("UIManager: 전체 등록된 Window 갯수: %d", UIWindows.Num());
+	// 포커스된 윈도우였다면 포커스 해제
+	if (FocusedWindow == InWindow)
+	{
+		FocusedWindow = nullptr;
+	}
 
-    return true;
+	// 윈도우 정리
+	InWindow->Cleanup();
+	UIWindows.RemoveAt(Index);
+
+	UE_LOG("UIManager: UI Window 등록 해제: %u", InWindow->GetWindowID());
+	UE_LOG("UIManager: 전체 등록된 Window 갯수: %d", UIWindows.Num());
+
+	return true;
 }
 
 /**
@@ -756,7 +778,6 @@ void UUIManager::OnSelectedComponentChanged(UActorComponent* InSelectedComponent
         UIWindow->OnSelectedComponentChanged(InSelectedComponent);
     }
 }
-
 
 float UUIManager::GetRightPanelWidth() const
 {

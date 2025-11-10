@@ -65,11 +65,19 @@ public:
 	// 상태바 관련 메서드
 	void RegisterStatusBarWidget(UStatusBarWidget* InStatusBarWidget);
 	float GetStatusBarHeight() const;
-	
+
 	void OnSelectedComponentChanged(UActorComponent* InSelectedComponent) const;
 
 private:
 	TArray<UUIWindow*> UIWindows;
+	TArray<UUIWindow*> PendingAdd;
+	TArray<UUIWindow*> PendingRemove;
+	bool bRendering = false;
+
+	bool InternalRegister(UUIWindow* InWindow);   // 실제 등록
+	bool InternalUnregister(UUIWindow* InWindow); // 실제 해제
+	void CommitPending();
+
 	UUIWindow* FocusedWindow = nullptr;
 	bool bIsInitialized = false;
 	float TotalTime = 0.0f;

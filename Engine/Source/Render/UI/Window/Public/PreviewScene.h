@@ -2,6 +2,7 @@
 
 #include "Global/Types.h"
 
+class USkeletalMeshComponent;
 class UObject;
 class UWorld;
 class AActor;
@@ -23,6 +24,7 @@ public:
 	void Shutdown();
 
 	UWorld* GetWorld() const { return PreviewWorld; }
+	USkeletalMeshComponent* GetPreviewSkeletalComponent() const { return PreviewSkeletal; }
 
 private:
 	void CreatePreviewWorld();
@@ -32,9 +34,16 @@ private:
 
 	UObject* Outer = nullptr;
 	UWorld* PreviewWorld = nullptr;
-	AActor* PreviewActor = nullptr;
+
+	// Fbx
+	AActor* PreviewSkeletalActor = nullptr;
+	USkeletalMeshComponent* PreviewSkeletal = nullptr;
+
+	// Background Props
+	AActor* PreviewBackgroundActor = nullptr;
 	UStaticMeshComponent* PreviewMesh = nullptr;
 	UDirectionalLightComponent* PreviewDirectional = nullptr;
 	bool bContentInjected = false;
 	bool bWorldRegistered = false;
 };
+
