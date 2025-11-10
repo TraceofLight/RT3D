@@ -5,6 +5,7 @@
 #include "Render/Renderer/Public/Renderer.h"
 #include "Render/Renderer/Public/RenderResourceFactory.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Component/Public/EditorIconComponent.h"
 #include "Render/HitProxy/Public/HitProxy.h"
 
@@ -147,6 +148,88 @@ void FHitProxyPass::Execute(FRenderingContext& Context)
 
 		// 렌더링
 		Pipeline->DrawIndexed(static_cast<uint32>(MeshAsset->Indices.Num()), 0, 0);
+	}
+
+	// SkeletalMesh 컴포넌트 렌더링
+	for (USkeletalMeshComponent* MeshComp : Context.SkeletalMeshes)
+	{
+		if (!MeshComp->IsVisible())
+		{
+			continue;
+		}
+		if (!MeshComp->GetSkeletalMesh())
+		{
+			continue;
+		}
+
+		USkeletalMesh* SkeletalMeshAsset = MeshComp->GetSkeletalMesh();
+		if (!SkeletalMeshAsset || !SkeletalMeshAsset->IsValid())
+		{
+			continue;
+		}
+
+		FSkeletalMesh* MeshData = SkeletalMeshAsset->GetSkeletalMeshAsset();
+		if (!MeshData || MeshData->Sections.IsEmpty())
+		{
+			continue;
+		}
+
+		const TArray<FMatrix>& SkinMatrices = MeshComp->GetSkinMatrices();
+		if (SkinMatrices.IsEmpty())
+		{
+			continue;
+		}
+
+		// Component에서 캐시된 Skinned Vertices 가져오기
+		const TArray<FNormalVertex>& SkinnedVertices = MeshComp->GetSkinnedVertices();
+		const TArray<uint32>& SkinnedIndices = MeshComp->GetSkinnedIndices();
+
+		if (SkinnedVertices.IsEmpty() || SkinnedIndices.IsEmpty())
+		{
+			continue;
+		}
+
+		// HitProxy ID 할당
+		HComponent* ComponentProxy = new HComponent(MeshComp, InvalidHitProxyId);
+		FHitProxyId ProxyId = HitProxyManager.AllocateHitProxyId(ComponentProxy);
+
+		// HitProxyColor 상수 버퍼 업데이트
+		FVector4 ProxyColor = ProxyId.GetColor();
+		FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferHitProxyColor, ProxyColor);
+		Pipeline->SetConstantBuffer(2, EShaderType::PS, ConstantBufferHitProxyColor);
+
+		// 단일 Vertex/Index Buffer 생성 (모든 Section 통합)
+		ID3D11Buffer* DynamicVB = FRenderResourceFactory::CreateDynamicVertexBuffer(
+			SkinnedVertices.GetData(),
+			static_cast<int32>(SkinnedVertices.Num() * sizeof(FNormalVertex))
+		);
+
+		ID3D11Buffer* DynamicIB = FRenderResourceFactory::CreateDynamicIndexBuffer(
+			SkinnedIndices.GetData(),
+			static_cast<int32>(SkinnedIndices.Num() * sizeof(uint32))
+		);
+
+		if (!DynamicVB || !DynamicIB)
+		{
+			SafeRelease(DynamicVB);
+			SafeRelease(DynamicIB);
+			continue;
+		}
+
+		Pipeline->SetVertexBuffer(DynamicVB, sizeof(FNormalVertex));
+		Pipeline->SetIndexBuffer(DynamicIB, 0);
+
+		// Model 상수 버퍼 업데이트 (World Transform)
+		const FMatrix& WorldMatrix = MeshComp->GetWorldTransformMatrix();
+		FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferModel, WorldMatrix);
+		Pipeline->SetConstantBuffer(0, EShaderType::VS, ConstantBufferModel);
+
+		// 전체 메쉬를 단일 색상으로 렌더링
+		Pipeline->DrawIndexed(static_cast<uint32>(SkinnedIndices.Num()), 0, 0);
+
+		// 버퍼 해제
+		SafeRelease(DynamicVB);
+		SafeRelease(DynamicIB);
 	}
 }
 
