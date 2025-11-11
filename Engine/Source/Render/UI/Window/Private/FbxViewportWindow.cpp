@@ -301,7 +301,7 @@ UFbxViewportWindow::UFbxViewportWindow()
 {
 	FUIWindowConfig Config;
 	Config.WindowTitle = "FBX Viewport";
-	Config.DefaultSize = ImVec2(720, 480);
+	Config.DefaultSize = ImVec2(1440, 960);
 	Config.MinSize = ImVec2(360, 240);
 	Config.DefaultPosition = ImVec2(140, 120);
 	Config.InitialState = EUIWindowState::Hidden;

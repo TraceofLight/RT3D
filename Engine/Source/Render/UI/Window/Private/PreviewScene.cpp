@@ -105,7 +105,6 @@ void FPreviewScene::InjectDefaultContent()
 	{
 		PreviewSkeletalActor->SetActorLocation(FVector(0,0,1));
 		PreviewSkeletalActor->SetActorScale3D(FVector(0.2f, 0.2f, 0.2f));
-		// PreviewSkeletalActor->SetActorScale3D(FVector(0.02f, 0.02f, 0.02f));
 	}
 
 	PreviewSkeletal = Cast<USkeletalMeshComponent>(PreviewSkeletalActor->GetRootComponent());
@@ -141,9 +140,7 @@ void FPreviewScene::InjectDefaultContent()
 		PreviewDirectional->SetVisible(true);
 		PreviewDirectional->SetLightColor(FVector(1.0, 1.0, 1.0));
 		PreviewDirectional->SetRelativeRotation(FQuaternion::FromEuler(FVector( 0.f, -20.f, 0.f)));
-
-		FVector Location = PreviewDirectional->GetRelativeLocation();
-		UE_LOG("Directional : %f, %f, %f", Location.X, Location.Y, Location.Z);
+		PreviewDirectional->SetRelativeLocation(FVector(0, 0, 10000));
 	}
 
     bContentInjected = true;

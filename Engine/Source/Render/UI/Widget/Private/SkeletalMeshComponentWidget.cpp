@@ -331,6 +331,15 @@ void USkeletalMeshComponentWidget::RenderPreviewTopControls(UWorld* TargetWorld,
             {
                 Dir->SetRelativeRotation(FQuaternion::FromEuler(FVector(pitch, yaw, roll)));
             }
+        	float Intensity = Dir->GetIntensity();
+        	if (ImGui::DragFloat("Intensity", &Intensity, 100.0f, 0.0f, FLT_MAX))
+        	{
+        		Dir->SetIntensity(Intensity);
+        	}
+        	if (ImGui::IsItemHovered())
+        	{
+        		ImGui::SetTooltip("디렉셔널 라이트 밝기 (Lux)\n범위: 0.0 ~ 무제한\n참고: 실외 태양광 약 100000 lux");
+        	}
         }
         else
         {
@@ -436,9 +445,9 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 	if (SelectedBoneIdx != -1)
 	{
 		FTransform& BoneTransform = SkeletalMeshComponent->GetLocalPose(SelectedBoneIdx);
-		ImGui::DragFloat3("Location", &BoneTransform.Location.X, 0.1f);
-		ImGui::DragFloat3("Rotation", &BoneTransform.Rotation.X, 0.001f);
-		ImGui::DragFloat3("Scale", &BoneTransform.Scale.X, 0.1f);
+		ImGui::DragFloat3("Bone Location", &BoneTransform.Location.X, 0.1f);
+		ImGui::DragFloat3("Bone Rotation", &BoneTransform.Rotation.X, 0.001f);
+		ImGui::DragFloat3("Bone Scale", &BoneTransform.Scale.X, 0.1f);
 
 		SkeletalMeshComponent->SetLocalPose(SelectedBoneIdx, BoneTransform);
 	}
