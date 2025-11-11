@@ -1,6 +1,8 @@
 ﻿#include "pch.h"
 #include "Render/UI/Widget/Public/ProjectileMovementComponentWidget.h"
 
+#include "Component/Public/ProjectileMovementComponent.h"
+
 IMPLEMENT_CLASS(UProjectileMovementComponentWidget, UWidget)
 
 void UProjectileMovementComponentWidget::RenderWidget()
@@ -26,19 +28,19 @@ void UProjectileMovementComponentWidget::RenderWidget()
     FVector Velocity = ProjectileMovementComponent->GetVelocity();
     ImGui::DragFloat3("Velocity", &Velocity.X);
     ProjectileMovementComponent->SetVelocity(Velocity);
-    
+
     float MaxSpeed = ProjectileMovementComponent->GetMaxSpeed();
     ImGui::DragFloat("Max Speed", &MaxSpeed);
     ProjectileMovementComponent->SetMaxSpeed(MaxSpeed);
-    
+
     float InitSpeed = ProjectileMovementComponent->GetInitialSpeed();
     ImGui::DragFloat("Init Speed", &InitSpeed);
     ProjectileMovementComponent->SetInitialSpeed(InitSpeed);
-    
+
     float GravityScale = ProjectileMovementComponent->GetGravityScale();
     ImGui::DragFloat("Gravity Scale", &GravityScale);
     ProjectileMovementComponent->SetGravityScale(GravityScale);
-    
+
     bool bRotationFollowsVelocity = ProjectileMovementComponent->GetRotationFollowsVelocity();
     ImGui::Checkbox("Rotation Follows Velocity", &bRotationFollowsVelocity);
     ProjectileMovementComponent->SetRotationFollowsVelocity(bRotationFollowsVelocity);
