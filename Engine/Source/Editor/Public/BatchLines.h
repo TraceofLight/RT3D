@@ -42,7 +42,7 @@ public:
 	// Skeleton용 불법 증축
 	void UpdateSkeletonVertices(const FSkeleton* Skeleton, const TArray<FMatrix>& GlobalPose,
 		const FMatrix& ComponentWorld, int32 SelectedBone,
-		float JointRadius = 0.7, float WidthScale = 0.06f, float BaseBiasTowardParent = 0.35f);
+		float JointRadius = 0.1, float WidthScale = 0.06f, float BaseBiasTowardParent = 0.35f);
 	// GPU VertexBuffer에 복사
 	void UpdateVertexBuffer();
 
@@ -76,6 +76,7 @@ public:
 private:
 	void RenderGridAndLightLines();  // Grid + Light Lines
 	void RenderBoundingBox();        // AABB
+	void RenderSkeleton();
 	void RenderOctree();             // Octree
 	void SetIndices();
 

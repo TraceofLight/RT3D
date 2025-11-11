@@ -391,6 +391,9 @@ void UBatchLines::Render()
 	// AABB
 	RenderBoundingBox();
 
+	// Skeleton
+	RenderSkeleton();
+
 	// Octree
 	UWorld* EditorWorld = GEditor->GetEditorWorldContext().World();
 	if (EditorWorld && EditorWorld->GetLevel())
@@ -473,6 +476,39 @@ void UBatchLines::RenderBoundingBox()
 	}
 }
 
+void UBatchLines::RenderSkeleton()
+{
+	if (!bRenderBones) return;
+
+	URenderer& Renderer = URenderer::GetInstance();
+
+	const uint32 NumGridIndices = Grid.GetNumVertices();
+
+	const EBoundingVolumeType BoundingType = BoundingBoxLines.GetCurrentType();
+	const uint32 NumBoundingIndices = BoundingBoxLines.GetNumIndices(BoundingType);
+
+	uint32 NumSpotLightIndices = 0;
+	if (bRenderSpotLight)
+	{
+		const EBoundingVolumeType SpotLightType = SpotLightLines.GetCurrentType();
+		NumSpotLightIndices = SpotLightLines.GetNumIndices(SpotLightType);
+	}
+
+	const uint32 NumBoneIndices = BoneLines.GetNumIndices();
+	if (NumBoneIndices == 0) return;
+
+	const uint32 BoneStartIndex = NumGridIndices + NumBoundingIndices + NumSpotLightIndices;
+
+	Renderer.RenderEditorPrimitiveIndexed(
+		Primitive,
+		Primitive.RenderState,
+		sizeof(FVector),
+		sizeof(uint32),
+		BoneStartIndex,
+		NumBoneIndices
+	);
+}
+
 void UBatchLines::RenderOctree()
 {
 	// Octree 렌더링 (SF_Octree 플래그로 제어)
@@ -491,6 +527,8 @@ void UBatchLines::RenderOctree()
 		NumSpotLightIndices = SpotLightLines.GetNumIndices(SpotLightType);
 	}
 
+	const uint32 NumBoneIndices = bRenderBones ? BoneLines.GetNumIndices() : 0;
+
 	uint32 NumOctreeIndices = 0;
 	for (auto& OctreeLine : OctreeLines)
 	{
@@ -498,7 +536,7 @@ void UBatchLines::RenderOctree()
 		NumOctreeIndices += OctreeLine.GetNumIndices(OctreeType);
 	}
 
-	const uint32 OctreeStartIndex = NumGridIndices + NumBoundingIndices + NumSpotLightIndices;
+	const uint32 OctreeStartIndex = NumGridIndices + NumBoundingIndices + NumSpotLightIndices + NumBoneIndices;
 	if (NumOctreeIndices > 0)
 	{
 		Renderer.RenderEditorPrimitiveIndexed(

@@ -1838,5 +1838,3 @@ void URenderer::RenderLevelForGameInstance(UWorld* InWorld, const FSceneView* In
 	// Note: StandAlone에서는 Game UI만 렌더링 (Editor UI 없음)
 	FD2DOverlayManager::GetInstance().FlushAndRender();
 }
-
-

@@ -174,7 +174,7 @@ void USkeletalMeshComponent::RenderDebugBones(UBatchLines& BatchLines, int32 Sel
 
 	// 컴포넌트 -> 월드 행렬 구성
 	const FVector      WorldLocation = GetWorldLocation();
-	const FQuaternion  WorldRotation = GetWorldRotationAsQuaternion();
+	const FQuat  WorldRotation = GetWorldRotationAsQuaternion();
 	const FVector      WorldScale = GetWorldScale3D();
 	const FMatrix      CompToWorld = FMatrix::GetModelMatrix(WorldLocation, WorldRotation, WorldScale);
 
