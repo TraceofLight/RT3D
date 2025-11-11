@@ -2,7 +2,6 @@
 #include "Component/Mesh/Public/SkinnedMeshComponent.h"
 #include "Global/CoreTypes.h"
 
-class UBatchLines;
 class USkeletalMeshComponent : public USkinnedMeshComponent
 {
 
@@ -30,9 +29,7 @@ public:
 	/** 최종으로 사용할 Matrix => LocalM * GlobalPose[i]* InvGlobalPose[i] */
     void BuildSkinMatrices();
 
-    virtual void TickComponent(float DeltaTime) override;
-
-	void RenderDebugBones(UBatchLines& BatchLines, int32 SelectedBoneIdx = -1);
+	void TickComponent(float DeltaTime) override;
 private:
     TArray<FTransform> LocalPose;   // 부모와 상대적인 좌표
     TArray<FMatrix>    GlobalPose;  // component/global space matrices
