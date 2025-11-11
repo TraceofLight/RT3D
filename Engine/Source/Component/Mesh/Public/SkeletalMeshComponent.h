@@ -24,6 +24,11 @@ public:
 	FTransform& GetLocalPose(uint32 Idx);
 	void SetLocalPose(uint32 Idx, const FTransform& InLocalPose);
 
+	// Bone Transform 설정 (World 좌표 -> Local 좌표 변환 후 LocalPose 업데이트)
+	void SetBoneWorldLocation(int32 BoneIndex, const FVector& NewWorldLocation);
+	void SetBoneWorldRotation(int32 BoneIndex, const FQuat& NewWorldRotation);
+	void SetBoneWorldScale(int32 BoneIndex, const FVector& NewWorldScale);
+
 	/** World Space로 변환 행렬 만들어주는 함수 => GlobalPose[i] = Local * GlobalPose[Parent]*/
     void BuildComponentWorldSpacePose();
 

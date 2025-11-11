@@ -56,8 +56,14 @@ void UBoneTransformProxy::ApplyTransformToBone()
 		return;
 	}
 
-	// TODO: Phase 2-2에서 SkeletalMeshComponent::SetBoneWorldTransform() 구현 후 호출
-	// 현재는 스텁만 남김
+	// Proxy의 World Transform을 본에 적용
+	const FVector WorldLocation = GetWorldLocation();
+	const FQuat WorldRotation = GetWorldRotationAsQuaternion();
+	const FVector WorldScale = GetWorldScale3D();
+
+	MeshComponent->SetBoneWorldLocation(BoneIndex, WorldLocation);
+	MeshComponent->SetBoneWorldRotation(BoneIndex, WorldRotation);
+	MeshComponent->SetBoneWorldScale(BoneIndex, WorldScale);
 }
 
 void UBoneTransformProxy::SetWorldLocation(const FVector& NewLocation)

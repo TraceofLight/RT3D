@@ -24,6 +24,11 @@ public:
 	void LoadFbxFile(const path& File);
 	void SetPreviewSkeletalMesh(USkeletalMesh* SkeletalMesh);
 
+	// Bone Selection (PreviewScene 전용)
+	void SelectBone(int32 BoneIndex);
+	void DeselectBone();
+	int32 GetSelectedBoneIndex() const { return SelectedBoneIndex; }
+
 protected:
 	void OnPostRenderWindow() override;
 
@@ -48,5 +53,9 @@ private:
 
 	bool bPreviewReady = false;
 	bool bHovered = false;
+
+	// Bone Selection (메인 에디터와 독립)
+	int32 SelectedBoneIndex = -1;
+	class UBoneTransformProxy* BoneTransformProxy = nullptr;
 };
 

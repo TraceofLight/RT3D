@@ -4,6 +4,7 @@
 #include "Render/UI/Widget/Public/SkeletalMeshComponentWidget.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
+#include "Component/Mesh/Public/BoneTransformProxy.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Viewport/Public/ViewportClient.h"
@@ -12,6 +13,59 @@
 #include "ImGui/imgui.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
+
+void UFbxViewportWindow::SelectBone(int32 BoneIndex)
+{
+	if (!PreviewScene)
+	{
+		return;
+	}
+
+	USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+	if (!PreviewComponent || !PreviewComponent->GetSkeletalMesh() || !PreviewComponent->GetSkeletalMesh()->GetSkeleton())
+	{
+		return;
+	}
+
+	const FSkeleton* Skeleton = PreviewComponent->GetSkeletalMesh()->GetSkeleton();
+	if (BoneIndex < 0 || BoneIndex >= Skeleton->GetNumBones())
+	{
+		return;
+	}
+
+	// 기존 선택 해제
+	DeselectBone();
+
+	// 새로운 본 선택
+	SelectedBoneIndex = BoneIndex;
+
+	// BoneTransformProxy 생성
+	if (!BoneTransformProxy)
+	{
+		BoneTransformProxy = NewObject<UBoneTransformProxy>(this);
+	}
+
+	BoneTransformProxy->SetBoneInfo(PreviewComponent, BoneIndex);
+	BoneTransformProxy->SyncTransformFromBone();
+
+	// TODO: Phase 4에서 Gizmo 타겟 설정
+	// PreviewGizmo->SetTarget(BoneTransformProxy);
+}
+
+void UFbxViewportWindow::DeselectBone()
+{
+	SelectedBoneIndex = -1;
+
+	// BoneTransformProxy 정리
+	if (BoneTransformProxy)
+	{
+		// TODO: Phase 4에서 Gizmo 타겟 해제
+		// PreviewGizmo->SetTarget(nullptr);
+
+		SafeDelete(BoneTransformProxy);
+		BoneTransformProxy = nullptr;
+	}
+}
 
 void UFbxViewportWindow::LoadFbxFile(const path& File)
 {
@@ -65,6 +119,9 @@ void UFbxViewportWindow::Initialize()
 
 void UFbxViewportWindow::Cleanup()
 {
+    // 본 선택 정리
+    DeselectBone();
+
     CachedSize = ImVec2(0, 0);
     SRV.Reset();
     RTV.Reset();
