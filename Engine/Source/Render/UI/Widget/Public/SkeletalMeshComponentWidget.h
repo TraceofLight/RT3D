@@ -3,6 +3,7 @@
 
 class UTexture;
 class USkeletalMeshComponent;
+class UDirectionalLightComponent;
 class UMaterial;
 class UWorld;
 class UFbxViewportWindow;
@@ -23,7 +24,9 @@ public:
 
 	void SetTargetWorld(UWorld* InWorld);
 	void SetTargetComponent(USkeletalMeshComponent* InComponent);
+	void SetPreviewViewportClient(FViewportClient* InClient) { PreviewClient = InClient; }
 
+	UDirectionalLightComponent*  FindFirstDirectional(UWorld* TargetWorld) const;
 private:
 	USkeletalMeshComponent* SkeletalMeshComponent{};
 	USkeletalMeshComponent* OverrideTargetComponent = nullptr;
@@ -31,11 +34,13 @@ private:
 	uint32 SelectedBoneIdx = -1;
 
 	UWorld* World = nullptr;
+	FViewportClient* PreviewClient = nullptr; /* FBX Viewport의 카메라 속도 */
 
 	// 섹션별 렌더링을 위한 헬퍼 함수
 	void RenderSkeletalMeshSelector();
 	void RenderMaterialSections();
 	void RenderAvailableMaterials(int32 TargetSlotIndex) const;
+	void RenderPreviewTopControls(UWorld* TargetWorld, USkeletalMeshComponent* TargetComponent);
 
 	void DrawSkeletalBone(FSkeleton* Skeleton, int idx);
 	void RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent);

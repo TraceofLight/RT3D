@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "Render/UI/Widget/Public/SkeletalMeshComponentWidget.h"
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
+#include "Actor/Public/DirectionalLight.h"
 #include "Component/Mesh/Public/SkeletalMesh.h"
 
 #include "Level/Public/Level.h"
@@ -32,6 +33,19 @@ void USkeletalMeshComponentWidget::SetTargetWorld(UWorld* InWorld)
 void USkeletalMeshComponentWidget::SetTargetComponent(USkeletalMeshComponent* InComponent)
 {
 	OverrideTargetComponent = InComponent;
+}
+
+UDirectionalLightComponent* USkeletalMeshComponentWidget::FindFirstDirectional(UWorld* TargetWorld) const
+{
+	if (!TargetWorld || !TargetWorld->GetLevel()) return nullptr;
+
+	for (auto* LightComp : TargetWorld->GetLevel()->GetLightComponents())
+	{
+		if (auto* Dir = Cast<UDirectionalLightComponent>(LightComp)) {
+			return Dir;
+		}
+	}
+	return nullptr;
 }
 
 void USkeletalMeshComponentWidget::RenderWidget()
@@ -67,6 +81,8 @@ void USkeletalMeshComponentWidget::RenderWidget()
 	ImGui::PushStyleColor(ImGuiCol_FrameBgActive, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
 	ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+
+	RenderPreviewTopControls(TargetWorld, TargetComponent);
 
 	RenderSkeletalMeshSelector();
 
@@ -291,6 +307,91 @@ void USkeletalMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotInde
 			ImGui::SetItemDefaultFocus();
 		}
 	}
+}
+
+void USkeletalMeshComponentWidget::RenderPreviewTopControls(UWorld* TargetWorld,
+	USkeletalMeshComponent* TargetComponent)
+{
+	if (!TargetWorld || !TargetComponent || TargetWorld->GetWorldType() != EWorldType::EditorPreview) return;
+
+	 if (ImGui::CollapsingHeader("Preview Controls", ImGuiTreeNodeFlags_DefaultOpen))
+    {
+        // 1) Directional Light 회전
+        if (UDirectionalLightComponent* Dir = FindFirstDirectional(TargetWorld))
+        {
+            FVector euler = Dir->GetRelativeRotation().ToEuler(); // Pitch, Yaw, Roll
+            float pitch = euler.X, yaw = euler.Y, roll = euler.Z;
+
+            ImGui::TextUnformatted("Directional Light");
+            bool changed = false;
+            changed |= ImGui::DragFloat("Pitch", &pitch, 0.2f, -89.9f, 89.9f, "%.1f deg");
+            changed |= ImGui::DragFloat("Yaw",   &yaw,   0.2f, -360.f, 360.f, "%.1f deg");
+            changed |= ImGui::DragFloat("Roll",  &roll,  0.2f, -360.f, 360.f, "%.1f deg");
+            if (changed)
+            {
+                Dir->SetRelativeRotation(FQuaternion::FromEuler(FVector(pitch, yaw, roll)));
+            }
+        }
+        else
+        {
+            ImGui::TextDisabled("No DirectionalLight found in preview world");
+        }
+
+        ImGui::Separator();
+
+        // 2) Skeletal 위치/스케일
+        {
+            ImGui::TextUnformatted("SkeletalMesh Transform");
+            FVector Location = TargetComponent->GetRelativeLocation();
+        	FVector Rotation = TargetComponent->GetRelativeRotation().ToEuler();
+            FVector Scale = TargetComponent->GetRelativeScale3D();
+
+            if (ImGui::DragFloat3("Location", &Location.X, 0.5f)) {
+                TargetComponent->SetRelativeLocation(Location);
+            }
+        	if (ImGui::DragFloat3("Rotation", &Rotation.X, 0.5f)) {
+        		TargetComponent->SetRelativeRotation(FQuaternion::FromEuler(Rotation));
+        	}
+
+            // Uniform 스케일 토글
+            static bool bUniform = true;
+            ImGui::Checkbox("Uniform Scale", &bUniform);
+
+            if (bUniform)
+            {
+                float s = (Scale.X + Scale.Y + Scale.Z) / 3.0f;
+                if (ImGui::DragFloat("Scale", &s, 0.01f, 0.001f, 100.0f, "%.3f")) {
+                    TargetComponent->SetRelativeScale3D(FVector(s, s, s));
+                }
+            }
+            else
+            {
+                if (ImGui::DragFloat3("ScaleXYZ", &Scale.X, 0.01f, 0.001f, 100.0f, "%.3f")) {
+                    TargetComponent->SetRelativeScale3D(Scale);
+                }
+            }
+        }
+
+        ImGui::Separator();
+
+        // 3) 카메라 속도
+        {
+            ImGui::TextUnformatted("Editor Camera Speed");
+            if (PreviewClient)
+            {
+                float base  = PreviewClient->GetMoveSpeedBase();
+
+                bool c1 = ImGui::DragFloat("Base (units/s)", &base, 1.0f, 1.0f, 2000.0f, "%.0f");
+
+                if (c1) PreviewClient->SetMoveSpeedBase(base);
+            }
+            else
+            {
+                ImGui::TextDisabled("PreviewClient not set");
+            }
+        }
+    }
+
 }
 
 void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx)

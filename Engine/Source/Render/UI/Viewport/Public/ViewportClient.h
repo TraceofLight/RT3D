@@ -63,6 +63,10 @@ public:
     FMatrix GetProjectionMatrix(float AspectRatio) const;
     FMatrix GetProjectionMatrixInverse(float AspectRatio) const;
 
+	// NEW: 카메라 속도 제어용 인터페이스
+	float GetMoveSpeedBase() const { return MoveSpeedBase; }
+	void  SetMoveSpeedBase(float v) { MoveSpeedBase = max(1.0f, v); }
+
 public:
     void Tick() const;
     void Draw(const FViewport* InViewport) const;

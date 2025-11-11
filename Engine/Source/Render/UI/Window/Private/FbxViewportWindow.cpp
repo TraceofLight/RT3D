@@ -160,7 +160,7 @@ void UFbxViewportWindow::EnsurePreviewInfrastructure()
         PreviewClient->SetViewType(EViewType::Perspective);
         PreviewClient->SetViewMode(EViewModeIndex::VMI_BlinnPhong);
         PreviewClient->EnableEditorCamera(true);
-        PreviewClient->SetViewLocation(FVector(0, -300, 150));
+        PreviewClient->SetViewLocation(FVector(-50, 0, 20));
         PreviewClient->SetViewRotation(FVector(-15, 0, 0));
     }
 
@@ -277,6 +277,7 @@ void UFbxViewportWindow::UpdateSkeletalWidgetTargets()
 	if (!SkeletalWidget)
 	{
 		SkeletalWidget = NewObject<USkeletalMeshComponentWidget>(this);
+
 		if (SkeletalWidget)
 		{
 			SkeletalWidget->Initialize();
@@ -292,6 +293,8 @@ void UFbxViewportWindow::UpdateSkeletalWidgetTargets()
 	SkeletalWidget->SetTargetWorld(SceneWorld);
 	USkeletalMeshComponent* PreviewComponent = PreviewScene ? PreviewScene->GetPreviewSkeletalComponent() : nullptr;
 	SkeletalWidget->SetTargetComponent(PreviewComponent);
+
+	SkeletalWidget->SetPreviewViewportClient(PreviewClient);
 }
 
 UFbxViewportWindow::UFbxViewportWindow()
