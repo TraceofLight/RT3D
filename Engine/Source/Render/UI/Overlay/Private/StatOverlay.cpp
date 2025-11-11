@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "Render/UI/Overlay/Public/StatOverlay.h"
 #include "Manager/Time/Public/TimeManager.h"
 #include "Render/Renderer/Public/Renderer.h"
@@ -160,6 +160,8 @@ void UStatOverlay::RenderTimeInfo()
         RenderText(text, OverlayX, CurrentY, r, g, b);
         CurrentY += LineHeight;
     }
+
+	FScopeCycleCounter::TimeProfileInit();
 }
 
 void UStatOverlay::RenderShadowInfo()

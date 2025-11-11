@@ -1,18 +1,22 @@
-﻿#pragma once
+#pragma once
 #include "Global/Types.h"
 
+
 #ifdef _DEVELOP //_DEVELOP 이 정의 되어 있을때만 측정
-	#define TIME_PROFILE(Key) FScopeCycleCounter Key##Counter(#Key);
+#define TIME_PROFILE(Key)\
+FScopeCycleCounter Key##Counter(#Key); //현재 스코프 단위로 측정
 #else
-	#define TIME_PROFILE(Key) //_DEVELOP 미정의시 빈칸
+#define TIME_PROFILE(Key) //_DEVELOP 미정의시 빈칸
 #endif
 
 #ifdef _DEVELOP
-	#define TIME_PROFILE_END(Key)\
-	Key##Counter.Finish();
+#define TIME_PROFILE_END(Key)\
+Key##Counter.Finish();
 #else
-	#define TIME_PROFILE_END(Key)
+#define TIME_PROFILE_END(Key)
 #endif
+
+
 
 class FWindowsPlatformTime
 {
@@ -72,7 +76,6 @@ struct TStatId
 	TStatId() = default;
 	TStatId(const FString& InKey) : Key(InKey) {}
 };
-
 struct FTimeProfile
 {
 	double Milliseconds;
@@ -81,7 +84,29 @@ struct FTimeProfile
 	const char* GetConstChar() const
 	{
 		static char buffer[64]; // static으로 해야 반환 가능
-		snprintf(buffer, sizeof(buffer), " : %.3fms, Call : %d", Milliseconds, CallCount);
+		sprintf_s(buffer, sizeof(buffer), " : %.3fms, Call : %d", Milliseconds, CallCount);
+		return buffer;
+	}
+
+	const wchar_t* GetConstWChar_t() const
+	{
+		static wchar_t buffer[64];
+		swprintf_s(buffer, _countof(buffer), L" : %.3fms, Call : %d", Milliseconds, CallCount);
+		return buffer;
+	}
+
+	const char* GetConstCharWithKey(const FString& Key) const
+	{
+		static char buffer[64]; // static으로 해야 반환 가능
+		sprintf_s(buffer, sizeof(buffer), "%s : %.3fms, Call : %d", Key.c_str(), Milliseconds, CallCount);
+		return buffer;
+	}
+
+	const wchar_t* GetConstWChar_tWithKey(const FString& Key) const
+	{
+		static wchar_t buffer[64];
+
+		swprintf_s(buffer, _countof(buffer), L"%s : %.3fms, Call : %d", std::wstring(Key.begin(), Key.end()).c_str(), Milliseconds, CallCount);
 		return buffer;
 	}
 };
@@ -106,7 +131,7 @@ public:
 
 	~FScopeCycleCounter()
 	{
-		Finish();
+		Finish(); //소멸 시 현재 사이클 구해서 현재 - 생성 사이클로 시간 측정
 	}
 
 	double Finish()
@@ -130,13 +155,16 @@ public:
 	static void AddTimeProfile(const TStatId& Key, double InMilliseconds);
 	static void TimeProfileInit();
 
-	static const FTimeProfile& GetTimeProfile(const FString& Key); 
-	static TArray<FString> GetTimeProfileKeys();
-	static TArray<FTimeProfile> GetTimeProfileValues();
+	//이거 왜 안됨?
+	//static const TMap<FString, FTimeProfile>& GetTimeProfiles();
 
+	static const TArray<FString> GetTimeProfileKeys();
+	static const TArray<FTimeProfile> GetTimeProfileValues();
+	static const FTimeProfile& GetTimeProfile(const FString& Key);
 private:
-	static TMap<FString, FTimeProfile> TimeProfileMap;
 	bool bIsFinish = false;
 	uint64 StartCycles;
 	TStatId UsedStatId;
+
 };
+
