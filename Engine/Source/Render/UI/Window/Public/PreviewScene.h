@@ -9,6 +9,7 @@ class AActor;
 class UStaticMeshComponent;
 class UAmbientLightComponent;
 class UDirectionalLightComponent;
+class UGizmo;
 
 /**
  * @brief Lightweight helper that owns the mini preview world used by FBX viewport windows.
@@ -25,6 +26,7 @@ public:
 
 	UWorld* GetWorld() const { return PreviewWorld; }
 	USkeletalMeshComponent* GetPreviewSkeletalComponent() const { return PreviewSkeletal; }
+	UGizmo* GetPreviewGizmo() const { return PreviewGizmo; }
 
 private:
 	void CreatePreviewWorld();
@@ -45,5 +47,8 @@ private:
 	UDirectionalLightComponent* PreviewDirectional = nullptr;
 	bool bContentInjected = false;
 	bool bWorldRegistered = false;
+
+	// Gizmo (메인 에디터와 독립)
+	UGizmo* PreviewGizmo = nullptr;
 };
 

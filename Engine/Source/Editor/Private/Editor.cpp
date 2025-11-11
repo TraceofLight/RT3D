@@ -335,6 +335,16 @@ void UEditor::UpdateBatchLines()
 
 	if (UActorComponent* Component = GetSelectedComponent())
 	{
+		// PreviewScene 소속 컴포넌트는 메인 에디터에서 렌더링하지 않음 (Preview 윈도우에서 렌더링)
+		if (Component->GetOwner() && Component->GetOwner()->GetWorld())
+		{
+			EWorldType WorldType = Component->GetOwner()->GetWorld()->GetWorldType();
+			if (WorldType == EWorldType::EditorPreview)
+			{
+				return;
+			}
+		}
+
 		// Handle ShapeComponent collision visualization
 		if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(Component))
 		{

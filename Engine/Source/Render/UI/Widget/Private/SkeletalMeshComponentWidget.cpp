@@ -420,12 +420,26 @@ void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx
 		NodeFlags |= ImGuiTreeNodeFlags_Selected;
 	}
 
+	// FbxViewportWindow 전용 하이라이팅 (노란색)
+	bool bIsHighlighted = (HighlightedBoneIndex >= 0 && idx == HighlightedBoneIndex);
+	if (bIsHighlighted)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+	}
+
 	if (ImGui::TreeNodeEx(Skeleton->BoneNames[idx].ToString().c_str(), NodeFlags))
 	{
 		if (ImGui::IsItemClicked())
 		{
 			SelectedBoneName = Skeleton->BoneNames[idx];
 			SelectedBoneIdx = idx;
+
+			// FbxViewportWindow 양방향 연동
+			if (OwningFbxViewportWindow)
+			{
+				OwningFbxViewportWindow->SelectBone(idx);
+				OwningFbxViewportWindow->SetEditMode(EEditMode::BoneEdit);
+			}
 		}
 		for (int ChildIdx : Skeleton->Childs[idx])
 		{
@@ -433,6 +447,11 @@ void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx
 		}
 
 		ImGui::TreePop();
+	}
+
+	if (bIsHighlighted)
+	{
+		ImGui::PopStyleColor();
 	}
 }
 void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent)

@@ -33,6 +33,12 @@ void UFbxViewportWindow::SelectBone(int32 BoneIndex)
 		return;
 	}
 
+	// GlobalPose가 비어있으면 초기화
+	if (PreviewComponent->GetGlobalPose().IsEmpty())
+	{
+		PreviewComponent->UseReferencePose();
+	}
+
 	// 기존 선택 해제
 	DeselectBone();
 
@@ -48,8 +54,26 @@ void UFbxViewportWindow::SelectBone(int32 BoneIndex)
 	BoneTransformProxy->SetBoneInfo(PreviewComponent, BoneIndex);
 	BoneTransformProxy->SyncTransformFromBone();
 
-	// TODO: Phase 4에서 Gizmo 타겟 설정
-	// PreviewGizmo->SetTarget(BoneTransformProxy);
+	// 디버깅: 본 위치 로그
+	FVector BoneWorldPos = BoneTransformProxy->GetWorldLocation();
+	UE_LOG("FbxViewportWindow: SelectBone idx=%d, world pos=(%.2f, %.2f, %.2f)",
+		BoneIndex, BoneWorldPos.X, BoneWorldPos.Y, BoneWorldPos.Z);
+
+	// PreviewGizmo에 타겟 설정
+	if (PreviewScene)
+	{
+		UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
+		if (PreviewGizmo)
+		{
+			PreviewGizmo->SetSelectedComponent(BoneTransformProxy);
+		}
+	}
+
+	// SkeletalWidget에 하이라이팅 전파
+	if (SkeletalWidget)
+	{
+		SkeletalWidget->SetHighlightedBoneIndex(BoneIndex);
+	}
 }
 
 void UFbxViewportWindow::DeselectBone()
@@ -59,11 +83,24 @@ void UFbxViewportWindow::DeselectBone()
 	// BoneTransformProxy 정리
 	if (BoneTransformProxy)
 	{
-		// TODO: Phase 4에서 Gizmo 타겟 해제
-		// PreviewGizmo->SetTarget(nullptr);
+		// PreviewGizmo 타겟 해제
+		if (PreviewScene)
+		{
+			UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
+			if (PreviewGizmo)
+			{
+				PreviewGizmo->SetSelectedComponent(nullptr);
+			}
+		}
 
 		SafeDelete(BoneTransformProxy);
 		BoneTransformProxy = nullptr;
+	}
+
+	// SkeletalWidget 하이라이팅 해제
+	if (SkeletalWidget)
+	{
+		SkeletalWidget->SetHighlightedBoneIndex(-1);
 	}
 }
 
@@ -114,6 +151,11 @@ void UFbxViewportWindow::Initialize()
 
     UpdateSkeletalWidgetTargets();
 
+    if (!PreviewBatchLines)
+    {
+        PreviewBatchLines = new UBatchLines();
+    }
+
     UE_LOG("FbxViewportWindow: initialized");
 }
 
@@ -128,6 +170,12 @@ void UFbxViewportWindow::Cleanup()
     ColorRT.Reset();
     DSV.Reset();
     DepthTex.Reset();
+
+    if (PreviewBatchLines)
+    {
+        delete PreviewBatchLines;
+        PreviewBatchLines = nullptr;
+    }
 
     if (PreviewScene)
     {
@@ -163,6 +211,7 @@ void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& size)
 	CachedSize = ImVec2((float)w, (float)h);
 	SRV.Reset(); RTV.Reset(); ColorRT.Reset();
 	DSV.Reset(); DepthTex.Reset();
+	HitProxyRTV.Reset(); HitProxyRT.Reset(); HitProxyStagingTex.Reset();
 
 	auto* dev = URenderer::GetInstance().GetDevice();
 	// Color
@@ -182,6 +231,20 @@ void UFbxViewportWindow::EnsureRenderTargets(const ImVec2& size)
 	td.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	dev->CreateTexture2D(&td, nullptr, DepthTex.GetAddressOf());
 	dev->CreateDepthStencilView(DepthTex.Get(), nullptr, DSV.GetAddressOf());
+
+	// HitProxy RenderTarget
+	td.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	td.Usage = D3D11_USAGE_DEFAULT;
+	td.BindFlags = D3D11_BIND_RENDER_TARGET;
+	td.CPUAccessFlags = 0;
+	dev->CreateTexture2D(&td, nullptr, HitProxyRT.GetAddressOf());
+	dev->CreateRenderTargetView(HitProxyRT.Get(), nullptr, HitProxyRTV.GetAddressOf());
+
+	// HitProxy Staging Texture (CPU Read용)
+	td.Usage = D3D11_USAGE_STAGING;
+	td.BindFlags = 0;
+	td.CPUAccessFlags = D3D11_CPU_ACCESS_READ;
+	dev->CreateTexture2D(&td, nullptr, HitProxyStagingTex.GetAddressOf());
 
 	// 프리뷰 뷰포트에도 크기 반영
 	if (PreviewViewport)
@@ -302,16 +365,194 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 	bHovered = ImGui::IsItemHovered();
 	if (PreviewClient) PreviewClient->SetInputEnabled(bHovered);
 
-	PreviewViewport->PumpMouseFromInputManager();
+	// Preview Viewport에 마우스/키보드 입력 전달 (bHovered일 때만)
+	if (bHovered && PreviewViewport)
+	{
+		// ImGui가 마우스/키보드 입력을 강제로 소비하도록 설정 (하위 에디터로 전달 방지)
+		ImGui::SetNextFrameWantCaptureMouse(true);
+		ImGui::SetNextFrameWantCaptureKeyboard(true);
+
+		ImVec2 MousePos = ImGui::GetMousePos();
+		ImVec2 LocalMouse = ImVec2(MousePos.x - p0.x, MousePos.y - p0.y);
+		int LocalX = static_cast<int>(LocalMouse.x);
+		int LocalY = static_cast<int>(LocalMouse.y);
+
+		// 마우스 버튼 Pressed 처리
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+		{
+			PreviewViewport->HandleMouseDown(0, LocalX, LocalY);
+			HandleMouseClick(LocalMouse);  // Gizmo 피킹
+		}
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
+		{
+			PreviewViewport->HandleMouseDown(1, LocalX, LocalY);
+		}
+		if (ImGui::IsMouseClicked(ImGuiMouseButton_Middle))
+		{
+			PreviewViewport->HandleMouseDown(2, LocalX, LocalY);
+		}
+
+		// 마우스 버튼 Released 처리
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
+		{
+			PreviewViewport->HandleMouseUp(0, LocalX, LocalY);
+		}
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Right))
+		{
+			PreviewViewport->HandleMouseUp(1, LocalX, LocalY);
+		}
+		if (ImGui::IsMouseReleased(ImGuiMouseButton_Middle))
+		{
+			PreviewViewport->HandleMouseUp(2, LocalX, LocalY);
+		}
+
+		// 마우스 드래그 중일 때 CapturedMouseMove 전달
+		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) ||
+		    ImGui::IsMouseDragging(ImGuiMouseButton_Right) ||
+		    ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
+		{
+			PreviewViewport->HandleCapturedMouseMove(LocalX, LocalY);
+		}
+		else
+		{
+			// 일반 마우스 이동
+			PreviewViewport->HandleMouseMove(LocalX, LocalY);
+		}
+	}
+
+	// 선택된 본 이름 표시 (Overlay)
+	if (SelectedBoneIndex >= 0 && PreviewScene)
+	{
+		USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+		if (PreviewComponent && PreviewComponent->GetSkeletalMesh() && PreviewComponent->GetSkeletalMesh()->GetSkeleton())
+		{
+			const FSkeleton* Skeleton = PreviewComponent->GetSkeletalMesh()->GetSkeleton();
+			if (SelectedBoneIndex < Skeleton->BoneNames.Num())
+			{
+				const FName& BoneName = Skeleton->BoneNames[SelectedBoneIndex];
+				const std::string BoneNameStr = BoneName.ToString();
+
+				// Viewport 좌상단에 오버레이 표시
+				ImGui::SetCursorScreenPos(ImVec2(p0.x + 10, p0.y + 10));
+				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f)); // 노란색
+				ImGui::Text("Selected Bone: %s [%d]", BoneNameStr.c_str(), SelectedBoneIndex);
+				ImGui::PopStyleColor();
+			}
+		}
+	}
+
+	// PreviewViewport는 InputManager에 등록되지 않으므로 PumpMouseFromInputManager 호출 불필요
+	// ImGui에서 직접 입력을 처리함
+
 	const float DeltaTime = UTimeManager::GetInstance().GetDeltaTime();
-	PreviewClient->UpdateEditorCamera(DeltaTime);
+
+	// ImGui 입력을 사용하여 카메라 업데이트
+	if (bHovered && PreviewClient && PreviewClient->GetInputEnabled())
+	{
+		UpdatePreviewCamera(DeltaTime);
+	}
 
 	UWorld* SceneWorld = PreviewScene ? PreviewScene->GetWorld() : nullptr;
 
 	if (!PreviewViewport || !PreviewClient) return;
 
+	// PreviewScene의 SkeletalMeshComponent Bone 렌더링 준비
+	if (PreviewBatchLines && PreviewScene)
+	{
+		USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+		if (PreviewComponent && PreviewComponent->GetSkeletalMesh())
+		{
+			const FSkeleton* Skeleton = PreviewComponent->GetSkeletalMesh()->GetSkeleton();
+			const TArray<FMatrix>& GlobalPose = PreviewComponent->GetGlobalPose();
+			const FMatrix& ComponentWorld = PreviewComponent->GetWorldTransformMatrix();
+
+			if (Skeleton && !GlobalPose.IsEmpty())
+			{
+				PreviewBatchLines->UpdateSkeletonVertices(Skeleton, GlobalPose, ComponentWorld, SelectedBoneIndex);
+				PreviewBatchLines->UpdateVertexBuffer();
+			}
+		}
+	}
+
 	URenderer::GetInstance().RenderExternalViewport(
 		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), SceneWorld);
+
+	// PreviewBatchLines 렌더링 (Bone 시각화)
+	if (PreviewBatchLines)
+	{
+		D3D11_VIEWPORT D3DViewport;
+		D3DViewport.TopLeftX = 0;
+		D3DViewport.TopLeftY = 0;
+		D3DViewport.Width = viewportAvail.x;
+		D3DViewport.Height = viewportAvail.y;
+		D3DViewport.MinDepth = 0.0f;
+		D3DViewport.MaxDepth = 1.0f;
+
+		auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
+
+		// RenderTarget 백업
+		ID3D11RenderTargetView* OldRTV = nullptr;
+		ID3D11DepthStencilView* OldDSV = nullptr;
+		DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
+
+		UINT NumViewports = 1;
+		D3D11_VIEWPORT OldViewport;
+		DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
+
+		// FbxViewportWindow의 RTV/DSV 설정
+		DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
+		DeviceContext->RSSetViewports(1, &D3DViewport);
+
+		PreviewBatchLines->Render();
+
+		// RenderTarget 복원
+		DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
+		DeviceContext->RSSetViewports(1, &OldViewport);
+
+		if (OldRTV) OldRTV->Release();
+		if (OldDSV) OldDSV->Release();
+	}
+
+	// PreviewGizmo 렌더링 (BoneEdit 모드일 때만)
+	if (CurrentEditMode == EEditMode::BoneEdit && PreviewScene)
+	{
+		UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
+		if (PreviewGizmo && PreviewGizmo->HasComponent())
+		{
+			D3D11_VIEWPORT D3DViewport;
+			D3DViewport.TopLeftX = 0;
+			D3DViewport.TopLeftY = 0;
+			D3DViewport.Width = viewportAvail.x;
+			D3DViewport.Height = viewportAvail.y;
+			D3DViewport.MinDepth = 0.0f;
+			D3DViewport.MaxDepth = 1.0f;
+
+			auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
+
+			// 기존 RenderTarget 백업
+			ID3D11RenderTargetView* OldRTV = nullptr;
+			ID3D11DepthStencilView* OldDSV = nullptr;
+			DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
+
+			UINT NumViewports = 1;
+			D3D11_VIEWPORT OldViewport;
+			DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
+
+			// FbxViewportWindow의 RTV/DSV 설정
+			DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
+			DeviceContext->RSSetViewports(1, &D3DViewport);
+
+			PreviewGizmo->UpdateScale(PreviewClient, D3DViewport);
+			PreviewGizmo->RenderGizmo(PreviewClient, D3DViewport);
+
+			// RenderTarget 복원
+			DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
+			DeviceContext->RSSetViewports(1, &OldViewport);
+
+			if (OldRTV) OldRTV->Release();
+			if (OldDSV) OldDSV->Release();
+		}
+	}
 
 	ImGui::EndChild();
 }
@@ -338,6 +579,7 @@ void UFbxViewportWindow::UpdateSkeletalWidgetTargets()
 		if (SkeletalWidget)
 		{
 			SkeletalWidget->Initialize();
+			SkeletalWidget->SetOwningFbxViewportWindow(this);
 		}
 	}
 
@@ -370,5 +612,131 @@ UFbxViewportWindow::UFbxViewportWindow()
 
 	SetConfig(Config);
 	SetWindowState(EUIWindowState::Hidden);
+}
+
+void UFbxViewportWindow::UpdatePreviewCamera(float DeltaTime)
+{
+	if (!PreviewClient)
+	{
+		return;
+	}
+
+	ImGuiIO& io = ImGui::GetIO();
+
+	// 우클릭 홀드 체크 (Unreal 스타일: RMB 누르고 있을 때만 카메라 컨트롤)
+	const bool bRightMouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+
+	// RMB 홀드 중 + 드래그로 카메라 회전
+	if (bRightMouseDown && ImGui::IsMouseDragging(ImGuiMouseButton_Right))
+	{
+		ImVec2 MouseDelta = io.MouseDelta;
+		const float MouseSensitivity = 0.15f;
+
+		FVector CurrentRotation = PreviewClient->GetViewRotation();
+		CurrentRotation.Y += MouseDelta.x * MouseSensitivity;  // Yaw
+		CurrentRotation.X += -MouseDelta.y * MouseSensitivity; // Pitch
+		CurrentRotation.X = std::clamp(CurrentRotation.X, -89.9f, 89.9f);
+		CurrentRotation.Z = 0.0f;
+		PreviewClient->SetViewRotation(CurrentRotation);
+	}
+
+	// RMB 홀드 중에만 WASD 이동 활성화 (Unreal 스타일)
+	if (bRightMouseDown)
+	{
+		const float MoveSpeed = 30.0f;
+		FVector Direction = FVector::Zero();
+
+		if (ImGui::IsKeyDown(ImGuiKey_W)) Direction += PreviewClient->GetForward();
+		if (ImGui::IsKeyDown(ImGuiKey_S)) Direction -= PreviewClient->GetForward();
+		if (ImGui::IsKeyDown(ImGuiKey_D)) Direction += PreviewClient->GetRight();
+		if (ImGui::IsKeyDown(ImGuiKey_A)) Direction -= PreviewClient->GetRight();
+		if (ImGui::IsKeyDown(ImGuiKey_E)) Direction += FVector(0, 0, 1);
+		if (ImGui::IsKeyDown(ImGuiKey_Q)) Direction -= FVector(0, 0, 1);
+
+		if (Direction.LengthSquared() > 0.0f)
+		{
+			Direction.Normalize();
+			FVector CurrentLocation = PreviewClient->GetViewLocation();
+			CurrentLocation += Direction * MoveSpeed * DeltaTime;
+			PreviewClient->SetViewLocation(CurrentLocation);
+		}
+	}
+}
+
+void UFbxViewportWindow::HandleMouseClick(const ImVec2& LocalMousePos)
+{
+	if (!PreviewScene || !PreviewClient || !HitProxyRTV || !HitProxyStagingTex)
+	{
+		return;
+	}
+
+	UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
+	if (!PreviewGizmo)
+	{
+		return;
+	}
+
+	// HitProxy 렌더링
+	D3D11_VIEWPORT D3DViewport;
+	D3DViewport.TopLeftX = 0;
+	D3DViewport.TopLeftY = 0;
+	D3DViewport.Width = CachedSize.x;
+	D3DViewport.Height = CachedSize.y;
+	D3DViewport.MinDepth = 0.0f;
+	D3DViewport.MaxDepth = 1.0f;
+
+	auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
+
+	// RenderTarget 백업
+	ID3D11RenderTargetView* OldRTV = nullptr;
+	ID3D11DepthStencilView* OldDSV = nullptr;
+	DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
+
+	UINT NumViewports = 1;
+	D3D11_VIEWPORT OldViewport;
+	DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
+
+	// HitProxy RTV로 전환하고 클리어
+	const float ClearColor[4] = {0, 0, 0, 0};
+	DeviceContext->ClearRenderTargetView(HitProxyRTV.Get(), ClearColor);
+	DeviceContext->ClearDepthStencilView(DSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	DeviceContext->OMSetRenderTargets(1, HitProxyRTV.GetAddressOf(), DSV.Get());
+	DeviceContext->RSSetViewports(1, &D3DViewport);
+
+	// Gizmo HitProxy 렌더링
+	PreviewGizmo->RenderForHitProxy(PreviewClient, D3DViewport);
+
+	// RenderTarget 복원
+	DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
+	DeviceContext->RSSetViewports(1, &OldViewport);
+
+	if (OldRTV) OldRTV->Release();
+	if (OldDSV) OldDSV->Release();
+
+	// HitProxy 텍스처를 Staging으로 복사
+	DeviceContext->CopyResource(HitProxyStagingTex.Get(), HitProxyRT.Get());
+
+	// CPU에서 픽셀 읽기
+	D3D11_MAPPED_SUBRESOURCE MappedResource;
+	if (SUCCEEDED(DeviceContext->Map(HitProxyStagingTex.Get(), 0, D3D11_MAP_READ, 0, &MappedResource)))
+	{
+		int X = static_cast<int>(LocalMousePos.x);
+		int Y = static_cast<int>(LocalMousePos.y);
+
+		if (X >= 0 && X < static_cast<int>(CachedSize.x) && Y >= 0 && Y < static_cast<int>(CachedSize.y))
+		{
+			uint8_t* PixelData = static_cast<uint8_t*>(MappedResource.pData);
+			uint8_t* Pixel = PixelData + (Y * MappedResource.RowPitch) + (X * 4);
+
+			uint32_t HitProxyID = (Pixel[0]) | (Pixel[1] << 8) | (Pixel[2] << 16);
+
+			UE_LOG("FbxViewportWindow: HandleMouseClick at (%.0f, %.0f), HitProxyID=%u",
+				LocalMousePos.x, LocalMousePos.y, HitProxyID);
+
+			// TODO: HitProxyID로 Gizmo 액션 처리
+		}
+
+		DeviceContext->Unmap(HitProxyStagingTex.Get(), 0);
+	}
 }
 

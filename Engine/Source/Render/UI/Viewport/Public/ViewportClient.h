@@ -6,6 +6,13 @@ class FViewport;
 class APlayerCameraManager;
 class UWorld;
 
+enum class EInputMode : uint8
+{
+	None,
+	CameraControl,
+	GizmoManipulation
+};
+
 class FViewportClient
 {
 public:
@@ -57,6 +64,10 @@ public:
     // Input enable (에디터 카메라 입력 제어용)
     void SetInputEnabled(bool bEnabled) { bInputEnabled = bEnabled; }
     bool GetInputEnabled() const { return bInputEnabled; }
+
+    // Input mode (카메라 vs Gizmo 충돌 방지용)
+    void SetInputMode(EInputMode InMode) { CurrentInputMode = InMode; }
+    EInputMode GetInputMode() const { return CurrentInputMode; }
 
     // View/Projection 행렬 계산
     FMatrix GetViewMatrix() const;
@@ -162,6 +173,7 @@ private:
     FPoint		ViewSize{ 0, 0 };
     FPoint		LastDrag{ 0, 0 };
     bool        bInputEnabled = false;  // 입력 활성화 여부
+    EInputMode  CurrentInputMode = EInputMode::None;  // 현재 입력 모드
 
     // Orthographic 뷰포트의 기준 높이 (픽셀 밀도 유지용)
     mutable float OrthoReferenceHeight = 0.0f;
