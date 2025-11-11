@@ -52,7 +52,7 @@ public:
 	const FMatrix& GetViewProjectionMatrix() const { return ViewProjectionMatrix; }
 
 	FVector GetViewLocation() const { return ViewLocation; }
-	FQuaternion GetViewRotation() const { return ViewRotation; }
+	FQuat GetViewRotation() const { return ViewRotation; }
 
 	TObjectPtr<UWorld> GetWorld() const { return World; }
 
@@ -84,7 +84,7 @@ private:
 	FMatrix ViewProjectionMatrix;
 
 	FVector ViewLocation;
-	FQuaternion ViewRotation;
+	FQuat ViewRotation;
 
 	float FOV = 90.0f;
 	float NearClip = 0.1f;  // 카메라 컴포넌트와 일치

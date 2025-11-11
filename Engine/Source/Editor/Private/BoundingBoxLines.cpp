@@ -265,7 +265,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 		const FCapsule* Capsule = static_cast<const FCapsule*>(NewBoundingVolume);
 
 		const FVector Center = Capsule->Center;
-		const FQuaternion Rotation = Capsule->Rotation;
+		const FQuat Rotation = Capsule->Rotation;
 		const float Radius = Capsule->Radius;
 		const float HalfHeight = Capsule->HalfHeight;
 

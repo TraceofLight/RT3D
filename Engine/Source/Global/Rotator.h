@@ -20,10 +20,10 @@ struct FRotator
 	 * @brief FRotator -> FQuaternion 변환
 	 * FRotator(Pitch, Yaw, Roll) -> FVector(Roll, Pitch, Yaw) -> FQuaternion
 	 */
-	FQuaternion Quaternion() const
+	FQuat Quaternion() const
 	{
 		// FRotator(Pitch, Yaw, Roll) -> FVector(Roll, Pitch, Yaw) for FromEuler
-		return FQuaternion::FromEuler(FVector(Roll, Pitch, Yaw));
+		return FQuat::FromEuler(FVector(Roll, Pitch, Yaw));
 	}
 
 	/**

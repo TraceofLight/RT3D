@@ -305,52 +305,52 @@ void FLuaBinder::BindMathTypes(sol::state& LuaState)
 	);
 
 	// -- Quaternion -- //
-	LuaState.new_usertype<FQuaternion>("FQuaternion",
+	LuaState.new_usertype<FQuat>("FQuaternion",
 		sol::call_constructor,
 	    sol::factories(
-	       []() { return FQuaternion(); },
-	       [](float X, float Y, float Z, float W) { return FQuaternion(X, Y, Z, W); }
+	       []() { return FQuat(); },
+	       [](float X, float Y, float Z, float W) { return FQuat(X, Y, Z, W); }
 	    ),
-	    "X", &FQuaternion::X,
-	    "Y", &FQuaternion::Y,
-	    "Z", &FQuaternion::Z,
-	    "W", &FQuaternion::W,
+	    "X", &FQuat::X,
+	    "Y", &FQuat::Y,
+	    "Z", &FQuat::Z,
+	    "W", &FQuat::W,
 
-	    sol::meta_function::multiplication, &FQuaternion::operator*,
+	    sol::meta_function::multiplication, &FQuat::operator*,
 
 	    // --- Static Func ---
 	    // Lua: local q = FQuaternion.Identity()
-	    "Identity", &FQuaternion::Identity,
+	    "Identity", &FQuat::Identity,
 	    // Lua: local q = FQuaternion.FromAxisAngle(FVector(0,0,1), math.rad(90))
-	    "FromAxisAngle", &FQuaternion::FromAxisAngle,
+	    "FromAxisAngle", &FQuat::FromAxisAngle,
 	    // Lua: local q = FQuaternion.FromEuler(FVector(0, 0, 90))
-	    "FromEuler", &FQuaternion::FromEuler,
+	    "FromEuler", &FQuat::FromEuler,
 	    // Lua: local q = FQuaternion.FromRotationMatrix(someMatrix)
-	    "FromRotationMatrix", &FQuaternion::FromRotationMatrix,
+	    "FromRotationMatrix", &FQuat::FromRotationMatrix,
 	    // Lua: local q = FQuaternion.MakeFromDirection(FVector(1,0,0))
-	    "MakeFromDirection", &FQuaternion::MakeFromDirection,
+	    "MakeFromDirection", &FQuat::MakeFromDirection,
 
 	    // --- Member Func ---
 	    // Lua: local eulerVec = myQuat:ToEuler()
-	    "ToEuler", &FQuaternion::ToEuler,
+	    "ToEuler", &FQuat::ToEuler,
 	    // Lua: local matrix = myQuat:ToRotationMatrix()
-	    "ToRotationMatrix", &FQuaternion::ToRotationMatrix,
+	    "ToRotationMatrix", &FQuat::ToRotationMatrix,
 	    // Lua: myQuat:Normalize()
-	    "Normalize", &FQuaternion::Normalize,
+	    "Normalize", &FQuat::Normalize,
 	    // Lua: local conj = myQuat:Conjugate()
-	    "Conjugate", &FQuaternion::Conjugate,
+	    "Conjugate", &FQuat::Conjugate,
 	    // Lua: local inv = myQuat:Inverse()
-	    "Inverse", &FQuaternion::Inverse,
+	    "Inverse", &FQuat::Inverse,
 
 	    // --- 6. 오버로드된 함수 (정적 & 멤버) ---
 	    "RotateVector", sol::overload(
 	        // C++: static FVector RotateVector(const FQuaternion& q, const FVector& v)
 	        // Lua: local rotatedVec = FQuaternion.RotateVector(myQuat, myVec)
-	        sol::resolve<FVector(const FQuaternion&, const FVector&)>(&FQuaternion::RotateVector),
+	        sol::resolve<FVector(const FQuat&, const FVector&)>(&FQuat::RotateVector),
 
 	        // C++: FVector FQuaternion::RotateVector(const FVector& V) const
 	        // Lua: local rotatedVec = myQuat:RotateVector(myVec)
-	        sol::resolve<FVector(const FVector&) const>(&FQuaternion::RotateVector)
+	        sol::resolve<FVector(const FVector&) const>(&FQuat::RotateVector)
 	    )
 	);
 
@@ -415,7 +415,7 @@ void FLuaBinder::BindActorTypes(sol::state& LuaState)
 				return Self->DuplicateFromTemplate(TargetLevel, InLocation);
 			},
 			// Level + Location + Rotation 지정 (완전한 제어)
-			[](AActor* Self, ULevel* TargetLevel, const FVector& InLocation, const FQuaternion& InRotation) {
+			[](AActor* Self, ULevel* TargetLevel, const FVector& InLocation, const FQuat& InRotation) {
 				return Self->DuplicateFromTemplate(TargetLevel, InLocation, InRotation);
 			}
 		),

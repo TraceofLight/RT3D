@@ -80,8 +80,8 @@ public:
 	virtual void DisableModifier(bool bImmediate) override;
 
 protected:
-	virtual void ModifyCamera(float DeltaTime, FVector ViewLocation, FQuaternion ViewRotation, float FOV,
-	                          FVector& NewViewLocation, FQuaternion& NewViewRotation, float& NewFOV) override;
+	virtual void ModifyCamera(float DeltaTime, FVector ViewLocation, FQuat ViewRotation, float FOV,
+	                          FVector& NewViewLocation, FQuat& NewViewRotation, float& NewFOV) override;
 
 public:
 	/** Location oscillation (X, Y, Z) */

@@ -56,7 +56,7 @@ struct FMinimalViewInfo
 	FVector Location = FVector::ZeroVector();
 
 	/** Camera rotation (world space) */
-	FQuaternion Rotation = FQuaternion::Identity();
+	FQuat Rotation = FQuat::Identity();
 
 	/** Field of view (degrees) */
 	float FOV = 90.0f;

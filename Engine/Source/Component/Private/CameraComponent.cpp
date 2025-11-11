@@ -234,7 +234,7 @@ FMatrix UCameraComponent::CalculateViewMatrix() const
 {
 	// Get camera world transform
 	const FVector CameraLocation = GetWorldLocation();
-	const FQuaternion CameraRotation = GetWorldRotationAsQuaternion();
+	const FQuat CameraRotation = GetWorldRotationAsQuaternion();
 
 	// Calculate camera basis vectors
 	const FVector Forward = CameraRotation.RotateVector(FVector::ForwardVector());

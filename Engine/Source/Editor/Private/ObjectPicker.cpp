@@ -57,7 +57,7 @@ void UObjectPicker::PickGizmo(FViewportClient* InClient, const FRay& WorldRay, U
 
 	if (Gizmo.GetGizmoMode() == EGizmoMode::Scale || !Gizmo.IsWorldMode())
 	{
-		FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+		FQuat q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
 		for (int i = 0; i < 3; i++)
 		{
 			// 쿼터니언을 사용해 기본 축을 회전시킵니다.
@@ -99,7 +99,7 @@ void UObjectPicker::PickGizmo(FViewportClient* InClient, const FRay& WorldRay, U
 			FVector T2 = PlaneInfo.Tangent2;
 
 			// World/Local 모드에 따라 회전 적용
-			FQuaternion q = FQuaternion::Identity();
+			FQuat q = FQuat::Identity();
 			bool bNeedRotation = (Gizmo.GetGizmoMode() == EGizmoMode::Scale || !Gizmo.IsWorldMode());
 			if (bNeedRotation)
 			{
@@ -383,7 +383,7 @@ bool UObjectPicker::IsCollisionPointInQuarterRing(const FVector& CollisionPoint,
 	// Local 모드면 회전 적용
 	if (!Gizmo.IsWorldMode())
 	{
-		const FQuaternion q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+		const FQuat q = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
 		BaseAxis0 = q.RotateVector(BaseAxis0);
 		BaseAxis1 = q.RotateVector(BaseAxis1);
 	}

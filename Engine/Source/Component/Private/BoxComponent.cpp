@@ -74,7 +74,7 @@ FBounds UBoxComponent::CalcBounds() const
 	FVector ScaledExtent = GetScaledBoxExtent();
 
 	// For rotated boxes, we need to calculate the AABB of the OBB
-	FQuaternion WorldRotation = GetWorldRotationAsQuaternion();
+	FQuat WorldRotation = GetWorldRotationAsQuaternion();
 	FMatrix RotationMatrix = WorldRotation.ToRotationMatrix();
 
 	// Create OBB and convert to AABB
@@ -130,7 +130,7 @@ UClass* UBoxComponent::GetSpecificWidgetClass() const
 void UBoxComponent::RenderDebugShape(UBatchLines& BatchLines)
 {
 	FVector WorldLocation = GetWorldLocation();
-	FQuaternion WorldRotation = GetWorldRotationAsQuaternion();
+	FQuat WorldRotation = GetWorldRotationAsQuaternion();
 	FVector ScaledExtent = GetScaledBoxExtent();
 
 	FOBB WorldBox;

@@ -47,7 +47,7 @@ void FGizmoGeometry::GenerateCircleLineMesh(const FVector& Axis0, const FVector&
 	{
 		const float Angle = (2.0f * PI * static_cast<float>(i)) / NumSegments;
 
-		const FQuaternion Rot = FQuaternion::FromAxisAngle(RotationAxis, Angle);
+		const FQuat Rot = FQuat::FromAxisAngle(RotationAxis, Angle);
 		FVector CircleDir = Rot.RotateVector(Axis0);
 		CircleDir.Normalize();
 
@@ -135,7 +135,7 @@ void FGizmoGeometry::GenerateRotationArcMesh(const FVector& Axis0, const FVector
 		const float ArcPercent = static_cast<float>(ArcIdx) / static_cast<float>(NumArcPoints - 1);
 		const float CurrentAngle = ArcPercent * SignedAngle;
 
-		const FQuaternion ArcRotQuat = FQuaternion::FromAxisAngle(ZAxis, CurrentAngle);
+		const FQuat ArcRotQuat = FQuat::FromAxisAngle(ZAxis, CurrentAngle);
 		FVector ArcDir = ArcRotQuat.RotateVector(StartAxis);
 		ArcDir.Normalize();
 
@@ -216,7 +216,7 @@ void FGizmoGeometry::GenerateAngleTickMarks(const FVector& Axis0, const FVector&
 		const float TickEndRadius = bIsLargeTick ? InnerRadius * 1.00f : InnerRadius * 1.05f;
 		const float TickThickness = Thickness * (bIsLargeTick ? 0.8f : 0.5f);
 
-		const FQuaternion RotQuat = FQuaternion::FromAxisAngle(ZAxis, AngleRad);
+		const FQuat RotQuat = FQuat::FromAxisAngle(ZAxis, AngleRad);
 		FVector TickDir = RotQuat.RotateVector(Axis0);
 		TickDir.Normalize();
 
@@ -277,7 +277,7 @@ void FGizmoGeometry::GenerateQuarterRingMesh(const FVector& Axis0, const FVector
 		const float ArcAngle = FGizmoConstants::QuarterRingStartAngle + ArcPercent * (FGizmoConstants::QuarterRingEndAngle - FGizmoConstants::QuarterRingStartAngle);
 		const float ArcAngleDeg = FVector::GetRadianToDegree(ArcAngle);
 
-		const FQuaternion ArcRotQuat = FQuaternion::FromAxisAngle(ZAxis, FVector::GetDegreeToRadian(ArcAngleDeg));
+		const FQuat ArcRotQuat = FQuat::FromAxisAngle(ZAxis, FVector::GetDegreeToRadian(ArcAngleDeg));
 		FVector ArcDir = ArcRotQuat.RotateVector(Axis0);
 		ArcDir.Normalize();
 

@@ -15,12 +15,12 @@ static float NormalizeAxis(float Angle)
 	return Angle;
 }
 
-FQuaternion FQuaternion::FromAxisAngle(const FVector& Axis, float AngleRad)
+FQuat FQuat::FromAxisAngle(const FVector& Axis, float AngleRad)
 {
 	FVector N = Axis;
 	N.Normalize();
 	float s = sinf(AngleRad * 0.5f);
-	return FQuaternion(
+	return FQuat(
 		N.X * s,
 		N.Y * s,
 		N.Z * s,
@@ -28,7 +28,7 @@ FQuaternion FQuaternion::FromAxisAngle(const FVector& Axis, float AngleRad)
 	);
 }
 
-FQuaternion FQuaternion::FromEuler(const FVector& EulerDeg)
+FQuat FQuat::FromEuler(const FVector& EulerDeg)
 {
 	// EulerDeg: (X=Roll, Y=Pitch, Z=Yaw) in degrees
 	// Unreal Engine Standard: FRotator(Pitch, Yaw, Roll) → FQuat
@@ -50,11 +50,11 @@ FQuaternion FQuaternion::FromEuler(const FVector& EulerDeg)
 	};
 }
 
-FQuaternion FQuaternion::FromRotationMatrix(const FMatrix& M)
+FQuat FQuat::FromRotationMatrix(const FMatrix& M)
 {
     // UE Standard: TQuat<T>::TQuat(const TMatrix<T>& M)
     // Reference: UnrealEngine/Engine/Source/Runtime/Core/Public/Math/Quat.h (line 777-849)
-    FQuaternion Q;
+    FQuat Q;
 
     // Check diagonal (trace)
     const float tr = M.Data[0][0] + M.Data[1][1] + M.Data[2][2];
@@ -108,7 +108,7 @@ FQuaternion FQuaternion::FromRotationMatrix(const FMatrix& M)
     return Q;
 }
 
-FVector FQuaternion::ToEuler() const
+FVector FQuat::ToEuler() const
 {
 	// UE Standard conversion: Quaternion → (Roll, Pitch, Yaw)
 	// Reference: UE5 UnrealMath.cpp FQuat4f::Rotator()
@@ -144,13 +144,13 @@ FVector FQuaternion::ToEuler() const
 	return Euler;
 }
 
-FRotator FQuaternion::ToRotator() const
+FRotator FQuat::ToRotator() const
 {
 	const FVector EulerDeg = ToEuler();
 	return {EulerDeg.Y, EulerDeg.Z, EulerDeg.X};
 }
 
-FMatrix FQuaternion::ToRotationMatrix() const
+FMatrix FQuat::ToRotationMatrix() const
 {
     FMatrix M;
 
@@ -187,7 +187,7 @@ FMatrix FQuaternion::ToRotationMatrix() const
     return M;
 }
 
-FQuaternion FQuaternion::operator*(const FQuaternion& Q) const
+FQuat FQuat::operator*(const FQuat& Q) const
 {
 	return {
 		W * Q.X + X * Q.W + Y * Q.Z - Z * Q.Y,
@@ -197,7 +197,7 @@ FQuaternion FQuaternion::operator*(const FQuaternion& Q) const
 	};
 }
 
-void FQuaternion::Normalize()
+void FQuat::Normalize()
 {
 	float mag = sqrtf(X * X + Y * Y + Z * Z + W * W);
 	if (mag > 0.0001f)
@@ -209,7 +209,7 @@ void FQuaternion::Normalize()
 	}
 }
 
-FQuaternion FQuaternion::MakeFromDirection(const FVector& Direction)
+FQuat FQuat::MakeFromDirection(const FVector& Direction)
 {
 	const FVector& ForwardVector = FVector::ForwardVector();
 	FVector Dir = Direction.GetSafeNormal();
@@ -238,14 +238,14 @@ FQuaternion FQuaternion::MakeFromDirection(const FVector& Direction)
 	return FromAxisAngle(Axis, AngleRad);
 }
 
-FVector FQuaternion::RotateVector(const FQuaternion& q, const FVector& v)
+FVector FQuat::RotateVector(const FQuat& q, const FVector& v)
 {
-	FQuaternion p(v.X, v.Y, v.Z, 0.0f);
-	FQuaternion r = q * p * q.Inverse();
+	FQuat p(v.X, v.Y, v.Z, 0.0f);
+	FQuat r = q * p * q.Inverse();
 	return { r.X, r.Y, r.Z };
 }
 
-FVector FQuaternion::RotateVector(const FVector& V) const
+FVector FQuat::RotateVector(const FVector& V) const
 {
 	const FVector Q(X, Y, Z);
 	const FVector T = 2.f * Q.Cross(V);
@@ -253,7 +253,7 @@ FVector FQuaternion::RotateVector(const FVector& V) const
 	return Result;
 }
 
-FQuaternion FQuaternion::Slerp(const FQuaternion& A, const FQuaternion& B, float Alpha)
+FQuat FQuat::Slerp(const FQuat& A, const FQuat& B, float Alpha)
 {
 	// Clamp alpha to [0, 1]
 	Alpha = (Alpha < 0.0f) ? 0.0f : (Alpha > 1.0f) ? 1.0f : Alpha;
@@ -266,7 +266,7 @@ FQuaternion FQuaternion::Slerp(const FQuaternion& A, const FQuaternion& B, float
 	if (fabs(DotProduct) > SLERP_THRESHOLD)
 	{
 		// Linear interpolation (Lerp)
-		FQuaternion Result(
+		FQuat Result(
 			A.X + Alpha * (B.X - A.X),
 			A.Y + Alpha * (B.Y - A.Y),
 			A.Z + Alpha * (B.Z - A.Z),
@@ -288,7 +288,7 @@ FQuaternion FQuaternion::Slerp(const FQuaternion& A, const FQuaternion& B, float
 	float WeightB = sinf(Alpha * Theta) / SinTheta;
 
 	// Compute result
-	return FQuaternion(
+	return FQuat(
 		WeightA * A.X + WeightB * B.X,
 		WeightA * A.Y + WeightB * B.Y,
 		WeightA * A.Z + WeightB * B.Z,
@@ -296,13 +296,13 @@ FQuaternion FQuaternion::Slerp(const FQuaternion& A, const FQuaternion& B, float
 	);
 }
 
-FQuaternion FQuaternion::SlerpShortestPath(const FQuaternion& A, const FQuaternion& B, float Alpha)
+FQuat FQuat::SlerpShortestPath(const FQuat& A, const FQuat& B, float Alpha)
 {
 	// Compute dot product
 	float DotProduct = A.X * B.X + A.Y * B.Y + A.Z * B.Z + A.W * B.W;
 
 	// If dot product is negative, negate one quaternion to take shorter path
-	FQuaternion BModified = B;
+	FQuat BModified = B;
 	if (DotProduct < 0.0f)
 	{
 		BModified.X = -B.X;

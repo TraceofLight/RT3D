@@ -21,14 +21,14 @@ void FSkeleton::BuildRefPoseGlobal()
         RefPoseLocal.SetNum(NumBones);
         for (int32 i = 0; i < NumBones; ++i)
         {
-            RefPoseLocal[i] = FTransform(FVector::ZeroVector(), FVector::ZeroVector(), FVector::OneVector());
+            RefPoseLocal[i] = {};
         }
     }
 
     for (int32 i = 0; i < NumBones; ++i)
     {
         const FTransform& L = RefPoseLocal[i];
-        const FQuaternion LocalRot = FQuaternion::FromEuler(L.Rotation);
+        const FQuat LocalRot = L.Rotation;
         const FMatrix LocalM = FMatrix::GetModelMatrix(L.Location, LocalRot, L.Scale);
 
         const int32 Parent = (i < Parents.Num()) ? Parents[i] : -1;

@@ -394,7 +394,7 @@ void UActorDetailWidget::RenderSceneComponents(USceneComponent* InSceneComponent
 				DecomposeMatrix(NewLocalMatrix, NewLocation, NewRotation, NewScale);
 
 				DraggedComp->SetRelativeLocation(NewLocation);
-				DraggedComp->SetRelativeRotation(FQuaternion::FromEuler(NewRotation));
+				DraggedComp->SetRelativeRotation(FQuat::FromEuler(NewRotation));
 				DraggedComp->SetRelativeScale3D(NewScale);
 			}
 		}
@@ -556,7 +556,7 @@ void UActorDetailWidget::AddComponentByName(AActor* InSelectedActor, const FStri
 		}
 
 		NewSceneComponent->SetRelativeLocation(FVector::Zero());
-		NewSceneComponent->SetRelativeRotation(FQuaternion::Identity());
+		NewSceneComponent->SetRelativeRotation(FQuat::Identity());
 		NewSceneComponent->SetRelativeScale3D({1, 1, 1});
 	}
 	else
@@ -824,12 +824,12 @@ void UActorDetailWidget::RenderTransformEdit()
 	{
 		if (bShowWorldRotation)
 		{
-			FQuaternion WorldQuat = SceneComponent->GetWorldRotationAsQuaternion();
+			FQuat WorldQuat = SceneComponent->GetWorldRotationAsQuaternion();
 			CachedRotation = WorldQuat.ToEuler();
 		}
 		else
 		{
-			FQuaternion RelativeQuat = SceneComponent->GetRelativeRotation();
+			FQuat RelativeQuat = SceneComponent->GetRelativeRotation();
 			CachedRotation = RelativeQuat.ToEuler();
 		}
 	}
@@ -863,7 +863,7 @@ void UActorDetailWidget::RenderTransformEdit()
 			if (!bIsAbsoluteRotation)
 			{
 				// 현재 월드 회전을 유지하면서 Absolute로 전환
-				FQuaternion CurrentWorldRotation = SceneComponent->GetWorldRotationAsQuaternion();
+				FQuat CurrentWorldRotation = SceneComponent->GetWorldRotationAsQuaternion();
 				SceneComponent->SetAbsoluteRotation(true);
 				SceneComponent->SetRelativeRotation(CurrentWorldRotation);
 			}
@@ -878,7 +878,7 @@ void UActorDetailWidget::RenderTransformEdit()
 			if (bIsAbsoluteRotation)
 			{
 				// 현재 월드 회전을 유지하면서 Relative로 전환
-				FQuaternion CurrentWorldRotation = SceneComponent->GetWorldRotationAsQuaternion();
+				FQuat CurrentWorldRotation = SceneComponent->GetWorldRotationAsQuaternion();
 				SceneComponent->SetAbsoluteRotation(false);
 				SceneComponent->SetWorldRotation(CurrentWorldRotation);
 			}
@@ -965,7 +965,7 @@ void UActorDetailWidget::RenderTransformEdit()
 		}
 		else
 		{
-			SceneComponent->SetRelativeRotation(FQuaternion::FromEuler(CachedRotation));
+			SceneComponent->SetRelativeRotation(FQuat::FromEuler(CachedRotation));
 		}
 	}
 

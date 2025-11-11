@@ -97,7 +97,7 @@ void UBatchLines::UpdateDecalSpotLightVertices(UDecalSpotLightComponent* SpotLig
 }
 
 void UBatchLines::UpdateConeVertices(const FVector& InCenter, float InGeneratingLineLength
-	, float InOuterHalfAngleRad, float InInnerHalfAngleRad, FQuaternion InRotation)
+	, float InOuterHalfAngleRad, float InInnerHalfAngleRad, FQuat InRotation)
 {
 	// SpotLight는 scale의 영향을 받지 않으므로 world transformation matrix 직접 계산
 	FMatrix TranslationMat = FMatrix::TranslationMatrix(InCenter);

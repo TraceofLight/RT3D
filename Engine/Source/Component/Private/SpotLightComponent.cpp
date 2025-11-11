@@ -52,7 +52,7 @@ UClass* USpotLightComponent::GetSpecificWidgetClass() const
 
 FVector USpotLightComponent::GetForwardVector() const
 {
-    FQuaternion Rotation = GetWorldRotationAsQuaternion();
+    FQuat Rotation = GetWorldRotationAsQuaternion();
     return Rotation.RotateVector(FVector(1.0f, 0.0f, 0.0f));
 }
 
@@ -75,7 +75,7 @@ void USpotLightComponent::RenderLightDirectionGizmo(FViewportClient* InClient, c
 	}
 
 	FVector LightLocation = GetWorldLocation();
-	FQuaternion LightRotation = GetWorldRotationAsQuaternion();
+	FQuat LightRotation = GetWorldRotationAsQuaternion();
 
 	// Gizmo와 동일한 Screen Space Scale 계산 (ViewportClient 사용)
 	const float AspectRatio = InViewport.Width / InViewport.Height;

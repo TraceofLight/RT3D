@@ -100,7 +100,7 @@ void FHitProxyPass::Execute(FRenderingContext& Context)
 		{
 			FVector FixedWorldScale = IconComp->GetRelativeScale3D();
 			FVector IconLocation = IconComp->GetWorldLocation();
-			FQuaternion IconRotation = IconComp->GetWorldRotationAsQuaternion();
+			FQuat IconRotation = IconComp->GetWorldRotationAsQuaternion();
 			WorldMatrix = FMatrix::GetModelMatrix(IconLocation, IconRotation, FixedWorldScale);
 		}
 		else

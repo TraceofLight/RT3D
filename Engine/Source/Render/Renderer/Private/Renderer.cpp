@@ -1262,10 +1262,10 @@ void URenderer::RenderExternalViewport(FViewport* InViewport,
 
 	FRect Rect = InViewport->GetRect();
     D3D11_VIEWPORT ExternalViewport = {};
-    ExternalViewport.TopLeftX = Rect.Left;
-    ExternalViewport.TopLeftY = Rect.Top;
-    ExternalViewport.Width    = Rect.Width;
-    ExternalViewport.Height   = Rect.Height;
+    ExternalViewport.TopLeftX = static_cast<FLOAT>(Rect.Left);
+    ExternalViewport.TopLeftY = static_cast<FLOAT>(Rect.Top);
+    ExternalViewport.Width    = static_cast<FLOAT>(Rect.Width);
+    ExternalViewport.Height   = static_cast<FLOAT>(Rect.Height);
     ExternalViewport.MinDepth = 0.0f;
     ExternalViewport.MaxDepth = 1.0f;
 

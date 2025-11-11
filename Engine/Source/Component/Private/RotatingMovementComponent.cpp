@@ -11,9 +11,9 @@ void URotatingMovementComponent::TickComponent(float DeltaTime)
     if (!UpdatedComponent) { return; }
 
     // Compute new rotation
-    const FQuaternion OldRotation = UpdatedComponent->GetWorldRotationAsQuaternion();
-    const FQuaternion DeltaRotation = FQuaternion::FromEuler(RotationRate * DeltaTime);
-    const FQuaternion NewRotation = bRotationInLocalSpace ? (OldRotation * DeltaRotation) : (DeltaRotation * OldRotation);
+    const FQuat OldRotation = UpdatedComponent->GetWorldRotationAsQuaternion();
+    const FQuat DeltaRotation = FQuat::FromEuler(RotationRate * DeltaTime);
+    const FQuat NewRotation = bRotationInLocalSpace ? (OldRotation * DeltaRotation) : (DeltaRotation * OldRotation);
 
     // Compute new location
     FVector DeltaLocation = FVector::ZeroVector();

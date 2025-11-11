@@ -40,7 +40,7 @@ public:
 	void Serialize(bool bInIsLoading, JSON& InOutHandle) override;
 
 	void SetActorLocation(const FVector& InLocation) const;
-	void SetActorRotation(const FQuaternion& InRotation) const;
+	void SetActorRotation(const FQuat& InRotation) const;
 	void SetActorScale3D(const FVector& InScale) const;
 	void SetUniformScale(bool IsUniform);
 	virtual UClass* GetDefaultRootComponent();
@@ -103,7 +103,7 @@ public:
 	class UWorld* GetWorld() const;
 
 	const FVector& GetActorLocation() const;
-	const FQuaternion& GetActorRotation() const;
+	const FQuat& GetActorRotation() const;
 	const FVector& GetActorScale3D() const;
 
 	FVector GetActorForwardVector() const;
@@ -208,7 +208,7 @@ public:
 	AActor* DuplicateFromTemplate(
 		class ULevel* TargetLevel = nullptr,
 		const FVector& InLocation = FVector::Zero(),
-		const FQuaternion& InRotation = FQuaternion::Identity()
+		const FQuat& InRotation = FQuat::Identity()
 	);
 // Collision Section
 public:

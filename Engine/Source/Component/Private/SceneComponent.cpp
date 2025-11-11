@@ -30,7 +30,7 @@ void USceneComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)
 		FJsonSerializer::ReadVector(InOutHandle, "Location", RelativeLocation, FVector::ZeroVector());
 		FVector RotationEuler;
 		FJsonSerializer::ReadVector(InOutHandle, "Rotation", RotationEuler, FVector::ZeroVector());
-		RelativeRotation = FQuaternion::FromEuler(RotationEuler);
+		RelativeRotation = FQuat::FromEuler(RotationEuler);
 
 		FJsonSerializer::ReadVector(InOutHandle, "Scale", RelativeScale3D, FVector::OneVector());
 
@@ -112,7 +112,7 @@ void USceneComponent::SetRelativeLocation(const FVector& Location)
 	// Note: PrimitiveComponent::MarkAsDirty() handles octree update and overlap checks
 }
 
-void USceneComponent::SetRelativeRotation(const FQuaternion& Rotation)
+void USceneComponent::SetRelativeRotation(const FQuat& Rotation)
 {
 	RelativeRotation = Rotation;
 	MarkAsDirty();
@@ -132,7 +132,7 @@ const FMatrix& USceneComponent::GetWorldTransformMatrix() const
 	{
 		// Absolute 플래그에 따라 각 컴포넌트를 개별 처리
 		FVector WorldLocation = RelativeLocation;
-		FQuaternion WorldRotation = RelativeRotation;
+		FQuat WorldRotation = RelativeRotation;
 		FVector WorldScale = RelativeScale3D;
 
 		if (AttachParent)
@@ -146,7 +146,7 @@ const FMatrix& USceneComponent::GetWorldTransformMatrix() const
 			// Rotation: Absolute가 아니면 부모 회전 적용
 			if (!bAbsoluteRotation)
 			{
-				FQuaternion ParentRotation = AttachParent->GetWorldRotationAsQuaternion();
+				FQuat ParentRotation = AttachParent->GetWorldRotationAsQuaternion();
 				if (bInheritPitch && bInheritYaw && bInheritRoll)
 				{
 					WorldRotation = ParentRotation * RelativeRotation;
@@ -160,7 +160,7 @@ const FMatrix& USceneComponent::GetWorldTransformMatrix() const
 					if (!bInheritYaw)   ParentRotator.Yaw   = 0.0f;
 					if (!bInheritRoll)  ParentRotator.Roll  = 0.0f;
 
-					FQuaternion FilteredParentRotation = ParentRotator.Quaternion();
+					FQuat FilteredParentRotation = ParentRotator.Quaternion();
 					WorldRotation = FilteredParentRotation * RelativeRotation;
 				}
 			}
@@ -190,7 +190,7 @@ const FMatrix& USceneComponent::GetWorldTransformMatrixInverse() const
 	{
 		// World Transform의 역행렬이므로 GetWorldTransformMatrix의 역순으로 계산
 		FVector WorldLocation = RelativeLocation;
-		FQuaternion WorldRotation = RelativeRotation;
+		FQuat WorldRotation = RelativeRotation;
 		FVector WorldScale = RelativeScale3D;
 
 		if (AttachParent)
@@ -231,7 +231,7 @@ FVector USceneComponent::GetWorldLocation() const
     return GetWorldTransformMatrix().GetLocation();
 }
 
-FQuaternion USceneComponent::GetWorldRotationAsQuaternion() const
+FQuat USceneComponent::GetWorldRotationAsQuaternion() const
 {
     if (AttachParent && !IsUsingAbsoluteRotation())
     {
@@ -282,10 +282,10 @@ void USceneComponent::SetWorldLocation(const FVector& NewLocation)
 
 void USceneComponent::SetWorldRotation(const FVector& NewRotation)
 {
-    FQuaternion NewWorldRotationQuat = FQuaternion::FromEuler(NewRotation);
+    FQuat NewWorldRotationQuat = FQuat::FromEuler(NewRotation);
     if (AttachParent && !IsUsingAbsoluteRotation())
     {
-        FQuaternion ParentWorldRotationQuat = AttachParent->GetWorldRotationAsQuaternion();
+        FQuat ParentWorldRotationQuat = AttachParent->GetWorldRotationAsQuaternion();
         SetRelativeRotation(ParentWorldRotationQuat.Inverse() * NewWorldRotationQuat);
     }
     else
@@ -294,11 +294,11 @@ void USceneComponent::SetWorldRotation(const FVector& NewRotation)
     }
 }
 
-void USceneComponent::SetWorldRotation(const FQuaternion& NewRotation)
+void USceneComponent::SetWorldRotation(const FQuat& NewRotation)
 {
 	if (AttachParent && !IsUsingAbsoluteRotation())
 	{
-		FQuaternion ParentWorldRotationQuat = AttachParent->GetWorldRotationAsQuaternion();
+		FQuat ParentWorldRotationQuat = AttachParent->GetWorldRotationAsQuaternion();
 		SetRelativeRotation(ParentWorldRotationQuat.Inverse() * NewRotation);
 	}
 	else

@@ -489,7 +489,7 @@ void UWorld::CreateNewLevel(const FName& InLevelName)
 	if (ADirectionalLight* DirLight = Cast<ADirectionalLight>(DirLightActor))
 	{
 		DirLight->SetActorLocation(FVector(0.0f, 0.0f, 20.0f));
-		DirLight->SetActorRotation(FQuaternion::FromEuler(FVector(0.0f, -45.0f, 0.0f)));
+		DirLight->SetActorRotation(FQuat::FromEuler(FVector(0.0f, -45.0f, 0.0f)));
 		DirLight->SetName("DirectionalLight");
 
 		if (UDirectionalLightComponent* DirComp = DirLight->GetComponentByClass<UDirectionalLightComponent>())

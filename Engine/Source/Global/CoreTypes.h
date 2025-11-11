@@ -1,6 +1,8 @@
 #pragma once
 #include "Vector.h"
 #include "Matrix.h"
+#include "Quaternion.h"
+#include "Rotator.h"
 #include "Runtime/CoreUObject/Public/Archive.h"
 
 #define HAS_DIFFUSE_MAP	 (1 << 0)
@@ -64,26 +66,53 @@ struct FRenderState
 
 /**
  * @brief 변환 정보를 담는 구조체
+ * Unreal Engine과 동일하게 내부적으로 Quaternion을 사용하여 Rotation 저장
  */
 struct FTransform
 {
-	FVector Location = FVector(0.0f, 0.0f, 0.0f);
-	FVector Rotation = FVector(0.0f, 0.0f, 0.0f);
+	FVector Location = {};
+	FQuat Rotation = {};
 	FVector Scale = FVector(1.0f, 1.0f, 1.0f);
 
 	FTransform() = default;
 
-	FTransform(const FVector& InLocation, const FVector& InRotation = FVector::ZeroVector(),
+	FTransform(const FVector& InLocation, const FQuat& InRotation = FQuat::Identity(),
 		const FVector& InScale = FVector::OneVector())
 		: Location(InLocation), Rotation(InRotation), Scale(InScale)
 	{
+	}
+
+	// FRotator를 받는 편의 생성자
+	FTransform(const FVector& InLocation, const FRotator& InRotator, const FVector& InScale = FVector::OneVector())
+		: Location(InLocation), Rotation(InRotator.Quaternion()), Scale(InScale)
+	{
+	}
+
+	// Rotation 접근 편의 메서드
+	FRotator GetRotation() const
+	{
+		return Rotation.ToRotator();
+	}
+
+	void SetRotation(const FRotator& InRotator)
+	{
+		Rotation = InRotator.Quaternion();
+	}
+
+	void SetRotation(const FQuat& InQuaternion)
+	{
+		Rotation = InQuaternion;
 	}
 };
 
 inline FArchive& operator<<(FArchive& Ar, FTransform& Transform)
 {
 	Ar << Transform.Location;
-	Ar << Transform.Rotation;
+	// Quaternion을 직렬화 (X, Y, Z, W)
+	Ar << Transform.Rotation.X;
+	Ar << Transform.Rotation.Y;
+	Ar << Transform.Rotation.Z;
+	Ar << Transform.Rotation.W;
 	Ar << Transform.Scale;
 	return Ar;
 }

@@ -20,14 +20,14 @@ public:
 	virtual void MarkAsDirty();
 
 	void SetRelativeLocation(const FVector& Location);
-	void SetRelativeRotation(const FQuaternion& Rotation);
+	void SetRelativeRotation(const FQuat& Rotation);
 	void SetRelativeScale3D(const FVector& Scale);
 	void SetUniformScale(bool bIsUniform);
 
 	bool IsUniformScale() const;
 
 	const FVector& GetRelativeLocation() const { return RelativeLocation; }
-	const FQuaternion& GetRelativeRotation() const { return RelativeRotation; }
+	const FQuat& GetRelativeRotation() const { return RelativeRotation; }
 	const FVector& GetRelativeScale3D() const { return RelativeScale3D; }
 
 	const FMatrix& GetWorldTransformMatrix() const;
@@ -35,7 +35,7 @@ public:
 
 	FVector GetWorldLocation() const;
     FVector GetWorldRotation() const;
-    FQuaternion GetWorldRotationAsQuaternion() const;
+    FQuat GetWorldRotationAsQuaternion() const;
     FVector GetWorldScale3D() const;
 
 	FVector GetForwardVector() const;
@@ -44,7 +44,7 @@ public:
 
     void SetWorldLocation(const FVector& NewLocation);
     void SetWorldRotation(const FVector& NewRotation);
-    void SetWorldRotation(const FQuaternion& NewRotation);
+    void SetWorldRotation(const FQuat& NewRotation);
     void SetWorldScale3D(const FVector& NewScale);
 
 private:
@@ -54,7 +54,7 @@ private:
 	mutable FMatrix WorldTransformMatrixInverse;
 
 	FVector RelativeLocation = FVector{ 0,0,0.f };
-	FQuaternion RelativeRotation = FQuaternion::Identity();
+	FQuat RelativeRotation = FQuat::Identity();
 	FVector RelativeScale3D = FVector{ 1.f,1.f,1.f };
 	bool bIsUniformScale = false;
 

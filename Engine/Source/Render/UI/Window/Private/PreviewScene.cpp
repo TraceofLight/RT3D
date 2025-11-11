@@ -139,7 +139,7 @@ void FPreviewScene::InjectDefaultContent()
 		PreviewDirectional->SetLightEnabled(true);
 		PreviewDirectional->SetVisible(true);
 		PreviewDirectional->SetLightColor(FVector(1.0, 1.0, 1.0));
-		PreviewDirectional->SetRelativeRotation(FQuaternion::FromEuler(FVector( 0.f, -20.f, 0.f)));
+		PreviewDirectional->SetRelativeRotation(FQuat::FromEuler(FVector( 0.f, -20.f, 0.f)));
 		PreviewDirectional->SetRelativeLocation(FVector(0, 0, 10000));
 	}
 

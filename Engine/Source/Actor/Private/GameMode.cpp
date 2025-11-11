@@ -76,7 +76,7 @@ void AGameMode::BeginPlay()
 			if (DefaultCamera)
 			{
 				DefaultCamera->SetActorLocation(FVector(0, 0, 0));
-				DefaultCamera->SetActorRotation(FQuaternion::Identity());
+				DefaultCamera->SetActorRotation(FQuat::Identity());
 				PlayerCameraManager->SetViewTarget(DefaultCamera);
 				UE_LOG_INFO("GameMode: Created default CameraActor at origin as ViewTarget");
 			}

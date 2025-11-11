@@ -20,14 +20,14 @@ struct FGizmoBatchRenderer
 		TArray<uint32> Indices;
 		FVector4 Color;
 		FVector Location;
-		FQuaternion Rotation;
+		FQuat Rotation;
 		FVector Scale;
 		bool bAlwaysVisible;
 
 		FBatchedMesh()
 			: Color(1, 1, 1, 1)
 			, Location(0, 0, 0)
-			, Rotation(FQuaternion::Identity())
+			, Rotation(FQuat::Identity())
 			, Scale(1, 1, 1)
 			, bAlwaysVisible(true)
 		{}
@@ -37,7 +37,7 @@ struct FGizmoBatchRenderer
 
 	void AddMesh(const TArray<FNormalVertex>& InVertices, const TArray<uint32>& InIndices,
 	             const FVector4& InColor, const FVector& InLocation,
-	             const FQuaternion& InRotation = FQuaternion::Identity(),
+	             const FQuat& InRotation = FQuat::Identity(),
 	             const FVector& InScale = FVector(1, 1, 1));
 
 	void FlushAndRender(const FRenderState& InRenderState);
@@ -70,7 +70,7 @@ public:
 	 */
 	void SetLocation(const FVector& Location) const;
 	void SetGizmoDirection(EGizmoDirection Direction) { GizmoDirection = Direction; }
-	void SetComponentRotation(const FQuaternion& Rotation) const { TargetComponent->SetWorldRotation(Rotation); }
+	void SetComponentRotation(const FQuat& Rotation) const { TargetComponent->SetWorldRotation(Rotation); }
 	void SetComponentScale(const FVector& Scale) const { TargetComponent->SetWorldScale3D(Scale); }
 	void SetPreviousMouseLocation(const FVector& Location) { PreviousMouseLocation = Location; }
 	void SetCurrentRotationAngle(float Angle) { CurrentRotationAngle = Angle; }
@@ -104,12 +104,12 @@ public:
 		}
 		return FVector(0, 0, 0);
 	}
-	FQuaternion GetComponentRotation() const { return TargetComponent->GetWorldRotationAsQuaternion(); }
+	FQuat GetComponentRotation() const { return TargetComponent->GetWorldRotationAsQuaternion(); }
 	FVector GetComponentScale() const { return TargetComponent->GetWorldScale3D(); }
 	FVector GetDragStartMouseLocation() { return DragStartMouseLocation; }
 	FVector GetDragStartActorLocation() { return DragStartActorLocation; }
 	FVector GetDragStartActorRotation() { return DragStartActorRotation; }
-	FQuaternion GetDragStartActorRotationQuat() const { return DragStartActorRotationQuat; }
+	FQuat GetDragStartActorRotationQuat() const { return DragStartActorRotationQuat; }
 	FVector GetDragStartActorScale() { return DragStartActorScale; }
 	EGizmoMode GetGizmoMode() const { return GizmoMode; }
 	FVector GetGizmoAxis() const
@@ -216,7 +216,7 @@ private:
 	FVector DragStartActorLocation;
 	FVector DragStartMouseLocation;
 	FVector DragStartActorRotation;
-	FQuaternion DragStartActorRotationQuat;
+	FQuat DragStartActorRotationQuat;
 	FVector DragStartActorScale;
 
 	FGizmoTranslationCollisionConfig TranslateCollisionConfig;
@@ -254,14 +254,14 @@ private:
 
 	// Modular rendering functions
 	void RenderCenterSphere(const FEditorPrimitive& P, float RenderScale);
-	void RenderTranslatePlanes(const FEditorPrimitive& P, const FQuaternion& BaseRot, float RenderScale);
-	void RenderScalePlanes(const FEditorPrimitive& P, const FQuaternion& BaseRot, float RenderScale);
-	void RenderRotationCircles(const FEditorPrimitive& P, const FQuaternion& AxisRotation,
-	const FQuaternion& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, FViewportClient* InClient);
-	void RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuaternion& BaseRot,
+	void RenderTranslatePlanes(const FEditorPrimitive& P, const FQuat& BaseRot, float RenderScale);
+	void RenderScalePlanes(const FEditorPrimitive& P, const FQuat& BaseRot, float RenderScale);
+	void RenderRotationCircles(const FEditorPrimitive& P, const FQuat& AxisRotation,
+	const FQuat& BaseRot, const FVector4& AxisColor, const FVector& BaseAxis0, const FVector& BaseAxis1, FViewportClient* InClient);
+	void RenderRotationQuarterRing(const FEditorPrimitive& P, const FQuat& BaseRot,
 	EGizmoDirection Direction, FViewportClient* InClient, const FVector& BaseAxis0, const FVector& BaseAxis1);
 
 	// 스크린 공간 축 방향 벡터 계산
 	void CalculateScreenSpaceAxisDirections(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport,
-		const FVector& GizmoLocation, const FQuaternion& BaseRot, float RenderScale);
+		const FVector& GizmoLocation, const FQuat& BaseRot, float RenderScale);
 };

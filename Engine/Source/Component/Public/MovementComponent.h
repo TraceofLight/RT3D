@@ -14,7 +14,7 @@ public:
 
     virtual void BeginPlay() override;
     void SetUpdatedComponent(USceneComponent* NewUpdatedComponent);
-    void MoveUpdatedComponent(const FVector& Delta, const FQuaternion& NewRotation);
+    void MoveUpdatedComponent(const FVector& Delta, const FQuat& NewRotation);
 
 protected:
     USceneComponent* UpdatedComponent = nullptr;

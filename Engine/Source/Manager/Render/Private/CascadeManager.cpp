@@ -97,7 +97,7 @@ FCascadeShadowMapData UCascadeManager::GetCascadeShadowMapData(
 
     // Directional Light의 View Matrix 계산
     // 라이트가 향하는 방향의 반대쪽에서 바라보는 View 행렬 생성
-    FQuaternion LightRotation = InDirectionalLight->GetWorldRotationAsQuaternion();
+    FQuat LightRotation = InDirectionalLight->GetWorldRotationAsQuaternion();
     FVector LightForward = LightRotation.RotateVector(FVector::ForwardVector());
     FVector WorldUp = LightRotation.RotateVector(FVector::UpVector());
 

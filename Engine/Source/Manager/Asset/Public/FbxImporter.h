@@ -62,7 +62,7 @@ private:
 	// 좌표계 변환 (FBX -> Project)
 	static FVector ConvertPosition(const FbxVector4& FbxVec);
 	static FVector ConvertNormal(const FbxVector4& FbxVec);
-	static FQuaternion ConvertRotation(const FbxQuaternion& FbxQuat);
+	static FQuat ConvertRotation(const FbxQuaternion& FbxQuat);
 	static FTransform ConvertTransform(const FbxNode* Node);
 	static FMatrix FbxMatrixToFMatrix(const FbxAMatrix& FbxMat);
 

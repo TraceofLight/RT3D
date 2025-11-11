@@ -119,7 +119,7 @@ UClass* UDirectionalLightComponent::GetSpecificWidgetClass() const
 
 FVector UDirectionalLightComponent::GetForwardVector() const
 {
-    FQuaternion LightRotation = GetWorldRotationAsQuaternion();
+    FQuat LightRotation = GetWorldRotationAsQuaternion();
     return LightRotation.RotateVector(FVector::ForwardVector());
 }
 
@@ -131,7 +131,7 @@ void UDirectionalLightComponent::RenderLightDirectionGizmo(FViewportClient* InCl
     }
 
     FVector LightLocation = GetWorldLocation();
-    FQuaternion LightRotation = GetWorldRotationAsQuaternion();
+    FQuat LightRotation = GetWorldRotationAsQuaternion();
 
     // 고정 스케일 사용
     constexpr float FixedScale = 5.0f;

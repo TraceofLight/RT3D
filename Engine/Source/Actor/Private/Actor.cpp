@@ -188,7 +188,7 @@ void AActor::Serialize(bool bInIsLoading, JSON& InOutHandle)
     		    FJsonSerializer::ReadVector(InOutHandle, "Scale", Scale, GetActorScale3D());
 
     		    SetActorLocation(Location);
-    		    SetActorRotation(FQuaternion::FromEuler(RotationEuler));
+    		    SetActorRotation(FQuat::FromEuler(RotationEuler));
         		SetActorScale3D(Scale);
         	}
 
@@ -270,7 +270,7 @@ void AActor::SetActorLocation(const FVector& InLocation) const
 	}
 }
 
-void AActor::SetActorRotation(const FQuaternion& InRotation) const
+void AActor::SetActorRotation(const FQuat& InRotation) const
 {
 	if (RootComponent)
 	{
@@ -339,7 +339,7 @@ const FVector& AActor::GetActorLocation() const
 	return RootComponent->GetRelativeLocation();
 }
 
-const FQuaternion& AActor::GetActorRotation() const
+const FQuat& AActor::GetActorRotation() const
 {
 	assert(RootComponent);
 	return RootComponent->GetRelativeRotation();
@@ -741,7 +741,7 @@ void AActor::GetOverlappingComponents(const AActor* OtherActor, TArray<UPrimitiv
 	}
 }
 
-AActor* AActor::DuplicateFromTemplate(ULevel* TargetLevel, const FVector& InLocation, const FQuaternion& InRotation)
+AActor* AActor::DuplicateFromTemplate(ULevel* TargetLevel, const FVector& InLocation, const FQuat& InRotation)
 {
 	// 일반 Duplicate 수행
 	AActor* NewActor = Cast<AActor>(Duplicate());

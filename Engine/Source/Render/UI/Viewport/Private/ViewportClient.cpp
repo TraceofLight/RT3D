@@ -146,7 +146,7 @@ FVector FViewportClient::GetForward() const
     {
         // ViewRotation (Pitch, Yaw, Roll)을 Quaternion으로 변환
         const FRotator Rotator(ViewRotation.X, ViewRotation.Y, ViewRotation.Z);
-        const FQuaternion RotationQuat = Rotator.Quaternion();
+        const FQuat RotationQuat = Rotator.Quaternion();
         const FMatrix RotationMatrix = RotationQuat.ToRotationMatrix();
         const FVector4 Forward4 = FVector4::ForwardVector() * RotationMatrix;
 
@@ -277,7 +277,7 @@ FMinimalViewInfo FViewportClient::GetViewInfo() const
     // Convert ViewRotation (Pitch, Yaw, Roll) to Quaternion
     FVector Radians = FVector::GetDegreeToRadian(ViewRotation);
     FMatrix RotationMatrix = FMatrix::CreateFromYawPitchRoll(Radians.Y, Radians.X, Radians.Z);
-    ViewInfo.Rotation = FQuaternion::FromRotationMatrix(RotationMatrix);
+    ViewInfo.Rotation = FQuat::FromRotationMatrix(RotationMatrix);
 
     ViewInfo.FOV = FOV;
     ViewInfo.AspectRatio = OwningViewport ? (static_cast<float>(OwningViewport->GetRect().Width) / static_cast<float>(OwningViewport->GetRect().Height)) : 1.777f;

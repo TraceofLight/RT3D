@@ -3,7 +3,7 @@
 struct FRotator;
 struct FVector;
 struct FVector4;
-struct FQuaternion;
+struct FQuat;
 struct FArchive;
 
 struct FMatrix
@@ -111,10 +111,10 @@ struct FMatrix
 
 	    static FMatrix GetModelMatrix(const FVector& Location, const FVector& Rotation, const FVector& Scale);
 
-	    static FMatrix GetModelMatrix(const FVector& Location, const FQuaternion& Rotation, const FVector& Scale);
+	    static FMatrix GetModelMatrix(const FVector& Location, const FQuat& Rotation, const FVector& Scale);
 	    static FMatrix GetModelMatrixInverse(const FVector& Location, const FVector& Rotation, const FVector& Scale);
 
-		static FMatrix GetModelMatrixInverse(const FVector& Location, const FQuaternion& Rotation, const FVector& Scale);
+		static FMatrix GetModelMatrixInverse(const FVector& Location, const FQuat& Rotation, const FVector& Scale);
 	static FVector4 VectorMultiply(const FVector4&, const FMatrix&);
 
 	static FVector VectorMultiply(const FVector& v, const FMatrix& m);
@@ -143,7 +143,7 @@ struct FMatrix
 	static FMatrix CreateTranslation(const FVector& Translation);
 
 	static FMatrix CreateFromRotator(const FRotator& InRotator);
-	FQuaternion ToQuaternion() const;
+	FQuat ToQuaternion() const;
 };
 
 // Archive serialization

@@ -871,7 +871,7 @@ void UViewportManager::UpdateViewportInput()
 		// 2. 이동 처리 (WASD + QE) - Camera.cpp와 동일하게 Right/Forward 벡터 계산
 		// FRotator -> Quaternion -> RotationMatrix -> Forward/Right/Up 계산
 		FRotator ViewRotator(CurrentRotation.X, CurrentRotation.Y, CurrentRotation.Z);
-		const FQuaternion RotationQuat = ViewRotator.Quaternion();
+		const FQuat RotationQuat = ViewRotator.Quaternion();
 		const FMatrix RotationMatrix = RotationQuat.ToRotationMatrix();
 		const FVector4 Forward4 = FVector4::ForwardVector() * RotationMatrix;
 

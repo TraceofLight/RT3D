@@ -40,7 +40,7 @@ private:
 	// Runtime
 	FVector PreviousLocation;
 	bool bIsFirstUpdate;
-	FQuaternion LaggedWorldRotation;
+	FQuat LaggedWorldRotation;
 	FVector LaggedWorldLocation;
 	FVector PreviousChildRelativeLocation;
 	float CurrentArmLength;

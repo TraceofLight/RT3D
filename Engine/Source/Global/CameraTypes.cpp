@@ -80,7 +80,7 @@ FMinimalViewInfo FMinimalViewInfo::Blend(
 
 	// Slerp rotation (MUST clamp - Slerp doesn't support overshoot)
 	float RotationAlpha = std::clamp(BlendedAlpha, 0.0f, 1.0f);
-	Result.Rotation = FQuaternion::SlerpShortestPath(A.Rotation, B.Rotation, RotationAlpha);
+	Result.Rotation = FQuat::SlerpShortestPath(A.Rotation, B.Rotation, RotationAlpha);
 
 	// Lerp FOV (safe, but clamp to reasonable range)
 	Result.FOV = A.FOV + (B.FOV - A.FOV) * BlendedAlpha;

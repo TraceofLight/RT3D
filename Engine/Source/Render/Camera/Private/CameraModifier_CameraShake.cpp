@@ -109,8 +109,8 @@ bool UCameraModifier_CameraShake::ModifyCamera(float DeltaTime, FMinimalViewInfo
 	return Super::ModifyCamera(DeltaTime, InOutPOV);
 }
 
-void UCameraModifier_CameraShake::ModifyCamera(float DeltaTime, FVector ViewLocation, FQuaternion ViewRotation, float FOV,
-                                                FVector& NewViewLocation, FQuaternion& NewViewRotation, float& NewFOV)
+void UCameraModifier_CameraShake::ModifyCamera(float DeltaTime, FVector ViewLocation, FQuat ViewRotation, float FOV,
+                                                FVector& NewViewLocation, FQuat& NewViewRotation, float& NewFOV)
 {
 	// Apply location shake
 	NewViewLocation.X = ViewLocation.X + LocOscillation[0].Update(DeltaTime);
@@ -123,7 +123,7 @@ void UCameraModifier_CameraShake::ModifyCamera(float DeltaTime, FVector ViewLoca
 	float RollDelta = RotOscillation[2].Update(DeltaTime);
 
 	// Create delta rotation quaternion from Euler angles
-	FQuaternion DeltaRotation = FQuaternion::FromEuler(FVector(PitchDelta, YawDelta, RollDelta));
+	FQuat DeltaRotation = FQuat::FromEuler(FVector(PitchDelta, YawDelta, RollDelta));
 
 	// Apply delta rotation to current rotation
 	NewViewRotation = ViewRotation * DeltaRotation;

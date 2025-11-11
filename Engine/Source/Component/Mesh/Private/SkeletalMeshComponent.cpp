@@ -77,11 +77,11 @@ void USkeletalMeshComponent::SetLocalPose(const TArray<FTransform>& InLocalPose)
     LocalPose = InLocalPose;
     bSkinnedVerticesDirty = true;
 }
-FTransform& USkeletalMeshComponent::GetLocalPose(const uint32 Idx)
+FTransform& USkeletalMeshComponent::GetLocalPose(uint32 Idx)
 {
 	return LocalPose[Idx];
 }
-void USkeletalMeshComponent::SetLocalPose(const uint32 Idx, const FTransform& InLocalPose)
+void USkeletalMeshComponent::SetLocalPose(uint32 Idx, const FTransform& InLocalPose)
 {
 	LocalPose[Idx] = InLocalPose;
 	BuildComponentWorldSpacePose();
@@ -106,7 +106,7 @@ void USkeletalMeshComponent::BuildComponentWorldSpacePose()
     for (int32 i = 0; i < NumBones; ++i)
     {
 		const FTransform& L = LocalPose[i];
-		const FQuaternion LocalRot = FQuaternion::FromEuler(L.Rotation);
+		const FQuat LocalRot = L.Rotation;
 		const FMatrix LocalM = FMatrix::GetModelMatrix(L.Location, LocalRot, L.Scale);
 
 		const int32 Parent = ( i < Skel.Parents.Num() ) ? Skel.Parents[i] : -1;

@@ -276,7 +276,7 @@ FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FVector& Rotation
 	return  modelMatrix;
 }
 
-FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FQuaternion& Rotation, const FVector& Scale)
+FMatrix FMatrix::GetModelMatrix(const FVector& Location, const FQuat& Rotation, const FVector& Scale)
 {
     FMatrix T = TranslationMatrix(Location);
     FMatrix R = Rotation.ToRotationMatrix();
@@ -296,7 +296,7 @@ FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FVector& R
 	return modelMatrixInverse;
 }
 
-FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FQuaternion& Rotation, const FVector& Scale)
+FMatrix FMatrix::GetModelMatrixInverse(const FVector& Location, const FQuat& Rotation, const FVector& Scale)
 {
     FMatrix T = TranslationMatrixInverse(Location);
     // The inverse of a rotation matrix is its transpose.
@@ -591,10 +591,10 @@ FMatrix FMatrix::Inverse() const
     return mResult;
 }
 
-FQuaternion FMatrix::ToQuaternion() const
+FQuat FMatrix::ToQuaternion() const
 {
     float Trace = Data[0][0] + Data[1][1] + Data[2][2];
-    FQuaternion Result;
+    FQuat Result;
 
     if (Trace > 0.0f)
     {

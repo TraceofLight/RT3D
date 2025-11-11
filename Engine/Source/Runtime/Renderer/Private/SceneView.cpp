@@ -84,7 +84,7 @@ void FSceneView::InitializeWithMatrices(
 
 	// 뷰 위치/회전 설정
 	ViewLocation = InViewLocation;
-	ViewRotation = FQuaternion::FromEuler(InViewRotation);
+	ViewRotation = FQuat::FromEuler(InViewRotation);
 
 	// FOV 및 클리핑 평면 설정
 	FOV = InFOV;

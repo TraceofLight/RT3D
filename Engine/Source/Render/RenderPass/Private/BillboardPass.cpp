@@ -78,7 +78,7 @@ void FBillboardPass::Execute(FRenderingContext& Context)
         {
             FVector FixedWorldScale = BillBoardComp->GetRelativeScale3D();
             FVector BillboardLocation = BillBoardComp->GetWorldLocation();
-            FQuaternion BillboardRotation = BillBoardComp->GetWorldRotationAsQuaternion();
+            FQuat BillboardRotation = BillBoardComp->GetWorldRotationAsQuaternion();
 
             WorldMatrix = FMatrix::GetModelMatrix(BillboardLocation, BillboardRotation, FixedWorldScale);
         }

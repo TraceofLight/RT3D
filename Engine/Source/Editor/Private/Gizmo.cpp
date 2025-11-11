@@ -193,7 +193,7 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, FVi
 
 	const FVector GizmoLocation = GetGizmoLocation();
 	const FVector LocalGizmoAxis = GetGizmoAxis();
-	const FQuaternion StartRotQuat = GetDragStartActorRotationQuat();
+	const FQuat StartRotQuat = GetDragStartActorRotationQuat();
 
 	// 월드 공간 회전축
 	FVector WorldRotationAxis = LocalGizmoAxis;
@@ -235,7 +235,7 @@ void UGizmo::CollectRotationAngleOverlay(FD2DOverlayManager& OverlayManager, FVi
 	}
 
 	// Local 모드면 컴포넌트 회전만 적용
-	FQuaternion TotalRotation = FQuaternion::Identity();
+	FQuat TotalRotation = FQuat::Identity();
 	if (!IsWorldMode())
 	{
 		TotalRotation = StartRotQuat;

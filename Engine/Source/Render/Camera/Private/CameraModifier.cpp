@@ -22,11 +22,11 @@ bool UCameraModifier::ModifyCamera(float DeltaTime, FMinimalViewInfo& InOutPOV)
 {
 	// Unpack view info for native modify function
 	FVector ViewLocation = InOutPOV.Location;
-	FQuaternion ViewRotation = InOutPOV.Rotation;
+	FQuat ViewRotation = InOutPOV.Rotation;
 	float FOV = InOutPOV.FOV;
 
 	FVector NewViewLocation = ViewLocation;
-	FQuaternion NewViewRotation = ViewRotation;
+	FQuat NewViewRotation = ViewRotation;
 	float NewFOV = FOV;
 
 	// Call protected modify camera (override point for derived classes)
@@ -39,7 +39,7 @@ bool UCameraModifier::ModifyCamera(float DeltaTime, FMinimalViewInfo& InOutPOV)
 		InOutPOV.Location = FVector::Lerp(ViewLocation, NewViewLocation, Alpha);
 
 		// Blend rotation (quaternion slerp)
-		InOutPOV.Rotation = FQuaternion::Slerp(ViewRotation, NewViewRotation, Alpha);
+		InOutPOV.Rotation = FQuat::Slerp(ViewRotation, NewViewRotation, Alpha);
 
 		// Blend FOV
 		InOutPOV.FOV = FOV + (NewFOV - FOV) * Alpha;
@@ -65,8 +65,8 @@ bool UCameraModifier::ModifyCamera(float DeltaTime, FMinimalViewInfo& InOutPOV)
 	return false; // Continue modifier chain by default
 }
 
-void UCameraModifier::ModifyCamera(float DeltaTime, FVector ViewLocation, FQuaternion ViewRotation, float FOV,
-                                    FVector& NewViewLocation, FQuaternion& NewViewRotation, float& NewFOV)
+void UCameraModifier::ModifyCamera(float DeltaTime, FVector ViewLocation, FQuat ViewRotation, float FOV,
+                                    FVector& NewViewLocation, FQuat& NewViewRotation, float& NewFOV)
 {
 	// Base implementation does nothing
 	// Override in derived classes

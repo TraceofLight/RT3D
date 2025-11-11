@@ -41,7 +41,7 @@ void UMovementComponent::SetUpdatedComponent(USceneComponent* NewUpdatedComponen
     }
 }
 
-void UMovementComponent::MoveUpdatedComponent(const FVector& NewDelta, const FQuaternion& NewRotation)
+void UMovementComponent::MoveUpdatedComponent(const FVector& NewDelta, const FQuat& NewRotation)
 {
     if (UpdatedComponent)
     {

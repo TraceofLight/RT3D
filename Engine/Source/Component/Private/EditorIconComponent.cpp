@@ -89,7 +89,7 @@ void UEditorIconComponent::FaceCamera(const FVector& CameraForward)
 
 	FMatrix RotationMatrix = FMatrix(Forward, Right, Up);
 
-	SetWorldRotation(FQuaternion::FromRotationMatrix(RotationMatrix));
+	SetWorldRotation(FQuat::FromRotationMatrix(RotationMatrix));
 }
 
 UTexture* UEditorIconComponent::GetSprite() const

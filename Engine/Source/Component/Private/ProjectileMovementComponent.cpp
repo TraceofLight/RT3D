@@ -33,10 +33,10 @@ void UProjectileMovementComponent::TickComponent(float DeltaTime)
     }
 
     // Rotation Calculate
-    FQuaternion NewRotation = UpdatedComponent->GetWorldRotationAsQuaternion();
+    FQuat NewRotation = UpdatedComponent->GetWorldRotationAsQuaternion();
     if (bRotationFollowsVelocity && !Velocity.IsZero())
     {
-        NewRotation = FQuaternion::MakeFromDirection(Velocity.GetSafeNormal());
+        NewRotation = FQuat::MakeFromDirection(Velocity.GetSafeNormal());
     }
 
     const FVector Delta = Velocity * DeltaTime;

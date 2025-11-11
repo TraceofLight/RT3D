@@ -98,7 +98,7 @@ private:
 
 	// 모든 기즈모 드래그 함수가 ViewportClient를 받도록 통일
 	FVector GetGizmoDragLocation(FViewportClient* InClient, FRay& WorldRay);
-	FQuaternion GetGizmoDragRotation(FViewportClient* InClient, FRay& WorldRay);
+	FQuat GetGizmoDragRotation(FViewportClient* InClient, FRay& WorldRay);
 	FVector GetGizmoDragScale(FViewportClient* InClient, FRay& WorldRay);
 
 	// Focus Target Calculation

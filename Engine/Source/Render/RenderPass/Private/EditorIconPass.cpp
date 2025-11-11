@@ -81,7 +81,7 @@ void FEditorIconPass::Execute(FRenderingContext& Context)
 		{
 			FVector FixedWorldScale = EditorIconComp->GetRelativeScale3D();
 			FVector EditorIconLocation = EditorIconComp->GetWorldLocation();
-			FQuaternion EditorIconRotation = EditorIconComp->GetWorldRotationAsQuaternion();
+			FQuat EditorIconRotation = EditorIconComp->GetWorldRotationAsQuaternion();
 
 			WorldMatrix = FMatrix::GetModelMatrix(EditorIconLocation, EditorIconRotation, FixedWorldScale);
 		}

@@ -1220,7 +1220,7 @@ FVector FFbxImporter::ConvertNormal(const FbxVector4& FbxVec)
 	};
 }
 
-FQuaternion FFbxImporter::ConvertRotation(const FbxQuaternion& FbxQuat)
+FQuat FFbxImporter::ConvertRotation(const FbxQuaternion& FbxQuat)
 {
 	// Quaternion 변환
 	return {
@@ -1246,13 +1246,14 @@ FTransform FFbxImporter::ConvertTransform(const FbxNode* Node)
 		static_cast<float>(Translation[2])
 	);
 
-	// Rotation: FBX Euler (Degree) → Project Euler (Degree)
-	// FTransform.Rotation은 FVector(Euler Degree)
-	Transform.Rotation = FVector(
+	// Rotation: FBX Euler (Degree) → FQuaternion
+	// FTransform.Rotation은 FQuaternion
+	FVector EulerDegrees(
 		static_cast<float>(Rotation[0]),
 		static_cast<float>(Rotation[1]),
 		static_cast<float>(Rotation[2])
 	);
+	Transform.Rotation = FQuat::FromEuler(EulerDegrees);
 
 	Transform.Scale = FVector(
 		static_cast<float>(Scaling[0]),

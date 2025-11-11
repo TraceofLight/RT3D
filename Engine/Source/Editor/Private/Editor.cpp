@@ -379,7 +379,7 @@ void UEditor::UpdateBatchLines()
 					const float Radius = SpotLightComponent->GetAttenuationRadius();
 					const float OuterRadian = SpotLightComponent->GetOuterConeAngle();
 					const float InnerRadian = SpotLightComponent->GetInnerConeAngle();
-					FQuaternion Rotation = SpotLightComponent->GetWorldRotationAsQuaternion();
+					FQuat Rotation = SpotLightComponent->GetWorldRotationAsQuaternion();
 					BatchLines.UpdateConeVertices(Center, Radius, OuterRadian, InnerRadian, Rotation);
 					return;
 				}
@@ -515,7 +515,7 @@ void UEditor::ProcessMouseInput()
 			}
 		case EGizmoMode::Rotate:
 			{
-				FQuaternion GizmoDragRotation = GetGizmoDragRotation(Client, WorldRay);
+				FQuat GizmoDragRotation = GetGizmoDragRotation(Client, WorldRay);
 				Gizmo.SetComponentRotation(GizmoDragRotation);
 				break;
 			}
@@ -798,7 +798,7 @@ FVector UEditor::GetGizmoDragLocation(FViewportClient* InClient, FRay& WorldRay)
 	// Local 모드: 컴포넌트 회전 적용
 	if (!Gizmo.IsWorldMode())
 	{
-		const FQuaternion CompRot = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+		const FQuat CompRot = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
 		WorldAxisX = CompRot.RotateVector(WorldAxisX);
 		WorldAxisY = CompRot.RotateVector(WorldAxisY);
 		WorldAxisZ = CompRot.RotateVector(WorldAxisZ);
@@ -844,7 +844,7 @@ FVector UEditor::GetGizmoDragLocation(FViewportClient* InClient, FRay& WorldRay)
 	return Gizmo.GetGizmoLocation() + WorldDelta;
 }
 
-FQuaternion UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& WorldRay)
+FQuat UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& WorldRay)
 {
 	// 드래그를 시작한 뷰포트와 현재 뷰포트가 다르면 드래그 무시
 	if (Gizmo.GetDragStartViewportClient() != InClient)
@@ -854,7 +854,7 @@ FQuaternion UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& World
 
 	const FVector GizmoLocation = Gizmo.GetGizmoLocation();
 	const FVector LocalGizmoAxis = Gizmo.GetGizmoAxis();
-	const FQuaternion StartRotQuat = Gizmo.GetDragStartActorRotationQuat();
+	const FQuat StartRotQuat = Gizmo.GetDragStartActorRotationQuat();
 
 	// 월드 공간 회전축
 	FVector WorldRotationAxis = LocalGizmoAxis;
@@ -979,7 +979,7 @@ FQuaternion UEditor::GetGizmoDragRotation(FViewportClient* InClient, FRay& World
 		}
 
 		// 기즈모 드래그 방향과 회전 방향을 일치시키기 위해 부호 반전
-		const FQuaternion DeltaRotQuat = FQuaternion::FromAxisAngle(LocalGizmoAxis, FinalAngle);
+		const FQuat DeltaRotQuat = FQuat::FromAxisAngle(LocalGizmoAxis, FinalAngle);
 		if (Gizmo.IsWorldMode())
 		{
 			return DeltaRotQuat * StartRotQuat;
@@ -1118,7 +1118,7 @@ FVector UEditor::GetGizmoDragScale(FViewportClient* InClient, FRay& WorldRay)
 	FVector WorldAxisZ = FVector(0, 0, 1);
 
 	// Scale 모드는 World/Local 관계없이 항상 컴포넌트 로컬 축 사용
-	const FQuaternion CompRot = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
+	const FQuat CompRot = Gizmo.GetTargetComponent()->GetWorldRotationAsQuaternion();
 	WorldAxisX = CompRot.RotateVector(WorldAxisX);
 	WorldAxisY = CompRot.RotateVector(WorldAxisY);
 	WorldAxisZ = CompRot.RotateVector(WorldAxisZ);
@@ -1857,7 +1857,7 @@ void UEditor::TogglePilotMode()
 	if (USceneComponent* RootComp = PilotedActor->GetRootComponent())
 	{
 		FVector ActorLocation = RootComp->GetWorldLocation();
-		FQuaternion ActorRotationQuat = RootComp->GetWorldRotationAsQuaternion();
+		FQuat ActorRotationQuat = RootComp->GetWorldRotationAsQuaternion();
 
 		// Quaternion을 (Pitch, Yaw, Roll) Euler angles로 변환
 		FVector EulerAngles = ActorRotationQuat.ToEuler();
@@ -1993,7 +1993,7 @@ void UEditor::UpdatePilotMode()
 				// ViewRotation을 Quaternion으로 변환
 				FVector Radians = FVector::GetDegreeToRadian(ViewportRotation);
 				FMatrix RotationMatrix = FMatrix::CreateFromYawPitchRoll(Radians.Y, Radians.X, Radians.Z);
-				FQuaternion RotationQuat = FQuaternion::FromRotationMatrix(RotationMatrix);
+				FQuat RotationQuat = FQuat::FromRotationMatrix(RotationMatrix);
 
 				// Actor에 Transform 적용
 				RootComp->SetWorldLocation(ViewportLocation);

@@ -329,7 +329,7 @@ void USkeletalMeshComponentWidget::RenderPreviewTopControls(UWorld* TargetWorld,
             changed |= ImGui::DragFloat("Roll",  &roll,  0.2f, -360.f, 360.f, "%.1f deg");
             if (changed)
             {
-                Dir->SetRelativeRotation(FQuaternion::FromEuler(FVector(pitch, yaw, roll)));
+                Dir->SetRelativeRotation(FQuat::FromEuler(FVector(pitch, yaw, roll)));
             }
         	float Intensity = Dir->GetIntensity();
         	if (ImGui::DragFloat("Intensity", &Intensity, 100.0f, 0.0f, FLT_MAX))
@@ -359,7 +359,7 @@ void USkeletalMeshComponentWidget::RenderPreviewTopControls(UWorld* TargetWorld,
                 TargetComponent->SetRelativeLocation(Location);
             }
         	if (ImGui::DragFloat3("Rotation", &Rotation.X, 0.5f)) {
-        		TargetComponent->SetRelativeRotation(FQuaternion::FromEuler(Rotation));
+        		TargetComponent->SetRelativeRotation(FQuat::FromEuler(Rotation));
         	}
 
             // Uniform 스케일 토글
@@ -446,7 +446,13 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 	{
 		FTransform& BoneTransform = SkeletalMeshComponent->GetLocalPose(SelectedBoneIdx);
 		ImGui::DragFloat3("Bone Location", &BoneTransform.Location.X, 0.1f);
-		ImGui::DragFloat3("Bone Rotation", &BoneTransform.Rotation.X, 0.001f);
+
+		FVector EulerRotation = BoneTransform.Rotation.ToEuler();
+		if (ImGui::DragFloat3("Bone Rotation", &EulerRotation.X, 0.001f))
+		{
+			BoneTransform.Rotation = FQuat::FromEuler(EulerRotation);
+		}
+
 		ImGui::DragFloat3("Bone Scale", &BoneTransform.Scale.X, 0.1f);
 
 		SkeletalMeshComponent->SetLocalPose(SelectedBoneIdx, BoneTransform);

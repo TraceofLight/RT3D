@@ -16,7 +16,7 @@ UCapsuleComponent::UCapsuleComponent()
 	bOwnsBoundingBox = true;
 	FCapsule* Capsule = new FCapsule();
 	Capsule->Center = FVector(0.0f, 0.0f, 0.0f); // Local space
-	Capsule->Rotation = FQuaternion::Identity();
+	Capsule->Rotation = FQuat::Identity();
 	Capsule->Radius = CapsuleRadius;
 	Capsule->HalfHeight = CapsuleHalfHeight;
 	BoundingBox = Capsule;
@@ -106,7 +106,7 @@ float UCapsuleComponent::GetScaledCapsuleHalfHeight() const
 FBounds UCapsuleComponent::CalcBounds() const
 {
 	FVector WorldCenter = GetWorldLocation();
-	FQuaternion WorldRotation = GetWorldRotationAsQuaternion();
+	FQuat WorldRotation = GetWorldRotationAsQuaternion();
 	float ScaledRadius = GetScaledCapsuleRadius();
 	float ScaledHalfHeight = GetScaledCapsuleHalfHeight();
 
@@ -171,7 +171,7 @@ UClass* UCapsuleComponent::GetSpecificWidgetClass() const
 void UCapsuleComponent::RenderDebugShape(UBatchLines& BatchLines)
 {
 	FVector WorldLocation = GetWorldLocation();
-	FQuaternion WorldRotation = GetWorldRotationAsQuaternion();
+	FQuat WorldRotation = GetWorldRotationAsQuaternion();
 	float ScaledRadius = GetScaledCapsuleRadius();
 	float ScaledHalfHeight = GetScaledCapsuleHalfHeight();
 
