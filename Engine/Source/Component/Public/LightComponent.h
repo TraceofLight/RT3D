@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "SceneComponent.h"
 #include "LightComponentBase.h"
@@ -138,7 +138,7 @@ protected:
     float ShadowResolutionScale = 1024.0f;
 
     /** Depth bias for shadow acne prevention (0.0 ~ 0.1) */
-    float ShadowBias = 0.005f;
+    float ShadowBias = 0.1f;
 
     /** Slope-scale depth bias (0.0 ~ 4.0) */
     float ShadowSlopeBias = 1.0f;
