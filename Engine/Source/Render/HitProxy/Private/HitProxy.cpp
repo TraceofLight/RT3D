@@ -57,6 +57,11 @@ bool HHitProxy::IsComponent() const
 	return false;
 }
 
+bool HHitProxy::IsBone() const
+{
+	return false;
+}
+
 HWidgetAxis::HWidgetAxis(EGizmoAxisType InAxis, FHitProxyId InId)
 	: HHitProxy(InId), Axis(InAxis)
 {

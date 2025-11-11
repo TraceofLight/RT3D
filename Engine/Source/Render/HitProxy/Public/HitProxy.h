@@ -47,6 +47,7 @@ public:
 
 	virtual bool IsWidgetAxis() const;
 	virtual bool IsComponent() const;
+	virtual bool IsBone() const;
 };
 
 // 기즈모 축 HitProxy
