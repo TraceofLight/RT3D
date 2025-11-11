@@ -91,6 +91,7 @@ bool FFbxImporter::LoadSkeletalMesh(const FString& FilePath, FSkeletalMesh& OutM
 	Converter.Triangulate(Scene, true);
 
 	// Scene 처리
+	OutMesh.PathFileNameString = FilePath;
 	OutMesh.PathFileName = FName(FilePath);
 	ProcessScene(OutMesh);
 

@@ -108,7 +108,7 @@ void USkeletalMeshComponentWidget::RenderSkeletalMeshSelector()
 
 	if (CurrentSkeletalMesh && CurrentSkeletalMesh->GetSkeletalMeshAsset())
 	{
-		PreviewName = CurrentSkeletalMesh->GetSkeletalMeshAsset()->PathFileName.ToString();
+		PreviewName = CurrentSkeletalMesh->GetSkeletalMeshAsset()->PathFileNameString;
 	}
 
 	if (ImGui::BeginCombo("Skeletal Mesh", PreviewName.c_str()))
@@ -118,7 +118,7 @@ void USkeletalMeshComponentWidget::RenderSkeletalMeshSelector()
 			USkeletalMesh* MeshInList = *It;
 			if (!MeshInList || !MeshInList->IsValid()) continue;
 
-			FString MeshName = MeshInList->GetSkeletalMeshAsset()->PathFileName.ToString();
+			FString MeshName = MeshInList->GetSkeletalMeshAsset()->PathFileNameString;
 			const bool bIsSelected = (CurrentSkeletalMesh == MeshInList);
 
 			if (ImGui::Selectable(MeshName.c_str(), bIsSelected))

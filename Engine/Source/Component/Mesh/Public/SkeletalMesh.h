@@ -134,7 +134,8 @@ inline FArchive& operator<<(FArchive& Ar, FSkeleton& Skeleton)
 
 struct FSkeletalMesh
 {
-	FName               PathFileName;
+	FString               PathFileNameString;
+	FName				  PathFileName;
 
 	// 뼈대
 	FSkeleton*     Skeleton = nullptr;
@@ -150,8 +151,8 @@ struct FSkeletalMesh
 
 inline FArchive& operator<<(FArchive& Ar, FSkeletalMesh& SkeletalMesh)
 {
-	Ar << SkeletalMesh.PathFileName;
-
+	Ar << SkeletalMesh.PathFileNameString;
+	SkeletalMesh.PathFileName = FName(SkeletalMesh.PathFileNameString);
 	// Skeleton 포인터 직렬화
 	bool bHasSkeleton = (SkeletalMesh.Skeleton != nullptr);
 	Ar << bHasSkeleton;
