@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "Render/UI/Window/Public/FbxViewportWindow.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
 #include "Render/UI/Widget/Public/SkeletalMeshComponentWidget.h"
@@ -250,6 +250,9 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 	PreviewClient->UpdateEditorCamera(DeltaTime);
 
 	UWorld* SceneWorld = PreviewScene ? PreviewScene->GetWorld() : nullptr;
+
+	if (!PreviewViewport || !PreviewClient) return;
+
 	URenderer::GetInstance().RenderExternalViewport(
 		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), SceneWorld);
 

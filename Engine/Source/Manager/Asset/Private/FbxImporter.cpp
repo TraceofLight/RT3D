@@ -753,6 +753,7 @@ void FFbxImporter::ExtractMaterials(const FbxNode* Node, FSkeletalMesh& OutMesh)
 		FMaterial& DefaultMat = OutMesh.MaterialInfo[0];
 		DefaultMat.Name = "DefaultMaterial";
 		DefaultMat.Diffuse = FVector(0.8f, 0.8f, 0.8f);
+		DefaultMat.Opacity = 1.0f;
 		return;
 	}
 

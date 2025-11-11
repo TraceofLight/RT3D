@@ -125,7 +125,7 @@ private:
 	bool  bEditorCameraEnabled = false;
 
 	float MouseSensitivityDegPerPixel = 0.15f;
-	float MoveSpeedBase = 600.f;          // 유닛/초
+	float MoveSpeedBase = 30.f;          // 유닛/초
 	float ShiftScale = 2.5f;              // Shift 가속
 	float CtrlScale  = 0.2f;
 
@@ -136,7 +136,7 @@ private:
     FViewport* OwningViewport = nullptr;  // FutureEngine: 소속 Viewport 참조
 
     // View Transform (카메라를 소유하지 않고 Transform만 관리)
-    FVector ViewLocation = FVector(-15.0f, 0.f, 10.0f);
+    FVector ViewLocation = FVector(0.0f, -40.f, 0.0f);
     FVector ViewRotation = FVector(0, 0, 0);  // (Pitch, Yaw, Roll)
     float FOV = 60.0f;
     float NearZ = 0.1f;
@@ -144,9 +144,9 @@ private:
     float OrthoZoom = 1.0f;  // Orthographic zoom level
 
     // Saved perspective state for restoration
-    FVector SavedPerspectiveLocation = FVector(-15.0f, 0.f, 10.0f);
+    FVector SavedPerspectiveLocation = FVector(0.0f, -40.f, 0.0f);
     FVector SavedPerspectiveRotation = FVector(0, 0, 0);
-    float SavedPerspectiveFarZ = 1000.0f;
+    float SavedPerspectiveFarZ = 4000.0f;
 
     // PIE/Game 모드용 카메라 매니저 (에디터는 자체 Transform 사용)
     APlayerCameraManager* PlayerCameraManager = nullptr;
