@@ -137,11 +137,11 @@ void USkeletalMeshComponent::BuildSkinMatrices()
 	    return;
     }
 
-	//최종으로 사용할 matrix
+	// 최종으로 사용할 matrix (부모 기준 변환)
     FinalSkinMatrices.SetNum(NumBones);
     for (int32 i = 0; i < NumBones; ++i)
     {
-		FinalSkinMatrices[i] = GlobalPose[i] * Skel.InvRefPoseGlobal[i];
+		FinalSkinMatrices[i] = Skel.InvRefPoseGlobal[i] * GlobalPose[i];
 	}
     bSkinnedVerticesDirty = true;
 }

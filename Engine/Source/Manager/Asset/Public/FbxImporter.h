@@ -63,7 +63,7 @@ private:
 	static FVector ConvertPosition(const FbxVector4& FbxVec);
 	static FVector ConvertNormal(const FbxVector4& FbxVec);
 	static FQuat ConvertRotation(const FbxQuaternion& FbxQuat);
-	static FTransform ConvertTransform(const FbxNode* Node);
+	static FTransform ConvertTransform(FbxNode* Node);
 	static FMatrix FbxMatrixToFMatrix(const FbxAMatrix& FbxMat);
 
 	// Helper 함수

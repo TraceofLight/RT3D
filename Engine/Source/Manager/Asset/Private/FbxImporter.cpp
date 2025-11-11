@@ -538,6 +538,8 @@ void FFbxImporter::BuildBoneHierarchy(const TArray<FbxNode*>& BoneNodes, FSkelet
 	OutSkeleton.Childs.SetNum(NumBones);
 	OutSkeleton.RefPoseLocal.SetNum(NumBones);
 
+	UE_LOG("FbxImporter: BuildBoneHierarchy 시작 (BoneCount: %d)", NumBones);
+
 	for (int32 i = 0; i < NumBones; i++)
 	{
 		FbxNode* BoneNode = BoneNodes[i];
@@ -1231,30 +1233,33 @@ FQuat FFbxImporter::ConvertRotation(const FbxQuaternion& FbxQuat)
 	};
 }
 
-FTransform FFbxImporter::ConvertTransform(const FbxNode* Node)
+FTransform FFbxImporter::ConvertTransform(FbxNode* Node)
 {
 	FTransform Transform;
 
-	// Local Transform (부모 상대)
-	FbxDouble3 Translation = Node->LclTranslation.Get();
-	FbxDouble3 Rotation = Node->LclRotation.Get();
-	FbxDouble3 Scaling = Node->LclScaling.Get();
+	// FBX의 실제 로컬 변환 행렬 계산
+	// LclTranslation/Rotation/Scaling은 애니메이션 프로퍼티이므로 EvaluateLocalTransform 사용
+	FbxAMatrix LocalMatrix = Node->EvaluateLocalTransform();
 
+	// Translation
+	FbxVector4 Translation = LocalMatrix.GetT();
 	Transform.Location = FVector(
 		static_cast<float>(Translation[0]),
 		static_cast<float>(Translation[1]),
 		static_cast<float>(Translation[2])
 	);
 
-	// Rotation: FBX Euler (Degree) → FQuaternion
-	// FTransform.Rotation은 FQuaternion
-	FVector EulerDegrees(
-		static_cast<float>(Rotation[0]),
-		static_cast<float>(Rotation[1]),
-		static_cast<float>(Rotation[2])
+	// Rotation
+	FbxQuaternion FbxQuat = LocalMatrix.GetQ();
+	Transform.Rotation = FQuat(
+		static_cast<float>(FbxQuat[0]), // X
+		static_cast<float>(FbxQuat[1]), // Y
+		static_cast<float>(FbxQuat[2]), // Z
+		static_cast<float>(FbxQuat[3])  // W
 	);
-	Transform.Rotation = FQuat::FromEuler(EulerDegrees);
 
+	// Scale
+	FbxVector4 Scaling = LocalMatrix.GetS();
 	Transform.Scale = FVector(
 		static_cast<float>(Scaling[0]),
 		static_cast<float>(Scaling[1]),
