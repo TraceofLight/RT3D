@@ -350,6 +350,28 @@ void UEditor::UpdateBatchLines()
 		{
 			// Show flag 생기면 여기에 주입!!!
 			SkeletalComponent->RenderDebugBones(BatchLines);
+
+			if (ShowFlags & EEngineShowFlags::SF_Bounds)
+			{
+				if (SkeletalComponent->GetBoundingBox()->GetType() == EBoundingVolumeType::AABB)
+				{
+					FVector WorldMin, WorldMax;
+					SkeletalComponent->GetWorldAABB(WorldMin, WorldMax);
+					FAABB AABB(WorldMin, WorldMax);
+					BatchLines.UpdateBoundingBoxVertices(&AABB);
+				}
+				else
+				{
+					BatchLines.UpdateBoundingBoxVertices(SkeletalComponent->GetBoundingBox());
+
+					// 만약 선택된 타입이 decalspotlightcomponent라면
+					if (Component->IsA(UDecalSpotLightComponent::StaticClass()))
+					{
+						BatchLines.UpdateDecalSpotLightVertices(Cast<UDecalSpotLightComponent>(Component));
+					}
+				}
+			}
+
 			return;
 		}
 

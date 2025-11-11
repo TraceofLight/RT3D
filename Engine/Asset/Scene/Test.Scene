@@ -1,6 +1,6 @@
 {
   "Actors" : {
-    "356" : {
+    "361" : {
       "CollisionTag" : 0,
       "Components" : [{
           "AbsoluteLocation" : false,
@@ -49,7 +49,7 @@
       "bIsTemplate" : "false",
       "bTickInEditor" : "false"
     },
-    "360" : {
+    "365" : {
       "CollisionTag" : 0,
       "Components" : [{
           "AbsoluteLocation" : false,
@@ -62,7 +62,7 @@
           "Name" : "USkeletalMeshComponent_1",
           "ParentName" : "",
           "Rotation" : [-0.000000, 0.000000, 0.000000],
-          "Scale" : [0.020000, 0.020000, 0.020000],
+          "Scale" : [1.000000, 1.000000, 1.000000],
           "SkeletalMeshAsset" : "C:/Users/Jungle/Desktop/git/Week10/FutureEngine/Build/Debug/Data/FBX/SKM_Manny_Simple.fbx",
           "Type" : "USkeletalMeshComponent",
           "bGenerateOverlapEvents" : "false",
@@ -86,13 +86,13 @@
       "Location" : [0.000000, 0.000000, 0.000000],
       "Name" : "ASkeletalMeshActor_1",
       "Rotation" : [-0.000000, 0.000000, 0.000000],
-      "Scale" : [0.020000, 0.020000, 0.020000],
+      "Scale" : [1.000000, 1.000000, 1.000000],
       "Type" : "ASkeletalMeshActor",
       "bCanEverTick" : "false",
       "bIsTemplate" : "false",
       "bTickInEditor" : "false"
     },
-    "364" : {
+    "368" : {
       "CollisionTag" : 0,
       "Components" : [{
           "AbsoluteLocation" : false,
@@ -108,7 +108,7 @@
           "PSMSlideBackEnabled" : true,
           "PSMUnitCubeClip" : true,
           "ParentName" : "",
-          "Rotation" : [-0.000000, -34.999992, 46.999996],
+          "Rotation" : [0.000001, -34.999992, 47.000000],
           "Scale" : [1.000000, 1.000000, 1.000000],
           "ShadowBias" : 0.005000,
           "ShadowModeIndex" : 1,
@@ -138,14 +138,14 @@
         }],
       "Location" : [0.000000, 0.000000, 0.000000],
       "Name" : "ADirectionalLight_1",
-      "Rotation" : [-0.000000, -34.999992, 46.999996],
+      "Rotation" : [0.000001, -34.999992, 47.000000],
       "Scale" : [1.000000, 1.000000, 1.000000],
       "Type" : "ADirectionalLight",
       "bCanEverTick" : "false",
       "bIsTemplate" : "false",
       "bTickInEditor" : "false"
     },
-    "371" : {
+    "372" : {
       "CollisionTag" : 0,
       "Components" : [{
           "AbsoluteLocation" : false,
@@ -271,9 +271,9 @@
     "2" : {
       "FOV" : 60.000000,
       "FarZ" : 1000.000000,
-      "Location" : [16.370346, -68.499107, 48.171894],
+      "Location" : [42.611774, -168.721130, 61.559883],
       "NearZ" : 0.100000,
-      "Rotation" : [-29.349905, 104.999886, 0.000000]
+      "Rotation" : [6.350101, 107.799873, 0.000000]
     },
     "3" : {
       "FOV" : 60.000000,

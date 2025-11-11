@@ -23,6 +23,10 @@ UStaticMeshComponent::UStaticMeshComponent()
 
 UStaticMeshComponent::~UStaticMeshComponent()
 {
+	if (BoundingBox != nullptr)
+	{
+
+	}
 }
 
 void UStaticMeshComponent::Serialize(bool bInIsLoading, JSON& InOutHandle)

@@ -8,6 +8,7 @@
 #include <vector>
 
 class UStaticMeshComponent;
+class UMeshComponent;
 
 /**
  * @brief 그림자 매핑 투영 타입
@@ -74,7 +75,7 @@ public:
 		FMatrix& OutProjectionMatrix,
 		const FVector& LightDirection,
 		const FMinimalViewInfo& ViewInfo,
-		const TArray<UStaticMeshComponent*>& Meshes,
+		const TArray<UMeshComponent*>& Meshes,
 		FPSMParameters& InOutParams
 	);
 
@@ -86,7 +87,7 @@ private:
 	static void ComputeVirtualCameraParameters(
 		const FVector& LightDirection,
 		const FMinimalViewInfo& ViewInfo,
-		const TArray<UStaticMeshComponent*>& Meshes,
+		const TArray<UMeshComponent*>& Meshes,
 		TArray<FPSMBoundingBox>& OutShadowCasters,
 		TArray<FPSMBoundingBox>& OutShadowReceivers,
 		FPSMParameters& InOutParams
@@ -126,7 +127,7 @@ private:
 		FMatrix& OutProj,
 		const FVector& LightDirection,
 		const FMinimalViewInfo& ViewInfo,
-		const TArray<UStaticMeshComponent*>& Meshes,
+		const TArray<UMeshComponent*>& Meshes,
 		FPSMParameters& Params
 	);
 

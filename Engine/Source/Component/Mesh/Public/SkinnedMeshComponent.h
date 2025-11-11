@@ -1,6 +1,7 @@
 #pragma once
 #include "Component/Mesh/Public/MeshComponent.h"
 #include "Component/Mesh/Public/SkeletalMesh.h"
+#include "Source/Physics/Public/AABB.h"
 
 // Base component for skinned rendering. Holds mesh and final skin matrices.
 class USkinnedMeshComponent : public UMeshComponent
@@ -9,6 +10,8 @@ class USkinnedMeshComponent : public UMeshComponent
     DECLARE_CLASS(USkinnedMeshComponent, UMeshComponent)
 
 public:
+	USkinnedMeshComponent();
+	~USkinnedMeshComponent();
     void SetSkeletalMesh(USkeletalMesh* InMesh);
     USkeletalMesh* GetSkeletalMesh() const { return SkeletalMesh; }
 
@@ -23,6 +26,9 @@ public:
     const TArray<FNormalVertex>& GetSkinnedVertices() const;
     const TArray<uint32>& GetSkinnedIndices() const;
     void MarkSkinnedVerticesDirty() { bSkinnedVerticesDirty = true; }
+
+	const TArray<FNormalVertex>* GetVerticesData() const override;
+	const TArray<uint32>* GetIndicesData() const override;
 
 private:
     void UpdateSkinnedVerticesCache() const;

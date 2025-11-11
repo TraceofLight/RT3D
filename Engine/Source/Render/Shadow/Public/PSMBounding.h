@@ -1,6 +1,7 @@
 #pragma once
 
 class UStaticMeshComponent;
+class UMeshComponent;
 
 /**
  * @brief 축 정렬 경계 상자 (Axis-Aligned Bounding Box)
@@ -206,7 +207,7 @@ void TransformBoundingBox(FPSMBoundingBox& Result, const FPSMBoundingBox& Source
 /**
  * @brief 스태틱 메시 컴포넌트의 월드 공간 AABB 가져오기
  */
-void GetMeshWorldBoundingBox(FPSMBoundingBox& OutBox, UStaticMeshComponent* Mesh);
+void GetMeshWorldBoundingBox(FPSMBoundingBox& OutBox, UMeshComponent* Mesh);
 
 /**
  * @brief Swept Sphere-평면 교차 테스트 (그림자 캐스터 컬링용)

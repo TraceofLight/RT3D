@@ -28,13 +28,12 @@ class UPrimitiveComponent : public USceneComponent
 
 public:
 	UPrimitiveComponent();
-
 	void TickComponent(float DeltaTime) override;
 	virtual void OnSelected() override;
 	virtual void OnDeselected() override;
 
-	const TArray<FNormalVertex>* GetVerticesData() const;
-	const TArray<uint32>* GetIndicesData() const;
+	virtual const TArray<FNormalVertex>* GetVerticesData() const;
+	virtual const TArray<uint32>* GetIndicesData() const;
 	ID3D11Buffer* GetVertexBuffer() const;
 	ID3D11Buffer* GetIndexBuffer() const;
 	uint32 GetNumVertices() const;
@@ -115,8 +114,8 @@ protected:
 	ID3D11Buffer* VertexBuffer = nullptr;
 	ID3D11Buffer* IndexBuffer = nullptr;
 
-	uint32 NumVertices = 0;
-	uint32 NumIndices = 0;
+	mutable uint32 NumVertices = 0;
+	mutable uint32 NumIndices = 0;
 
 	FVector4 Color = FVector4{ 0.f,0.f,0.f,0.f };
 

@@ -6,13 +6,24 @@
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
 
 IMPLEMENT_CLASS(USkinnedMeshComponent, UMeshComponent)
+USkinnedMeshComponent::USkinnedMeshComponent()
+{
+	bOwnsBoundingBox = true;
+	BoundingBox = new FAABB();
+}
+USkinnedMeshComponent::~USkinnedMeshComponent()
+{
+	if (bOwnsBoundingBox && BoundingBox)
+	{
+		SafeDelete(BoundingBox);
+	}
+}
 
 void USkinnedMeshComponent::SetSkeletalMesh(USkeletalMesh* InMesh)
 {
     SkeletalMesh = InMesh;
     FinalSkinMatrices.Empty();
     bSkinnedVerticesDirty = true;
-
     if (SkeletalMesh && SkeletalMesh->GetSkeleton())
     {
         FinalSkinMatrices.SetNum(SkeletalMesh->GetSkeleton()->GetNumBones());
@@ -27,6 +38,9 @@ void USkinnedMeshComponent::SetSkeletalMesh(USkeletalMesh* InMesh)
         {
             SkelComp->UseReferencePose();
         }
+
+		RenderState.CullMode = ECullMode::Back;
+		RenderState.FillMode = EFillMode::Solid;
     }
 }
 
@@ -157,6 +171,9 @@ void USkinnedMeshComponent::UpdateSkinnedVerticesCache() const
         TotalIndexCount += Section.Indices.Num();
     }
 
+	NumVertices = TotalVertexCount;
+	NumIndices = TotalIndexCount;
+
     // 캐시 배열 크기 미리 할당
     CachedSkinnedVertices.SetNum(TotalVertexCount);
     CachedSkinnedIndices.SetNum(TotalIndexCount);
@@ -177,6 +194,7 @@ void USkinnedMeshComponent::UpdateSkinnedVerticesCache() const
 
         // Vertex Skinning 병렬 처리
         const int32 VertexOffset = CurrentVertexOffset;
+
         std::for_each(std::execution::par,
             Section.Vertices.begin(), Section.Vertices.end(),
             [&, VertexOffset](const FSkeletalVertex& SkelVert)
@@ -202,5 +220,40 @@ void USkinnedMeshComponent::UpdateSkinnedVerticesCache() const
         CurrentIndexOffset += SectionIndexCount;
     }
 
+	if (CachedSkinnedVertices.Num() > 0)
+	{
+		FVector Min, Max;
+		Min = CachedSkinnedVertices[0].Position;
+		Max = CachedSkinnedVertices[0].Position;
+
+		for (auto& v : CachedSkinnedVertices)
+		{
+			Min.X = std::min(Min.X, v.Position.X);
+			Min.Y = std::min(Min.Y, v.Position.Y);
+			Min.Z = std::min(Min.Z, v.Position.Z);
+
+			Max.X = std::max(Max.X, v.Position.X);
+			Max.Y = std::max(Max.Y, v.Position.Y);
+			Max.Z = std::max(Max.Z, v.Position.Z);
+		}
+
+		FAABB* AABB = static_cast<FAABB*>(BoundingBox);
+		AABB->Min = Min;
+		AABB->Max = Max;
+		bIsAABBCacheDirty = true;
+	}
+
+
     bSkinnedVerticesDirty = false;
+}
+const TArray<FNormalVertex>* USkinnedMeshComponent::GetVerticesData() const
+{
+	GetSkinnedVertices();
+	return &CachedSkinnedVertices;
+}
+const TArray<uint32>* USkinnedMeshComponent::GetIndicesData() const
+{
+	//인덱스는 왜 재세팅 되는거지?
+	GetSkinnedIndices();
+	return &CachedSkinnedIndices;
 }

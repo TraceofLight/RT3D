@@ -1,5 +1,24 @@
 #include "pch.h"
 #include "Physics/Public/AABB.h"
+FAABB::FAABB(const TArray<FVector>& Points)
+{
+	if (Points.Num() <= 0)
+	{
+		return;
+	}
+	Min = Points[0];
+	Max = Points[0];
+	for (const FVector& Point : Points)
+	{
+		Min.X = Min.X > Point.X ? Point.X : Min.X;
+		Min.Y = Min.Y > Point.Y ? Point.Y : Min.Y;
+		Min.Z = Min.Z > Point.Z ? Point.Z : Min.Z;
+
+		Max.X = Max.X < Point.X ? Point.X : Max.X;
+		Max.Y = Max.Y < Point.Y ? Point.Y : Max.Y;
+		Max.Z = Max.Z < Point.Z ? Point.Z : Max.Z;
+	}
+}
 
 float FAABB::GetCenterDistanceSquared(const FVector& Point) const
 {
@@ -113,4 +132,26 @@ float FAABB::GetDistanceSquaredToPoint(const FVector& Point) const
     }
 
     return SquaredDistance;
+}
+
+
+FVector FAABB::GetCorner(const uint32 InIdx) const
+{
+	const uint32 Idx = InIdx % 8;
+	return FVector(Idx & 2 ? Max.X : Min.X, Idx & 1 ? Max.Y : Min.Y, Idx & 4 ? Max.Z : Min.Z);
+}
+
+FAABB FAABB::GetTransformedAABB(const FMatrix& TransformMatrix) const
+{
+	TArray<FVector> TransformedCorners;
+	TransformedCorners.Reserve(8);
+
+	for (int i = 0; i < 8; ++i)
+	{
+		FVector Corner = GetCorner(i);
+		FVector Transformed = TransformMatrix.TransformPosition(Corner);
+		TransformedCorners.Add(Transformed);
+	}
+
+	return FAABB(TransformedCorners);
 }

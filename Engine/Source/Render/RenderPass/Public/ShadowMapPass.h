@@ -10,6 +10,7 @@ class UDirectionalLightComponent;
 class USpotLightComponent;
 class UPointLightComponent;
 class UStaticMeshComponent;
+class UMeshComponent;
 
 /**
  * @brief Shadow map 렌더링 전용 pass
@@ -129,7 +130,7 @@ private:
 	 */
 	void RenderDirectionalShadowMap(
 		UDirectionalLightComponent* Light,
-		const TArray<UStaticMeshComponent*>& Meshes,
+		const TArray<UMeshComponent*>& Meshes,
 		const FMinimalViewInfo& InViewInfo
 		);
 
@@ -142,7 +143,7 @@ private:
 	void RenderSpotShadowMap(
 		USpotLightComponent* Light,
 		uint32 AtlasIndex,
-		const TArray<UStaticMeshComponent*>& Meshes
+		const TArray<UMeshComponent*>& Meshes
 		);
 
 	// --- Point Light Shadow Rendering (6 faces) ---
@@ -154,7 +155,7 @@ private:
 	void RenderPointShadowMap(
 		UPointLightComponent* Light,
 		uint32 AtlasIndex,
-		const TArray<UStaticMeshComponent*>& Meshes
+		const TArray<UMeshComponent*>& Meshes
 		);
 
 	void SetShadowAtlasTilePositionStructuredBuffer();
@@ -169,7 +170,7 @@ private:
 	 * @param OutProj 출력 projection matrix
 	 */
 	void CalculateDirectionalLightViewProj(UDirectionalLightComponent* Light,
-		const TArray<UStaticMeshComponent*>& Meshes, const FMinimalViewInfo& InViewInfo, FMatrix& OutView, FMatrix& OutProj);
+		const TArray<UMeshComponent*>& Meshes, const FMinimalViewInfo& InViewInfo, FMatrix& OutView, FMatrix& OutProj);
 
 	/**
 	 * @brief Uniform Shadow Map의 view-projection 행렬을 계산합니다 (Sample 버전).
@@ -179,7 +180,7 @@ private:
 	 * @param OutProj 출력 projection matrix
 	 */
 	void CalculateUniformShadowMapViewProj(UDirectionalLightComponent* Light,
-		const TArray<UStaticMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj);
+		const TArray<UMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj);
 
 	/**
 	 * @brief Spot light의 view-projection 행렬을 계산합니다.
@@ -189,7 +190,7 @@ private:
 	 * @param OutProj 출력 projection matrix
 	 */
 	void CalculateSpotLightViewProj(USpotLightComponent* Light,
-		const TArray<UStaticMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj);
+		const TArray<UMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj);
 
 	/**
 	 * @brief Point light의 6면에 대한 view-projection 행렬을 계산합니다.
@@ -212,7 +213,7 @@ private:
 	 */
 	FCubeShadowMapResource* GetOrCreateCubeShadowMap(UPointLightComponent* Light);
 
-	void RenderMeshDepth(const UStaticMeshComponent* InMesh, const FMatrix& InView, const FMatrix& InProj) const;
+	void RenderMeshDepth(const UMeshComponent* InMesh, const FMatrix& InView, const FMatrix& InProj) const;
 
 	// /**
 	//  * @brief Directional light의 rasterizer state를 가져오거나 생성합니다.

@@ -8,6 +8,7 @@
 #include "Component/Public/PointLightComponent.h"
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Render/Shadow/Public/PSMCalculator.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
 
 #define MAX_LIGHT_NUM 8
 #define X_OFFSET 1024.0f
@@ -176,12 +177,22 @@ void FShadowMapPass::Execute(FRenderingContext& Context)
 	// Phase 1: Directional Lights
 	ActiveDirectionalLightCount = 0;
 	ActiveDirectionalCascadeCount = 0;
+	TArray<UMeshComponent*> Meshes;
+	for (UStaticMeshComponent* StaticMeshComp : Context.StaticMeshes)
+	{
+		Meshes.Add(StaticMeshComp);
+	}
+	for (USkeletalMeshComponent* SkeletalMeshComp : Context.SkeletalMeshes)
+	{
+		Meshes.Add(SkeletalMeshComp);
+	}
+
 	for (auto DirLight : Context.DirectionalLights)
 	{
 		if (DirLight->GetCastShadows() && DirLight->GetLightEnabled())
 		{
 			// 유효한 첫번째 Dir Light만 사용
-			RenderDirectionalShadowMap(DirLight, Context.StaticMeshes, Context.ViewInfo);
+			RenderDirectionalShadowMap(DirLight, Meshes, Context.ViewInfo);
 			ActiveDirectionalLightCount = 1;
 			ActiveDirectionalCascadeCount = UCascadeManager::GetInstance().GetSplitNum();
 			break;
@@ -205,7 +216,7 @@ void FShadowMapPass::Execute(FRenderingContext& Context)
 	ActiveSpotLightCount = static_cast<uint32>(ValidSpotLights.Num());
 	for (int32 i = 0; i < ValidSpotLights.Num(); i++)
 	{
-		RenderSpotShadowMap(ValidSpotLights[i], i, Context.StaticMeshes);
+		RenderSpotShadowMap(ValidSpotLights[i], i, Meshes);
 	}
 
 	// Phase 3: Point Lights
@@ -224,7 +235,7 @@ void FShadowMapPass::Execute(FRenderingContext& Context)
 	ActivePointLightCount = static_cast<uint32>(ValidPointLights.Num());
 	for (int32 i = 0; i < ValidPointLights.Num(); i++)
 	{
-		RenderPointShadowMap(ValidPointLights[i], i, Context.StaticMeshes);
+		RenderPointShadowMap(ValidPointLights[i], i, Meshes);
 	}
 
 	SetShadowAtlasTilePositionStructuredBuffer();
@@ -232,7 +243,7 @@ void FShadowMapPass::Execute(FRenderingContext& Context)
 
 void FShadowMapPass::RenderDirectionalShadowMap(
 	UDirectionalLightComponent* Light,
-	const TArray<UStaticMeshComponent*>& Meshes,
+	const TArray<UMeshComponent*>& Meshes,
 	const FMinimalViewInfo& InViewInfo
 	)
 {
@@ -386,7 +397,7 @@ void FShadowMapPass::RenderDirectionalShadowMap(
 void FShadowMapPass::RenderSpotShadowMap(
 	USpotLightComponent* Light,
 	uint32 AtlasIndex,
-	const TArray<UStaticMeshComponent*>& Meshes
+	const TArray<UMeshComponent*>& Meshes
 	)
 {
 	// FShadowMapResource* ShadowMap = GetOrCreateShadowMap(Light);
@@ -491,7 +502,7 @@ void FShadowMapPass::RenderSpotShadowMap(
 void FShadowMapPass::RenderPointShadowMap(
 	UPointLightComponent* Light,
 	uint32 AtlasIndex,
-	const TArray<UStaticMeshComponent*>& Meshes
+	const TArray<UMeshComponent*>& Meshes
 	)
 {
 	// FCubeShadowMapResource* ShadowMap = GetOrCreateCubeShadowMap(Light);
@@ -647,7 +658,7 @@ void FShadowMapPass::SetShadowAtlasTilePositionStructuredBuffer()
 }
 
 void FShadowMapPass::CalculateDirectionalLightViewProj(UDirectionalLightComponent* Light,
-	const TArray<UStaticMeshComponent*>& Meshes, const FMinimalViewInfo& InViewInfo, FMatrix& OutView, FMatrix& OutProj)
+	const TArray<UMeshComponent*>& Meshes, const FMinimalViewInfo& InViewInfo, FMatrix& OutView, FMatrix& OutProj)
 {
 	// 빛 방향 가져오기 (빛이 비추는 방향)
 	FVector LightDir = Light->GetForwardVector();
@@ -678,7 +689,7 @@ void FShadowMapPass::CalculateDirectionalLightViewProj(UDirectionalLightComponen
 }
 
 void FShadowMapPass::CalculateUniformShadowMapViewProj(UDirectionalLightComponent* Light,
-	const TArray<UStaticMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj)
+	const TArray<UMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj)
 {
 	// Sample 버전의 Uniform Shadow Map 구현
 	// 1. 모든 메시의 AABB를 포함하는 bounding box 계산
@@ -786,7 +797,7 @@ void FShadowMapPass::CalculateUniformShadowMapViewProj(UDirectionalLightComponen
 }
 
 void FShadowMapPass::CalculateSpotLightViewProj(USpotLightComponent* Light,
-	const TArray<UStaticMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj)
+	const TArray<UMeshComponent*>& Meshes, FMatrix& OutView, FMatrix& OutProj)
 {
 	// 1. Light의 위치와 방향 가져오기
 	FVector LightPos = Light->GetWorldLocation();
@@ -1021,7 +1032,7 @@ uint32 FShadowMapPass::GetMaxAtlasTileCount()
  * @param InView Light space view 행렬
  * @param InProj Light space projection 행렬
  */
-void FShadowMapPass::RenderMeshDepth(const UStaticMeshComponent* InMesh, const FMatrix& InView, const FMatrix& InProj) const
+void FShadowMapPass::RenderMeshDepth(const UMeshComponent* InMesh, const FMatrix& InView, const FMatrix& InProj) const
 {
 	// Constant buffer 업데이트
 	FShadowViewProjConstant CBData;
@@ -1034,21 +1045,53 @@ void FShadowMapPass::RenderMeshDepth(const UStaticMeshComponent* InMesh, const F
 	FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferModel, WorldMatrix);
 	Pipeline->SetConstantBuffer(0, EShaderType::VS, ConstantBufferModel);
 
-	// Vertex/Index buffer 바인딩
-	ID3D11Buffer* VertexBuffer = InMesh->GetVertexBuffer();
-	ID3D11Buffer* IndexBuffer = InMesh->GetIndexBuffer();
-	uint32 IndexCount = InMesh->GetNumIndices();
-
-	if (!VertexBuffer || !IndexBuffer || IndexCount == 0)
+	//SkinnedMeshComponent 다형성을 이용 실패
+	//GetVertexBuffer를 할 수 없다. (D3DBuffer는 컴포넌트에 없어야 한다.)
+	if (const USkinnedMeshComponent* SkinnedMeshComp = Cast<USkinnedMeshComponent>(InMesh))
 	{
-		return;
+		TIME_PROFILE(ShadowSkinned)
+		TIME_PROFILE(ShadowSkinnedCreateBuffer)
+		ID3D11Buffer* DynamicVB = FRenderResourceFactory::CreateDynamicVertexBuffer(
+			SkinnedMeshComp->GetVerticesData()->GetData(),
+			static_cast<int32>(SkinnedMeshComp->GetNumVertices() * sizeof(FNormalVertex))
+		);
+
+		uint32 IndexCount = SkinnedMeshComp->GetNumIndices();
+		ID3D11Buffer* DynamicIB = FRenderResourceFactory::CreateDynamicIndexBuffer(
+			SkinnedMeshComp->GetIndicesData()->GetData(),
+			static_cast<int32>(SkinnedMeshComp->GetNumIndices() * sizeof(uint32))
+		);
+		TIME_PROFILE_END(ShadowSkinnedCreateBuffer)
+
+		Pipeline->SetVertexBuffer(DynamicVB, sizeof(FNormalVertex));
+		Pipeline->SetIndexBuffer(DynamicIB, 0);
+
+		// Draw call
+		Pipeline->DrawIndexed(IndexCount, 0, 0);
+
+		SafeRelease(DynamicVB);
+		SafeRelease(DynamicIB);
+	}
+	else
+	{
+		// Vertex/Index buffer 바인딩
+		ID3D11Buffer* VertexBuffer = InMesh->GetVertexBuffer();
+		ID3D11Buffer* IndexBuffer = InMesh->GetIndexBuffer();
+		uint32 IndexCount = InMesh->GetNumIndices();
+
+		if (!VertexBuffer || !IndexBuffer || IndexCount == 0)
+		{
+			return;
+		}
+
+		Pipeline->SetVertexBuffer(VertexBuffer, sizeof(FNormalVertex));
+		Pipeline->SetIndexBuffer(IndexBuffer, 0);
+
+		// Draw call
+		Pipeline->DrawIndexed(IndexCount, 0, 0);
 	}
 
-	Pipeline->SetVertexBuffer(VertexBuffer, sizeof(FNormalVertex));
-	Pipeline->SetIndexBuffer(IndexBuffer, 0);
-
-	// Draw call
-	Pipeline->DrawIndexed(IndexCount, 0, 0);
+	
 }
 
 void FShadowMapPass::Release()

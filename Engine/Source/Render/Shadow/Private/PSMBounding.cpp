@@ -416,7 +416,7 @@ void TransformBoundingBox(FPSMBoundingBox& Result, const FPSMBoundingBox& Source
 	}
 }
 
-void GetMeshWorldBoundingBox(FPSMBoundingBox& OutBox, UStaticMeshComponent* Mesh)
+void GetMeshWorldBoundingBox(FPSMBoundingBox& OutBox, UMeshComponent* Mesh)
 {
 	if (!Mesh)
 		return;

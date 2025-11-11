@@ -22,7 +22,7 @@ void FPSMCalculator::CalculateShadowProjection(
 	FMatrix& OutProjectionMatrix,
 	const FVector& LightDirection,
 	const FMinimalViewInfo& ViewInfo,
-	const TArray<UStaticMeshComponent*>& Meshes,
+	const TArray<UMeshComponent*>& Meshes,
 	FPSMParameters& InOutParams)
 {
 	// 그림자 캐스터와 리시버 분류
@@ -70,7 +70,7 @@ void FPSMCalculator::CalculateShadowProjection(
 void FPSMCalculator::ComputeVirtualCameraParameters(
 	const FVector& LightDirection,
 	const FMinimalViewInfo& ViewInfo,
-	const TArray<UStaticMeshComponent*>& Meshes,
+	const TArray<UMeshComponent*>& Meshes,
 	TArray<FPSMBoundingBox>& OutShadowCasters,
 	TArray<FPSMBoundingBox>& OutShadowReceivers,
 	FPSMParameters& InOutParams)
@@ -543,7 +543,7 @@ void FPSMCalculator::BuildLSPSMProjection(
 	FMatrix& OutProj,
 	const FVector& LightDirection,
 	const FMinimalViewInfo& ViewInfo,
-	const TArray<UStaticMeshComponent*>& Meshes,
+	const TArray<UMeshComponent*>& Meshes,
 	FPSMParameters& Params)
 {
 	// Sample LiSPSM 알고리즘 정확한 재구현 (line 536-607)
