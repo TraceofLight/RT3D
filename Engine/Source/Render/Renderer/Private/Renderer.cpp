@@ -1225,7 +1225,7 @@ void URenderer::RenderExternalViewport(FViewport* InViewport,
 									   ID3D11DepthStencilView* InDepthStencilView,
 									   UWorld* InWorldOverride)
 {
-      if (!InViewport || !InViewportClient || !InRenderTargetView)
+	if (!InViewport || !InViewportClient || !InRenderTargetView)
     {
         return;
     }
@@ -1260,11 +1260,12 @@ void URenderer::RenderExternalViewport(FViewport* InViewport,
     D3D11_TEXTURE2D_DESC DestinationDesc{};
     DestinationTexture->GetDesc(&DestinationDesc);
 
+	FRect Rect = InViewport->GetRect();
     D3D11_VIEWPORT ExternalViewport = {};
-    ExternalViewport.TopLeftX = 0.0f;
-    ExternalViewport.TopLeftY = 0.0f;
-    ExternalViewport.Width    = static_cast<float>(DestinationDesc.Width);
-    ExternalViewport.Height   = static_cast<float>(DestinationDesc.Height);
+    ExternalViewport.TopLeftX = Rect.Left;
+    ExternalViewport.TopLeftY = Rect.Top;
+    ExternalViewport.Width    = Rect.Width;
+    ExternalViewport.Height   = Rect.Height;
     ExternalViewport.MinDepth = 0.0f;
     ExternalViewport.MaxDepth = 1.0f;
 
