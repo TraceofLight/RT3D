@@ -21,6 +21,7 @@
 #include "Component/Public/SpotLightComponent.h"
 #include "Component/Public/EditorIconComponent.h"
 #include "Component/Public/BillBoardComponent.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Manager/UI/Public/ViewportManager.h"
 #include "Render/UI/Overlay/Public/D2DOverlayManager.h"
 #include "Render/ui/Viewport/Public/ViewportClient.h"
@@ -343,6 +344,13 @@ void UEditor::UpdateBatchLines()
 				ShapeComponent->RenderDebugShape(BatchLines);
 				return;
 			}
+		}
+
+		if (USkeletalMeshComponent* SkeletalComponent = Cast<USkeletalMeshComponent>(Component))
+		{
+			// Show flag 생기면 여기에 주입!!!
+			SkeletalComponent->RenderDebugBones(BatchLines);
+			return;
 		}
 
 		if (UPrimitiveComponent* PrimitiveComponent = Cast<UPrimitiveComponent>(Component))
