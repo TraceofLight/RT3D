@@ -1,6 +1,7 @@
 #pragma once
 
 class UPrimitiveComponent;
+class USkeletalMeshComponent;
 
 // 기즈모 축 타입
 enum class EGizmoAxisType : uint8
@@ -66,6 +67,17 @@ public:
 
 	HComponent(UPrimitiveComponent* InComponent, FHitProxyId InId);
 	bool IsComponent() const override;
+};
+
+// 본 HitProxy (Bone-level picking)
+class HBone : public HHitProxy
+{
+public:
+	USkeletalMeshComponent* SkeletalMesh;
+	int32 BoneIndex;
+
+	HBone(USkeletalMeshComponent* InSkeletalMesh, int32 InBoneIndex, FHitProxyId InId);
+	virtual bool IsBone() const;
 };
 
 // HitProxy 관리자

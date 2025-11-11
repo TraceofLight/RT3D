@@ -7,7 +7,10 @@
 
 IMPLEMENT_CLASS(USkeletalMeshComponent, USkinnedMeshComponent)
 
-USkeletalMeshComponent::USkeletalMeshComponent() = default;
+USkeletalMeshComponent::USkeletalMeshComponent()
+	: bInBoneEditMode(false)
+{
+}
 
 USkeletalMeshComponent::~USkeletalMeshComponent() = default;
 
