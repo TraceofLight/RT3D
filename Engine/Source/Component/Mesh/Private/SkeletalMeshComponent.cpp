@@ -3,6 +3,7 @@
 #include "Render/UI/Widget/Public/SkeletalMeshComponentWidget.h"
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Utility/Public/JsonSerializer.h"
+#include "Editor/Public/BatchLines.h"
 
 IMPLEMENT_CLASS(USkeletalMeshComponent, USkinnedMeshComponent)
 
@@ -163,6 +164,9 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     BuildSkinMatrices();
 }
 
+void USkeletalMeshComponent::RenderDebugBones(UBatchLines& BatchLines, int32 SelectedBoneIdx)
+{
+	if (!SkeletalMesh || !SkeletalMesh->GetSkeleton()) return;
 
 	if (LocalPose.IsEmpty()) {
 		UseReferencePose();
@@ -170,7 +174,7 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
 
 	// 컴포넌트 -> 월드 행렬 구성
 	const FVector      WorldLocation = GetWorldLocation();
-	const FQuat  WorldRotation = GetWorldRotationAsQuaternion();
+	const FQuaternion  WorldRotation = GetWorldRotationAsQuaternion();
 	const FVector      WorldScale = GetWorldScale3D();
 	const FMatrix      CompToWorld = FMatrix::GetModelMatrix(WorldLocation, WorldRotation, WorldScale);
 

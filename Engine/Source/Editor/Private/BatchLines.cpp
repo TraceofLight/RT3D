@@ -6,8 +6,39 @@
 #include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Global/Octree.h"
 #include "Component/Public/DecalSpotLightComponent.h"
+
 #include "Level/Public/Level.h"
 #include "Physics/Public/OBB.h"
+
+static inline void AddLine(TArray<FVector>& V, TArray<int32>& I,
+						   const FVector& a, const FVector& b)
+{
+	const int ia = V.Num(); V.Add(a);
+	const int ib = V.Num(); V.Add(b);
+	I.Add(ia); I.Add(ib);
+}
+
+static inline void AddRing(TArray<FVector>& V, TArray<int32>& I,
+						   const FVector& c, const FVector& ax, const FVector& ay,
+						   float r, int seg = 16)
+{
+	if (r <= 0.f) return;
+	const float dth = 2.f * PI / float(seg);
+	FVector p0 = c + (ax * r);
+	for (int s=1; s<=seg; ++s) {
+		float th = dth * s;
+		FVector p = c + (ax * (cosf(th)*r)) + (ay * (sinf(th)*r));
+		AddLine(V,I, p0, p);
+		p0 = p;
+	}
+}
+
+static inline void OrthonormalBasis(const FVector& Direction, FVector& U, FVector& V)
+{
+	const FVector Up = (fabsf(Direction.Z) < 0.99f) ? FVector(0,0,1) : FVector(0,1,0);
+	U = Up.Cross(Direction); U.Normalize();
+	V = Direction.Cross(U); V.Normalize();
+}
 
 IMPLEMENT_CLASS(UBatchLines, UObject)
 
@@ -179,6 +210,110 @@ void UBatchLines::UpdateConeVertices(const FVector& InCenter, float InGenerating
 	bChangedVertices = true;
 }
 
+void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
+                                         const TArray<FMatrix>& GlobalPose,
+                                         const FMatrix& ComponentToWorld,
+                                         int32 SelectedBone,
+                                         float JointRadius,
+                                         float WidthScale,
+                                         float BaseBias)
+{
+    BoneLines.Reset();
+    bRenderBones = false;
+    if (!Skeleton || GlobalPose.IsEmpty()) return;
+
+    auto XformPos = [](const FMatrix& M)->FVector {
+        // 행렬에서 위치를 얻는 가장 안전한 방법: 원점 변환
+        return M.TransformPosition(FVector(0,0,0));
+    };
+
+    const int Num = Skeleton->Parents.Num();
+    if (Num <= 0) return;
+
+    // 월드 보정된 본 위치(컴포넌트->월드)
+    TArray<FVector> WorldPos; WorldPos.SetNum(Num);
+    for (int i=0; i<Num; ++i) {
+        FVector Position = XformPos(GlobalPose[i]);
+        WorldPos[i] = ComponentToWorld.TransformPosition(Position);
+    }
+
+    // 조인트: 3개 링
+    for (int i=0; i<Num; ++i) {
+        const bool bSelected = (i == SelectedBone);
+        const float Radius = JointRadius * (bSelected ? 1.35f : 1.0f);
+        const FVector Center = WorldPos[i];
+
+        // 기준축: 부모가 있으면 본 방향, 없으면 세계축
+        FVector Direction(1,0,0); // 임시, X forward
+        if (Skeleton->Parents[i] >= 0) {
+            const FVector p0 = Center;
+            const FVector pp = WorldPos[Skeleton->Parents[i]];
+            Direction = (p0 - pp).GetSafeNormal();
+        }
+        FVector U,V; OrthonormalBasis(Direction, U, V); // Direction에 수직이면서, 서로 수직인 벡터 -> 직교 좌표축
+
+        // 세 개 평면(U V, V * Direction, Direction * U)으로 링
+        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, U, V, Radius, 14);
+        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, V, Direction, Radius, 14);
+        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, Direction, U, Radius, 14);
+    }
+
+    // 본(부모 -> 자식)
+    auto AddBoneDiamond = [&](int Parent, int Child, bool bSelected)
+    {
+        const FVector P = WorldPos[Parent];
+        const FVector C = WorldPos[Child];
+        FVector Direction = (C - P);
+        const float L = Direction.Length();
+        if (L < 1e-4f) return;
+        Direction *= (1.0f / L);
+
+        FVector U,V; OrthonormalBasis(Direction, U, V);
+
+        const float Width = max(0.002f, L * WidthScale * (bSelected ? 1.5f : 1.0f));  // 두께
+        // base를 회전축(여기선 parent 조인트) 쪽으로 편향
+        const float t = clamp(BaseBias, 0.05f, 0.95f); // 0에 가까울수록 parent 쪽
+        const FVector baseCenter = P + Direction * (L * t);
+
+        // 정사각 코너(대칭)
+        const FVector c0 = baseCenter + (U * Width);
+        const FVector c1 = baseCenter + (V * Width);
+        const FVector c2 = baseCenter - (U * Width);
+        const FVector c3 = baseCenter - (V * Width);
+
+        // 두 개의 뾰족한 끝(쌍뿔) : 본의 양 끝
+        const FVector tip0 = P;
+        const FVector tip1 = C;
+
+        // 사각 테두리
+        AddLine(BoneLines.Vertices, BoneLines.Indices, c0, c1);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, c1, c2);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, c2, c3);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, c3, c0);
+
+        // tip0/1에서 각 코너로
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c0);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c1);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c2);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c3);
+
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c0);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c1);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c2);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c3);
+    };
+
+    for (int i=0;i<Num;++i) {
+        for (int Child : Skeleton->Childs[i]) {
+            const bool bSelected = (SelectedBone == i) || (SelectedBone == Child);
+            AddBoneDiamond(i, Child, bSelected);
+        }
+    }
+
+    bRenderBones = (BoneLines.GetNumVertices() > 0);
+    bChangedVertices = true;
+}
+
 
 void UBatchLines::TraverseOctree(const FOctree* InNode)
 {
@@ -204,13 +339,14 @@ void UBatchLines::UpdateVertexBuffer()
 		uint32 NumGridVertices = Grid.GetNumVertices();
 		uint32 NumBoxVertices = BoundingBoxLines.GetNumVertices();
 		uint32 NumSpotLightVertices = bRenderSpotLight ? SpotLightLines.GetNumVertices() : 0;
+		uint32 NumBoneVertices = bRenderBones ? BoneLines.GetNumVertices() : 0;
 		uint32 NumOctreeVertices = 0;
 		for (const auto& Line : OctreeLines)
 		{
 			NumOctreeVertices += Line.GetNumVertices();
 		}
 
-		Vertices.SetNum(NumGridVertices + NumBoxVertices + NumSpotLightVertices + NumOctreeVertices);
+		Vertices.SetNum(NumGridVertices + NumBoxVertices + NumSpotLightVertices + NumOctreeVertices + NumBoneVertices);
 
 		Grid.MergeVerticesAt(Vertices, 0);
 		BoundingBoxLines.MergeVerticesAt(Vertices, NumGridVertices);
@@ -220,6 +356,11 @@ void UBatchLines::UpdateVertexBuffer()
 		{
 			SpotLightLines.MergeVerticesAt(Vertices, CurrentOffset);
 			CurrentOffset += SpotLightLines.GetNumVertices();
+		}
+
+		if (bRenderBones) {
+			BoneLines.MergeVerticesAt(Vertices, CurrentOffset);
+			CurrentOffset += NumBoneVertices;
 		}
 
 		for (auto& Line : OctreeLines)
@@ -451,6 +592,14 @@ void UBatchLines::SetIndices()
 		}
 
 		BaseVertexOffset += SpotLightLines.GetNumVertices();
+	}
+
+	if (bRenderBones) {
+		if (int32* BoneIndex = BoneLines.GetIndices()) {
+			const uint32 BoneIdxCnt = BoneLines.GetNumIndices();
+			for (uint32 k=0;k<BoneIdxCnt;++k) Indices.Add(BaseVertexOffset + BoneIndex[k]);
+		}
+		BaseVertexOffset += BoneLines.GetNumVertices();
 	}
 
 	for (auto& OctreeLine : OctreeLines)

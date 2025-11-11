@@ -4,17 +4,32 @@
 #include "Editor/Public/EditorPrimitive.h"
 #include "Editor/Public/Grid.h"
 #include "Editor/Public/BoundingBoxLines.h"
+#include "Component/Mesh/Public/SkeletalMesh.h"
 
 struct FVertex;
 class FOctree;
 class UDecalSpotLightComponent;
-
 class UBatchLines : UObject
 {
 	DECLARE_CLASS(UBatchLines, UObject)
 public:
 	UBatchLines();
 	~UBatchLines();
+
+	struct FBoneLines
+	{
+		TArray<FVector> Vertices;
+		TArray<int32>   Indices;
+		void Reset() { Vertices.Empty(); Indices.Empty(); }
+		uint32 GetNumVertices() const { return (uint32)Vertices.Num(); }
+		uint32 GetNumIndices()  const { return (uint32)Indices.Num(); }
+		int32* GetIndices() { return Indices.IsEmpty() ? nullptr : Indices.GetData(); }
+
+		void MergeVerticesAt(TArray<FVector>& Out, uint32 Offset) const {
+			if (Vertices.IsEmpty()) return;
+			for (uint32 k=0;k<Vertices.Num();++k) Out[Offset + k] = Vertices[k];
+		}
+	};
 
 	// 종류별 Vertices 업데이트
 	void UpdateUGridVertices(const float newCellSize);
@@ -81,8 +96,10 @@ private:
 	UBoundingBoxLines BoundingBoxLines;
 	UBoundingBoxLines SpotLightLines;
 	TArray<UBoundingBoxLines> OctreeLines;
+	FBoneLines BoneLines;
 
 	bool bRenderBox;
 	bool bRenderSpotLight = false;
+	bool bRenderBones = false;
 };
 
