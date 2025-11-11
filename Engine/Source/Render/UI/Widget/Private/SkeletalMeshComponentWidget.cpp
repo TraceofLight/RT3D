@@ -91,7 +91,7 @@ void USkeletalMeshComponentWidget::RenderWidget()
 	{
 		ImGui::Separator();
 		RenderMaterialSections();
-		if (TargetWorld->GetWorldType() == EWorldType::EditorPreview)
+		// if (TargetWorld->GetWorldType() == EWorldType::EditorPreview)
 		{
 			RenderBoneHierachy(SkeletalMeshComponent);
 		}

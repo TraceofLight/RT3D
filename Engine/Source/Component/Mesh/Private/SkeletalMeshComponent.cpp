@@ -163,3 +163,26 @@ void USkeletalMeshComponent::TickComponent(float DeltaTime)
     BuildSkinMatrices();
 }
 
+
+	if (LocalPose.IsEmpty()) {
+		UseReferencePose();
+	}
+
+	// 컴포넌트 -> 월드 행렬 구성
+	const FVector      WorldLocation = GetWorldLocation();
+	const FQuat  WorldRotation = GetWorldRotationAsQuaternion();
+	const FVector      WorldScale = GetWorldScale3D();
+	const FMatrix      CompToWorld = FMatrix::GetModelMatrix(WorldLocation, WorldRotation, WorldScale);
+
+	// 라인 생성
+	BatchLines.UpdateSkeletonVertices(
+		SkeletalMesh->GetSkeleton(),
+		GlobalPose,                 // 현재 프레임 본 글로벌
+		CompToWorld,
+		SelectedBoneIdx,
+		0.7f,
+		0.06f,
+		0.35f
+	);
+}
+
