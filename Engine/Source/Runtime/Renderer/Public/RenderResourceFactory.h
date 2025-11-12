@@ -137,22 +137,7 @@ public:
 	template<typename T>
 	static FDynamicMeshBuffer* CreateDynamicMeshBuffer(const TArray<T>& Vertices, const TArray<uint32>& Indices)
 	{
-		ComPtr<ID3D11Buffer> VB;
-		ComPtr<ID3D11Buffer> IB;
-		uint32 Stride = sizeof(T);
-		uint32 VertexCount = Vertices.Num();
-		uint32 IndexCount = Indices.Num();
-		VB = FRenderResourceFactory::CreateDynamicVertexBuffer(
-			Vertices.GetData(),
-			static_cast<int32>(VertexCount * Stride)
-		);
-
-		IB = FRenderResourceFactory::CreateDynamicIndexBuffer(
-			Indices.GetData(),
-			static_cast<int32>(IndexCount * sizeof(uint32))
-		);
-
-		return URenderer::GetInstance().GetDeviceResources()->CreateDynamimMeshBuffer(FDynamicMeshBuffer(VB, IB, Stride, VertexCount, IndexCount));
+		return URenderer::GetInstance().GetDeviceResources()->CreateDynamimMeshBuffer(FDynamicMeshBuffer(Vertices, Indices));
 	}
 
 private:
@@ -197,12 +182,22 @@ private:
 };
 struct FDynamicMeshBuffer
 {
-	ComPtr<ID3D11Buffer> VertexBuffer = nullptr;
-	ComPtr<ID3D11Buffer> IndexBuffer = nullptr;
-	uint32 Stride = 0;
-	uint32 VertexCount = 0;
-	uint32 IndexCount = 0;
+	template<typename T>
+	FDynamicMeshBuffer(const TArray<T>& Vertices, const TArray<uint32>& Indices)
+	{
+		Stride = sizeof(T);
+		VertexCount = Vertices.Num();
+		IndexCount = Indices.Num();
+		VertexBuffer = FRenderResourceFactory::CreateDynamicVertexBuffer(
+			Vertices.GetData(),
+			static_cast<int32>(VertexCount * Stride)
+		);
 
+		IndexBuffer = FRenderResourceFactory::CreateDynamicIndexBuffer(
+			Indices.GetData(),
+			static_cast<int32>(IndexCount * sizeof(uint32))
+		);
+	}
 	template<typename T>
 	void UpdateVertexData(const TArray<T>& Vertices)
 	{
@@ -213,4 +208,31 @@ struct FDynamicMeshBuffer
 	{
 		FRenderResourceFactory::UpdateStructuredBuffer(IndexBuffer.Get(), Indices);
 	}
+
+	ID3D11Buffer* GetVB() const
+	{
+		return VertexBuffer == nullptr ? nullptr : VertexBuffer.Get();
+	}
+	ID3D11Buffer* GetIB() const
+	{
+		return IndexBuffer == nullptr ? nullptr : IndexBuffer.Get();
+	}
+	uint32 GetStride() const
+	{
+		return Stride;
+	}
+	uint32 GetVertexCount() const
+	{
+		return VertexCount;
+	}
+	uint32 GetIndexCount() const
+	{
+		return IndexCount;
+	}
+private:
+	ComPtr<ID3D11Buffer> VertexBuffer;
+	ComPtr<ID3D11Buffer> IndexBuffer;
+	uint32 Stride = 0;
+	uint32 VertexCount = 0;
+	uint32 IndexCount = 0;
 };

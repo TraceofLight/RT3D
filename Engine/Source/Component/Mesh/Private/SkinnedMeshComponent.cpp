@@ -305,11 +305,11 @@ const TArray<uint32>* USkinnedMeshComponent::GetIndicesData() const
 
 ID3D11Buffer* USkinnedMeshComponent::GetVertexBuffer() const
 {
-	return DynamicMeshBuffer->VertexBuffer.Get();
+	return DynamicMeshBuffer == nullptr ? nullptr : DynamicMeshBuffer->GetVB();
 }
 ID3D11Buffer* USkinnedMeshComponent::GetIndexBuffer() const
 {
-	return DynamicMeshBuffer->IndexBuffer.Get();
+	return DynamicMeshBuffer == nullptr ? nullptr : DynamicMeshBuffer->GetIB();
 }
 UMaterial* USkinnedMeshComponent::GetMaterial(int32 ElementIndex) const
 {

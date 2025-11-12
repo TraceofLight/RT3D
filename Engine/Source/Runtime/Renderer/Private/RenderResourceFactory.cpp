@@ -44,7 +44,7 @@ void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InF
 	ID3DBlob* VertexShaderBlob = nullptr;
 
 	// 캐시 확인 및 로드/컴파일
-	if (IsShaderUpToDate(MacroPath, CSOPath))
+	if (IsShaderUpToDate(InFilePath, CSOPath))
 	{
 		// 캐시된 CSO 로드
 		VertexShaderBlob = LoadPrecompiledShader(CSOPath);
@@ -169,7 +169,7 @@ void FRenderResourceFactory::CreatePixelShader(const wstring& InFilePath, ID3D11
 	ID3DBlob* PixelShaderBlob = nullptr;
 
 	// 캐시 확인 및 로드/컴파일
-	if (IsShaderUpToDate(MacroPath, CSOPath))
+	if (IsShaderUpToDate(InFilePath, CSOPath))
 	{
 		// 캐시된 CSO 로드
 		PixelShaderBlob = LoadPrecompiledShader(CSOPath);
@@ -392,6 +392,7 @@ void FRenderResourceFactory::EnsureCompiledDirectoryExists(const wstring& InComp
  */
 bool FRenderResourceFactory::IsShaderUpToDate(const wstring& InHLSLPath, const wstring& InCSOPath)
 {
+	return false;
 	try
 	{
 		if (!exists(InCSOPath))
