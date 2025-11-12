@@ -484,7 +484,7 @@ bool FFbxImporter::ProcessSkeletalMesh(FbxNode* MeshNode, FSkeletalMesh& OutMesh
 
 	// Skeleton 생성 및 빌드
 	OutMesh.Skeleton = new FSkeleton();
-	BuildSkeleton(Mesh, *OutMesh.Skeleton);
+	BuildSkeleton(Mesh, *OutMesh.Skeleton); //=> 여기서 
 
 	// Mesh Section 빌드
 	BuildMeshSections(Mesh, OutMesh);
@@ -768,8 +768,6 @@ void FFbxImporter::BuildMeshSections(FbxMesh* Mesh, FSkeletalMesh& OutMesh)
 			// 생성이 성공하면 TangentElement를 다시 가져옵니다.
 			TangentElement = Mesh->GetElementTangent(0);
 		}
-
-
 	}
 	// Vertex 및 Index 빌드
 	int32 VertexCounter = 0;
@@ -1418,6 +1416,7 @@ FTransform FFbxImporter::ConvertTransform(FbxNode* Node)
 	FbxAMatrix LocalMatrix = Node->EvaluateLocalTransform();
 
 	// LocalMatrix를 우리 엔진의 좌표계로 변환
+	// TODO: ConversionMatrix는 현재 Identity 임, 폐기될 예정 
 	FbxAMatrix ConvertedMatrix = AxisConversionMatrix * LocalMatrix * AxisConversionMatrixInv;
 
 	 
