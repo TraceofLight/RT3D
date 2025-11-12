@@ -240,7 +240,7 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
     // 조인트: 3개 링
     for (int i=0; i<Num; ++i) {
         const bool bSelected = (i == SelectedBone);
-        const float Radius = JointRadius * (bSelected ? 1.35f : 1.0f);
+        const float Radius = JointRadius * (bSelected ? 1.35f : 0.3f);
         const FVector Center = WorldPos[i];
 
         // 기준축: 부모가 있으면 본 방향, 없으면 세계축

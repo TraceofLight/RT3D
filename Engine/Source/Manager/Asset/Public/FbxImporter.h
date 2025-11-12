@@ -3,6 +3,14 @@
 
 struct FStaticMesh;
 
+struct FFbxImportOptions
+{
+	bool bConvertScene = true;
+	bool bConvertSceneUnit = true;
+	bool bForceFrontXAxis = true;
+	float ImportUniformScale = 1.0f;
+
+};
 /**
  * @brief FBX 파일에서 Mesh를 로드하는 클래스
  */
@@ -44,6 +52,7 @@ private:
 	void ProcessSceneAsStatic(FStaticMesh& OutMesh) const;
 	static void ProcessNode(FbxNode* Node, FSkeletalMesh& OutMesh);
 	static void ProcessNodeAsStatic(FbxNode* Node, FStaticMesh& OutMesh);
+	static void NormalizeScene(FbxScene* Scene, FbxManager* Manager, const FFbxImportOptions& Opt);
 
 	// Skeletal Mesh 처리
 	static bool ProcessSkeletalMesh(FbxNode* MeshNode, FSkeletalMesh& OutMesh);
@@ -69,6 +78,7 @@ private:
 	// Helper 함수
 	static bool IsMeshSkinned(const FbxMesh* Mesh);
 	static FbxSkin* GetSkin(const FbxMesh* Mesh);
+	static FbxNode* FindModelRootNode(FbxScene* Scene);
 
 	// Texture 재귀 탐색 함수
 	static FString FindTextureInDataFolder(const FString& MaterialName, const FString& TextureSuffix);
@@ -76,4 +86,20 @@ private:
 	// FBX 임베디드 텍스처 추출
 	static FString ExtractEmbeddedTexture(FbxFileTexture* FileTexture, const FString& MaterialName, const FString& TextureType);
 	static FString GetTextureFilePath(FbxProperty& Property, const FString& MaterialName, const FString& TextureType);
+
+	static void ApplySceneRotation(FbxScene* Scene, double Pitch, double Yaw, double Roll);
+
+	// Post Conversion Matrix Getter/Setter
+	static void SetJointPostConversionMatrix(FbxAMatrix ConversionMatrix) { JointPostConversionMatrix = ConversionMatrix; }
+	static const FbxAMatrix& GetJointPostConversionMatrix() { return JointPostConversionMatrix; }
+
+	static void SetAxisConversionMatrix(FbxAMatrix ConversionMatrix) { AxisConversionMatrix = ConversionMatrix; AxisConversionMatrixInv = ConversionMatrix.Inverse(); }
+	static const FbxAMatrix& GetAxisConversionMatrix() { return AxisConversionMatrix; }
+	static const FbxAMatrix& GetAxisConversionMatrixInv() { return AxisConversionMatrixInv; }
+
+
+private:
+	static FbxAMatrix JointPostConversionMatrix;
+	static FbxAMatrix AxisConversionMatrix;
+	static FbxAMatrix AxisConversionMatrixInv;
 };

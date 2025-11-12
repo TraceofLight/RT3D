@@ -4,10 +4,15 @@
 #include "Component/Mesh/Public/StaticMesh.h"
 #include "Texture/Public/Material.h"
 #include "Manager/Path/Public/PathManager.h"
+#include <vector>
 
 // Current FBX file directory for resolving relative texture paths
 static std::filesystem::path GCurrentFbxDir;
 
+FbxAMatrix FFbxImporter::JointPostConversionMatrix;
+FbxAMatrix FFbxImporter::AxisConversionMatrix;
+FbxAMatrix FFbxImporter::AxisConversionMatrixInv;
+ 
 // ========================================
 // FFbxParser 구현
 // ========================================
@@ -70,24 +75,55 @@ bool FFbxImporter::LoadSkeletalMesh(const FString& FilePath, FSkeletalMesh& OutM
 	{
 		return false;
 	}
+	  
+	FbxAMatrix AxisConversionMatrix;
+	AxisConversionMatrix.SetIdentity();
 
-	// 좌표계 변환: Y-up → Z-up, Right-handed → Left-handed
-	FbxAxisSystem TargetAxisSystem(FbxAxisSystem::eZAxis, FbxAxisSystem::eParityOdd, FbxAxisSystem::eLeftHanded);
-	FbxAxisSystem SceneAxisSystem = Scene->GetGlobalSettings().GetAxisSystem();
-	if (SceneAxisSystem != TargetAxisSystem)
+	FbxAMatrix JointOrientationMatrix;
+	JointOrientationMatrix.SetIdentity();
+
+	//FbxAxisSystem::ECoordSystem CoordSystem = FbxAxisSystem::eRightHanded;
+	// Left Hand + UP:eZAxis  + Front: Even
+	// Up: Z, Front: -Y, Right: X
+
+	//Right Hand+ UP:eZAxis  + Front: Even
+	// UP: Z Front: Y, Right: -X
+	FbxAxisSystem::ECoordSystem CoordSystem = FbxAxisSystem::eLeftHanded;
+	FbxAxisSystem::EUpVector UpVector = FbxAxisSystem::eZAxis;
+	FbxAxisSystem::EFrontVector	FrontVector = FbxAxisSystem::eParityEven;
+	FbxAxisSystem UnrealImportAxis(UpVector, FrontVector, CoordSystem);
+	UnrealImportAxis.DeepConvertScene(Scene);
+	/* 
+	FbxAxisSystem SourceSetup = Scene->GetGlobalSettings().GetAxisSystem();
+
+	if (SourceSetup != UnrealImportAxis)
 	{
-		TargetAxisSystem.ConvertScene(Scene);
-	}
+		FbxRootNodeUtility::RemoveAllFbxRoots(Scene);
 
-	// 단위 변환 (센티미터로 통일)
+		FbxAMatrix SourceMatrix;
+		SourceSetup.GetMatrix(SourceMatrix);
+		FbxAMatrix UE4Matrix;
+		UnrealImportAxis.GetMatrix(UE4Matrix);
+		AxisConversionMatrix = SourceMatrix.Inverse() * UE4Matrix;
+		 
+		JointOrientationMatrix.SetR(FbxVector4(-90.0, -90.0, 0.0)); 
+	} 
+
+	SetJointPostConversionMatrix(JointOrientationMatrix); 
+	SetAxisConversionMatrix(AxisConversionMatrix);
+	 */ 
+
+	 // 단위 변환 (센티미터로 통일)
 	FbxSystemUnit SceneSystemUnit = Scene->GetGlobalSettings().GetSystemUnit();
 	if (SceneSystemUnit != FbxSystemUnit::cm)
 	{
 		FbxSystemUnit::cm.ConvertScene(Scene);
 	}
 
+	//ApplySceneRotation();
+	
 	// 삼각형화 (모든 폴리곤을 삼각형으로)
-	FbxGeometryConverter Converter(Manager);
+	FbxGeometryConverter Converter(Manager); 
 	Converter.Triangulate(Scene, true);
 
 	// Scene 처리
@@ -407,6 +443,30 @@ void FFbxImporter::ProcessNodeAsStatic(FbxNode* Node, FStaticMesh& OutMesh)
 	}
 }
 
+void FFbxImporter::NormalizeScene(FbxScene* Scene, FbxManager* Manager, const FFbxImportOptions& Opt)
+{
+	if (!Scene || !Manager) return;
+
+	if (Opt.bConvertScene)
+	{
+		//FbxAxisSystem Target(FbxAxisSystem::eZAxis, o)
+	}
+	if (Opt.bConvertSceneUnit)
+	{
+
+	}
+	if (std::abs(Opt.ImportUniformScale - 1.0f) > 1e-6f)
+	{
+
+	}
+
+	// 모든 폴리곤을 삼각형으로 통일
+	FbxGeometryConverter Converter(Manager);
+	Converter.Triangulate(Scene, true);
+		
+
+}
+
 bool FFbxImporter::ProcessSkeletalMesh(FbxNode* MeshNode, FSkeletalMesh& OutMesh)
 {
 	FbxMesh* Mesh = MeshNode->GetMesh();
@@ -556,9 +616,46 @@ void FFbxImporter::BuildBoneHierarchy(const TArray<FbxNode*>& BoneNodes, FSkelet
 		{
 			OutSkeleton.Childs[OutSkeleton.Parents[i]].Add(i);
 		}
+		 
+		// *** RefPoseLocal에 변환 적용 ***
+		FTransform BoneTransform = ConvertTransform(BoneNode);
+
+		// *** Root Bone에만 JointPostConversionMatrix 추가 적용 ***
+		if (OutSkeleton.Parents[i] == -1) // Root Bone
+		{
+			// Root Bone에 추가 회전 적용 (예: -90도 Y축 회전)
+			FbxAMatrix LocalMatrix = BoneNode->EvaluateLocalTransform();
+			FbxAMatrix PostConverted = JointPostConversionMatrix *
+				AxisConversionMatrix *
+				LocalMatrix *
+				AxisConversionMatrixInv;
+
+			// 변환된 행렬에서 Transform 추출
+			FbxVector4 Translation = PostConverted.GetT();
+			BoneTransform.Location = FVector(
+				static_cast<float>(Translation[0]),
+				static_cast<float>(Translation[1]),
+				static_cast<float>(Translation[2])
+			);
+
+			FbxQuaternion FbxQuat = PostConverted.GetQ();
+			BoneTransform.Rotation = FQuat(
+				static_cast<float>(FbxQuat[0]),
+				static_cast<float>(FbxQuat[1]),
+				static_cast<float>(FbxQuat[2]),
+				static_cast<float>(FbxQuat[3])
+			);
+
+			FbxVector4 Scaling = PostConverted.GetS();
+			BoneTransform.Scale = FVector(
+				static_cast<float>(Scaling[0]),
+				static_cast<float>(Scaling[1]),
+				static_cast<float>(Scaling[2])
+			);
+		}
 
 		// RefPoseLocal (부모 상대 Transform)
-		OutSkeleton.RefPoseLocal[i] = ConvertTransform(BoneNode);
+		OutSkeleton.RefPoseLocal[i] = BoneTransform;
 	}
 	OutSkeleton.SetName();
 }
@@ -590,8 +687,7 @@ void FFbxImporter::BuildMeshSections(FbxMesh* Mesh, FSkeletalMesh& OutMesh)
 	FSkeletalMeshSection Section;
 
 	int32 ControlPointCount = Mesh->GetControlPointsCount();
-	int32 PolygonCount = Mesh->GetPolygonCount();
-
+	int32 PolygonCount = Mesh->GetPolygonCount(); 
 	FbxVector4* ControlPoints = Mesh->GetControlPoints();
 
 	// Skin 정보 수집 (ControlPoint별)
@@ -1054,6 +1150,11 @@ FString FFbxImporter::GetTextureFilePath(FbxProperty& Property, const FString& M
 	return FindTextureInDataFolder(MaterialName, "_" + TextureType);
 }
 
+void FFbxImporter::ApplySceneRotation(FbxScene* Scene, double Pitch, double Yaw, double Roll)
+{
+
+}
+
 FString FFbxImporter::ExtractEmbeddedTexture(FbxFileTexture* FileTexture, const FString& MaterialName, const FString& TextureType)
 {
 	// FBX SDK는 임베디드 텍스처를 자동으로 .fbm 폴더에 추출합니다.
@@ -1196,31 +1297,40 @@ FbxSkin* FFbxImporter::GetSkin(const FbxMesh* Mesh)
 
 	return nullptr;
 }
-
+ 
 // ========================================
 // 좌표계 변환 함수
 // ========================================
 
 FVector FFbxImporter::ConvertPosition(const FbxVector4& FbxVec)
 {
+	// AxisConversionMatrix 적용
+	FbxVector4 Converted = AxisConversionMatrix.MultT(FbxVec);
+
 	// FBX (좌표계 변환 후): Z-up Left-handed
 	// 프로젝트: Z-up Left-handed
 	// 이미 ConvertScene으로 변환했으므로 직접 매핑
 	return {
-		static_cast<float>(FbxVec[0]),
-		static_cast<float>(FbxVec[1]),
-		static_cast<float>(FbxVec[2])
+		static_cast<float>(Converted[0]),
+		static_cast<float>(Converted[1]),
+		static_cast<float>(Converted[2])
 	};
 }
 
 FVector FFbxImporter::ConvertNormal(const FbxVector4& FbxVec)
 {
-	// Normal은 스케일 없이 방향만 변환
-	return {
-		static_cast<float>(FbxVec[0]),
-		static_cast<float>(FbxVec[1]),
-		static_cast<float>(FbxVec[2])
-	};
+	// Normal은 방향 벡터이므로 이동(Translation) 제외하고 회전만 적용
+	FbxVector4 Converted = AxisConversionMatrix.MultT(FbxVec);
+
+	FVector Result(
+		static_cast<float>(Converted[0]),
+		static_cast<float>(Converted[1]),
+		static_cast<float>(Converted[2])
+	);
+
+	// Normal은 단위 벡터여야 하므로 정규화
+	Result.Normalize();
+	return Result;
 }
 
 FQuat FFbxImporter::ConvertRotation(const FbxQuaternion& FbxQuat)
@@ -1242,8 +1352,12 @@ FTransform FFbxImporter::ConvertTransform(FbxNode* Node)
 	// LclTranslation/Rotation/Scaling은 애니메이션 프로퍼티이므로 EvaluateLocalTransform 사용
 	FbxAMatrix LocalMatrix = Node->EvaluateLocalTransform();
 
+	// LocalMatrix를 우리 엔진의 좌표계로 변환
+	FbxAMatrix ConvertedMatrix = AxisConversionMatrix * LocalMatrix * AxisConversionMatrixInv;
+
+	 
 	// Translation
-	FbxVector4 Translation = LocalMatrix.GetT();
+	FbxVector4 Translation = ConvertedMatrix.GetT();
 	Transform.Location = FVector(
 		static_cast<float>(Translation[0]),
 		static_cast<float>(Translation[1]),
@@ -1251,7 +1365,7 @@ FTransform FFbxImporter::ConvertTransform(FbxNode* Node)
 	);
 
 	// Rotation
-	FbxQuaternion FbxQuat = LocalMatrix.GetQ();
+	FbxQuaternion FbxQuat = ConvertedMatrix.GetQ();
 	Transform.Rotation = FQuat(
 		static_cast<float>(FbxQuat[0]), // X
 		static_cast<float>(FbxQuat[1]), // Y
@@ -1260,7 +1374,7 @@ FTransform FFbxImporter::ConvertTransform(FbxNode* Node)
 	);
 
 	// Scale
-	FbxVector4 Scaling = LocalMatrix.GetS();
+	FbxVector4 Scaling = ConvertedMatrix.GetS();
 	Transform.Scale = FVector(
 		static_cast<float>(Scaling[0]),
 		static_cast<float>(Scaling[1]),

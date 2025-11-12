@@ -165,6 +165,8 @@ void UStaticMeshComponent::SetMaterial(int32 Index, UMaterial* InMaterial)
 	if (Index < 0) return;
 
 	if (Index >= OverrideMaterials.Num())
+
+
 	{
 		OverrideMaterials.SetNum(Index + 1, nullptr);
 	}
