@@ -31,10 +31,9 @@ PS_INPUT mainVS(VS_INPUT input)
 
 float4 mainPS(PS_INPUT input) : SV_TARGET
 {
-	if (input.color == float4(0, 0, 0, 0))
-	{
-		return float4(1, 1, 1, 1);
-
-	}
+	//if (input.color == float4(0, 0, 0, 0))
+	//{
+	//	return float4(1, 1, 1, 1);
+	//}
 	return input.color;
 }
