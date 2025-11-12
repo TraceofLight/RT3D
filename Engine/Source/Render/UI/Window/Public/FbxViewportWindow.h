@@ -64,6 +64,8 @@ private:
 	void EnsureRenderTargets(const ImVec2& size);
 	void EnsurePreviewInfrastructure();
 	void RenderPreviewViewport(const ImVec2& InSize);
+	void RenderBoneHeriarchy(const ImVec2& InSize);
+	void RenderLeftControlsPanel(const ImVec2& InSize);
 	void RenderSkeletalInspector(const ImVec2& InSize);
 	void UpdateSkeletalWidgetTargets();
 	void HandleMouseClick(const ImVec2& LocalMousePos);
@@ -91,5 +93,16 @@ private:
 	// Bone Selection (메인 에디터와 독립)
 	int32 SelectedBoneIndex = -1;
 	class UBoneTransformProxy* BoneTransformProxy = nullptr;
+private:
+	// --- 3-Column split layout state ---
+	float LeftPanelWidth = 300.0f;
+	float RightPanelWidth = 320.0f;
+	float LeftMinWidth = 220.0f;
+	float RightMinWidth = 220.0f;
+	float LeftPrevWidth = 300.0f;   // toggle 복구용
+	float RightPrevWidth = 320.0f;   // toggle 복구용
+	bool  bLeftVisible = true;
+	bool  bRightVisible = true;
+	float SplitterThickness = 6.0f;
 };
 

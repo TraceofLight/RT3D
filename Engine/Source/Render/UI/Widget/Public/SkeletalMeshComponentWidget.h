@@ -34,6 +34,9 @@ public:
 	int32 GetHighlightedBoneIndex() const { return HighlightedBoneIndex; }
 
 	UDirectionalLightComponent*  FindFirstDirectional(UWorld* TargetWorld) const;
+
+	void RenderPreviewTopControls(UWorld* TargetWorld, USkeletalMeshComponent* TargetComponent);
+	void RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent);
 private:
 	USkeletalMeshComponent* SkeletalMeshComponent{};
 	USkeletalMeshComponent* OverrideTargetComponent = nullptr;
@@ -51,10 +54,8 @@ private:
 	void RenderSkeletalMeshSelector();
 	void RenderMaterialSections();
 	void RenderAvailableMaterials(int32 TargetSlotIndex) const;
-	void RenderPreviewTopControls(UWorld* TargetWorld, USkeletalMeshComponent* TargetComponent);
 
 	void DrawSkeletalBone(FSkeleton* Skeleton, int idx);
-	void RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent);
 	void OpenFbxPreviewViewport(USkeletalMesh* SkeletalMesh);
 
 	// 유틸리티 함수

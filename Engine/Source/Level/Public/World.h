@@ -61,7 +61,7 @@ public:
 
 	// Level Management Triggers
 	ULevel* GetLevel() const;
-	void CreateNewLevel(const FName& InLevelName = FName::GetNone());
+	void CreateNewLevel(const FName& InLevelName = FName::GetNone(), bool IsLightNeeded = true);
 	bool LoadLevel(std::filesystem::path InLevelFilePath);
 	bool SaveCurrentLevel(std::filesystem::path InLevelFilePath) const;
 
