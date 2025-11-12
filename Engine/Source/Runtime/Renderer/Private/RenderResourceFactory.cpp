@@ -25,45 +25,6 @@ void FRenderResourceFactory::CreateUnorderedAccessView(ID3D11Buffer* Buffer, ID3
 	Desc.Buffer.NumElements = BufDesc.ByteWidth / BufDesc.StructureByteStride;
 	URenderer::GetInstance().GetDevice()->CreateUnorderedAccessView(Buffer, &Desc, OutUAV);
 }
-//
-//void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InFilePath,
-//                                                              const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescs, ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout)
-//{
-//	const char* EntryPoint = "mainVS";
-//	const char* ShaderModel = "vs_5_0";
-//
-//	// CSO 파일 경로 생성
-//	wstring CSOPath = GetCompiledShaderPath(InFilePath, EntryPoint, "vs");
-//
-//	ID3DBlob* VertexShaderBlob = nullptr;
-//
-//	// 캐시 확인 및 로드/컴파일
-//	if (IsShaderUpToDate(InFilePath, CSOPath))
-//	{
-//		// 캐시된 CSO 로드
-//		VertexShaderBlob = LoadPrecompiledShader(CSOPath);
-//	}
-//
-//	// 캐시 미스 또는 로드 실패 시 컴파일
-//	if (!VertexShaderBlob)
-//	{
-//		if (!CompileAndSaveShader(InFilePath, CSOPath, EntryPoint, ShaderModel, nullptr, 0, &VertexShaderBlob))
-//		{
-//			return;
-//		}
-//	}
-//
-//	// VertexShader 생성
-//	URenderer::GetInstance().GetDevice()->CreateVertexShader(VertexShaderBlob->GetBufferPointer(), VertexShaderBlob->GetBufferSize(), nullptr, OutVertexShader);
-//
-//	// InputLayout 생성
-//	if (InInputLayoutDescs.Num() > 0)
-//	{
-//		URenderer::GetInstance().GetDevice()->CreateInputLayout(InInputLayoutDescs.GetData(), static_cast<uint32>(InInputLayoutDescs.Num()), VertexShaderBlob->GetBufferPointer(), VertexShaderBlob->GetBufferSize(), OutInputLayout);
-//	}
-//
-//	SafeRelease(VertexShaderBlob);
-//}
 
 void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InFilePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescs, ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout,
 	EShaderVariant ShaderVariant, EShaderFeatureFlag ShaderFeatureFlag, const char* InEntryPoint)
@@ -173,42 +134,6 @@ ID3D11Buffer* FRenderResourceFactory::CreateDynamicIndexBuffer(const void* InInd
 	URenderer::GetInstance().GetDevice()->CreateBuffer(&Desc, &InitData, &IndexBuffer);
 	return IndexBuffer;
 }
-//
-//void FRenderResourceFactory::CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** OutPixelShader)
-//{
-//	const char* EntryPoint = "mainPS";
-//	const char* ShaderModel = "ps_5_0";
-//	UINT Flag = 0;
-//#ifdef _DEBUG
-//	Flag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-//#endif
-//
-//	// CSO 파일 경로 생성
-//	wstring CSOPath = GetCompiledShaderPath(InFilePath, EntryPoint, "ps");
-//
-//	ID3DBlob* PixelShaderBlob = nullptr;
-//
-//	// 캐시 확인 및 로드/컴파일
-//	if (IsShaderUpToDate(InFilePath, CSOPath))
-//	{
-//		// 캐시된 CSO 로드
-//		PixelShaderBlob = LoadPrecompiledShader(CSOPath);
-//	}
-//
-//	// 캐시 미스 또는 로드 실패 시 컴파일
-//	if (!PixelShaderBlob)
-//	{
-//		if (!CompileAndSaveShader(InFilePath, CSOPath, EntryPoint, ShaderModel, nullptr, Flag, &PixelShaderBlob))
-//		{
-//			return;
-//		}
-//	}
-//
-//	// PixelShader 생성
-//	URenderer::GetInstance().GetDevice()->CreatePixelShader(PixelShaderBlob->GetBufferPointer(), PixelShaderBlob->GetBufferSize(), nullptr, OutPixelShader);
-//
-//	SafeRelease(PixelShaderBlob);
-//}
 
 void FRenderResourceFactory::CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** OutPixelShader,
 	EShaderVariant ShaderVariant, EShaderFeatureFlag ShaderFeatureFlag, const char* InEntryPoint)

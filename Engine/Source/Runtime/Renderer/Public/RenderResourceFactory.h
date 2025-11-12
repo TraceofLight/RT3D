@@ -9,8 +9,6 @@ public:
 	static void CreateStructuredShaderResourceView(ID3D11Buffer* Buffer, ID3D11ShaderResourceView** OutSRV);
 	static void CreateUnorderedAccessView(ID3D11Buffer* Buffer, ID3D11UnorderedAccessView** OutUAV);
 
-	//static void CreateVertexShaderAndInputLayout(const wstring& InFilePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescriptions,
-												 //ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout);
 	static void CreateVertexShaderAndInputLayout(const wstring& InFilePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescriptions,
 												 ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout,
 												 EShaderVariant ShaderVariant = EShaderVariant::None, EShaderFeatureFlag ShaderFeatureFlag = EShaderFeatureFlag::None, const char* InEntryPoint = "mainVS");
@@ -19,7 +17,6 @@ public:
 	static ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth);
 	static ID3D11Buffer* CreateDynamicVertexBuffer(const void* InVertices, int32 InByteWidth);
 	static ID3D11Buffer* CreateDynamicIndexBuffer(const void* InIndices, int32 InByteWidth);
-	//static void CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** InPixelShader);
 	static void CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** InPixelShader,
 		EShaderVariant ShaderVariant = EShaderVariant::None, EShaderFeatureFlag ShaderFeatureFlag = EShaderFeatureFlag::None, const char* InEntryPoint = "mainPS");
 	static void CreateComputeShader(const wstring& InFilePath, ID3D11ComputeShader** OutComputeShader,
