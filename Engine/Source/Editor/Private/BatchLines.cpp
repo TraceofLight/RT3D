@@ -505,7 +505,8 @@ void UBatchLines::RenderSkeleton()
 		sizeof(FVector),
 		sizeof(uint32),
 		BoneStartIndex,
-		NumBoneIndices
+		NumBoneIndices,
+		true
 	);
 }
 

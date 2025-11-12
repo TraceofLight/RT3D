@@ -1137,7 +1137,7 @@ void URenderer::RenderLevel(FViewport* InViewport, int32 ViewportIndex)
 	}
 }
 
-void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride)
+void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride, bool bDisableDepthTest)
 {
     // Use the global stride if InStride is 0
     const uint32 FinalStride = (InStride == 0) ? Stride : InStride;
@@ -1147,7 +1147,7 @@ void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const
         InPrimitive.InputLayout ? InPrimitive.InputLayout : DefaultInputLayout,
         InPrimitive.VertexShader ? InPrimitive.VertexShader : DefaultVertexShader,
 		FRenderResourceFactory::GetRasterizerState(InRenderState),
-        InPrimitive.bShouldAlwaysVisible ? DisabledDepthStencilState : DefaultDepthStencilState,
+        (InPrimitive.bShouldAlwaysVisible || bDisableDepthTest) ? DisabledDepthStencilState : DefaultDepthStencilState,
         InPrimitive.PixelShader ? InPrimitive.PixelShader : DefaultPixelShader,
         nullptr,
         InPrimitive.Topology
@@ -1178,7 +1178,7 @@ void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const
     }
 }
 
-void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride, uint32 StartIndexLocation, uint32 IndexCount)
+void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride, uint32 StartIndexLocation, uint32 IndexCount, bool bDisableDepthTest)
 {
 	// Use the global stride if InStride is 0
 	const uint32 FinalStride = (InStride == 0) ? Stride : InStride;
@@ -1188,7 +1188,7 @@ void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive
 		InPrimitive.InputLayout ? InPrimitive.InputLayout : DefaultInputLayout,
 		InPrimitive.VertexShader ? InPrimitive.VertexShader : DefaultVertexShader,
 		FRenderResourceFactory::GetRasterizerState(InRenderState),
-		InPrimitive.bShouldAlwaysVisible ? DisabledDepthStencilState : DefaultDepthStencilState,
+		(InPrimitive.bShouldAlwaysVisible || bDisableDepthTest) ? DisabledDepthStencilState : DefaultDepthStencilState,
 		InPrimitive.PixelShader ? InPrimitive.PixelShader : DefaultPixelShader,
 		nullptr,
 		InPrimitive.Topology
