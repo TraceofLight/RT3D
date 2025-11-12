@@ -22,6 +22,7 @@ public:
     void SetSkinMatrices(const FMatrix* InMatrices, int32 Count);
     const TArray<FMatrix>& GetSkinMatrices() const { return FinalSkinMatrices; }
 
+	static FVector SkinTangent(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats); 
     static FVector SkinPosition(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats);
     static FVector SkinNormal(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats);
 
