@@ -31,7 +31,7 @@ static inline void AddRing(
 	for (int s = 1; s <= Segment; ++s) {
 		const float th = dth * s;
 		const FVector p = Center + (AngleX * (cosf(th) * Rotation)) + (AngleY * (sinf(th) * Rotation));
-		AddLine(Vertices, Indices, p0, p, RingColor); 
+		AddLine(Vertices, Indices, p0, p, RingColor);
 		p0 = p;
 	}
 }
@@ -246,34 +246,12 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
     }
 
     // 조인트: 3개 링
+    constexpr float JointSphereRadius = 0.15f;
     for (int i=0; i<Num; ++i) {
-        const bool bSelected = (i == SelectedBone);
-        const float Radius = JointRadius * (bSelected ? 1.35f : 0.3f);
+        const float Radius = JointSphereRadius;
 
-		FVector4 Color = FVector4(1, 1, 1, 1); // 기본 흰색
-
-		if (SelectedBone != -1)
-		{
-			if (bSelected)
-			{
-				Color = FVector4(1.0f, 0.0f, 0.0f, 1.0f); // 보라색
-			}
-			else if (i == Skeleton->Parents[SelectedBone])
-			{
-				Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f);  // 초록색, 부모 표시
-			}
-			else
-			{
-				for (int j = 0; j < Skeleton->Childs[SelectedBone].Num(); j++)
-				{
-					if (i == Skeleton->Childs[SelectedBone][j])
-					{
-						Color = FVector4(1.0f, 1.0f, 0.0f, 1.0f); // 노랑색, 자식 표시
-						break;
-					}
-				}
-			}
-		}
+		// 색상 결정: Joint 전용 헬퍼 함수 사용
+		FVector4 Color = GetJointColor(i, SelectedBone, Skeleton);
 
         const FVector Center = WorldPos[i];
 
@@ -292,8 +270,8 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
         AddRing(BoneLines.Vertices, BoneLines.Indices, Center, Direction, U, Radius, 14, Color);
     }
 
-    // 본(부모 -> 자식)
-    auto AddBoneDiamond = [&](int Parent, int Child, bool bSelected, FVector4 Color)
+    // 본(부모 -> 자식) - 단일 사각뿔
+    auto AddBonePyramid = [&](int Parent, int Child, FVector4 Color)
     {
         const FVector P = WorldPos[Parent];
         const FVector C = WorldPos[Child];
@@ -304,37 +282,28 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
 
         FVector U,V; OrthonormalBasis(Direction, U, V);
 
-        const float Width = max(0.002f, L * WidthScale * (bSelected ? 1.5f : 1.0f));  // 두께
-        // base를 회전축(여기선 parent 조인트) 쪽으로 편향
-        const float t = clamp(BaseBias, 0.05f, 0.95f); // 0에 가까울수록 parent 쪽
-        const FVector baseCenter = P + Direction * (L * t);
+        const float Width = max(0.002f, L * WidthScale);  // 두께
 
-        // 정사각 코너(대칭)
-        const FVector c0 = baseCenter + (U * Width);
-        const FVector c1 = baseCenter + (V * Width);
-        const FVector c2 = baseCenter - (U * Width);
-        const FVector c3 = baseCenter - (V * Width);
+        // Parent 위치에서 정사각형 Base 생성
+        const FVector c0 = P + (U * Width);
+        const FVector c1 = P + (V * Width);
+        const FVector c2 = P - (U * Width);
+        const FVector c3 = P - (V * Width);
 
-        // 두 개의 뾰족한 끝(쌍뿔) : 본의 양 끝
-        const FVector tip0 = P;
-        const FVector tip1 = C;
+        // Child는 Tip
+        const FVector Tip = C;
 
-        // 사각 테두리
+        // Base 사각형 테두리
         AddLine(BoneLines.Vertices, BoneLines.Indices, c0, c1, Color);
 		AddLine(BoneLines.Vertices, BoneLines.Indices, c1, c2, Color);
 		AddLine(BoneLines.Vertices, BoneLines.Indices, c2, c3, Color);
 		AddLine(BoneLines.Vertices, BoneLines.Indices, c3, c0, Color);
 
-        // tip0/1에서 각 코너로
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c0, Color);
-		AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c1, Color);
-		AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c2, Color);
-		AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c3, Color);
-
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c0, Color);
-		AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c1, Color);
-		AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c2, Color);
-		AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c3, Color);
+        // Tip에서 각 Base 코너로 모서리
+        AddLine(BoneLines.Vertices, BoneLines.Indices, Tip, c0, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, Tip, c1, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, Tip, c2, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, Tip, c3, Color);
     };
 
 	int SelectedParent = -1;
@@ -364,30 +333,28 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
 
 	for (int i = 0; i < Num; ++i) {
 		for (int Child : Skeleton->Childs[i]) {
+			FVector4 Color;
 
-			// 두께 스케일을 위해 선택 엣지 여부만 별도로 계산
-			const bool bSelectedEdge = (i == SelectedBone) || (Child == SelectedBone);
-
-			// 기본색: 흰색
-			FVector4 Color = FVector4(1, 1, 1, 1);
-
-			if (SelectedBone != -1) {
-				// 1) 선택 본 → 자식  : 빨강
-				if (i == SelectedBone) {
-					Color = FVector4(1.0f, 0.0f, 0.0f, 1.0f); // red
+			// 특수 케이스: 부모→선택된 Joint로 향하는 Bone은 주황색
+			if (Child == SelectedBone)
+			{
+				int32 SelectedParentIdx = (SelectedBone < Skeleton->Parents.Num()) ? Skeleton->Parents[SelectedBone] : -1;
+				if (i == SelectedParentIdx)
+				{
+					Color = {1.0f, 0.5f, 0.0f, 1.0f};  // Orange
 				}
-				// 2) 부모 → 선택 본   : 초록
-				else if (Child == SelectedBone && i == SelectedParent) {
-					Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // green
+				else
+				{
+					Color = GetBoneColor(i, SelectedBone, Skeleton);
 				}
-				// 3) 선택 본 서브트리 내부의 나머지 엣지 : 노랑
-				else if (InSubtree[i] && InSubtree[Child]) {
-					Color = FVector4(1.0f, 1.0f, 0.0f, 1.0f); // yellow
-				}
-				// 4) 그 외 : 흰색(기본)
+			}
+			else
+			{
+				// 일반 케이스: Parent 색상 사용
+				Color = GetBoneColor(i, SelectedBone, Skeleton);
 			}
 
-			AddBoneDiamond(i, Child, bSelectedEdge, Color);
+			AddBonePyramid(i, Child, Color);
 		}
 	}
 
@@ -705,12 +672,12 @@ void UBatchLines::SetIndices()
 }
 
 /**
- * @brief HitProxy용 Bone 입체 메시 생성 (이중 원뿔 형태)
+ * @brief HitProxy용 Bone 입체 메시 생성 (단일 사각뿔 형태)
  * @param Skeleton 스켈레톤 데이터
  * @param GlobalPose 본별 월드 행렬
  * @param ComponentToWorld 컴포넌트 월드 행렬
  * @param WidthScale Bone 두께 스케일
- * @param BaseBias Base Center 위치 (0: Parent, 1: Child)
+ * @param BaseBias Base Center 위치 (0: Parent, 1: Child) - 현재 미사용
  * @param OutMesh 출력 메시 데이터
  */
 void UBatchLines::GenerateBoneMeshForHitProxy(
@@ -748,7 +715,7 @@ void UBatchLines::GenerateBoneMeshForHitProxy(
 		WorldPos[i] = XformPos(WorldBoneMatrix);
 	}
 
-	// 각 Bone에 대해 이중 원뿔 메시 생성
+	// 각 Bone에 대해 단일 사각뿔 메시 생성 (Parent -> Child)
 	for (int32 ParentIdx = 0; ParentIdx < Num; ++ParentIdx)
 	{
 		for (int32 ChildIdx : Skeleton->Childs[ParentIdx])
@@ -769,29 +736,24 @@ void UBatchLines::GenerateBoneMeshForHitProxy(
 			FVector U, V;
 			OrthonormalBasis(Direction, U, V);
 
-			// Base Center 계산 (Parent 쪽으로 편향)
-			const float t = clamp(BaseBias, 0.05f, 0.95f);
-			const FVector BaseCenter = P + Direction * (L * t);
-
-			// Bone 두께 계산
+			// Bone 두께 계산 (Parent에서의 Base 두께)
 			const float Width = max(0.002f, L * WidthScale);
 
-			// Base Center의 4개 코너 정점
-			const FVector c0 = BaseCenter + (U * Width);
-			const FVector c1 = BaseCenter + (V * Width);
-			const FVector c2 = BaseCenter - (U * Width);
-			const FVector c3 = BaseCenter - (V * Width);
+			// Parent 위치에서 정사각형 Base 정점 4개 생성
+			const FVector c0 = P + (U * Width);
+			const FVector c1 = P + (V * Width);
+			const FVector c2 = P - (U * Width);
+			const FVector c3 = P - (V * Width);
 
 			// 정점 인덱스 시작
 			const uint32 BaseVertIdx = OutMesh.Vertices.Num();
 
-			// 정점 추가 (6개: tip0, tip1, c0, c1, c2, c3)
-			OutMesh.Vertices.Add(P);   // 0: tip0 (Parent)
-			OutMesh.Vertices.Add(C);   // 1: tip1 (Child)
-			OutMesh.Vertices.Add(c0);  // 2
-			OutMesh.Vertices.Add(c1);  // 3
-			OutMesh.Vertices.Add(c2);  // 4
-			OutMesh.Vertices.Add(c3);  // 5
+			// 정점 추가 (5개: Child Tip, 4개 Base 정점)
+			OutMesh.Vertices.Add(C);   // 0: Child (Tip)
+			OutMesh.Vertices.Add(c0);  // 1: Base corner 0
+			OutMesh.Vertices.Add(c1);  // 2: Base corner 1
+			OutMesh.Vertices.Add(c2);  // 3: Base corner 2
+			OutMesh.Vertices.Add(c3);  // 4: Base corner 3
 
 			// Helper lambda: 삼각형 추가
 			auto AddTriangle = [&](uint32 i0, uint32 i1, uint32 i2, int32 BoneIdx)
@@ -802,18 +764,120 @@ void UBatchLines::GenerateBoneMeshForHitProxy(
 				OutMesh.BoneIndices.Add(BoneIdx);
 			};
 
-			// Parent 쪽 피라미드 (4개 삼각형) - ParentIdx HitProxy
+			// 사각뿔 4개 삼각형 (Child Tip에서 Base로) - ParentIdx HitProxy (Base가 Parent 위치이므로)
+			AddTriangle(0, 1, 2, ParentIdx);
 			AddTriangle(0, 2, 3, ParentIdx);
 			AddTriangle(0, 3, 4, ParentIdx);
-			AddTriangle(0, 4, 5, ParentIdx);
-			AddTriangle(0, 5, 2, ParentIdx);
-
-			// Child 쪽 피라미드 (4개 삼각형) - ParentIdx HitProxy (Bone 클릭 시 Parent 선택)
-			AddTriangle(1, 3, 2, ParentIdx);  // 반시계 방향
-			AddTriangle(1, 4, 3, ParentIdx);
-			AddTriangle(1, 5, 4, ParentIdx);
-			AddTriangle(1, 2, 5, ParentIdx);
+			AddTriangle(0, 4, 1, ParentIdx);
 		}
 	}
+}
+
+/**
+ * @brief 자손 여부 확인 (DFS)
+ * @param TestBoneIndex 확인할 본 인덱스
+ * @param AncestorIndex 조상 본 인덱스
+ * @param Skeleton 스켈레톤 데이터
+ * @return TestBoneIndex가 AncestorIndex의 자손이면 true
+ */
+bool UBatchLines::IsDescendant(int32 TestBoneIndex, int32 AncestorIndex, const FSkeleton* Skeleton)
+{
+	if (!Skeleton || TestBoneIndex < 0 || AncestorIndex < 0)
+	{
+		return false;
+	}
+
+	// DFS로 AncestorIndex의 모든 자손 탐색
+	TArray<int32> Stack;
+	for (int32 ChildIdx : Skeleton->Childs[AncestorIndex])
+	{
+		Stack.Add(ChildIdx);
+	}
+
+	while (!Stack.IsEmpty())
+	{
+		int32 CurrentIdx = Stack.Last();
+		Stack.RemoveAt(Stack.Num() - 1);
+
+		if (CurrentIdx == TestBoneIndex)
+		{
+			return true;
+		}
+
+		// 자식들을 스택에 추가
+		for (int32 ChildIdx : Skeleton->Childs[CurrentIdx])
+		{
+			Stack.Add(ChildIdx);
+		}
+	}
+
+	return false;
+}
+
+/**
+ * @brief Joint 색상 결정 (선택 상태에 따라)
+ * @param JointIndex 색상을 결정할 Joint 인덱스
+ * @param SelectedBoneIndex 선택된 본 인덱스 (-1이면 선택 없음)
+ * @param Skeleton 스켈레톤 데이터
+ * @return RGBA 색상 (0-1 범위)
+ *
+ * Joint 색상: 선택(초록), 자손(흰색), 나머지(검은색)
+ */
+FVector4 UBatchLines::GetJointColor(int32 JointIndex, int32 SelectedBoneIndex, const FSkeleton* Skeleton)
+{
+	// 선택된 본이 없으면 기본 색상 (검은색)
+	if (SelectedBoneIndex < 0 || !Skeleton)
+	{
+		return {0.0f, 0.0f, 0.0f, 1.0f};  // Black
+	}
+
+	// 본인 선택: 초록색
+	if (JointIndex == SelectedBoneIndex)
+	{
+		return {0.0f, 1.0f, 0.0f, 1.0f};  // Green
+	}
+
+	// 자손: 흰색
+	if (IsDescendant(JointIndex, SelectedBoneIndex, Skeleton))
+	{
+		return {1.0f, 1.0f, 1.0f, 1.0f};  // White
+	}
+
+	// 나머지: 검은색
+	return {0.0f, 0.0f, 0.0f, 1.0f};  // Black
+}
+
+/**
+ * @brief Bone 색상 결정 (선택 상태에 따라)
+ * @param BoneIndex 색상을 결정할 본 인덱스
+ * @param SelectedBoneIndex 선택된 본 인덱스 (-1이면 선택 없음)
+ * @param Skeleton 스켈레톤 데이터
+ * @return RGBA 색상 (0-1 범위)
+ *
+ * Bone 색상: 선택(초록), 자손(흰색), 나머지(검은색)
+ * 주의: 부모 Bone의 주황색은 렌더링 루프에서 직접 처리됨
+ */
+FVector4 UBatchLines::GetBoneColor(int32 BoneIndex, int32 SelectedBoneIndex, const FSkeleton* Skeleton)
+{
+	// 선택된 본이 없으면 기본 색상 (검은색)
+	if (SelectedBoneIndex < 0 || !Skeleton)
+	{
+		return {0.0f, 0.0f, 0.0f, 1.0f};  // Black
+	}
+
+	// 본인 선택: 초록색
+	if (BoneIndex == SelectedBoneIndex)
+	{
+		return {0.0f, 1.0f, 0.0f, 1.0f};  // Green
+	}
+
+	// 자손 본: 흰색
+	if (IsDescendant(BoneIndex, SelectedBoneIndex, Skeleton))
+	{
+		return {1.0f, 1.0f, 1.0f, 1.0f};  // White
+	}
+
+	// 나머지: 검은색
+	return {0.0f, 0.0f, 0.0f, 1.0f};  // Black
 }
 

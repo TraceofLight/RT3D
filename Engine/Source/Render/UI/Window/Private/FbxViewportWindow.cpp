@@ -135,6 +135,7 @@ void UFbxViewportWindow::SetPreviewSkeletalMesh(USkeletalMesh* SkeletalMesh)
 	}
 
 	PreviewComponent->SetSkeletalMesh(SkeletalMesh);
+	PreviewComponent->SetWorldScale3D(FVector(10.0f, 10.0f, 10.0f));
 	PreviewComponent->UseReferencePose();
 
 	if (SkeletalWidget)
@@ -1284,7 +1285,7 @@ void UFbxViewportWindow::HandleMouseClick(const ImVec2& LocalMousePos)
 		{
 			// 각 Bone을 HitProxy로 렌더링 (HitProxyID = 100 + BoneIndex)
 			auto& Renderer = URenderer::GetInstance();
-			const float BoneSphereRadius = 0.5f;
+			constexpr float BoneSphereRadius = 0.15f;  // BatchLines.cpp의 JointSphereRadius와 동일
 			constexpr int NumSegments = 8;
 			constexpr int NumRings = 6;
 

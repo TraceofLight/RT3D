@@ -69,6 +69,11 @@ public:
 		float BaseBias,
 		FBoneMesh& OutMesh);
 
+	// Bone, Joint 색상 결정 헬퍼 함수
+	static FVector4 GetBoneColor(int32 BoneIndex, int32 SelectedBoneIndex, const FSkeleton* Skeleton);
+	static FVector4 GetJointColor(int32 JointIndex, int32 SelectedBoneIndex, const FSkeleton* Skeleton);
+	static bool IsDescendant(int32 TestBoneIndex, int32 AncestorIndex, const FSkeleton* Skeleton);
+
 	// GPU VertexBuffer에 복사
 	void UpdateVertexBuffer();
 
