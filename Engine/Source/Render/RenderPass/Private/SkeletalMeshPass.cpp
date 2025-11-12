@@ -165,7 +165,7 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 				MaterialConstants.Ks = FVector4(SpecularColor.X, SpecularColor.Y, SpecularColor.Z, 1.0f);
 				MaterialConstants.Ns = Material->GetShininess();
 				MaterialConstants.Ni = Material->GetRefractiveIndex();
-				MaterialConstants.D = Material->GetOpacity();
+				MaterialConstants.D = (MaterialConstants.D == NULL) ? 1 :Material->GetOpacity();
 				MaterialConstants.MaterialFlags = 0;
 
 				if (Material->GetDiffuseTexture()) { MaterialConstants.MaterialFlags |= HAS_DIFFUSE_MAP; }
