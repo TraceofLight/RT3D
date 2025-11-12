@@ -360,7 +360,14 @@ void UEditor::UpdateBatchLines()
 		if (USkeletalMeshComponent* SkeletalComponent = Cast<USkeletalMeshComponent>(Component))
 		{
 			// Show flag 생기면 여기에 주입!!!
-			SkeletalComponent->RenderDebugBones(BatchLines);
+			if (SkeletalComponent->GetOwner() && SkeletalComponent->GetOwner()->GetWorld())
+			{
+				const EWorldType WorldType = SkeletalComponent->GetOwner()->GetWorld()->GetWorldType();
+				if (WorldType == EWorldType::EditorPreview)
+				{
+					SkeletalComponent->RenderDebugBones(BatchLines);
+				}
+			}
 
 			if (ShowFlags & EEngineShowFlags::SF_Bounds)
 			{
