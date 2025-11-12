@@ -7,6 +7,7 @@
  *        Currently mirrors the main viewport output inside an ImGui window.
  */
 class FPreviewScene;
+class FPreviewViewportClient;
 class USkeletalMeshComponentWidget;
 class USkeletalMesh;
 class UBatchLines;
@@ -65,7 +66,7 @@ private:
 	void UpdatePreviewCamera(float DeltaTime);
 
 	FViewport*       PreviewViewport   = nullptr;
-	FViewportClient* PreviewClient     = nullptr;
+	FPreviewViewportClient* PreviewClient     = nullptr;
 	FPreviewScene*   PreviewScene      = nullptr;
 	USkeletalMeshComponentWidget* SkeletalWidget = nullptr;
 	UBatchLines*     PreviewBatchLines = nullptr;

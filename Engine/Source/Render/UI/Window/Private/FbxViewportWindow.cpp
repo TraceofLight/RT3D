@@ -7,7 +7,7 @@
 #include "Component/Mesh/Public/BoneTransformProxy.h"
 #include "Manager/Input/Public/InputManager.h"
 #include "Manager/UI/Public/ViewportManager.h"
-#include "Render/UI/Viewport/Public/ViewportClient.h"
+#include "Render/UI/Viewport/Public/PreviewViewportClient.h"
 #include "Manager/Time/Public/TimeManager.h"
 #include "Runtime/CoreUObject/Public/NewObject.h"
 #include "ImGui/imgui.h"
@@ -54,19 +54,10 @@ void UFbxViewportWindow::SelectBone(int32 BoneIndex)
 	BoneTransformProxy->SetBoneInfo(PreviewComponent, BoneIndex);
 	BoneTransformProxy->SyncTransformFromBone();
 
-	// 디버깅: 본 위치 로그
-	FVector BoneWorldPos = BoneTransformProxy->GetWorldLocation();
-	UE_LOG("FbxViewportWindow: SelectBone idx=%d, world pos=(%.2f, %.2f, %.2f)",
-		BoneIndex, BoneWorldPos.X, BoneWorldPos.Y, BoneWorldPos.Z);
-
-	// PreviewGizmo에 타겟 설정
-	if (PreviewScene)
+	// PreviewClient의 Gizmo에 타겟 설정
+	if (PreviewClient && PreviewClient->GetGizmo())
 	{
-		UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
-		if (PreviewGizmo)
-		{
-			PreviewGizmo->SetSelectedComponent(BoneTransformProxy);
-		}
+		PreviewClient->GetGizmo()->SetSelectedComponent(BoneTransformProxy);
 	}
 
 	// SkeletalWidget에 하이라이팅 전파
@@ -83,14 +74,10 @@ void UFbxViewportWindow::DeselectBone()
 	// BoneTransformProxy 정리
 	if (BoneTransformProxy)
 	{
-		// PreviewGizmo 타겟 해제
-		if (PreviewScene)
+		// PreviewClient의 Gizmo 타겟 해제
+		if (PreviewClient && PreviewClient->GetGizmo())
 		{
-			UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
-			if (PreviewGizmo)
-			{
-				PreviewGizmo->SetSelectedComponent(nullptr);
-			}
+			PreviewClient->GetGizmo()->SetSelectedComponent(nullptr);
 		}
 
 		SafeDelete(BoneTransformProxy);
@@ -266,7 +253,7 @@ void UFbxViewportWindow::EnsurePreviewInfrastructure()
     const bool bClientWasNull = (PreviewClient == nullptr);
     if (!PreviewClient)
     {
-        PreviewClient = new FViewportClient();
+        PreviewClient = new FPreviewViewportClient();
     }
 
     if (PreviewViewport && PreviewClient)
@@ -298,6 +285,12 @@ void UFbxViewportWindow::EnsurePreviewInfrastructure()
             UE_LOG_ERROR("FbxViewportWindow: Failed to initialize preview scene.");
             SafeDelete(PreviewScene);
         }
+    }
+
+    // PreviewClient에 PreviewScene 연결
+    if (PreviewClient && PreviewScene)
+    {
+        PreviewClient->SetPreviewScene(PreviewScene);
     }
 
     bPreviewReady = (PreviewViewport && PreviewClient && PreviewScene && PreviewScene->GetWorld());
@@ -366,7 +359,7 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 	if (PreviewClient) PreviewClient->SetInputEnabled(bHovered);
 
 	// Preview Viewport에 마우스/키보드 입력 전달 (bHovered일 때만)
-	if (bHovered && PreviewViewport)
+	if (bHovered && PreviewViewport && PreviewClient)
 	{
 		// ImGui가 마우스/키보드 입력을 강제로 소비하도록 설정 (하위 에디터로 전달 방지)
 		ImGui::SetNextFrameWantCaptureMouse(true);
@@ -377,11 +370,30 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		int LocalX = static_cast<int>(LocalMouse.x);
 		int LocalY = static_cast<int>(LocalMouse.y);
 
+		// 키보드 입력 처리 (W/E/R: 기즈모 모드 전환, Space: 사이클)
+		if (ImGui::IsKeyPressed(ImGuiKey_W))
+		{
+			PreviewClient->InputKey(EKeyInput::W, true);
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_E))
+		{
+			PreviewClient->InputKey(EKeyInput::E, true);
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_R))
+		{
+			PreviewClient->InputKey(EKeyInput::R, true);
+		}
+		if (ImGui::IsKeyPressed(ImGuiKey_Space))
+		{
+			PreviewClient->InputKey(EKeyInput::Space, true);
+		}
+
 		// 마우스 버튼 Pressed 처리
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			PreviewViewport->HandleMouseDown(0, LocalX, LocalY);
-			HandleMouseClick(LocalMouse);  // Gizmo 피킹
+			// ViewportClient의 HandleClick 호출 (기즈모/오브젝트 피킹)
+			PreviewClient->HandleClick(LocalX, LocalY);
 		}
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
@@ -396,6 +408,8 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		if (ImGui::IsMouseReleased(ImGuiMouseButton_Left))
 		{
 			PreviewViewport->HandleMouseUp(0, LocalX, LocalY);
+			// 기즈모 드래그 종료
+			PreviewClient->InputKey(EKeyInput::MouseLeft, false);
 		}
 		if (ImGui::IsMouseReleased(ImGuiMouseButton_Right))
 		{
@@ -406,10 +420,17 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 			PreviewViewport->HandleMouseUp(2, LocalX, LocalY);
 		}
 
-		// 마우스 드래그 중일 때 CapturedMouseMove 전달
-		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left) ||
-		    ImGui::IsMouseDragging(ImGuiMouseButton_Right) ||
-		    ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
+		// 마우스 드래그 처리
+		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
+		{
+			PreviewViewport->HandleCapturedMouseMove(LocalX, LocalY);
+			// 기즈모 드래그 처리
+			ImVec2 MouseDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0.0f);
+			PreviewClient->ProcessGizmoDrag(FVector2(MouseDelta.x, MouseDelta.y));
+			ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+		}
+		else if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) ||
+		         ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
 		{
 			PreviewViewport->HandleCapturedMouseMove(LocalX, LocalY);
 		}
@@ -538,19 +559,27 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 			D3D11_VIEWPORT OldViewport;
 			DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
 
-			// FbxViewportWindow의 RTV/DSV 설정
-			DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
-			DeviceContext->RSSetViewports(1, &D3DViewport);
+			// Gizmo 렌더링 (PreviewClient의 Gizmo 사용)
+			if (PreviewClient && PreviewClient->UsesTransformGizmo())
+			{
+				UGizmo* Gizmo = PreviewClient->GetGizmo();
+				if (Gizmo && Gizmo->HasComponent())
+				{
+					// FbxViewportWindow의 RTV/DSV 설정
+					DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
+					DeviceContext->RSSetViewports(1, &D3DViewport);
 
-			PreviewGizmo->UpdateScale(PreviewClient, D3DViewport);
-			PreviewGizmo->RenderGizmo(PreviewClient, D3DViewport);
+					Gizmo->UpdateScale(PreviewClient, D3DViewport);
+					Gizmo->RenderGizmo(PreviewClient, D3DViewport);
 
-			// RenderTarget 복원
-			DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
-			DeviceContext->RSSetViewports(1, &OldViewport);
+					// RenderTarget 복원
+					DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
+					DeviceContext->RSSetViewports(1, &OldViewport);
 
-			if (OldRTV) OldRTV->Release();
-			if (OldDSV) OldDSV->Release();
+					if (OldRTV) OldRTV->Release();
+					if (OldDSV) OldDSV->Release();
+				}
+			}
 		}
 	}
 
