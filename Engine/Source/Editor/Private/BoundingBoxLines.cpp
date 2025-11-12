@@ -6,7 +6,7 @@
 #include "Physics/Public/Capsule.h"
 
 UBoundingBoxLines::UBoundingBoxLines()
-	: Vertices(TArray<FVector>()),
+	: Vertices(),
 	BoundingBoxLineIdx{
 		// 앞면
 		0, 1,
@@ -32,7 +32,7 @@ UBoundingBoxLines::UBoundingBoxLines()
 
 }
 
-void UBoundingBoxLines::MergeVerticesAt(TArray<FVector>& DestVertices, size_t InsertStartIndex)
+void UBoundingBoxLines::MergeVerticesAt(TArray<FVertexPositionColor>& DestVertices, size_t InsertStartIndex)
 {
 	// 인덱스 범위 보정
 	InsertStartIndex = std::min(static_cast<int32>(InsertStartIndex), DestVertices.Num());
@@ -56,6 +56,7 @@ void UBoundingBoxLines::MergeVerticesAt(TArray<FVector>& DestVertices, size_t In
 
 void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 {
+	FVector4 DefaultColor = FVector4(1.0f, 1.0f, 1.0f, 1.0f); // Default white color
 	switch (NewBoundingVolume->GetType())
 	{
 	case EBoundingVolumeType::AABB:
@@ -70,14 +71,14 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 			Vertices.SetNum(NumVertices);
 
 			uint32 Idx = 0;
-			Vertices[Idx++] = {MinX, MinY, MinZ}; // Front-Bottom-Left
-			Vertices[Idx++] = {MaxX, MinY, MinZ}; // Front-Bottom-Right
-			Vertices[Idx++] = {MaxX, MaxY, MinZ}; // Front-Top-Right
-			Vertices[Idx++] = {MinX, MaxY, MinZ}; // Front-Top-Left
-			Vertices[Idx++] = {MinX, MinY, MaxZ}; // Back-Bottom-Left
-			Vertices[Idx++] = {MaxX, MinY, MaxZ}; // Back-Bottom-Right
-			Vertices[Idx++] = {MaxX, MaxY, MaxZ}; // Back-Top-Right
-			Vertices[Idx] = {MinX, MaxY, MaxZ}; // Back-Top-Left
+			Vertices[Idx++] = {{MinX, MinY, MinZ}, DefaultColor}; // Front-Bottom-Left
+			Vertices[Idx++] = {{MaxX, MinY, MinZ}, DefaultColor}; // Front-Bottom-Right
+			Vertices[Idx++] = {{MaxX, MaxY, MinZ}, DefaultColor}; // Front-Top-Right
+			Vertices[Idx++] = {{MinX, MaxY, MinZ}, DefaultColor}; // Front-Top-Left
+			Vertices[Idx++] = {{MinX, MinY, MaxZ}, DefaultColor}; // Back-Bottom-Left
+			Vertices[Idx++] = {{MaxX, MinY, MaxZ}, DefaultColor}; // Back-Bottom-Right
+			Vertices[Idx++] = {{MaxX, MaxY, MaxZ}, DefaultColor}; // Back-Top-Right
+			Vertices[Idx] = {{MinX, MaxY, MaxZ}, DefaultColor}; // Back-Top-Left
 			break;
 		}
 	case EBoundingVolumeType::OBB:
@@ -109,7 +110,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 			{
 				FVector WorldCorner = OBBToWorld.TransformPosition(LocalCorners[Idx]);
 
-				Vertices[Idx] = {WorldCorner.X, WorldCorner.Y, WorldCorner.Z};
+				Vertices[Idx] = {{WorldCorner.X, WorldCorner.Y, WorldCorner.Z}, DefaultColor};
 			}
 			break;
 		}
@@ -140,7 +141,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 
 		// 0번인덱스는 미리 처리
 		FVector WorldCorner = OBBToWorld.TransformPosition(LocalSpotLight[0]);
-		Vertices[0] = { WorldCorner.X, WorldCorner.Y, WorldCorner.Z };
+		Vertices[0] = { WorldCorner, DefaultColor };
 
 		SpotLightLineIdx.Empty();
 		SpotLightLineIdx.Reserve(NumSegments * 4);
@@ -150,7 +151,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 		{
 			FVector WorldCorner = OBBToWorld.TransformPosition(LocalSpotLight[Idx]);
 
-			Vertices[Idx] = { WorldCorner.X, WorldCorner.Y, WorldCorner.Z };
+			Vertices[Idx] = { WorldCorner, DefaultColor };
 			SpotLightLineIdx.Emplace(0);
 			SpotLightLineIdx.Emplace(static_cast<int32>(Idx));
 		}
@@ -185,11 +186,11 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 			const float CosValue = cosf(AngleRadians);
 			const float SinValue = sinf(AngleRadians);
 
-			Vertices[VertexIndex++] = FVector(
+			Vertices[VertexIndex++] = {FVector(
 				Center.X + CosValue * Radius,
 				Center.Y + SinValue * Radius,
 				Center.Z
-			);
+			), DefaultColor};
 		}
 
 		// 2) XZ 평면 대원
@@ -199,11 +200,11 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 			const float CosValue = cosf(AngleRadians);
 			const float SinValue = sinf(AngleRadians);
 
-			Vertices[VertexIndex++] = FVector(
+			Vertices[VertexIndex++] = {FVector(
 				Center.X + CosValue * Radius,
 				Center.Y,
 				Center.Z + SinValue * Radius
-			);
+			), DefaultColor};
 		}
 
 		// 3) YZ 평면 대원
@@ -213,11 +214,11 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 			const float CosValue = cosf(AngleRadians);
 			const float SinValue = sinf(AngleRadians);
 
-			Vertices[VertexIndex++] = FVector(
+			Vertices[VertexIndex++] = {FVector(
 				Center.X,
 				Center.Y + CosValue * Radius,
 				Center.Z + SinValue * Radius
-			);
+			), DefaultColor};
 		}
 
 		int32 LineIndex = 0;
@@ -293,7 +294,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 			float Angle = (2.0f * PI * i) / CircleSegments;
 			FVector LocalPos(Radius * cosf(Angle), Radius * sinf(Angle), 0.0f);
 			FVector WorldPos = Rotation.RotateVector(LocalPos) + TopCenter;
-			Vertices[VertexIndex++] = WorldPos;
+			Vertices[VertexIndex++] = {WorldPos, DefaultColor};
 		}
 
 		// 2) Bottom circle (32 segments on XY plane, rotated)
@@ -302,7 +303,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 			float Angle = (2.0f * PI * i) / CircleSegments;
 			FVector LocalPos(Radius * cosf(Angle), Radius * sinf(Angle), 0.0f);
 			FVector WorldPos = Rotation.RotateVector(LocalPos) + BottomCenter;
-			Vertices[VertexIndex++] = WorldPos;
+			Vertices[VertexIndex++] = {WorldPos, DefaultColor};
 		}
 
 		// 3) Top hemisphere arcs (4 arcs, each with 8 segments)
@@ -322,7 +323,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 					Z
 				);
 				FVector WorldPos = Rotation.RotateVector(LocalPos) + TopCenter;
-				Vertices[VertexIndex++] = WorldPos;
+				Vertices[VertexIndex++] = {WorldPos, DefaultColor};
 			}
 		}
 
@@ -343,7 +344,7 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 					Z
 				);
 				FVector WorldPos = Rotation.RotateVector(LocalPos) + BottomCenter;
-				Vertices[VertexIndex++] = WorldPos;
+				Vertices[VertexIndex++] = {WorldPos, DefaultColor};
 			}
 		}
 
@@ -430,7 +431,6 @@ void UBoundingBoxLines::UpdateVertices(const IBoundingVolume* NewBoundingVolume)
 		break;
 	}
 }
-
 void UBoundingBoxLines::UpdateSpotLightVertices(const TArray<FVector>& InVertices)
 {
 	SpotLightLineIdx.Empty();
@@ -450,7 +450,11 @@ void UBoundingBoxLines::UpdateSpotLightVertices(const TArray<FVector>& InVertice
 	CurrentNumVertices = NumVerticesRequested;
 	Vertices.SetNum(NumVerticesRequested);
 
-	std::ranges::copy(InVertices, Vertices.begin());
+	FVector4 DefaultColor = FVector4(1.0f, 1.0f, 1.0f, 1.0f); // Default white color
+	for (uint32 i = 0; i < NumVerticesRequested; ++i)
+	{
+		Vertices[i] = {InVertices[i], DefaultColor};
+	}
 
 	constexpr uint32 NumSegments = 40;
 	const int32 ApexIndex = 2 * (NumSegments + 1);

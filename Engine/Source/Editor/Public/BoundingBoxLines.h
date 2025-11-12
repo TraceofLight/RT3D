@@ -1,6 +1,7 @@
 #pragma once
 #include "Runtime/CoreUObject/Public/Object.h"
 #include "Physics/Public/AABB.h"
+#include "Editor/Public/EditorPrimitive.h"
 
 class UBoundingBoxLines : UObject
 {
@@ -8,7 +9,7 @@ public:
 	UBoundingBoxLines();
 	~UBoundingBoxLines() = default;
 
-	void MergeVerticesAt(TArray<FVector>& DestVertices, size_t InsertStartIndex);
+	void MergeVerticesAt(TArray<FVertexPositionColor>& DestVertices, size_t InsertStartIndex);
 	void UpdateVertices(const IBoundingVolume* NewBoundingVolume);
 	void UpdateSpotLightVertices(const TArray<FVector>& InVertices);
 	int32* GetIndices(EBoundingVolumeType BoundingVolumeType);
@@ -25,7 +26,7 @@ public:
 	FAABB* GetDisabledBoundingBox() { return &DisabledBoundingBox; }
 
 private:
-	TArray<FVector> Vertices;
+	TArray<FVertexPositionColor> Vertices;
 	uint32 NumVertices = 8;
 	uint32 SpotLightVeitices = 61;
 	uint32 SphereVertices = 180;      // 3개 대원 × 60 세그먼트
