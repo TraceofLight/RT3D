@@ -415,36 +415,16 @@ void URenderer::CreateStaticMeshShader()
 		{ "TANGENT",  0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(FNormalVertex, Tangent),  D3D11_INPUT_PER_VERTEX_DATA, 0 }
 	};
 
-	// Compile Lambert variant (default)
-	TArray<D3D_SHADER_MACRO> LambertMacros = {
-		{ "LIGHTING_MODEL_LAMBERT", "1" },
-		{ nullptr, nullptr }
-	};
-	FRenderResourceFactory::CreateVertexShaderAndInputLayout(ShaderFilePathString, ShaderMeshLayout, &UberLitVertexShader, &UberLitInputLayout, "Uber_VS", LambertMacros.GetData());
-	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShader, "Uber_PS", LambertMacros.GetData());
-
-	// Compile Gouraud variant
-	TArray<D3D_SHADER_MACRO> GouraudMacros = {
-		{ "LIGHTING_MODEL_GOURAUD", "1" },
-		{ nullptr, nullptr }
-	};
+	FRenderResourceFactory::CreateVertexShaderAndInputLayout(ShaderFilePathString, ShaderMeshLayout, &UberLitVertexShader, &UberLitInputLayout,
+		EShaderVariant::LIGHTING_MODEL_LAMBERT, EShaderFeatureFlag::None, "Uber_VS");
+	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShader, EShaderVariant::LIGHTING_MODEL_LAMBERT, EShaderFeatureFlag::None, "Uber_PS");
 	ID3D11InputLayout* GouraudInputLayout = nullptr;
-	FRenderResourceFactory::CreateVertexShaderAndInputLayout(ShaderFilePathString, ShaderMeshLayout, &UberLitVertexShaderGouraud, &GouraudInputLayout, "Uber_VS", GouraudMacros.GetData());
+	FRenderResourceFactory::CreateVertexShaderAndInputLayout(ShaderFilePathString, ShaderMeshLayout, &UberLitVertexShaderGouraud, &GouraudInputLayout,
+		EShaderVariant::LIGHTING_MODEL_GOURAUD, EShaderFeatureFlag::None, "Uber_VS");
 	SafeRelease(GouraudInputLayout);
-	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShaderGouraud, "Uber_PS", GouraudMacros.GetData());
-
-	// Compile Phong (Blinn-Phong) variant
-	TArray<D3D_SHADER_MACRO> PhongMacros = {
-		{ "LIGHTING_MODEL_BLINNPHONG", "1" },
-		{ nullptr, nullptr }
-	};
-	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShaderBlinnPhong, "Uber_PS", PhongMacros.GetData());
-
-	TArray<D3D_SHADER_MACRO> WorldNormalViewMacros = {
-		{ "LIGHTING_MODEL_NORMAL", "1" },
-		{ nullptr, nullptr }
-	};
-	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShaderWorldNormal, "Uber_PS", WorldNormalViewMacros.GetData());
+	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShaderGouraud, EShaderVariant::LIGHTING_MODEL_GOURAUD, EShaderFeatureFlag::None, "Uber_PS");
+	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShaderBlinnPhong, EShaderVariant::LIGHTING_MODEL_BLINNPHONG, EShaderFeatureFlag::None, "Uber_PS");
+	FRenderResourceFactory::CreatePixelShader(ShaderFilePathString, &UberLitPixelShaderWorldNormal, EShaderVariant::LIGHTING_MODEL_NORMAL, EShaderFeatureFlag::None, "Uber_PS");
 
 	RegisterShaderReloadCache(ShaderPath, ShaderUsage::STATICMESH);
 }
