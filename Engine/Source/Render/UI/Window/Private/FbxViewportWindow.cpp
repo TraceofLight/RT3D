@@ -312,10 +312,7 @@ void UFbxViewportWindow::EnsurePreviewInfrastructure()
 void UFbxViewportWindow::OnPostRenderWindow()
 {
 	EnsurePreviewInfrastructure();
-	if (!bPreviewReady)
-	{
-		return;
-	}
+	if (!bPreviewReady) return;
 
 	UpdateSkeletalWidgetTargets();
 
@@ -323,26 +320,74 @@ void UFbxViewportWindow::OnPostRenderWindow()
 	if (totalAvail.x < 1 || totalAvail.y < 1) return;
 
 	const bool bHasInspector = (SkeletalWidget && PreviewScene && PreviewScene->GetPreviewSkeletalComponent());
-	const float desiredInspectorWidth = 320.0f;
-	float inspectorWidth = bHasInspector ? desiredInspectorWidth : 0.0f;
+
+	// 인스펙터 표시 여부 최종 결정
+	const bool bShowInspector = bHasInspector && bInspectorVisible;
+
+	const float spacing = bShowInspector ? ImGui::GetStyle().ItemSpacing.x : 0.0f;
+	const float splitter = bShowInspector ? SplitterThickness : 0.0f;
+
+	// 뷰포트/인스펙터 폭 계산 및 클램프
+	const float minViewportWidth = 50.0f;
+	const float maxInspectorByWindow = std::max(InspectorMinWidth, totalAvail.x - minViewportWidth - spacing - splitter);
+	InspectorWidth = std::clamp(InspectorWidth, InspectorMinWidth, std::min(InspectorMaxWidth, maxInspectorByWindow));
+
 	float viewportWidth = totalAvail.x;
-	const float spacing = bHasInspector ? ImGui::GetStyle().ItemSpacing.x : 0.0f;
+	if (bShowInspector)
+		viewportWidth = std::max(minViewportWidth, totalAvail.x - InspectorWidth - spacing - splitter);
 
-	if (inspectorWidth > 0.0f && totalAvail.x > (inspectorWidth + spacing + 50.0f))
-	{
-		viewportWidth = totalAvail.x - inspectorWidth - spacing;
-	}
-	else
-	{
-		inspectorWidth = 0.0f;
-	}
-
+	// 1) 왼쪽: Preview Viewport
 	RenderPreviewViewport(ImVec2(viewportWidth, totalAvail.y));
 
-	if (inspectorWidth > 0.0f)
+	if (bShowInspector)
 	{
+		// 2) 가운데: 세로 스플리터 (드래그/더블클릭)
 		ImGui::SameLine();
-		RenderSkeletalInspector(ImVec2(inspectorWidth, totalAvail.y));
+
+		// 스플리터 사각형 좌표 계산
+		const ImVec2 splitterSize(splitter, totalAvail.y);
+		ImVec2 splitterPos = ImGui::GetCursorScreenPos();
+
+		// 히트영역 버튼
+		ImGui::InvisibleButton("##InspectorSplitter", splitterSize,
+			ImGuiButtonFlags_MouseButtonLeft);
+
+		const bool hovered = ImGui::IsItemHovered();
+		const bool held = ImGui::IsItemActive();
+
+		// 시각적 핸들(연한 라인)
+		ImDrawList* dl = ImGui::GetWindowDrawList();
+		ImU32 handleCol = hovered || held ? IM_COL32(200, 200, 200, 180) : IM_COL32(140, 140, 140, 120);
+		dl->AddRectFilled(splitterPos, ImVec2(splitterPos.x + splitter, splitterPos.y + splitterSize.y), IM_COL32(0, 0, 0, 0));
+		// 중앙 가이드 라인 2px
+		float cx = splitterPos.x + splitter * 0.5f;
+		dl->AddLine(ImVec2(cx, splitterPos.y + 6.0f), ImVec2(cx, splitterPos.y + splitterSize.y - 6.0f), handleCol, 2.0f);
+
+		if (hovered) ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+
+		if (held) {
+			float dx = ImGui::GetIO().MouseDelta.x;
+			// 스플리터는 "인스펙터의 왼쪽 경계"이므로
+			// 오른쪽으로 드래그(+dx) => 인스펙터 폭 감소
+			// 왼쪽으로 드래그(-dx)   => 인스펙터 폭 증가
+			InspectorWidth = std::clamp(InspectorWidth - dx, InspectorMinWidth, std::min(InspectorMaxWidth, maxInspectorByWindow));
+		}
+
+		// 더블클릭으로 토글(접기/복구)
+		if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+			if (bInspectorVisible) {
+				InspectorPrevWidth = InspectorWidth;
+				bInspectorVisible = false;
+			}
+			else {
+				bInspectorVisible = true;
+				InspectorWidth = std::clamp(InspectorPrevWidth, InspectorMinWidth, std::min(InspectorMaxWidth, maxInspectorByWindow));
+			}
+		}
+
+		// 3) 오른쪽: Inspector 패널
+		ImGui::SameLine();
+		RenderSkeletalInspector(ImVec2(InspectorWidth, totalAvail.y));
 	}
 }
 

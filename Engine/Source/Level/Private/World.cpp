@@ -464,37 +464,40 @@ void UWorld::DuplicateSubObjects(UObject* DuplicatedObject)
 	World->Level->OwningWorld = World;  // Level이 자신을 소유한 World를 알도록 설정
 }
 
-void UWorld::CreateNewLevel(const FName& InLevelName)
+void UWorld::CreateNewLevel(const FName& InLevelName, bool IsLightNeeded)
 {
 	ULevel* NewLevel = NewObject<ULevel>();
 	NewLevel->SetName(InLevelName);
 	NewLevel->SetOuter(this);
 	SwitchToLevel(NewLevel);
 
-	// 기본 AmbientLight 추가 (Intensity: 0.2)
-	AActor* SpawnedActor = SpawnActor(AAmbientLight::StaticClass());
-	if (AAmbientLight* AmbientLight = Cast<AAmbientLight>(SpawnedActor))
+	if (IsLightNeeded)
 	{
-		AmbientLight->SetActorLocation(FVector(0.0f, 0.0f, 10.0f));
-		AmbientLight->SetName("AmbientLight");
-
-		if (UAmbientLightComponent* AmbientComp = AmbientLight->GetComponentByClass<UAmbientLightComponent>())
+		// 기본 AmbientLight 추가 (Intensity: 0.2)
+		AActor* SpawnedActor = SpawnActor(AAmbientLight::StaticClass());
+		if (AAmbientLight* AmbientLight = Cast<AAmbientLight>(SpawnedActor))
 		{
-			AmbientComp->SetIntensity(0.2f);
+			AmbientLight->SetActorLocation(FVector(0.0f, 0.0f, 10.0f));
+			AmbientLight->SetName("AmbientLight");
+
+			if (UAmbientLightComponent* AmbientComp = AmbientLight->GetComponentByClass<UAmbientLightComponent>())
+			{
+				AmbientComp->SetIntensity(0.2f);
+			}
 		}
-	}
 
-	// 기본 DirectionalLight 추가 (Intensity: 0.3)
-	AActor* DirLightActor = SpawnActor(ADirectionalLight::StaticClass());
-	if (ADirectionalLight* DirLight = Cast<ADirectionalLight>(DirLightActor))
-	{
-		DirLight->SetActorLocation(FVector(0.0f, 0.0f, 20.0f));
-		DirLight->SetActorRotation(FQuat::FromEuler(FVector(0.0f, -45.0f, 0.0f)));
-		DirLight->SetName("DirectionalLight");
-
-		if (UDirectionalLightComponent* DirComp = DirLight->GetComponentByClass<UDirectionalLightComponent>())
+		// 기본 DirectionalLight 추가 (Intensity: 0.3)
+		AActor* DirLightActor = SpawnActor(ADirectionalLight::StaticClass());
+		if (ADirectionalLight* DirLight = Cast<ADirectionalLight>(DirLightActor))
 		{
-			DirComp->SetIntensity(0.3f);
+			DirLight->SetActorLocation(FVector(0.0f, 0.0f, 20.0f));
+			DirLight->SetActorRotation(FQuat::FromEuler(FVector(0.0f, -45.0f, 0.0f)));
+			DirLight->SetName("DirectionalLight");
+
+			if (UDirectionalLightComponent* DirComp = DirLight->GetComponentByClass<UDirectionalLightComponent>())
+			{
+				DirComp->SetIntensity(0.3f);
+			}
 		}
 	}
 

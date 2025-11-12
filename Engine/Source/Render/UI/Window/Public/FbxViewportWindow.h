@@ -91,5 +91,13 @@ private:
 	// Bone Selection (메인 에디터와 독립)
 	int32 SelectedBoneIndex = -1;
 	class UBoneTransformProxy* BoneTransformProxy = nullptr;
+private:
+	// --- Splitter/Inspector state ---
+	float InspectorWidth = 320.0f;     // 현재 인스펙터 폭(px)
+	float InspectorMinWidth = 220.0f;  // 최소 폭
+	float InspectorMaxWidth = 800.0f;  // 최대 폭(윈도 폭에 따라 클램프됨)
+	float InspectorPrevWidth = 320.0f; // 토글 복구용
+	bool  bInspectorVisible = true;    // 인스펙터 표시 여부
+	float SplitterThickness = 6.0f;    // 스플리터 핸들 두께(px)
 };
 

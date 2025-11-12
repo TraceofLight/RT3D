@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
 
 #include "Runtime/CoreUObject/Public/NewObject.h"
@@ -61,7 +61,7 @@ void FPreviewScene::CreatePreviewWorld()
     }
 
     PreviewWorld->SetWorldType(EWorldType::EditorPreview);
-    PreviewWorld->CreateNewLevel();
+    PreviewWorld->CreateNewLevel("FBX", false);
 
     if (GEditor && !bWorldRegistered)
     {
@@ -105,7 +105,7 @@ void FPreviewScene::InjectDefaultContent()
 	}
 	else
 	{
-		PreviewSkeletalActor->SetActorLocation(FVector(0,0,1));
+		PreviewSkeletalActor->SetActorLocation(FVector(0,0,2));
 		PreviewSkeletalActor->SetActorScale3D(FVector(0.2f, 0.2f, 0.2f));
 	}
 
@@ -130,7 +130,7 @@ void FPreviewScene::InjectDefaultContent()
     {
         PreviewMesh->SetVisibility(true);
     	PreviewMesh->SetStaticMesh("Data/Shapes/Cube.obj");
-    	PreviewMesh->SetRelativeScale3D(FVector(100000.0, 100000.0, 1.0));
+    	PreviewMesh->SetRelativeScale3D(FVector(100, 100, 2));
     	FVector Location = PreviewMesh->GetRelativeLocation();
     	UE_LOG("UStaticMeshComponent : %f, %f, %f", Location.X, Location.Y, Location.Z);
     }
@@ -141,8 +141,9 @@ void FPreviewScene::InjectDefaultContent()
 		PreviewDirectional->SetLightEnabled(true);
 		PreviewDirectional->SetVisible(true);
 		PreviewDirectional->SetLightColor(FVector(1.0, 1.0, 1.0));
-		PreviewDirectional->SetRelativeRotation(FQuat::FromEuler(FVector( 0.f, -20.f, 0.f)));
+		PreviewDirectional->SetRelativeRotation(FQuat::FromEuler(FVector( 0.f, -50.f, 0.f)));
 		PreviewDirectional->SetRelativeLocation(FVector(0, 0, 10000));
+		PreviewDirectional->SetIntensity(1.0);
 	}
 
 	// PreviewGizmo 생성 (메인 에디터와 독립)
