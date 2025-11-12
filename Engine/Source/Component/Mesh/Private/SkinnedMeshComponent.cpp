@@ -74,6 +74,35 @@ void USkinnedMeshComponent::SetSkinMatrices(const FMatrix* InMatrices, int32 Cou
     bSkinnedVerticesDirty = true;
 }
 
+FVector USkinnedMeshComponent::SkinTangent(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats)
+{
+	FVector Out = FVector::ZeroVector();
+
+	for (int k = 0; k < 4; ++k)
+	{
+		const float w = V.Skin.BoneWeights[k];
+		if (w <= 0.0f)
+		{
+			continue;
+		}
+
+		const uint16 secIdx = V.Skin.BoneIndices[k];
+		if (secIdx >= Sec.BoneMap.Num())
+		{
+			continue;
+		}
+		const uint16 skelIdx = Sec.BoneMap[secIdx];
+		if (skelIdx >= SkinMats.Num())
+		{
+			continue;
+		}
+		const FMatrix& M = SkinMats[skelIdx];
+		Out += M.TransformVector( FVector(V.Vertex.Tangent.X, V.Vertex.Tangent.Y, V.Vertex.Tangent.Z) ) * w;
+	}
+	Out.Normalize();
+	return FVector();
+}
+
 FVector USkinnedMeshComponent::SkinPosition(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats)
 {
     FVector Out = FVector::ZeroVector();
@@ -215,9 +244,12 @@ void USkinnedMeshComponent::UpdateSkinnedVerticesCache() const
                 FNormalVertex& OutVert = CachedSkinnedVertices[GlobalIndex];
                 OutVert.Position = SkinPosition(SkelVert, Section, FinalSkinMatrices);
                 OutVert.Normal = SkinNormal(SkelVert, Section, FinalSkinMatrices);
+
+				FVector SkinnedTangent = SkinTangent(SkelVert, Section, FinalSkinMatrices);
+				OutVert.Tangent = FVector4(SkinnedTangent, SkelVert.Vertex.Tangent.W);
+
                 OutVert.Color = SkelVert.Vertex.Color;
                 OutVert.TexCoord = SkelVert.Vertex.TexCoord;
-                OutVert.Tangent = SkelVert.Vertex.Tangent;
             });
 
         // Index 복사 (vertex offset 적용)

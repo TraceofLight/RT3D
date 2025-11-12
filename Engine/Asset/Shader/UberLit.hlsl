@@ -199,8 +199,12 @@ float3 ComputeNormalMappedWorldNormal(float2 UV, float3 WorldNormal, float4 Worl
     // [0,1] -> [-1,1]로 매핑해서 탄젠트 공간 노말을 복원한다.
     float3 TangentSpaceNormal = SafeNormalize3(Encoded * 2.0f - 1.0f);
 
+    // Gram-Schmidt Re-Orthogonalization
+    // To prevent issues with non-uniform scaling, re-orthogonalize the tangent
+    float3 orthoT = SafeNormalize3(WorldTangent.xyz - dot(WorldTangent.xyz, BaseNormal) * BaseNormal);
+
     // VS로 넘어온 월드 탄젠트를 정규화
-    float3 T = WorldTangent.xyz / sqrt(TangentLen2);
+    float3 T = orthoT;
     // TBN이 올바른 방향이 되도록 저장해둔 좌우손성으로 B 복원
     float Handedness = WorldTangent.w;
     float3 B = SafeNormalize3(cross(BaseNormal, T) * Handedness);
@@ -274,7 +278,9 @@ PS_OUTPUT Uber_PS(PS_INPUT Input)
     if (MaterialFlags & HAS_NORMAL_MAP)
     {
         ShadedWorldNormal = ComputeNormalMappedWorldNormal(UV, Input.WorldNormal, Input.WorldTangent);
-        // else: Tangent가 유효하지 않으면 NormalBase 유지
+		ShadedWorldNormal = float3(0, 0, 0);
+		
+		// else: Tangent가 유효하지 않으면 NormalBase 유지
     }
     // Sample textures
     float4 ambientColor = Ka;

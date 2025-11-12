@@ -111,7 +111,8 @@ bool FFbxImporter::LoadSkeletalMesh(const FString& FilePath, FSkeletalMesh& OutM
 	);
 	 
 	FbxAxisSystem SourceAxis = Scene->GetGlobalSettings().GetAxisSystem();
-	 
+
+	// 3. 소스 좌표계와 우리 엔진의 목표 좌표계가 다른지 비교합니다.
 	if (SourceAxis != EngineTargetAxis)
 	{ 
 		EngineTargetAxis.DeepConvertScene(Scene);
@@ -758,7 +759,18 @@ void FFbxImporter::BuildMeshSections(FbxMesh* Mesh, FSkeletalMesh& OutMesh)
 
 	// UV Layer
 	FbxGeometryElementUV* UVElement = Mesh->GetElementUV();
+	 
+	FbxGeometryElementTangent* TangentElement = Mesh->GetElementTangent(0);
+	if (TangentElement == nullptr && UVElement != nullptr)
+	{
+		if (Mesh->GenerateTangentsData(0, true))
+		{
+			// 생성이 성공하면 TangentElement를 다시 가져옵니다.
+			TangentElement = Mesh->GetElementTangent(0);
+		}
 
+
+	}
 	// Vertex 및 Index 빌드
 	int32 VertexCounter = 0;
 	for (int32 PolyIndex = 0; PolyIndex < PolygonCount; PolyIndex++)
@@ -797,8 +809,57 @@ void FFbxImporter::BuildMeshSections(FbxMesh* Mesh, FSkeletalMesh& OutMesh)
 				bool Unmapped = false;
 				Mesh->GetPolygonVertexUV(PolyIndex, VertIndex, UVElement->GetName(), UV, Unmapped);
 				SkVertex.Vertex.TexCoord = FVector2(static_cast<float>(UV[0]), static_cast<float>(1.0 - UV[1]));
-			}
+			} 
+			if (TangentElement)
+			{
+				FbxVector4 Tangent;
+				int TangentIndex = -1;
 
+				// FBX는 Tangent에 대한 헬퍼 함수가 없으므로 인덱싱 방식 확인
+				if (TangentElement->GetMappingMode() == FbxGeometryElement::eByPolygonVertex)
+				{
+					if (TangentElement->GetReferenceMode() == FbxGeometryElement::eDirect)
+					{
+						TangentIndex = VertexCounter;
+					}
+					else // eIndexToDirect
+					{
+						TangentIndex = TangentElement->GetIndexArray().GetAt(VertexCounter);
+					}
+				}
+				else if (TangentElement->GetMappingMode() == FbxGeometryElement::eByControlPoint)
+				{
+					int32 ControlPointIndex = Mesh->GetPolygonVertex(PolyIndex, VertIndex);
+					if (TangentElement->GetReferenceMode() == FbxGeometryElement::eDirect)
+					{
+						TangentIndex = ControlPointIndex;
+					}
+					else // eIndexToDirect
+					{
+						TangentIndex = TangentElement->GetIndexArray().GetAt(ControlPointIndex);
+					}
+				}
+
+				if (TangentIndex != -1)
+				{
+					Tangent = TangentElement->GetDirectArray().GetAt(TangentIndex);
+
+					// ConvertNormal 함수가 좌표계 변환 및 정규화를 수행
+					FVector Tangent3 = ConvertNormal(Tangent);
+
+					// FBX의 Tangent.W (Tangent[3])는 Handedness 값을 가짐
+					float Handedness = (float)Tangent[3];
+					// Handedness가 0이면 비정상이므로 1.0f로 보정 (셰이더에서 사용)
+					if (Handedness == 0.0f) Handedness = 1.0f;
+
+					SkVertex.Vertex.Tangent = FVector4(Tangent3, Handedness);
+				}
+				else
+				{
+					// 인덱싱 실패 시 (있어서는 안 됨)
+					SkVertex.Vertex.Tangent = FVector4(1.0f, 0.0f, 0.0f, 1.0f); 
+				}
+			}
 			// Skin Influence (최대 4개 Bone, 내림차순 정렬)
 			auto& Weights = ControlPointWeights[ControlPointIndex];
 			if (Weights.Num() > 0)
