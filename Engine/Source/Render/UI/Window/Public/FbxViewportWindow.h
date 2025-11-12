@@ -12,6 +12,8 @@ class USkeletalMeshComponentWidget;
 class USkeletalMesh;
 class UBatchLines;
 class UViewportControlWidget;
+class UMaterial;
+class UTexture;
 
 enum class EEditMode : uint8
 {
@@ -71,6 +73,11 @@ private:
 	void HandleMouseClick(const ImVec2& LocalMousePos);
 	void UpdatePreviewCamera(float DeltaTime);
 
+	// SkeletalMesh / Material
+	void RenderSkeletalMeshSelector();
+	void RenderMaterialSections();
+	void RenderAvailableMaterials(int32 TargetSlotIndex);
+
 	// Material Instancing
 	void CreateMaterialInstances();
 	void CleanupMaterialInstances();
@@ -104,5 +111,9 @@ private:
 	bool  bLeftVisible = true;
 	bool  bRightVisible = true;
 	float SplitterThickness = 6.0f;
+
+	// 유틸리티 함수
+	static FString GetMaterialDisplayName(UMaterial* Material);
+	static UTexture* GetPreviewTextureForMaterial(const UMaterial* Material);
 };
 

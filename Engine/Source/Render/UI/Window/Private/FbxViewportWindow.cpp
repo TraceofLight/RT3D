@@ -14,6 +14,8 @@
 #include "ImGui/imgui.h"
 #include "Component/Mesh/Public/SkeletalMesh.h"
 #include "Texture/Public/Material.h"
+#include "Texture/Public/Texture.h"
+#include "Runtime/CoreUObject/Public/ObjectIterator.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
 
@@ -704,6 +706,16 @@ void UFbxViewportWindow::RenderLeftControlsPanel(const ImVec2& InSize)
 		}
 	}
 
+	ImGui::Separator();
+
+	RenderSkeletalMeshSelector();
+
+	if (PreviewScene && PreviewScene->GetPreviewSkeletalComponent() && PreviewScene->GetPreviewSkeletalComponent()->GetSkeletalMesh())
+	{
+		ImGui::Separator();
+		RenderMaterialSections();
+	}
+
 	ImGui::EndChild();
 }
 
@@ -761,6 +773,158 @@ void UFbxViewportWindow::UpdateSkeletalWidgetTargets()
 
 	SkeletalWidget->SetPreviewViewportClient(PreviewClient);
 }
+
+void UFbxViewportWindow::RenderSkeletalMeshSelector()
+{
+	if (!PreviewScene) return;
+	USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+	if (!PreviewComponent) return;
+
+	USkeletalMesh* CurrentSkeletalMesh = PreviewComponent->GetSkeletalMesh();
+	FString PreviewName = "None";
+
+	if (CurrentSkeletalMesh && CurrentSkeletalMesh->GetSkeletalMeshAsset())
+	{
+		PreviewName = CurrentSkeletalMesh->GetSkeletalMeshAsset()->PathFileNameString;
+	}
+
+	if (ImGui::BeginCombo("Skeletal Mesh", PreviewName.c_str()))
+	{
+		for (TObjectIterator<USkeletalMesh> It; It; ++It)
+		{
+			USkeletalMesh* MeshInList = *It;
+			if (!MeshInList || !MeshInList->IsValid()) continue;
+
+			FString MeshName = MeshInList->GetSkeletalMeshAsset()->PathFileNameString;
+			const bool bIsSelected = (CurrentSkeletalMesh == MeshInList);
+
+			if (ImGui::Selectable(MeshName.c_str(), bIsSelected))
+			{
+				SetPreviewSkeletalMesh(MeshInList);
+			}
+
+			if (bIsSelected)
+			{
+				ImGui::SetItemDefaultFocus();
+			}
+		}
+		ImGui::EndCombo();
+	}
+}
+
+void UFbxViewportWindow::RenderMaterialSections()
+{
+	if (!PreviewScene) return;
+	USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+	if (!PreviewComponent) return;
+
+	USkeletalMesh* CurrentMesh = PreviewComponent->GetSkeletalMesh();
+	if (!CurrentMesh || !CurrentMesh->IsValid())
+	{
+		return;
+	}
+
+	FSkeletalMesh* MeshAsset = CurrentMesh->GetSkeletalMeshAsset();
+	if (!MeshAsset)
+	{
+		return;
+	}
+
+	ImGui::Text("Material Slots (%d)", static_cast<int>(MeshAsset->MaterialInfo.Num()));
+
+	for (int32 SlotIndex = 0; SlotIndex < MeshAsset->MaterialInfo.Num(); ++SlotIndex)
+	{
+		UMaterial* CurrentMaterial = PreviewComponent->GetMaterial(SlotIndex);
+		FString PreviewName = CurrentMaterial ? GetMaterialDisplayName(CurrentMaterial) : "None";
+
+		ImGui::PushID(SlotIndex);
+
+		std::string Label = "Element " + std::to_string(SlotIndex);
+		ImGui::TextUnformatted(Label.c_str());
+
+		const float PreviewSize = 64.0f;
+		UTexture* MaterialPreviewTexture = GetPreviewTextureForMaterial(CurrentMaterial);
+		ID3D11ShaderResourceView* ShaderResourceView = nullptr;
+		if (MaterialPreviewTexture != nullptr)
+		{
+			ShaderResourceView = MaterialPreviewTexture->GetTextureSRV();
+		}
+
+		if (ShaderResourceView != nullptr)
+		{
+			ImGui::Image((ImTextureID)ShaderResourceView, ImVec2(PreviewSize, PreviewSize), ImVec2(0, 0), ImVec2(1, 1));
+		}
+		else
+		{
+			ImGui::Dummy(ImVec2(PreviewSize, PreviewSize));
+		}
+
+		ImGui::SameLine();
+		ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+
+		std::string ComboId = "##MaterialSlotCombo_" + std::to_string(SlotIndex);
+		if (ImGui::BeginCombo(ComboId.c_str(), PreviewName.c_str()))
+		{
+			RenderAvailableMaterials(SlotIndex);
+			ImGui::EndCombo();
+		}
+		ImGui::PopID();
+	}
+}
+
+void UFbxViewportWindow::RenderAvailableMaterials(int32 TargetSlotIndex)
+{
+	if (!PreviewScene) return;
+	USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+	if (!PreviewComponent) return;
+
+	for (TObjectIterator<UMaterial> Iter; Iter; ++Iter)
+	{
+		UMaterial* Material = *Iter;
+		if (!Material)
+		{
+			continue;
+		}
+
+		FString MaterialName = GetMaterialDisplayName(Material);
+		bool bIsSelected = (PreviewComponent->GetMaterial(TargetSlotIndex) == Material);
+
+		constexpr float RowPreviewSize = 20.0f;
+		UTexture* RowPreviewTexture = GetPreviewTextureForMaterial(Material);
+		ID3D11ShaderResourceView* RowShaderResourceView = nullptr;
+		if (RowPreviewTexture != nullptr)
+		{
+			RowShaderResourceView = RowPreviewTexture->GetTextureSRV();
+		}
+
+		if (RowShaderResourceView != nullptr)
+		{
+			ImGui::Image(RowShaderResourceView, ImVec2(RowPreviewSize, RowPreviewSize), ImVec2(0, 0), ImVec2(1, 1));
+		}
+		else
+		{
+			ImGui::Dummy(ImVec2(RowPreviewSize, RowPreviewSize));
+		}
+		ImGui::SameLine();
+
+		if (ImGui::Selectable(MaterialName.c_str(), bIsSelected))
+		{
+			// Create a new instance of the selected material
+			UMaterial* NewMaterialInstance = NewObject<UMaterial>(PreviewComponent);
+			NewMaterialInstance->CopyFrom(Material);
+
+			// Replace the old instance
+			MaterialInstances[TargetSlotIndex] = NewMaterialInstance;
+			PreviewComponent->SetMaterial(TargetSlotIndex, NewMaterialInstance);
+		}
+
+		if (bIsSelected)
+		{
+			ImGui::SetItemDefaultFocus();
+		}
+	}
+}
+
 
 void UFbxViewportWindow::CreateMaterialInstances()
 {
@@ -946,5 +1110,116 @@ void UFbxViewportWindow::HandleMouseClick(const ImVec2& LocalMousePos)
 
 		DeviceContext->Unmap(HitProxyStagingTex.Get(), 0);
 	}
+}
+
+FString UFbxViewportWindow::GetMaterialDisplayName(UMaterial* Material)
+{
+	if (!Material)
+	{
+		return "None";
+	}
+
+	FString ObjectName = Material->GetName().ToString();
+	if (!ObjectName.empty() && ObjectName.find("Object_") != 0)
+	{
+		return ObjectName;
+	}
+
+	UTexture* DiffuseTexture = Material->GetDiffuseTexture();
+	if (DiffuseTexture)
+	{
+		FString TexturePath = DiffuseTexture->GetFilePath().ToString();
+		if (!TexturePath.empty())
+		{
+			size_t LastSlash = TexturePath.find_last_of("/\\");
+			size_t LastDot = TexturePath.find_last_of(".");
+
+			if (LastSlash != std::string::npos)
+			{
+				FString FileName = TexturePath.substr(LastSlash + 1);
+				if (LastDot != std::string::npos && LastDot > LastSlash)
+				{
+					FileName = FileName.substr(0, LastDot - LastSlash - 1);
+				}
+				return FileName + " (Mat)";
+			}
+		}
+	}
+
+	TArray<UTexture*> Textures = {
+		Material->GetAmbientTexture(),
+		Material->GetSpecularTexture(),
+		Material->GetNormalTexture(),
+		Material->GetOpacityTexture(),
+		Material->GetBumpTexture()
+	};
+
+	for (UTexture* Texture : Textures)
+	{
+		if (Texture)
+		{
+			FString TexturePath = Texture->GetFilePath().ToString();
+			if (!TexturePath.empty())
+			{
+				size_t LastSlash = TexturePath.find_last_of("/\\");
+				size_t LastDot = TexturePath.find_last_of(".");
+
+				if (LastSlash != std::string::npos)
+				{
+					FString FileName = TexturePath.substr(LastSlash + 1);
+					if (LastDot != std::string::npos && LastDot > LastSlash)
+					{
+						FileName = FileName.substr(0, LastDot - LastSlash - 1);
+					}
+					return FileName + " (Mat)";
+				}
+			}
+		}
+	}
+
+	return "Material_" + std::to_string(Material->GetUUID());
+}
+
+UTexture* UFbxViewportWindow::GetPreviewTextureForMaterial(const UMaterial* Material)
+{
+	if (Material == nullptr)
+	{
+		return nullptr;
+	}
+
+	UTexture* PreviewTexture = nullptr;
+
+	PreviewTexture = Material->GetDiffuseTexture();
+	if (PreviewTexture != nullptr)
+	{
+		return PreviewTexture;
+	}
+
+	PreviewTexture = Material->GetAmbientTexture();
+	if (PreviewTexture != nullptr)
+	{
+		return PreviewTexture;
+	}
+
+	PreviewTexture = Material->GetSpecularTexture();
+	if (PreviewTexture != nullptr)
+	{
+		return PreviewTexture;
+	}
+
+	PreviewTexture = Material->GetNormalTexture();
+	if (PreviewTexture != nullptr)
+	{
+		return PreviewTexture;
+	}
+
+	PreviewTexture = Material->GetOpacityTexture();
+	if (PreviewTexture != nullptr)
+	{
+		return PreviewTexture;
+	}
+
+	PreviewTexture = Material->GetBumpTexture();
+	return PreviewTexture;
 }
 
