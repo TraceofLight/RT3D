@@ -220,6 +220,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Source\Actor\Public\SkeletalMeshActor.h" />
+    <ClInclude Include="Source\Component\Mesh\Public\BoneTransformProxy.h" />
     <ClInclude Include="Source\Component\Mesh\Public\SkeletalMesh.h" />
     <ClInclude Include="Source\Component\Mesh\Public\SkeletalMeshComponent.h" />
     <ClInclude Include="Source\Component\Mesh\Public\SkinnedMeshComponent.h" />
@@ -378,6 +379,7 @@
     <ClInclude Include="Source\Render\Shadow\Public\PSMCalculator.h" />
     <ClInclude Include="Source\Render\UI\Overlay\Public\D2DOverlayManager.h" />
     <ClInclude Include="Source\Render\RenderPass\Public\ShadowMapFilterPass.h" />
+    <ClInclude Include="Source\Render\UI\Viewport\Public\PreviewViewportClient.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\ScriptComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Widget\Public\SkeletalMeshComponentWidget.h" />
     <ClInclude Include="Source\Render\UI\Window\Public\CurveEditorWindow.h" />
@@ -462,6 +464,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Actor\Private\SkeletalMeshActor.cpp" />
+    <ClCompile Include="Source\Component\Mesh\Private\BoneTransformProxy.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\SkeletalMesh.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\SkeletalMeshComponent.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\SkinnedMeshComponent.cpp" />
@@ -525,6 +528,7 @@
     <ClCompile Include="Source\Component\Private\CapsuleComponent.cpp" />
     <ClCompile Include="Source\Component\Private\SceneComponent.cpp" />
     <ClCompile Include="Source\Component\Mesh\Private\VertexDatas.cpp" />
+    <ClCompile Include="Source\Render\UI\Viewport\Private\PreviewViewportClient.cpp" />
     <ClCompile Include="Source\Runtime\CoreUObject\Private\Archive.cpp" />
     <ClCompile Include="Source\Runtime\CoreUObject\Private\ObjectIterator.cpp" />
     <ClCompile Include="Source\Runtime\CoreUObject\Private\WindowsBinReader.cpp" />

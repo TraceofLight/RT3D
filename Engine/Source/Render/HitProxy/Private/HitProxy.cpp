@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Render/HitProxy/Public/HitProxy.h"
+#include "Component/Mesh/Public/SkeletalMeshComponent.h"
 
 FHitProxyId::FHitProxyId()
 	: Index(0)
@@ -56,6 +57,11 @@ bool HHitProxy::IsComponent() const
 	return false;
 }
 
+bool HHitProxy::IsBone() const
+{
+	return false;
+}
+
 HWidgetAxis::HWidgetAxis(EGizmoAxisType InAxis, FHitProxyId InId)
 	: HHitProxy(InId), Axis(InAxis)
 {
@@ -72,6 +78,16 @@ HComponent::HComponent(UPrimitiveComponent* InComponent, FHitProxyId InId)
 }
 
 bool HComponent::IsComponent() const
+{
+	return true;
+}
+
+HBone::HBone(USkeletalMeshComponent* InSkeletalMesh, int32 InBoneIndex, FHitProxyId InId)
+	: HHitProxy(InId), SkeletalMesh(InSkeletalMesh), BoneIndex(InBoneIndex)
+{
+}
+
+bool HBone::IsBone() const
 {
 	return true;
 }

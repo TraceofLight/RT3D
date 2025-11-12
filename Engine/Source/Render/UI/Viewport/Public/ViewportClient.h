@@ -6,6 +6,13 @@ class FViewport;
 class APlayerCameraManager;
 class UWorld;
 
+enum class EInputMode : uint8
+{
+	None,
+	CameraControl,
+	GizmoManipulation
+};
+
 class FViewportClient
 {
 public:
@@ -57,6 +64,10 @@ public:
     // Input enable (에디터 카메라 입력 제어용)
     void SetInputEnabled(bool bEnabled) { bInputEnabled = bEnabled; }
     bool GetInputEnabled() const { return bInputEnabled; }
+
+    // Input mode (카메라 vs Gizmo 충돌 방지용)
+    void SetInputMode(EInputMode InMode) { CurrentInputMode = InMode; }
+    EInputMode GetInputMode() const { return CurrentInputMode; }
 
     // View/Projection 행렬 계산
     FMatrix GetViewMatrix() const;
@@ -125,6 +136,46 @@ public:
 
 	void EnableEditorCamera(bool bEnable) { bEditorCameraEnabled = bEnable; }
 	void UpdateEditorCamera(float DeltaTime);
+
+	// ========================================
+	// Input Handlers (Unreal FEditorViewportClient-style)
+	// ========================================
+
+	/**
+	 * @brief Process keyboard input
+	 * @param Key Key code
+	 * @param bPressed True if pressed, false if released
+	 * @return True if consumed
+	 */
+	virtual bool InputKey(EKeyInput Key, bool bPressed);
+
+	/**
+	 * @brief Process mouse click (for picking objects/gizmo)
+	 * @param MouseX Mouse X in viewport local coordinates
+	 * @param MouseY Mouse Y in viewport local coordinates
+	 * @return True if click was handled
+	 */
+	virtual bool HandleClick(int32 MouseX, int32 MouseY);
+
+	/**
+	 * @brief Process mouse drag for gizmo manipulation
+	 * @param MouseDelta Mouse movement delta
+	 * @return True if drag was handled
+	 */
+	virtual bool ProcessGizmoDrag(const FVector2& MouseDelta);
+
+	/**
+	 * @brief Check if this viewport client uses a transform gizmo
+	 * @return True if gizmo should be rendered
+	 */
+	virtual bool UsesTransformGizmo() const { return false; }
+
+	/**
+	 * @brief Get gizmo instance for this viewport client
+	 * @return Gizmo pointer or nullptr
+	 */
+	virtual class UGizmo* GetGizmo() { return nullptr; }
+
 private:
 	bool  bEditorCameraEnabled = false;
 
@@ -162,6 +213,7 @@ private:
     FPoint		ViewSize{ 0, 0 };
     FPoint		LastDrag{ 0, 0 };
     bool        bInputEnabled = false;  // 입력 활성화 여부
+    EInputMode  CurrentInputMode = EInputMode::None;  // 현재 입력 모드
 
     // Orthographic 뷰포트의 기준 높이 (픽셀 밀도 유지용)
     mutable float OrthoReferenceHeight = 0.0f;
