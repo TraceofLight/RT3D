@@ -1,4 +1,4 @@
-﻿#include "pch.h"
+#include "pch.h"
 #include "Render/RenderPass/Public/StaticMeshPass.h"
 
 #include "Component/Mesh/Public/StaticMeshComponent.h"
@@ -186,11 +186,11 @@ void FStaticMeshPass::Execute(FRenderingContext& Context)
 	Pipeline->SetConstantBuffer(2, EShaderType::PS, nullptr);
 
 	// Unbind shadow maps to prevent resource hazards
-	Pipeline->SetShaderResourceView(10, EShaderType::PS, nullptr);  // Shadow Atlas
-	Pipeline->SetShaderResourceView(11, EShaderType::PS, nullptr);  // Variance Shadow Atlas
-	Pipeline->SetShaderResourceView(12, EShaderType::PS, nullptr);  // Directional Light Tile Position
-	Pipeline->SetShaderResourceView(13, EShaderType::PS, nullptr);  // Spotlight Tile Position
-	Pipeline->SetShaderResourceView(14, EShaderType::PS, nullptr);  // Point Light Tile Position
+	//Pipeline->SetShaderResourceView(10, EShaderType::PS, nullptr);  // Shadow Atlas
+	//Pipeline->SetShaderResourceView(11, EShaderType::PS, nullptr);  // Variance Shadow Atlas
+	//Pipeline->SetShaderResourceView(12, EShaderType::PS, nullptr);  // Directional Light Tile Position
+	//Pipeline->SetShaderResourceView(13, EShaderType::PS, nullptr);  // Spotlight Tile Position
+	//Pipeline->SetShaderResourceView(14, EShaderType::PS, nullptr);  // Point Light Tile Position
 }
 
 void FStaticMeshPass::Release()
