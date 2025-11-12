@@ -26,6 +26,7 @@
 #include "Render/UI/Overlay/Public/D2DOverlayManager.h"
 #include "Render/ui/Viewport/Public/ViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
+#include "Render/UI/Window/Public/FbxViewportWindow.h"
 
 IMPLEMENT_CLASS(UEditor, UObject)
 
@@ -335,6 +336,16 @@ void UEditor::UpdateBatchLines()
 
 	if (UActorComponent* Component = GetSelectedComponent())
 	{
+		// PreviewScene 소속 컴포넌트는 메인 에디터에서 렌더링하지 않음 (Preview 윈도우에서 렌더링)
+		if (Component->GetOwner() && Component->GetOwner()->GetWorld())
+		{
+			EWorldType WorldType = Component->GetOwner()->GetWorld()->GetWorldType();
+			if (WorldType == EWorldType::EditorPreview)
+			{
+				return;
+			}
+		}
+
 		// Handle ShapeComponent collision visualization
 		if (UShapeComponent* ShapeComponent = Cast<UShapeComponent>(Component))
 		{
@@ -500,8 +511,20 @@ void UEditor::ProcessMouseInput()
 	}
 
 	// W/E/R 키로 기즈모 모드 직접 전환 (우클릭 중이 아닐 때만)
+	// FbxViewportWindow가 hover되었을 때는 입력 무시
 	bool bIsRightMouseDown = InputManager.IsKeyDown(EKeyInput::MouseRight);
-	if (!bIsRightMouseDown)
+	bool bIsFbxViewportHovered = false;
+
+	// FbxViewportWindow 인스턴스 체크
+	if (UUIWindow* Window = UUIManager::GetInstance().FindUIWindow(FName("FbxViewportWindow")))
+	{
+		if (UFbxViewportWindow* FbxWindow = Cast<UFbxViewportWindow>(Window))
+		{
+			bIsFbxViewportHovered = FbxWindow->IsViewportHovered();
+		}
+	}
+
+	if (!bIsRightMouseDown && !bIsFbxViewportHovered)
 	{
 		if (InputManager.IsKeyPressed(EKeyInput::W))
 		{

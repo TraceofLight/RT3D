@@ -10,6 +10,8 @@
 #include "Component/Mesh/Public/StaticMeshComponent.h"
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Editor/Public/EditorEngine.h"
+#include "Editor/Public/Gizmo.h"
+#include "Editor/Public/BatchLines.h"
 
 FPreviewScene::~FPreviewScene()
 {
@@ -143,6 +145,18 @@ void FPreviewScene::InjectDefaultContent()
 		PreviewDirectional->SetRelativeLocation(FVector(0, 0, 10000));
 	}
 
+	// PreviewGizmo 생성 (메인 에디터와 독립)
+	if (!PreviewGizmo)
+	{
+		PreviewGizmo = NewObject<UGizmo>(Outer);
+	}
+
+	// PreviewBatchLines 생성 (UObject이므로 Level에 등록하지 않음)
+	if (!PreviewBatchLines)
+	{
+		PreviewBatchLines = new UBatchLines();
+	}
+
     bContentInjected = true;
 }
 
@@ -160,6 +174,19 @@ void FPreviewScene::RemoveInjectedContent()
 
     PreviewBackgroundActor = nullptr;
     PreviewMesh = nullptr;
+
+    if (PreviewGizmo)
+    {
+        SafeDelete(PreviewGizmo);
+        PreviewGizmo = nullptr;
+    }
+
+    if (PreviewBatchLines)
+    {
+        delete PreviewBatchLines;
+        PreviewBatchLines = nullptr;
+    }
+
     bContentInjected = false;
 }
 

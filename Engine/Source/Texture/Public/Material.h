@@ -92,6 +92,7 @@ public:
 	void SetBumpTexture(UTexture* InTexture) { BumpTexture = InTexture; }
 
 	void SetMaterialData(const FMaterial& InMaterialData) { MaterialData = InMaterialData; }
+	void CopyFrom(const UMaterial* Other);
 
 private:
 	FMaterial MaterialData;

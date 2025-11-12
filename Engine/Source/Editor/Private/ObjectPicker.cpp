@@ -443,6 +443,15 @@ UPrimitiveComponent* UObjectPicker::PickPrimitive(FViewportClient* InClient, int
 		return nullptr;
 	}
 
+	// 본 피킹인지 확인 (Phase 2-5에서 FbxViewportWindow에서 처리 예정)
+	if (HitProxy->IsBone())
+	{
+		HBone* BoneProxy = static_cast<HBone*>(HitProxy);
+		UE_LOG("ObjectPicker: Bone picked - BoneIndex=%d", BoneProxy->BoneIndex);
+		// TODO: Phase 2-5에서 FbxViewportWindow::HandleMouseClick()에서 처리
+		return nullptr;
+	}
+
 	// 기즈모 축인지 확인
 	if (HitProxy->IsWidgetAxis())
 	{

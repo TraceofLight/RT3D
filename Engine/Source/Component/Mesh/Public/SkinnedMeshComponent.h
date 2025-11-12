@@ -34,6 +34,8 @@ public:
 	const TArray<uint32>* GetIndicesData() const override;
 	ID3D11Buffer* GetVertexBuffer() const override;
 	ID3D11Buffer* GetIndexBuffer() const override;
+
+	UMaterial* GetMaterial(int32 ElementIndex) const override;
 private:
     void UpdateSkinnedVerticesCache() const;
 

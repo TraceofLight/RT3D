@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Render/UI/Window/Public/UIWindow.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 
@@ -7,8 +7,17 @@
  *        Currently mirrors the main viewport output inside an ImGui window.
  */
 class FPreviewScene;
+class FPreviewViewportClient;
 class USkeletalMeshComponentWidget;
 class USkeletalMesh;
+class UBatchLines;
+class UViewportControlWidget;
+
+enum class EEditMode : uint8
+{
+	None,
+	BoneEdit
+};
 
 UCLASS()
 class UFbxViewportWindow : public UUIWindow
@@ -24,6 +33,18 @@ public:
 	void LoadFbxFile(const path& File);
 	void SetPreviewSkeletalMesh(USkeletalMesh* SkeletalMesh);
 
+	// Edit Mode
+	void SetEditMode(EEditMode InMode) { CurrentEditMode = InMode; }
+	EEditMode GetEditMode() const { return CurrentEditMode; }
+
+	// Bone Selection (PreviewScene 전용)
+	void SelectBone(int32 BoneIndex);
+	void DeselectBone();
+	int32 GetSelectedBoneIndex() const { return SelectedBoneIndex; }
+
+	// Viewport State
+	bool IsViewportHovered() const { return bHovered; }
+
 protected:
 	void OnPostRenderWindow() override;
 
@@ -35,18 +56,40 @@ private:
 	ComPtr<ID3D11DepthStencilView>   DSV;
 	ImVec2 CachedSize = ImVec2(0,0);
 
+	// HitProxy용 RenderTarget
+	ComPtr<ID3D11Texture2D>          HitProxyRT;
+	ComPtr<ID3D11RenderTargetView>   HitProxyRTV;
+	ComPtr<ID3D11Texture2D>          HitProxyStagingTex;
+
 	void EnsureRenderTargets(const ImVec2& size);
 	void EnsurePreviewInfrastructure();
 	void RenderPreviewViewport(const ImVec2& InSize);
 	void RenderSkeletalInspector(const ImVec2& InSize);
 	void UpdateSkeletalWidgetTargets();
+	void HandleMouseClick(const ImVec2& LocalMousePos);
+	void UpdatePreviewCamera(float DeltaTime);
+
+	// Material Instancing
+	void CreateMaterialInstances();
+	void CleanupMaterialInstances();
 
 	FViewport*       PreviewViewport   = nullptr;
-	FViewportClient* PreviewClient     = nullptr;
+	FPreviewViewportClient* PreviewClient     = nullptr;
 	FPreviewScene*   PreviewScene      = nullptr;
 	USkeletalMeshComponentWidget* SkeletalWidget = nullptr;
+	UViewportControlWidget* ViewportControlWidget = nullptr;
+
+	// Material Instancing
+	TArray<class UMaterial*> MaterialInstances;
 
 	bool bPreviewReady = false;
 	bool bHovered = false;
+
+	// Edit Mode
+	EEditMode CurrentEditMode = EEditMode::None;
+
+	// Bone Selection (메인 에디터와 독립)
+	int32 SelectedBoneIndex = -1;
+	class UBoneTransformProxy* BoneTransformProxy = nullptr;
 };
 

@@ -279,3 +279,20 @@ ID3D11Buffer* USkinnedMeshComponent::GetIndexBuffer() const
 {
 	return DynamicMeshBuffer->IndexBuffer.Get();
 }
+UMaterial* USkinnedMeshComponent::GetMaterial(int32 ElementIndex) const
+{
+	if (ElementIndex >= 0 && ElementIndex < OverrideMaterials.Num())
+	{
+		if (OverrideMaterials[ElementIndex])
+		{
+			return OverrideMaterials[ElementIndex];
+		}
+	}
+
+	if (SkeletalMesh)
+	{
+		return SkeletalMesh->GetMaterial(ElementIndex);
+	}
+
+	return nullptr;
+}

@@ -167,7 +167,7 @@ void USkeletalMeshComponentWidget::RenderMaterialSections()
 
 	for (int32 SlotIndex = 0; SlotIndex < MeshAsset->MaterialInfo.Num(); ++SlotIndex)
 	{
-		UMaterial* CurrentMaterial = CurrentMesh->GetMaterial(SlotIndex);
+		UMaterial* CurrentMaterial = SkeletalMeshComponent->GetMaterial(SlotIndex);
 		FString PreviewName = CurrentMaterial ? GetMaterialDisplayName(CurrentMaterial) : "None";
 
 		ImGui::PushID(SlotIndex);
@@ -277,7 +277,7 @@ void USkeletalMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotInde
 		}
 
 		FString MaterialName = GetMaterialDisplayName(Material);
-		bool bIsSelected = (SkeletalMeshComponent->GetSkeletalMesh()->GetMaterial(TargetSlotIndex) == Material);
+		bool bIsSelected = (SkeletalMeshComponent->GetMaterial(TargetSlotIndex) == Material);
 
 		constexpr float RowPreviewSize = 20.0f;
 		UTexture* RowPreviewTexture = GetPreviewTextureForMaterial(Material);
@@ -299,7 +299,7 @@ void USkeletalMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotInde
 
 		if (ImGui::Selectable(MaterialName.c_str(), bIsSelected))
 		{
-			SkeletalMeshComponent->GetSkeletalMesh()->SetMaterial(TargetSlotIndex, Material);
+			SkeletalMeshComponent->SetMaterial(TargetSlotIndex, Material);
 		}
 
 		if (bIsSelected)
@@ -420,12 +420,26 @@ void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx
 		NodeFlags |= ImGuiTreeNodeFlags_Selected;
 	}
 
+	// FbxViewportWindow 전용 하이라이팅 (노란색)
+	bool bIsHighlighted = (HighlightedBoneIndex >= 0 && idx == HighlightedBoneIndex);
+	if (bIsHighlighted)
+	{
+		ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f));
+	}
+
 	if (ImGui::TreeNodeEx(Skeleton->BoneNames[idx].ToString().c_str(), NodeFlags))
 	{
 		if (ImGui::IsItemClicked())
 		{
 			SelectedBoneName = Skeleton->BoneNames[idx];
 			SelectedBoneIdx = idx;
+
+			// FbxViewportWindow 양방향 연동
+			if (OwningFbxViewportWindow)
+			{
+				OwningFbxViewportWindow->SelectBone(idx);
+				OwningFbxViewportWindow->SetEditMode(EEditMode::BoneEdit);
+			}
 		}
 		for (int ChildIdx : Skeleton->Childs[idx])
 		{
@@ -434,21 +448,30 @@ void USkeletalMeshComponentWidget::DrawSkeletalBone(FSkeleton* Skeleton, int idx
 
 		ImGui::TreePop();
 	}
+
+	if (bIsHighlighted)
+	{
+		ImGui::PopStyleColor();
+	}
 }
 void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent)
 {
 	FSkeleton* Skeleton = SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton;
 	uint32 BoneCount = Skeleton->BoneNames.Num();
 
-	ImGui::Text("Selected Bone Transform");
+	const ImVec4 accent = ImVec4(0.95f, 0.75f, 0.2f, 1.0f);
+	
 	if (SelectedBoneIdx != -1)
 	{
+		ImGui::TextColored(accent, "Selected Bone : %s", SelectedBoneName.ToString().c_str());
+
 		FTransform& BoneTransform = SkeletalMeshComponent->GetLocalPose(SelectedBoneIdx);
 		ImGui::DragFloat3("Bone Location", &BoneTransform.Location.X, 0.1f);
 
 		FVector EulerRotation = BoneTransform.Rotation.ToEuler();
-		if (ImGui::DragFloat3("Bone Rotation", &EulerRotation.X, 0.001f))
+		if (ImGui::DragFloat3("Bone Rotation", &EulerRotation.X, 0.1f))
 		{
+
 			BoneTransform.Rotation = FQuat::FromEuler(EulerRotation);
 		}
 

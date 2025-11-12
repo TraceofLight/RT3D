@@ -1137,7 +1137,7 @@ void URenderer::RenderLevel(FViewport* InViewport, int32 ViewportIndex)
 	}
 }
 
-void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride)
+void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride, bool bDisableDepthTest)
 {
     // Use the global stride if InStride is 0
     const uint32 FinalStride = (InStride == 0) ? Stride : InStride;
@@ -1147,7 +1147,7 @@ void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const
         InPrimitive.InputLayout ? InPrimitive.InputLayout : DefaultInputLayout,
         InPrimitive.VertexShader ? InPrimitive.VertexShader : DefaultVertexShader,
 		FRenderResourceFactory::GetRasterizerState(InRenderState),
-        InPrimitive.bShouldAlwaysVisible ? DisabledDepthStencilState : DefaultDepthStencilState,
+        (InPrimitive.bShouldAlwaysVisible || bDisableDepthTest) ? DisabledDepthStencilState : DefaultDepthStencilState,
         InPrimitive.PixelShader ? InPrimitive.PixelShader : DefaultPixelShader,
         nullptr,
         InPrimitive.Topology
@@ -1178,7 +1178,7 @@ void URenderer::RenderEditorPrimitive(const FEditorPrimitive& InPrimitive, const
     }
 }
 
-void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride, uint32 StartIndexLocation, uint32 IndexCount)
+void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive, const FRenderState& InRenderState, uint32 InStride, uint32 InIndexBufferStride, uint32 StartIndexLocation, uint32 IndexCount, bool bDisableDepthTest)
 {
 	// Use the global stride if InStride is 0
 	const uint32 FinalStride = (InStride == 0) ? Stride : InStride;
@@ -1188,7 +1188,7 @@ void URenderer::RenderEditorPrimitiveIndexed(const FEditorPrimitive& InPrimitive
 		InPrimitive.InputLayout ? InPrimitive.InputLayout : DefaultInputLayout,
 		InPrimitive.VertexShader ? InPrimitive.VertexShader : DefaultVertexShader,
 		FRenderResourceFactory::GetRasterizerState(InRenderState),
-		InPrimitive.bShouldAlwaysVisible ? DisabledDepthStencilState : DefaultDepthStencilState,
+		(InPrimitive.bShouldAlwaysVisible || bDisableDepthTest) ? DisabledDepthStencilState : DefaultDepthStencilState,
 		InPrimitive.PixelShader ? InPrimitive.PixelShader : DefaultPixelShader,
 		nullptr,
 		InPrimitive.Topology
@@ -1338,7 +1338,19 @@ void URenderer::RenderExternalViewport(FViewport* InViewport,
     for (UPrimitiveComponent* Primitive : VisiblePrimitives)
     {
         if (auto StaticMesh    = Cast<UStaticMeshComponent>(Primitive))   { RenderingContext.StaticMeshes.Add(StaticMesh); }
-        else if (auto Skeletal = Cast<USkeletalMeshComponent>(Primitive)) { RenderingContext.SkeletalMeshes.Add(Skeletal); }
+        else if (auto Skeletal = Cast<USkeletalMeshComponent>(Primitive))
+        {
+            RenderingContext.SkeletalMeshes.Add(Skeletal);
+
+            static int LogFrameCount = 0;
+            if (++LogFrameCount % 100 == 0)
+            {
+                USkeletalMesh* SkeletalMesh = Skeletal->GetSkeletalMesh();
+                int32 MaterialCount = SkeletalMesh ? SkeletalMesh->GetNumMaterials() : 0;
+                UE_LOG("RenderExternalViewport: Found SkeletalMeshComponent (Visible=%d, Mesh=%p, Material count=%d)",
+                    Skeletal->IsVisible(), SkeletalMesh, MaterialCount);
+            }
+        }
         else if (auto Bill     = Cast<UBillBoardComponent>(Primitive))    { RenderingContext.BillBoards.Add(Bill); }
         else if (auto Icon     = Cast<UEditorIconComponent>(Primitive))   { RenderingContext.EditorIcons.Add(Icon); }
         else if (auto Text     = Cast<UTextComponent>(Primitive))

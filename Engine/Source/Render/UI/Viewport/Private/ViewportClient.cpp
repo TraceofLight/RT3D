@@ -570,3 +570,28 @@ FMatrix FViewportClient::GetProjectionMatrixInverse(float AspectRatio) const
 
     return InvProjection;
 }
+
+// ========================================
+// Input Handlers
+// ========================================
+
+bool FViewportClient::InputKey(EKeyInput Key, bool bPressed)
+{
+	// Base implementation: no input handling
+	// Override in derived classes for custom input
+	return false;
+}
+
+bool FViewportClient::HandleClick(int32 MouseX, int32 MouseY)
+{
+	// Base implementation: no click handling
+	// Override in derived classes for object picking/gizmo selection
+	return false;
+}
+
+bool FViewportClient::ProcessGizmoDrag(const FVector2& MouseDelta)
+{
+	// Base implementation: no drag handling
+	// Override in derived classes for gizmo manipulation
+	return false;
+}
