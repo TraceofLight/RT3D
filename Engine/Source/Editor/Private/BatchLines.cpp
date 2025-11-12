@@ -233,8 +233,8 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
     // 월드 보정된 본 위치(컴포넌트->월드)
     TArray<FVector> WorldPos; WorldPos.SetNum(Num);
     for (int i=0; i<Num; ++i) {
-        FVector Position = XformPos(GlobalPose[i]);
-        WorldPos[i] = ComponentToWorld.TransformPosition(Position);
+    	const FMatrix WorldBoneMatrix = GlobalPose[i] * ComponentToWorld;
+    	WorldPos[i] = XformPos(WorldBoneMatrix);
     }
 
     // 조인트: 3개 링
