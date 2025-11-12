@@ -1,7 +1,6 @@
 #include "pch.h"
 #include "Editor/Public/BatchLines.h"
 #include "Render/Renderer/Public/Renderer.h"
-#include "Editor/Public/EditorPrimitive.h"
 #include "Manager/Asset/Public/AssetManager.h"
 #include "Runtime/Renderer/Public/RenderResourceFactory.h"
 #include "Global/Octree.h"
@@ -10,25 +9,29 @@
 #include "Level/Public/Level.h"
 #include "Physics/Public/OBB.h"
 
-static inline void AddLine(TArray<FVector>& V, TArray<int32>& I,
-						   const FVector& a, const FVector& b)
+static inline void AddLine(
+	TArray<FVertexPositionColor>& Vertices, TArray<int32>& Indices,
+	const FVector& Point1, const FVector& Point2,
+	const FVector4& LineColor)
 {
-	const int ia = V.Num(); V.Add(a);
-	const int ib = V.Num(); V.Add(b);
-	I.Add(ia); I.Add(ib);
+	const int IndexP1 = Vertices.Num(); Vertices.Add({Point1, LineColor});
+	const int IndexP2 = Vertices.Num(); Vertices.Add({Point2, LineColor});
+	Indices.Add(IndexP1); Indices.Add(IndexP2);
 }
 
-static inline void AddRing(TArray<FVector>& V, TArray<int32>& I,
-						   const FVector& c, const FVector& ax, const FVector& ay,
-						   float r, int seg = 16)
+static inline void AddRing(
+	TArray<FVertexPositionColor>& Vertices, TArray<int32>& Indices,
+	const FVector& Center, const FVector& AngleX, const FVector& AngleY,
+	float Rotation, int Segment = 16,
+	const FVector4& RingColor = FVector4(1, 1, 1, 1))
 {
-	if (r <= 0.f) return;
-	const float dth = 2.f * PI / float(seg);
-	FVector p0 = c + (ax * r);
-	for (int s=1; s<=seg; ++s) {
-		float th = dth * s;
-		FVector p = c + (ax * (cosf(th)*r)) + (ay * (sinf(th)*r));
-		AddLine(V,I, p0, p);
+	if (Rotation <= 0.f) return;
+	const float dth = 2.f * PI / float(Segment);
+	FVector p0 = Center + (AngleX * Rotation);
+	for (int s = 1; s <= Segment; ++s) {
+		const float th = dth * s;
+		const FVector p = Center + (AngleX * (cosf(th) * Rotation)) + (AngleY * (sinf(th) * Rotation));
+		AddLine(Vertices, Indices, p0, p, RingColor); 
 		p0 = p;
 	}
 }
@@ -54,7 +57,10 @@ UBatchLines::UBatchLines() : Grid(), BoundingBoxLines()
 
 	ID3D11VertexShader* VertexShader;
 	ID3D11InputLayout* InputLayout;
-	TArray<D3D11_INPUT_ELEMENT_DESC> Layout = { {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0} };
+	TArray<D3D11_INPUT_ELEMENT_DESC> Layout = {
+		{ "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,    0, 0,                             D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, D3D11_APPEND_ALIGNED_ELEMENT,  D3D11_INPUT_PER_VERTEX_DATA, 0 },
+	};
 	FRenderResourceFactory::CreateVertexShaderAndInputLayout(L"Asset/Shader/BatchLineShader.hlsl", Layout, &VertexShader, &InputLayout);
 	ID3D11PixelShader* PixelShader;
 	FRenderResourceFactory::CreatePixelShader(L"Asset/Shader/BatchLineShader.hlsl", &PixelShader);
@@ -64,8 +70,10 @@ UBatchLines::UBatchLines() : Grid(), BoundingBoxLines()
 	Primitive.PixelShader = PixelShader;
 	Primitive.NumVertices = static_cast<uint32>(Vertices.Num());
 	Primitive.NumIndices = static_cast<uint32>(Indices.Num());
-	Primitive.VertexBuffer = FRenderResourceFactory::CreateVertexBuffer(Vertices.GetData(), Primitive.NumVertices * sizeof(FVector), true);
-	Primitive.IndexBuffer = FRenderResourceFactory::CreateIndexBuffer(Indices.GetData(), Primitive.NumIndices * sizeof(uint32));	Primitive.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+	Primitive.VertexBuffer = FRenderResourceFactory::CreateVertexBuffer(Vertices.GetData(), Primitive.NumVertices * sizeof(FVertexPositionColor), true);
+	Primitive.IndexBuffer = FRenderResourceFactory::CreateIndexBuffer(Indices.GetData(), Primitive.NumIndices * sizeof(uint32));
+	Primitive.Topology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+
 }
 
 UBatchLines::~UBatchLines()
@@ -241,6 +249,24 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
     for (int i=0; i<Num; ++i) {
         const bool bSelected = (i == SelectedBone);
         const float Radius = JointRadius * (bSelected ? 1.35f : 1.0f);
+
+		FVector4 Color = FVector4(1, 1, 1, 1); // 기본 흰색
+		if (bSelected)
+		{
+			Color = FVector4( 1.0f, 0.0f, 0.8f, 1.0f ); // 보라색
+		}
+		else
+		{
+			for (int j = 0; j < Skeleton->Parents.Num(); j++)
+			{
+				if (Skeleton->Parents[j] == SelectedBone)
+				{
+					Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f);  // 초록색
+					break;
+				}
+			}
+		}
+
         const FVector Center = WorldPos[i];
 
         // 기준축: 부모가 있으면 본 방향, 없으면 세계축
@@ -253,13 +279,13 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
         FVector U,V; OrthonormalBasis(Direction, U, V); // Direction에 수직이면서, 서로 수직인 벡터 -> 직교 좌표축
 
         // 세 개 평면(U V, V * Direction, Direction * U)으로 링
-        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, U, V, Radius, 14);
-        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, V, Direction, Radius, 14);
-        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, Direction, U, Radius, 14);
+        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, U, V, Radius, 14, Color);
+        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, V, Direction, Radius, 14, Color);
+        AddRing(BoneLines.Vertices, BoneLines.Indices, Center, Direction, U, Radius, 14, Color);
     }
 
     // 본(부모 -> 자식)
-    auto AddBoneDiamond = [&](int Parent, int Child, bool bSelected)
+    auto AddBoneDiamond = [&](int Parent, int Child, bool bSelected, FVector4 Color)
     {
         const FVector P = WorldPos[Parent];
         const FVector C = WorldPos[Child];
@@ -286,27 +312,43 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
         const FVector tip1 = C;
 
         // 사각 테두리
-        AddLine(BoneLines.Vertices, BoneLines.Indices, c0, c1);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, c1, c2);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, c2, c3);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, c3, c0);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, c0, c1, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, c1, c2, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, c2, c3, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, c3, c0, Color);
 
         // tip0/1에서 각 코너로
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c0);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c1);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c2);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c3);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c0, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c1, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c2, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, tip0, c3, Color);
 
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c0);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c1);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c2);
-        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c3);
+        AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c0, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c1, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c2, Color);
+		AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c3, Color);
     };
 
     for (int i=0;i<Num;++i) {
         for (int Child : Skeleton->Childs[i]) {
             const bool bSelected = (SelectedBone == i) || (SelectedBone == Child);
-            AddBoneDiamond(i, Child, bSelected);
+			FVector4 Color = FVector4(1, 1, 1, 1); // 기본 흰색
+			if (bSelected)
+			{
+				Color = FVector4(1.0f, 0.0f, 0.8f, 1.0f); // 보라색
+			}
+			else
+			{
+				for (int j = 0; j < Skeleton->Parents.Num(); j++)
+				{
+					if (Skeleton->Parents[j] == SelectedBone)
+					{
+						Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f);  // 초록색
+						break;
+					}
+				}
+			}
+            AddBoneDiamond(i, Child, bSelected, Color);
         }
     }
 
@@ -377,7 +419,7 @@ void UBatchLines::UpdateVertexBuffer()
 		SafeRelease(Primitive.VertexBuffer);
 		SafeRelease(Primitive.IndexBuffer);
 
-		Primitive.VertexBuffer = FRenderResourceFactory::CreateVertexBuffer(Vertices.GetData(), Primitive.NumVertices * sizeof(FVector), true);
+		Primitive.VertexBuffer = FRenderResourceFactory::CreateVertexBuffer(Vertices.GetData(), Primitive.NumVertices * sizeof(FVertexPositionColor), true);
 		Primitive.IndexBuffer = FRenderResourceFactory::CreateIndexBuffer(Indices.GetData(), Primitive.NumIndices * sizeof(uint32));
 	}
 	bChangedVertices = false;
@@ -430,7 +472,7 @@ void UBatchLines::RenderGridAndLightLines()
 		Renderer.RenderEditorPrimitiveIndexed(
 			Primitive,
 			Primitive.RenderState,
-			sizeof(FVector),
+			sizeof(FVertexPositionColor),
 			sizeof(uint32),
 			0,
 			NumGridIndices
@@ -444,7 +486,7 @@ void UBatchLines::RenderGridAndLightLines()
 		Renderer.RenderEditorPrimitiveIndexed(
 			Primitive,
 			Primitive.RenderState,
-			sizeof(FVector),
+			sizeof(FVertexPositionColor),
 			sizeof(uint32),
 			SpotLightStartIndex,
 			NumSpotLightIndices
@@ -468,7 +510,7 @@ void UBatchLines::RenderBoundingBox()
 		Renderer.RenderEditorPrimitiveIndexed(
 			Primitive,
 			Primitive.RenderState,
-			sizeof(FVector),
+			sizeof(FVertexPositionColor),
 			sizeof(uint32),
 			NumGridIndices,
 			NumBoundingIndices
@@ -502,7 +544,7 @@ void UBatchLines::RenderSkeleton()
 	Renderer.RenderEditorPrimitiveIndexed(
 		Primitive,
 		Primitive.RenderState,
-		sizeof(FVector),
+		sizeof(FVertexPositionColor),
 		sizeof(uint32),
 		BoneStartIndex,
 		NumBoneIndices,
@@ -543,7 +585,7 @@ void UBatchLines::RenderOctree()
 		Renderer.RenderEditorPrimitiveIndexed(
 			Primitive,
 			Primitive.RenderState,
-			sizeof(FVector),
+			sizeof(FVertexPositionColor),
 			sizeof(uint32),
 			OctreeStartIndex,
 			NumOctreeIndices

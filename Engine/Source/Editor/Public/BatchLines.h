@@ -5,6 +5,7 @@
 #include "Editor/Public/Grid.h"
 #include "Editor/Public/BoundingBoxLines.h"
 #include "Component/Mesh/Public/SkeletalMesh.h"
+#include "Editor/Public/EditorPrimitive.h"
 
 struct FVertex;
 class FOctree;
@@ -18,14 +19,14 @@ public:
 
 	struct FBoneLines
 	{
-		TArray<FVector> Vertices;
+		TArray<FVertexPositionColor> Vertices;
 		TArray<int32>   Indices;
 		void Reset() { Vertices.Empty(); Indices.Empty(); }
 		uint32 GetNumVertices() const { return (uint32)Vertices.Num(); }
 		uint32 GetNumIndices()  const { return (uint32)Indices.Num(); }
 		int32* GetIndices() { return Indices.IsEmpty() ? nullptr : Indices.GetData(); }
 
-		void MergeVerticesAt(TArray<FVector>& Out, uint32 Offset) const {
+		void MergeVerticesAt(TArray<FVertexPositionColor>& Out, uint32 Offset) const {
 			if (Vertices.IsEmpty()) return;
 			for (uint32 k=0;k<Vertices.Num();++k) Out[Offset + k] = Vertices[k];
 		}
@@ -87,7 +88,7 @@ private:
 
 	bool bChangedVertices = false;
 
-	TArray<FVector> Vertices; // 그리드 라인 정보 + (offset 후)디폴트 바운딩 박스 라인 정보(minx, miny가 0,0에 정의된 크기가 1인 cube)
+	TArray<FVertexPositionColor> Vertices; // 그리드 라인 정보 + (offset 후)디폴트 바운딩 박스 라인 정보(minx, miny가 0,0에 정의된 크기가 1인 cube)
 	TArray<uint32> Indices; // 월드 그리드는 그냥 정점 순서, 바운딩 박스는 실제 인덱싱
 
 	FEditorPrimitive Primitive;
