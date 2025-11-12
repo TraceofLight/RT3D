@@ -1159,3 +1159,129 @@ void UViewportControlWidget::RenderPilotModeExitButton(int32 ViewportIndex, ImVe
 	// 커서 위치 업데이트 (다음 버튼 배치용)
 	InOutCursorPos.x += ExitButtonSize + 6.0f;
 }
+
+void UViewportControlWidget::RenderViewportToolbar(FViewport* InViewport, FViewportClient* InClient)
+{
+	if (!InViewport || !InClient)
+	{
+		return;
+	}
+
+	const FRect& Rect = InViewport->GetRect();
+	if (Rect.Width <= 0 || Rect.Height <= 0)
+	{
+		return;
+	}
+
+	constexpr int32 ToolbarH = 32;
+
+	// Child Window 내부에서 상대 좌표 사용
+	ImVec2 CursorPos = ImGui::GetCursorScreenPos();
+	const ImVec2 Vec1{ CursorPos.x, CursorPos.y };
+	const ImVec2 Vec2{ CursorPos.x + static_cast<float>(Rect.Width), CursorPos.y + ToolbarH };
+
+	// 툴바 배경 그리기
+	ImDrawList* DrawLine = ImGui::GetWindowDrawList();
+	DrawLine->AddRectFilled(Vec1, Vec2, IM_COL32(30, 30, 30, 200));
+	DrawLine->AddLine(ImVec2(Vec1.x, Vec2.y), ImVec2(Vec2.x, Vec2.y), IM_COL32(70, 70, 70, 120), 1.0f);
+
+	// Cursor 위치를 툴바 시작점으로 설정
+	ImGui::SetCursorScreenPos(ImVec2(Vec1.x + 6.f, Vec1.y + 4.f));
+
+	ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(6.f, 3.f));
+	ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(6.f, 0.f));
+
+	ImGui::PushID(InViewport);
+	{
+		// Gizmo Mode 버튼들
+		UGizmo* Gizmo = InClient->GetGizmo();
+		EGizmoMode CurrentGizmoMode = Gizmo ? Gizmo->GetGizmoMode() : EGizmoMode::Translate;
+
+		constexpr float GizmoButtonSize = 24.0f;
+		constexpr float GizmoIconSize = 16.0f;
+
+		// Translate 버튼
+		if (IconTranslate && IconTranslate->GetTextureSRV())
+		{
+			bool bActive = (CurrentGizmoMode == EGizmoMode::Translate);
+			ImVec2 ButtonPos = ImGui::GetCursorScreenPos();
+			ImGui::InvisibleButton("##GizmoTranslate", ImVec2(GizmoButtonSize, GizmoButtonSize));
+			bool bClicked = ImGui::IsItemClicked();
+			bool bHovered = ImGui::IsItemHovered();
+
+			ImDrawList* DL = ImGui::GetWindowDrawList();
+			ImU32 BgColor = bActive ? IM_COL32(46, 163, 255, 100) : (bHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255));
+			if (ImGui::IsItemActive()) BgColor = IM_COL32(38, 38, 38, 255);
+
+			DL->AddRectFilled(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BgColor, 4.0f);
+			DL->AddRect(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize),
+				bActive ? IM_COL32(46, 163, 255, 255) : IM_COL32(96, 96, 96, 255), 4.0f);
+
+			ImVec2 IconPos = ImVec2(ButtonPos.x + (GizmoButtonSize - GizmoIconSize) * 0.5f, ButtonPos.y + (GizmoButtonSize - GizmoIconSize) * 0.5f);
+			DL->AddImage(IconTranslate->GetTextureSRV(), IconPos, ImVec2(IconPos.x + GizmoIconSize, IconPos.y + GizmoIconSize));
+
+			if (bClicked && Gizmo)
+			{
+				Gizmo->SetGizmoMode(EGizmoMode::Translate);
+			}
+
+			ImGui::SameLine(0.0f, 4.0f);
+		}
+
+		// Rotate 버튼
+		if (IconRotate && IconRotate->GetTextureSRV())
+		{
+			bool bActive = (CurrentGizmoMode == EGizmoMode::Rotate);
+			ImVec2 ButtonPos = ImGui::GetCursorScreenPos();
+			ImGui::InvisibleButton("##GizmoRotate", ImVec2(GizmoButtonSize, GizmoButtonSize));
+			bool bClicked = ImGui::IsItemClicked();
+			bool bHovered = ImGui::IsItemHovered();
+
+			ImDrawList* DL = ImGui::GetWindowDrawList();
+			ImU32 BgColor = bActive ? IM_COL32(46, 163, 255, 100) : (bHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255));
+			if (ImGui::IsItemActive()) BgColor = IM_COL32(38, 38, 38, 255);
+
+			DL->AddRectFilled(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BgColor, 4.0f);
+			DL->AddRect(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize),
+				bActive ? IM_COL32(46, 163, 255, 255) : IM_COL32(96, 96, 96, 255), 4.0f);
+
+			ImVec2 IconPos = ImVec2(ButtonPos.x + (GizmoButtonSize - GizmoIconSize) * 0.5f, ButtonPos.y + (GizmoButtonSize - GizmoIconSize) * 0.5f);
+			DL->AddImage(IconRotate->GetTextureSRV(), IconPos, ImVec2(IconPos.x + GizmoIconSize, IconPos.y + GizmoIconSize));
+
+			if (bClicked && Gizmo)
+			{
+				Gizmo->SetGizmoMode(EGizmoMode::Rotate);
+			}
+
+			ImGui::SameLine(0.0f, 4.0f);
+		}
+
+		// Scale 버튼
+		if (IconScale && IconScale->GetTextureSRV())
+		{
+			bool bActive = (CurrentGizmoMode == EGizmoMode::Scale);
+			ImVec2 ButtonPos = ImGui::GetCursorScreenPos();
+			ImGui::InvisibleButton("##GizmoScale", ImVec2(GizmoButtonSize, GizmoButtonSize));
+			bool bClicked = ImGui::IsItemClicked();
+			bool bHovered = ImGui::IsItemHovered();
+
+			ImDrawList* DL = ImGui::GetWindowDrawList();
+			ImU32 BgColor = bActive ? IM_COL32(46, 163, 255, 100) : (bHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255));
+			if (ImGui::IsItemActive()) BgColor = IM_COL32(38, 38, 38, 255);
+
+			DL->AddRectFilled(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BgColor, 4.0f);
+			DL->AddRect(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize),
+				bActive ? IM_COL32(46, 163, 255, 255) : IM_COL32(96, 96, 96, 255), 4.0f);
+
+			ImVec2 IconPos = ImVec2(ButtonPos.x + (GizmoButtonSize - GizmoIconSize) * 0.5f, ButtonPos.y + (GizmoButtonSize - GizmoIconSize) * 0.5f);
+			DL->AddImage(IconScale->GetTextureSRV(), IconPos, ImVec2(IconPos.x + GizmoIconSize, IconPos.y + GizmoIconSize));
+
+			if (bClicked && Gizmo)
+			{
+				Gizmo->SetGizmoMode(EGizmoMode::Scale);
+			}
+		}
+	}
+	ImGui::PopID();
+	ImGui::PopStyleVar(2);
+}

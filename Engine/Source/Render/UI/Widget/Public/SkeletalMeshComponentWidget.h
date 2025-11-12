@@ -26,6 +26,13 @@ public:
 	void SetTargetComponent(USkeletalMeshComponent* InComponent);
 	void SetPreviewViewportClient(FViewportClient* InClient) { PreviewClient = InClient; }
 
+	// FbxViewportWindow 연동 (양방향 본 선택)
+	void SetOwningFbxViewportWindow(UFbxViewportWindow* InWindow) { OwningFbxViewportWindow = InWindow; }
+
+	// FbxViewportWindow 전용 하이라이팅 (전역 선택과 독립)
+	void SetHighlightedBoneIndex(int32 BoneIdx) { HighlightedBoneIndex = BoneIdx; }
+	int32 GetHighlightedBoneIndex() const { return HighlightedBoneIndex; }
+
 	UDirectionalLightComponent*  FindFirstDirectional(UWorld* TargetWorld) const;
 private:
 	USkeletalMeshComponent* SkeletalMeshComponent{};
@@ -33,8 +40,12 @@ private:
 	FName SelectedBoneName;
 	uint32 SelectedBoneIdx = -1;
 
+	// FbxViewportWindow 전용 하이라이팅 (전역 선택과 독립)
+	int32 HighlightedBoneIndex = -1;
+
 	UWorld* World = nullptr;
 	FViewportClient* PreviewClient = nullptr; /* FBX Viewport의 카메라 속도 */
+	UFbxViewportWindow* OwningFbxViewportWindow = nullptr; /* 양방향 본 선택 연동용 */
 
 	// 섹션별 렌더링을 위한 헬퍼 함수
 	void RenderSkeletalMeshSelector();

@@ -7,7 +7,10 @@
 
 IMPLEMENT_CLASS(USkeletalMeshComponent, USkinnedMeshComponent)
 
-USkeletalMeshComponent::USkeletalMeshComponent() = default;
+USkeletalMeshComponent::USkeletalMeshComponent()
+	: bInBoneEditMode(false)
+{
+}
 
 USkeletalMeshComponent::~USkeletalMeshComponent() = default;
 
@@ -87,6 +90,132 @@ void USkeletalMeshComponent::SetLocalPose(uint32 Idx, const FTransform& InLocalP
 	LocalPose[Idx] = InLocalPose;
 	BuildComponentWorldSpacePose();
 	BuildSkinMatrices();
+}
+
+void USkeletalMeshComponent::SetBoneWorldLocation(int32 BoneIndex, const FVector& NewWorldLocation)
+{
+	if (!SkeletalMesh || !SkeletalMesh->GetSkeleton())
+	{
+		return;
+	}
+
+	const FSkeleton& Skel = *SkeletalMesh->GetSkeleton();
+	if (BoneIndex < 0 || BoneIndex >= Skel.GetNumBones())
+	{
+		return;
+	}
+
+	// World -> Component Space
+	const FMatrix& ComponentToWorld = GetWorldTransformMatrix();
+	const FMatrix WorldToComponent = ComponentToWorld.Inverse();
+	const FVector BoneComponentLocation = WorldToComponent.TransformPosition(NewWorldLocation);
+
+	// Component Space -> Local Space (부모 기준)
+	const int32 ParentIdx = Skel.Parents[BoneIndex];
+	if (ParentIdx >= 0 && ParentIdx < GlobalPose.Num())
+	{
+		const FMatrix& ParentGlobal = GlobalPose[ParentIdx];
+		const FMatrix ParentGlobalInv = ParentGlobal.Inverse();
+		const FVector BoneLocalLocation = ParentGlobalInv.TransformPosition(BoneComponentLocation);
+
+		LocalPose[BoneIndex].Location = BoneLocalLocation;
+	}
+	else
+	{
+		// 루트 본인 경우 Component Space = Local Space
+		LocalPose[BoneIndex].Location = BoneComponentLocation;
+	}
+
+	// Pose 재계산
+	BuildComponentWorldSpacePose();
+	BuildSkinMatrices();
+	bSkinnedVerticesDirty = true;
+}
+
+void USkeletalMeshComponent::SetBoneWorldRotation(int32 BoneIndex, const FQuat& NewWorldRotation)
+{
+	if (!SkeletalMesh || !SkeletalMesh->GetSkeleton())
+	{
+		return;
+	}
+
+	const FSkeleton& Skel = *SkeletalMesh->GetSkeleton();
+	if (BoneIndex < 0 || BoneIndex >= Skel.GetNumBones())
+	{
+		return;
+	}
+
+	// World -> Component Space
+	const FQuat ComponentRotation = GetWorldRotationAsQuaternion();
+	const FQuat ComponentRotationInv = ComponentRotation.Inverse();
+	const FQuat BoneComponentRotation = ComponentRotationInv * NewWorldRotation;
+
+	// Component Space -> Local Space (부모 기준)
+	const int32 ParentIdx = Skel.Parents[BoneIndex];
+	if (ParentIdx >= 0 && ParentIdx < GlobalPose.Num())
+	{
+		const FQuat ParentGlobalRotation = GlobalPose[ParentIdx].ToQuaternion();
+		const FQuat ParentGlobalRotationInv = ParentGlobalRotation.Inverse();
+		const FQuat BoneLocalRotation = ParentGlobalRotationInv * BoneComponentRotation;
+
+		LocalPose[BoneIndex].Rotation = BoneLocalRotation;
+	}
+	else
+	{
+		// 루트 본인 경우 Component Space = Local Space
+		LocalPose[BoneIndex].Rotation = BoneComponentRotation;
+	}
+
+	// Pose 재계산
+	BuildComponentWorldSpacePose();
+	BuildSkinMatrices();
+	bSkinnedVerticesDirty = true;
+}
+
+void USkeletalMeshComponent::SetBoneWorldScale(int32 BoneIndex, const FVector& NewWorldScale)
+{
+	if (!SkeletalMesh || !SkeletalMesh->GetSkeleton())
+	{
+		return;
+	}
+
+	const FSkeleton& Skel = *SkeletalMesh->GetSkeleton();
+	if (BoneIndex < 0 || BoneIndex >= Skel.GetNumBones())
+	{
+		return;
+	}
+
+	// World -> Component Space
+	const FVector ComponentScale = GetWorldScale3D();
+	const FVector BoneComponentScale = FVector(
+		NewWorldScale.X / ComponentScale.X,
+		NewWorldScale.Y / ComponentScale.Y,
+		NewWorldScale.Z / ComponentScale.Z
+	);
+
+	// Component Space -> Local Space (부모 기준)
+	const int32 ParentIdx = Skel.Parents[BoneIndex];
+	if (ParentIdx >= 0 && ParentIdx < GlobalPose.Num())
+	{
+		const FVector ParentGlobalScale = GlobalPose[ParentIdx].GetScale();
+		const FVector BoneLocalScale = FVector(
+			BoneComponentScale.X / ParentGlobalScale.X,
+			BoneComponentScale.Y / ParentGlobalScale.Y,
+			BoneComponentScale.Z / ParentGlobalScale.Z
+		);
+
+		LocalPose[BoneIndex].Scale = BoneLocalScale;
+	}
+	else
+	{
+		// 루트 본인 경우 Component Space = Local Space
+		LocalPose[BoneIndex].Scale = BoneComponentScale;
+	}
+
+	// Pose 재계산
+	BuildComponentWorldSpacePose();
+	BuildSkinMatrices();
+	bSkinnedVerticesDirty = true;
 }
 void USkeletalMeshComponent::BuildComponentWorldSpacePose()
 {

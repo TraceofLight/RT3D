@@ -2,6 +2,8 @@
 #include "Widget.h"
 
 class UTexture;
+class FViewport;
+class FViewportClient;
 
 
 // UE 스타일 아이콘 타입
@@ -89,8 +91,10 @@ public:
 	void Update() override;
 	void RenderWidget() override;
 
-private:
 	void RenderViewportToolbar(int32 ViewportIndex);
+	void RenderViewportToolbar(FViewport* InViewport, FViewportClient* InClient);
+
+private:
 	void LoadViewIcons();
 	//static void RenderSplitterLines();
 	//static void RenderCameraSpeedControl(int32 ViewportIndex);
