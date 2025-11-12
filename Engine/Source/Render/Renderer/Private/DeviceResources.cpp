@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "Render/Renderer/Public/DeviceResources.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 
 UDeviceResources::UDeviceResources(HWND InWindowHandle)
 {
@@ -500,3 +501,20 @@ void UDeviceResources::PopExternalTargets()
 	ExternalDepthStencilView = nullptr;
 }
 
+FDynamicMeshBuffer* UDeviceResources::CreateDynamimMeshBuffer(const FDynamicMeshBuffer& DynamicMeshBuffer)
+{
+	DynamicMeshBuffers.Add(std::make_unique<FDynamicMeshBuffer>(DynamicMeshBuffer));
+	return DynamicMeshBuffers.Last().get();
+}
+
+void UDeviceResources::ReleaseDynamicMeshBuffer(const FDynamicMeshBuffer* DynamicMeshBuffer)
+{
+	for (int32 i = 0; i < DynamicMeshBuffers.Num(); ++i)
+	{
+		if (DynamicMeshBuffers[i].get() == DynamicMeshBuffer)
+		{
+			DynamicMeshBuffers.RemoveAt(i);
+			break;
+		}
+	}
+}

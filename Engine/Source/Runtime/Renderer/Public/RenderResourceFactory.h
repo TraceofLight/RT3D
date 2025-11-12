@@ -1,5 +1,6 @@
 #pragma once
 #include "Render/Renderer/Public/Renderer.h"
+struct FDynamicMeshBuffer;
 
 class FRenderResourceFactory
 {
@@ -130,6 +131,32 @@ public:
 		return Buffer;
 	}
 
+	static void ReleaseDynamicMeshBuffer(const FDynamicMeshBuffer* DynamicMeshBuffer)
+	{
+		URenderer::GetInstance().GetDeviceResources()->ReleaseDynamicMeshBuffer(DynamicMeshBuffer);
+	}
+
+	template<typename T>
+	static FDynamicMeshBuffer* CreateDynamicMeshBuffer(const TArray<T>& Vertices, const TArray<uint32>& Indices)
+	{
+		ComPtr<ID3D11Buffer> VB;
+		ComPtr<ID3D11Buffer> IB;
+		uint32 Stride = sizeof(T);
+		uint32 VertexCount = Vertices.Num();
+		uint32 IndexCount = Indices.Num();
+		VB = FRenderResourceFactory::CreateDynamicVertexBuffer(
+			Vertices.GetData(),
+			static_cast<int32>(VertexCount * Stride)
+		);
+
+		IB = FRenderResourceFactory::CreateDynamicIndexBuffer(
+			Indices.GetData(),
+			static_cast<int32>(IndexCount * sizeof(uint32))
+		);
+
+		return URenderer::GetInstance().GetDeviceResources()->CreateDynamimMeshBuffer(FDynamicMeshBuffer(VB, IB, Stride, VertexCount, IndexCount));
+	}
+
 private:
 	// Shader Caching Helper Functions
 	static wstring GetCompiledShaderPath(const wstring& InHLSLPath, const char* InEntryPoint, const char* InShaderType);
@@ -168,4 +195,23 @@ private:
 	};
 
 	static TMap<FRasterKey, ID3D11RasterizerState*, FRasterKeyHasher> RasterCache;
+};
+struct FDynamicMeshBuffer
+{
+	ComPtr<ID3D11Buffer> VertexBuffer = nullptr;
+	ComPtr<ID3D11Buffer> IndexBuffer = nullptr;
+	uint32 Stride = 0;
+	uint32 VertexCount = 0;
+	uint32 IndexCount = 0;
+
+	template<typename T>
+	void UpdateVertexData(const TArray<T>& Vertices)
+	{
+		FRenderResourceFactory::UpdateStructuredBuffer(VertexBuffer.Get(), Vertices);
+	}
+
+	void UpdateIndexData(const TArray<uint32>& Indices)
+	{
+		FRenderResourceFactory::UpdateStructuredBuffer(IndexBuffer.Get(), Indices);
+	}
 };

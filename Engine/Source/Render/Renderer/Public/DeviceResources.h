@@ -1,5 +1,5 @@
 #pragma once
-
+struct FDynamicMeshBuffer;
 class UDeviceResources
 {
 public:
@@ -61,6 +61,10 @@ public:
 							 ID3D11DepthStencilView* InDepthStencilView,
 							 const D3D11_VIEWPORT& InViewport);
 	void PopExternalTargets();
+
+	FDynamicMeshBuffer* CreateDynamimMeshBuffer(const FDynamicMeshBuffer& DynamicMeshBuffer);
+	void ReleaseDynamicMeshBuffer(const FDynamicMeshBuffer* DynamicMeshBuffer);
+
 private:
 	void CreateBackBuffer();
 	void ReleaseBackBuffer();
@@ -122,6 +126,7 @@ private:
 	IDWriteFactory* DWriteFactory = nullptr;
 	ID2D1RenderTarget* D2DRenderTarget = nullptr;
 
+	TArray<unique_ptr<FDynamicMeshBuffer>> DynamicMeshBuffers;
 	uint32 SourceIdx = 0;
 	uint32 DestinationIdx = 1;
 };
