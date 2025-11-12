@@ -356,7 +356,7 @@ wstring FRenderResourceFactory::GetCompiledShaderPath(const wstring& InHLSLPath,
 	wstring FileNameWithoutExt = HLSLPath.stem().wstring();
 
 	// CSO 파일명 생성: FileName_EntryPoint.cso
-	wstring CSOFileName = FileNameWithoutExt + L".cso";
+	wstring CSOFileName = FileNameWithoutExt + std::wstring(InShaderType, InShaderType + strlen(InShaderType)) + L".cso";
 
 	return (CompiledDir / CSOFileName).wstring();
 }
@@ -392,7 +392,6 @@ void FRenderResourceFactory::EnsureCompiledDirectoryExists(const wstring& InComp
  */
 bool FRenderResourceFactory::IsShaderUpToDate(const wstring& InHLSLPath, const wstring& InCSOPath)
 {
-	return false;
 	try
 	{
 		if (!exists(InCSOPath))
