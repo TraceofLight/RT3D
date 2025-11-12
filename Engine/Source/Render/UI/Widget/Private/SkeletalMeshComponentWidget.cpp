@@ -358,7 +358,7 @@ void USkeletalMeshComponentWidget::RenderPreviewTopControls(UWorld* TargetWorld,
             if (ImGui::DragFloat3("Location", &Location.X, 0.5f)) {
                 TargetComponent->SetRelativeLocation(Location);
             }
-        	if (ImGui::DragFloat3("Rotation", &Rotation.X, 0.5f)) {
+        	if (ImGui::DragFloat3("Rotation", &Rotation.X, 5.0f)) {
         		TargetComponent->SetRelativeRotation(FQuat::FromEuler(Rotation));
         	}
 
@@ -440,9 +440,12 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 	FSkeleton* Skeleton = SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton;
 	uint32 BoneCount = Skeleton->BoneNames.Num();
 
-	ImGui::Text("Selected Bone Transform");
+	const ImVec4 accent = ImVec4(0.95f, 0.75f, 0.2f, 1.0f);
+	
 	if (SelectedBoneIdx != -1)
 	{
+		ImGui::TextColored(accent, "Selected Bone : %s", SelectedBoneName.ToString().c_str());
+
 		FTransform& BoneTransform = SkeletalMeshComponent->GetLocalPose(SelectedBoneIdx);
 		ImGui::DragFloat3("Bone Location", &BoneTransform.Location.X, 0.1f);
 
