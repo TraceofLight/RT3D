@@ -731,6 +731,9 @@
     <ClCompile Include="Source\Optimization\Private\ViewVolumeCuller.cpp">
       <Filter>Source\Optimization\Private</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Component\Mesh\Private\BoneTransformProxy.cpp" />
+    <ClCompile Include="Source\Render\UI\Viewport\Private\PreviewViewportClient.cpp" />
+    <ClCompile Include="Source\Global\ShaderMacro.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Global\BVH.h">
@@ -1460,6 +1463,9 @@
     <ClInclude Include="Source\Optimization\Public\ViewVolumeCuller.h">
       <Filter>Source\Optimization\Public</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Component\Mesh\Public\BoneTransformProxy.h" />
+    <ClInclude Include="Source\Render\UI\Viewport\Public\PreviewViewportClient.h" />
+    <ClInclude Include="Source\Global\ShaderMacro.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Asset">

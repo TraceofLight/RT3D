@@ -10,6 +10,7 @@
 #include "Render/RenderPass/Public/CameraPrePass.h"
 #include "Render/RenderPass/Public/ColorCopyPass.h"
 #include "Render/RenderPass/Public/FXAAPass.h"
+#include "Source/Global/ShaderMacro.h"
 
 class FSceneView;
 class FClusteredRenderingGridPass;

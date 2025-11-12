@@ -10,19 +10,16 @@ public:
 	static void CreateUnorderedAccessView(ID3D11Buffer* Buffer, ID3D11UnorderedAccessView** OutUAV);
 
 	static void CreateVertexShaderAndInputLayout(const wstring& InFilePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescriptions,
-												 ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout);
-	static void CreateVertexShaderAndInputLayout(const wstring& InFilePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescriptions,
 												 ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout,
-												 const char* InEntryPoint, const D3D_SHADER_MACRO* InMacros = nullptr);
+												 EShaderVariant ShaderVariant = EShaderVariant::None, EShaderFeatureFlag ShaderFeatureFlag = EShaderFeatureFlag::None, const char* InEntryPoint = "mainVS");
 	static ID3D11Buffer* CreateVertexBuffer(FNormalVertex* InVertices, uint32 InByteWidth);
 	static ID3D11Buffer* CreateVertexBuffer(FVertexPositionColor* InVertices, uint32 InByteWidth, bool bCpuAccess);
 	static ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth, bool bCpuAccess);
 	static ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth);
 	static ID3D11Buffer* CreateDynamicVertexBuffer(const void* InVertices, int32 InByteWidth);
 	static ID3D11Buffer* CreateDynamicIndexBuffer(const void* InIndices, int32 InByteWidth);
-	static void CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** InPixelShader);
 	static void CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** InPixelShader,
-		const char* InEntryPoint, const D3D_SHADER_MACRO* InMacros = nullptr);
+		EShaderVariant ShaderVariant = EShaderVariant::None, EShaderFeatureFlag ShaderFeatureFlag = EShaderFeatureFlag::None, const char* InEntryPoint = "mainPS");
 	static void CreateComputeShader(const wstring& InFilePath, ID3D11ComputeShader** OutComputeShader,
 		const char* InEntryPoint = "main", const D3D_SHADER_MACRO* InMacros = nullptr);
 	static ID3D11SamplerState* CreateSamplerState(D3D11_FILTER InFilter, D3D11_TEXTURE_ADDRESS_MODE InAddressMode);
@@ -160,7 +157,8 @@ public:
 
 private:
 	// Shader Caching Helper Functions
-	static wstring GetCompiledShaderPath(const wstring& InHLSLPath, const char* InEntryPoint, const char* InShaderType);
+	static wstring GetCompiledCSShaderPath(const wstring& InHLSLPath, const char* InEntryPoint, const char* InShaderType);
+	static wstring GetCompiledShaderPath(const wstring& InHLSLPath, const char* InShaderType);
 	static void EnsureCompiledDirectoryExists(const wstring& InCompiledPath);
 	static bool IsShaderUpToDate(const wstring& InHLSLPath, const wstring& InCSOPath);
 	static ID3DBlob* LoadPrecompiledShader(const wstring& InCSOPath);

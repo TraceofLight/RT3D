@@ -26,48 +26,8 @@ void FRenderResourceFactory::CreateUnorderedAccessView(ID3D11Buffer* Buffer, ID3
 	URenderer::GetInstance().GetDevice()->CreateUnorderedAccessView(Buffer, &Desc, OutUAV);
 }
 
-void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InFilePath,
-                                                              const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescs, ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout)
-{
-	const char* EntryPoint = "mainVS";
-	const char* ShaderModel = "vs_5_0";
-
-	// CSO 파일 경로 생성
-	wstring CSOPath = GetCompiledShaderPath(InFilePath, EntryPoint, "vs");
-
-	ID3DBlob* VertexShaderBlob = nullptr;
-
-	// 캐시 확인 및 로드/컴파일
-	if (IsShaderUpToDate(InFilePath, CSOPath))
-	{
-		// 캐시된 CSO 로드
-		VertexShaderBlob = LoadPrecompiledShader(CSOPath);
-	}
-
-	// 캐시 미스 또는 로드 실패 시 컴파일
-	if (!VertexShaderBlob)
-	{
-		if (!CompileAndSaveShader(InFilePath, CSOPath, EntryPoint, ShaderModel, nullptr, 0, &VertexShaderBlob))
-		{
-			return;
-		}
-	}
-
-	// VertexShader 생성
-	URenderer::GetInstance().GetDevice()->CreateVertexShader(VertexShaderBlob->GetBufferPointer(), VertexShaderBlob->GetBufferSize(), nullptr, OutVertexShader);
-
-	// InputLayout 생성
-	if (InInputLayoutDescs.Num() > 0)
-	{
-		URenderer::GetInstance().GetDevice()->CreateInputLayout(InInputLayoutDescs.GetData(), static_cast<uint32>(InInputLayoutDescs.Num()), VertexShaderBlob->GetBufferPointer(), VertexShaderBlob->GetBufferSize(), OutInputLayout);
-	}
-
-	SafeRelease(VertexShaderBlob);
-}
-
-void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InFilePath,
-                                                              const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescs, ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout,
-                                                              const char* InEntryPoint, const D3D_SHADER_MACRO* InMacros)
+void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InFilePath, const TArray<D3D11_INPUT_ELEMENT_DESC>& InInputLayoutDescs, ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout,
+	EShaderVariant ShaderVariant, EShaderFeatureFlag ShaderFeatureFlag, const char* InEntryPoint)
 {
 	const char* ShaderModel = "vs_5_0";
 	UINT Flag = 0;
@@ -75,13 +35,16 @@ void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InF
 	Flag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
 
+	TArray<D3D_SHADER_MACRO> Macros;
+	GetMacro(Macros, ShaderVariant, ShaderFeatureFlag);
+	wstring MacroPath = MakeMacroPath(InFilePath, ShaderVariant, ShaderFeatureFlag);
 	// CSO 파일 경로 생성
-	wstring CSOPath = GetCompiledShaderPath(InFilePath, InEntryPoint, "vs");
+	wstring CSOPath = GetCompiledShaderPath(MacroPath, "vs");
 
 	ID3DBlob* VertexShaderBlob = nullptr;
 
 	// 캐시 확인 및 로드/컴파일
-	if (IsShaderUpToDate(InFilePath, CSOPath))
+	if (IsShaderUpToDate(MacroPath, CSOPath))
 	{
 		// 캐시된 CSO 로드
 		VertexShaderBlob = LoadPrecompiledShader(CSOPath);
@@ -90,7 +53,7 @@ void FRenderResourceFactory::CreateVertexShaderAndInputLayout(const wstring& InF
 	// 캐시 미스 또는 로드 실패 시 컴파일
 	if (!VertexShaderBlob)
 	{
-		if (!CompileAndSaveShader(InFilePath, CSOPath, InEntryPoint, ShaderModel, InMacros, Flag, &VertexShaderBlob))
+		if (!CompileAndSaveShader(InFilePath, CSOPath, InEntryPoint, ShaderModel, Macros.GetData(), Flag, &VertexShaderBlob))
 		{
 			return;
 		}
@@ -189,58 +152,24 @@ ID3D11Buffer* FRenderResourceFactory::CreateDynamicIndexBuffer(const void* InInd
 	return IndexBuffer;
 }
 
-void FRenderResourceFactory::CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** OutPixelShader)
-{
-	const char* EntryPoint = "mainPS";
-	const char* ShaderModel = "ps_5_0";
-	UINT Flag = 0;
-#ifdef _DEBUG
-	Flag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
-#endif
-
-	// CSO 파일 경로 생성
-	wstring CSOPath = GetCompiledShaderPath(InFilePath, EntryPoint, "ps");
-
-	ID3DBlob* PixelShaderBlob = nullptr;
-
-	// 캐시 확인 및 로드/컴파일
-	if (IsShaderUpToDate(InFilePath, CSOPath))
-	{
-		// 캐시된 CSO 로드
-		PixelShaderBlob = LoadPrecompiledShader(CSOPath);
-	}
-
-	// 캐시 미스 또는 로드 실패 시 컴파일
-	if (!PixelShaderBlob)
-	{
-		if (!CompileAndSaveShader(InFilePath, CSOPath, EntryPoint, ShaderModel, nullptr, Flag, &PixelShaderBlob))
-		{
-			return;
-		}
-	}
-
-	// PixelShader 생성
-	URenderer::GetInstance().GetDevice()->CreatePixelShader(PixelShaderBlob->GetBufferPointer(), PixelShaderBlob->GetBufferSize(), nullptr, OutPixelShader);
-
-	SafeRelease(PixelShaderBlob);
-}
-
 void FRenderResourceFactory::CreatePixelShader(const wstring& InFilePath, ID3D11PixelShader** OutPixelShader,
-                                                const char* InEntryPoint, const D3D_SHADER_MACRO* InMacros)
+	EShaderVariant ShaderVariant, EShaderFeatureFlag ShaderFeatureFlag, const char* InEntryPoint)
 {
 	const char* ShaderModel = "ps_5_0";
 	UINT Flag = 0;
 #ifdef _DEBUG
 	Flag = D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION;
 #endif
-
+	TArray<D3D_SHADER_MACRO> Macros;
+	GetMacro(Macros, ShaderVariant, ShaderFeatureFlag);
+	wstring MacroPath = MakeMacroPath(InFilePath, ShaderVariant, ShaderFeatureFlag);
 	// CSO 파일 경로 생성
-	wstring CSOPath = GetCompiledShaderPath(InFilePath, InEntryPoint, "ps");
+	wstring CSOPath = GetCompiledShaderPath(MacroPath, "ps");
 
 	ID3DBlob* PixelShaderBlob = nullptr;
 
 	// 캐시 확인 및 로드/컴파일
-	if (IsShaderUpToDate(InFilePath, CSOPath))
+	if (IsShaderUpToDate(MacroPath, CSOPath))
 	{
 		// 캐시된 CSO 로드
 		PixelShaderBlob = LoadPrecompiledShader(CSOPath);
@@ -249,7 +178,7 @@ void FRenderResourceFactory::CreatePixelShader(const wstring& InFilePath, ID3D11
 	// 캐시 미스 또는 로드 실패 시 컴파일
 	if (!PixelShaderBlob)
 	{
-		if (!CompileAndSaveShader(InFilePath, CSOPath, InEntryPoint, ShaderModel, InMacros, Flag, &PixelShaderBlob))
+		if (!CompileAndSaveShader(InFilePath, CSOPath, InEntryPoint, ShaderModel, Macros.GetData(), Flag, &PixelShaderBlob))
 		{
 			return;
 		}
@@ -271,7 +200,7 @@ void FRenderResourceFactory::CreateComputeShader(const wstring& InFilePath, ID3D
 #endif
 
 	// CSO 파일 경로 생성
-	wstring CSOPath = GetCompiledShaderPath(InFilePath, InEntryPoint, "cs");
+	wstring CSOPath = GetCompiledCSShaderPath(InFilePath, InEntryPoint, "cs");
 
 	ID3DBlob* ShaderBlob = nullptr;
 
@@ -405,7 +334,7 @@ TMap<FRenderResourceFactory::FRasterKey, ID3D11RasterizerState*, FRenderResource
  * @param InShaderType Shader 타입 (예: "vs", "ps", "cs")
  * @return CSO 파일 경로 (예: "Asset/Shader/Compiled/MyShader_mainVS.cso")
  */
-wstring FRenderResourceFactory::GetCompiledShaderPath(const wstring& InHLSLPath, const char* InEntryPoint, const char* InShaderType)
+wstring FRenderResourceFactory::GetCompiledCSShaderPath(const wstring& InHLSLPath, const char* InEntryPoint, const char* InShaderType)
 {
 	path HLSLPath(InHLSLPath);
 	path CompiledDir = HLSLPath.parent_path() / L"Compiled";
@@ -415,6 +344,19 @@ wstring FRenderResourceFactory::GetCompiledShaderPath(const wstring& InHLSLPath,
 
 	// CSO 파일명 생성: FileName_EntryPoint.cso
 	wstring CSOFileName = FileNameWithoutExt + L"_" + wstring(InEntryPoint, InEntryPoint + strlen(InEntryPoint)) + L".cso";
+
+	return (CompiledDir / CSOFileName).wstring();
+}
+wstring FRenderResourceFactory::GetCompiledShaderPath(const wstring& InHLSLPath, const char* InShaderType)
+{
+	path HLSLPath(InHLSLPath);
+	path CompiledDir = HLSLPath.parent_path() / L"Compiled";
+
+	// 파일명에서 확장자 제거
+	wstring FileNameWithoutExt = HLSLPath.stem().wstring();
+
+	// CSO 파일명 생성: FileName_EntryPoint.cso
+	wstring CSOFileName = FileNameWithoutExt + L".cso";
 
 	return (CompiledDir / CSOFileName).wstring();
 }
