@@ -251,18 +251,26 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
         const float Radius = JointRadius * (bSelected ? 1.35f : 1.0f);
 
 		FVector4 Color = FVector4(1, 1, 1, 1); // 기본 흰색
-		if (bSelected)
+
+		if (SelectedBone != -1)
 		{
-			Color = FVector4( 1.0f, 0.0f, 0.8f, 1.0f ); // 보라색
-		}
-		else
-		{
-			for (int j = 0; j < Skeleton->Parents.Num(); j++)
+			if (bSelected)
 			{
-				if (Skeleton->Parents[j] == SelectedBone)
+				Color = FVector4(1.0f, 0.0f, 0.0f, 1.0f); // 보라색
+			}
+			else if (i == Skeleton->Parents[SelectedBone])
+			{
+				Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f);  // 초록색, 부모 표시
+			}
+			else
+			{
+				for (int j = 0; j < Skeleton->Childs[SelectedBone].Num(); j++)
 				{
-					Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f);  // 초록색
-					break;
+					if (i == Skeleton->Childs[SelectedBone][j])
+					{
+						Color = FVector4(1.0f, 1.0f, 0.0f, 1.0f); // 노랑색, 자식 표시
+						break;
+					}
 				}
 			}
 		}
@@ -329,28 +337,59 @@ void UBatchLines::UpdateSkeletonVertices(const FSkeleton* Skeleton,
 		AddLine(BoneLines.Vertices, BoneLines.Indices, tip1, c3, Color);
     };
 
-    for (int i=0;i<Num;++i) {
-        for (int Child : Skeleton->Childs[i]) {
-            const bool bSelected = (SelectedBone == i) || (SelectedBone == Child);
-			FVector4 Color = FVector4(1, 1, 1, 1); // 기본 흰색
-			if (bSelected)
-			{
-				Color = FVector4(1.0f, 0.0f, 0.8f, 1.0f); // 보라색
-			}
-			else
-			{
-				for (int j = 0; j < Skeleton->Parents.Num(); j++)
-				{
-					if (Skeleton->Parents[j] == SelectedBone)
-					{
-						Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f);  // 초록색
-						break;
-					}
+	int SelectedParent = -1;
+	TArray<uint8> InSubtree;
+	InSubtree.SetNum(Num); // 0/1 플래그
+
+	if (SelectedBone >= 0 && SelectedBone < Num) {
+		SelectedParent = Skeleton->Parents[SelectedBone];
+
+		// DFS/BFS로 서브트리 마킹 (루트 포함)
+		TArray<int32> stack;
+		stack.Add(SelectedBone);
+		InSubtree[SelectedBone] = 1;
+
+		while (stack.Num() > 0) {
+			int n = stack.Top();
+			stack.Pop();
+
+			for (int c : Skeleton->Childs[n]) {
+				if (!InSubtree[c]) {
+					InSubtree[c] = 1;
+					stack.Add(c);
 				}
 			}
-            AddBoneDiamond(i, Child, bSelected, Color);
-        }
-    }
+		}
+	}
+
+	for (int i = 0; i < Num; ++i) {
+		for (int Child : Skeleton->Childs[i]) {
+
+			// 두께 스케일을 위해 선택 엣지 여부만 별도로 계산
+			const bool bSelectedEdge = (i == SelectedBone) || (Child == SelectedBone);
+
+			// 기본색: 흰색
+			FVector4 Color = FVector4(1, 1, 1, 1);
+
+			if (SelectedBone != -1) {
+				// 1) 선택 본 → 자식  : 빨강
+				if (i == SelectedBone) {
+					Color = FVector4(1.0f, 0.0f, 0.0f, 1.0f); // red
+				}
+				// 2) 부모 → 선택 본   : 초록
+				else if (Child == SelectedBone && i == SelectedParent) {
+					Color = FVector4(0.0f, 1.0f, 0.0f, 1.0f); // green
+				}
+				// 3) 선택 본 서브트리 내부의 나머지 엣지 : 노랑
+				else if (InSubtree[i] && InSubtree[Child]) {
+					Color = FVector4(1.0f, 1.0f, 0.0f, 1.0f); // yellow
+				}
+				// 4) 그 외 : 흰색(기본)
+			}
+
+			AddBoneDiamond(i, Child, bSelectedEdge, Color);
+		}
+	}
 
     bRenderBones = (BoneLines.GetNumVertices() > 0);
     bChangedVertices = true;
