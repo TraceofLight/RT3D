@@ -100,7 +100,7 @@ FVector USkinnedMeshComponent::SkinTangent(const FSkeletalVertex& V, const FSkel
 		Out += M.TransformVector( FVector(V.Vertex.Tangent.X, V.Vertex.Tangent.Y, V.Vertex.Tangent.Z) ) * w;
 	}
 	Out.Normalize();
-	return FVector();
+	return Out;
 }
 
 FVector USkinnedMeshComponent::SkinPosition(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats)

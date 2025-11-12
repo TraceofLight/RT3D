@@ -77,8 +77,7 @@ private:
 
 	// Helper 함수
 	static bool IsMeshSkinned(const FbxMesh* Mesh);
-	static FbxSkin* GetSkin(const FbxMesh* Mesh);
-	static FbxNode* FindModelRootNode(FbxScene* Scene);
+	static FbxSkin* GetSkin(const FbxMesh* Mesh); 
 
 	// Texture 재귀 탐색 함수
 	static FString FindTextureInDataFolder(const FString& MaterialName, const FString& TextureSuffix);

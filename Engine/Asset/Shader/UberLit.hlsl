@@ -277,8 +277,7 @@ PS_OUTPUT Uber_PS(PS_INPUT Input)
     float3 ShadedWorldNormal = SafeNormalize3(Input.WorldNormal);
     if (MaterialFlags & HAS_NORMAL_MAP)
     {
-        ShadedWorldNormal = ComputeNormalMappedWorldNormal(UV, Input.WorldNormal, Input.WorldTangent);
-		ShadedWorldNormal = float3(0, 0, 0);
+        ShadedWorldNormal = ComputeNormalMappedWorldNormal(UV, Input.WorldNormal, Input.WorldTangent); 
 		
 		// else: Tangent가 유효하지 않으면 NormalBase 유지
     }

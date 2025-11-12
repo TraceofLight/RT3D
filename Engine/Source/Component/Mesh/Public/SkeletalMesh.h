@@ -97,11 +97,10 @@ struct FSkeleton
 	TArray<int32>		Parents;				/** 부모 인덱스 배열, -1은 Root */
 	TArray<TArray<int32>> Childs;
 	TArray<FTransform>	RefPoseLocal;			/** 부모 뼈에 대한 상대 변환 값 */
-    TArray<FMatrix>		RefPoseGlobal;			/** 각 bone을 Root가 0,0,0인 Space로 변환하는 행렬 */
-    TArray<FMatrix>		InvRefPoseGlobal;		/** Root 기준 모델 Space에서 각 뼈의 local Space로 변환 */
+    TArray<FMatrix>		RefPoseGlobal;			/** 각 bone을 Root가 0,0,0인 Model Space로 변환하는 행렬 */
+    TArray<FMatrix>		InvRefPoseGlobal;		/** Root 기준 모델 Space에서 Bone Space로 변환 */
 
-
-
+	 
 	void SetName();
 	/**
 	* RefPoseLocal,RefPoseGlobal, InvRefPoseGlobal 를 세팅해주는 함수
