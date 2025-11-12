@@ -313,7 +313,7 @@ void USkeletalMeshComponent::RenderDebugBones(UBatchLines& BatchLines, int32 Sel
 		GlobalPose,                 // 현재 프레임 본 글로벌
 		CompToWorld,
 		SelectedBoneIdx,
-		0.7f,
+		0.4f,
 		0.06f,
 		0.35f
 	);

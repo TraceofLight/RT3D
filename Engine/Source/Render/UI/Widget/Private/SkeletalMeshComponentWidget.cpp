@@ -458,17 +458,20 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 {
 	FSkeleton* Skeleton = SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton;
 	uint32 BoneCount = Skeleton->BoneNames.Num();
-	DrawSkeletalBone(Skeleton, 0);
-	ImGui::Text("Transform");
 
+	const ImVec4 accent = ImVec4(0.95f, 0.75f, 0.2f, 1.0f);
+	
 	if (SelectedBoneIdx != -1)
 	{
+		ImGui::TextColored(accent, "Selected Bone : %s", SelectedBoneName.ToString().c_str());
+
 		FTransform& BoneTransform = SkeletalMeshComponent->GetLocalPose(SelectedBoneIdx);
 		ImGui::DragFloat3("Bone Location", &BoneTransform.Location.X, 0.1f);
 
 		FVector EulerRotation = BoneTransform.Rotation.ToEuler();
-		if (ImGui::DragFloat3("Bone Rotation", &EulerRotation.X, 0.001f))
+		if (ImGui::DragFloat3("Bone Rotation", &EulerRotation.X, 0.1f))
 		{
+
 			BoneTransform.Rotation = FQuat::FromEuler(EulerRotation);
 		}
 
@@ -477,6 +480,7 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 		SkeletalMeshComponent->SetLocalPose(SelectedBoneIdx, BoneTransform);
 	}
 
+	DrawSkeletalBone(Skeleton, 0);
 }
 
 void USkeletalMeshComponentWidget::OpenFbxPreviewViewport(USkeletalMesh* SkeletalMesh)
