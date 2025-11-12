@@ -111,29 +111,42 @@ int32 USkeletalMesh::GetNumMaterials() const
 	return 0;
 }
 
-const TArray<FNormalVertex>& USkeletalMesh::GetVertices() const
+const TArray<FNormalVertex> USkeletalMesh::GetVertices() const
 {
-	static TArray<FNormalVertex> EmptyVertices;
+	TArray<FNormalVertex> Vertices;
+	for (FSkeletalMeshSection& Section : GetSkeletalMeshAsset()->Sections)
+	{
+		for (FSkeletalVertex& SkeletalVertex : Section.Vertices)
+		{
+			Vertices.Add(SkeletalVertex.Vertex);
+		}
+	}
 
-	// TODO(KHJ): SkeletalMesh의 Section들을 합쳐서 반환
-	// 현재는 빈 배열 반환
-	return EmptyVertices;
+	return Vertices;
 }
 
-TArray<FNormalVertex>& USkeletalMesh::GetVertices()
+TArray<FNormalVertex> USkeletalMesh::GetVertices()
 {
-	static TArray<FNormalVertex> EmptyVertices;
+	TArray<FNormalVertex> Vertices;
+	for (FSkeletalMeshSection& Section : GetSkeletalMeshAsset()->Sections)
+	{
+		for (FSkeletalVertex& SkeletalVertex : Section.Vertices)
+		{
+			Vertices.Add(SkeletalVertex.Vertex);
+		}
+	}
 
-	// TODO(KHJ): SkeletalMesh의 Section들을 합쳐서 반환
-	// 현재는 빈 배열 반환
-	return EmptyVertices;
+	return Vertices;
 }
 
-const TArray<uint32>& USkeletalMesh::GetIndices() const
+const TArray<uint32> USkeletalMesh::GetIndices() const
 {
 	static TArray<uint32> EmptyIndices;
+	TArray<uint32> Indices;
+	for (FSkeletalMeshSection& Section : GetSkeletalMeshAsset()->Sections)
+	{
+		Indices.Append(&Section.Indices[0], Section.Indices.Num());
+	}
 
-	// TODO(KHJ): SkeletalMesh의 Section들을 합쳐서 반환
-	// 현재는 빈 배열 반환
-	return EmptyIndices;
+	return Indices;
 }

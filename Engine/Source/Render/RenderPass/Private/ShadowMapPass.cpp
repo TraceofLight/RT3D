@@ -565,7 +565,6 @@ void FShadowMapPass::RenderPointShadowMap(
 		D3D11_VIEWPORT ShadowViewport;
 
 		static const float Y_START = SHADOW_MAP_RESOLUTION * 2.0f;
-
 		ShadowViewport.Width = Light->GetShadowResolutionScale();;
 		ShadowViewport.Height = Light->GetShadowResolutionScale();;
 		ShadowViewport.MinDepth = 0.0f;
@@ -594,7 +593,6 @@ void FShadowMapPass::RenderPointShadowMap(
 				FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferModel, WorldMatrix);
 				Pipeline->SetConstantBuffer(0, EShaderType::VS, ConstantBufferModel);
 
-				// Vertex/Index buffer 바인딩
 				ID3D11Buffer* VertexBuffer = Mesh->GetVertexBuffer();
 				ID3D11Buffer* IndexBuffer = Mesh->GetIndexBuffer();
 				uint32 IndexCount = Mesh->GetNumIndices();
@@ -606,7 +604,7 @@ void FShadowMapPass::RenderPointShadowMap(
 				Pipeline->SetIndexBuffer(IndexBuffer, 0);
 
 				// Draw call
-				Pipeline->DrawIndexed(IndexCount, 0, 0);
+				Pipeline->DrawIndexed(IndexCount, 0, 0);		
 			}
 		}
 	}
@@ -1045,51 +1043,21 @@ void FShadowMapPass::RenderMeshDepth(const UMeshComponent* InMesh, const FMatrix
 	FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferModel, WorldMatrix);
 	Pipeline->SetConstantBuffer(0, EShaderType::VS, ConstantBufferModel);
 
-	//SkinnedMeshComponent 다형성을 이용 실패
-	//GetVertexBuffer를 할 수 없다. (D3DBuffer는 컴포넌트에 없어야 한다.)
-	if (const USkinnedMeshComponent* SkinnedMeshComp = Cast<USkinnedMeshComponent>(InMesh))
+	// Vertex/Index buffer 바인딩
+	ID3D11Buffer* VertexBuffer = InMesh->GetVertexBuffer();
+	ID3D11Buffer* IndexBuffer = InMesh->GetIndexBuffer();
+	uint32 IndexCount = InMesh->GetNumIndices();
+
+	if (!VertexBuffer || !IndexBuffer || IndexCount == 0)
 	{
-		TIME_PROFILE(ShadowSkinned)
-		TIME_PROFILE(ShadowSkinnedCreateBuffer)
-		ID3D11Buffer* DynamicVB = FRenderResourceFactory::CreateDynamicVertexBuffer(
-			SkinnedMeshComp->GetVerticesData()->GetData(),
-			static_cast<int32>(SkinnedMeshComp->GetNumVertices() * sizeof(FNormalVertex))
-		);
-
-		uint32 IndexCount = SkinnedMeshComp->GetNumIndices();
-		ID3D11Buffer* DynamicIB = FRenderResourceFactory::CreateDynamicIndexBuffer(
-			SkinnedMeshComp->GetIndicesData()->GetData(),
-			static_cast<int32>(SkinnedMeshComp->GetNumIndices() * sizeof(uint32))
-		);
-		TIME_PROFILE_END(ShadowSkinnedCreateBuffer)
-
-		Pipeline->SetVertexBuffer(DynamicVB, sizeof(FNormalVertex));
-		Pipeline->SetIndexBuffer(DynamicIB, 0);
-
-		// Draw call
-		Pipeline->DrawIndexed(IndexCount, 0, 0);
-
-		SafeRelease(DynamicVB);
-		SafeRelease(DynamicIB);
+		return;
 	}
-	else
-	{
-		// Vertex/Index buffer 바인딩
-		ID3D11Buffer* VertexBuffer = InMesh->GetVertexBuffer();
-		ID3D11Buffer* IndexBuffer = InMesh->GetIndexBuffer();
-		uint32 IndexCount = InMesh->GetNumIndices();
 
-		if (!VertexBuffer || !IndexBuffer || IndexCount == 0)
-		{
-			return;
-		}
+	Pipeline->SetVertexBuffer(VertexBuffer, sizeof(FNormalVertex));
+	Pipeline->SetIndexBuffer(IndexBuffer, 0);
 
-		Pipeline->SetVertexBuffer(VertexBuffer, sizeof(FNormalVertex));
-		Pipeline->SetIndexBuffer(IndexBuffer, 0);
-
-		// Draw call
-		Pipeline->DrawIndexed(IndexCount, 0, 0);
-	}
+	// Draw call
+	Pipeline->DrawIndexed(IndexCount, 0, 0);
 
 	
 }

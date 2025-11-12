@@ -4,6 +4,7 @@
 #include <execution>
 
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
 
 IMPLEMENT_CLASS(USkinnedMeshComponent, UMeshComponent)
 USkinnedMeshComponent::USkinnedMeshComponent()
@@ -16,6 +17,10 @@ USkinnedMeshComponent::~USkinnedMeshComponent()
 	if (bOwnsBoundingBox && BoundingBox)
 	{
 		SafeDelete(BoundingBox);
+	}
+	if (DynamicMeshBuffer != nullptr)
+	{
+		FRenderResourceFactory::ReleaseDynamicMeshBuffer(DynamicMeshBuffer);
 	}
 }
 
@@ -41,6 +46,11 @@ void USkinnedMeshComponent::SetSkeletalMesh(USkeletalMesh* InMesh)
 
 		RenderState.CullMode = ECullMode::Back;
 		RenderState.FillMode = EFillMode::Solid;
+		if (DynamicMeshBuffer != nullptr)
+		{
+			FRenderResourceFactory::ReleaseDynamicMeshBuffer(DynamicMeshBuffer);
+		}
+		DynamicMeshBuffer = FRenderResourceFactory::CreateDynamicMeshBuffer(SkeletalMesh->GetVertices(), SkeletalMesh->GetIndices());
     }
 }
 
@@ -218,6 +228,9 @@ void USkinnedMeshComponent::UpdateSkinnedVerticesCache() const
 
         CurrentVertexOffset += SectionVertexCount;
         CurrentIndexOffset += SectionIndexCount;
+
+		DynamicMeshBuffer->UpdateVertexData(CachedSkinnedVertices);
+		DynamicMeshBuffer->UpdateIndexData(CachedSkinnedIndices);
     }
 
 	if (CachedSkinnedVertices.Num() > 0)
@@ -256,4 +269,13 @@ const TArray<uint32>* USkinnedMeshComponent::GetIndicesData() const
 	//인덱스는 왜 재세팅 되는거지?
 	GetSkinnedIndices();
 	return &CachedSkinnedIndices;
+}
+
+ID3D11Buffer* USkinnedMeshComponent::GetVertexBuffer() const
+{
+	return DynamicMeshBuffer->VertexBuffer.Get();
+}
+ID3D11Buffer* USkinnedMeshComponent::GetIndexBuffer() const
+{
+	return DynamicMeshBuffer->IndexBuffer.Get();
 }

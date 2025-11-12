@@ -34,8 +34,8 @@ public:
 
 	virtual const TArray<FNormalVertex>* GetVerticesData() const;
 	virtual const TArray<uint32>* GetIndicesData() const;
-	ID3D11Buffer* GetVertexBuffer() const;
-	ID3D11Buffer* GetIndexBuffer() const;
+	virtual ID3D11Buffer* GetVertexBuffer() const;
+	virtual ID3D11Buffer* GetIndexBuffer() const;
 	uint32 GetNumVertices() const;
 	uint32 GetNumIndices() const;
 

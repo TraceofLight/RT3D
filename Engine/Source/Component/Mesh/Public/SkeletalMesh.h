@@ -192,16 +192,16 @@ public:
 	USkeletalMesh();
 	virtual ~USkeletalMesh();
 
-	FSkeletalMesh* GetSkeletalMeshAsset() { return SkeletalMesh; };
+	FSkeletalMesh* GetSkeletalMeshAsset() const { return SkeletalMesh; };
 	void SetSkeletalMeshAsset(FSkeletalMesh* InSkeletalMeshAsset);
 
 	FSkeleton* GetSkeleton() { return SkeletalMesh->Skeleton; }
 
 
 	// Geometry Data
-	const TArray<FNormalVertex>& GetVertices() const;
-	TArray<FNormalVertex>& GetVertices();
-	const TArray<uint32>& GetIndices() const;
+	const TArray<FNormalVertex> GetVertices() const;
+	TArray<FNormalVertex> GetVertices();
+	const TArray<uint32> GetIndices() const;
 
 	// Material Data
 	UMaterial* GetMaterial(int32 MaterialIndex) const;

@@ -125,26 +125,12 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 			continue;
 		}
 
+		ID3D11Buffer* VertexBuffer = MeshComp->GetVertexBuffer();
+		ID3D11Buffer* IndexBuffer = MeshComp->GetIndexBuffer();
 		// 단일 Vertex/Index Buffer 생성 (모든 Section 통합)
-		ID3D11Buffer* DynamicVB = FRenderResourceFactory::CreateDynamicVertexBuffer(
-			SkinnedVertices.GetData(),
-			static_cast<int32>(SkinnedVertices.Num() * sizeof(FNormalVertex))
-		);
 
-		ID3D11Buffer* DynamicIB = FRenderResourceFactory::CreateDynamicIndexBuffer(
-			SkinnedIndices.GetData(),
-			static_cast<int32>(SkinnedIndices.Num() * sizeof(uint32))
-		);
-
-		if (!DynamicVB || !DynamicIB)
-		{
-			SafeRelease(DynamicVB);
-			SafeRelease(DynamicIB);
-			continue;
-		}
-
-		Pipeline->SetVertexBuffer(DynamicVB, sizeof(FNormalVertex));
-		Pipeline->SetIndexBuffer(DynamicIB, 0);
+		Pipeline->SetVertexBuffer(VertexBuffer, sizeof(FNormalVertex));
+		Pipeline->SetIndexBuffer(IndexBuffer, 0);
 
 		// Section별로 Material 바인딩 및 DrawIndexed 호출
 		uint32 CurrentIndexOffset = 0;
@@ -211,10 +197,6 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 
 			CurrentIndexOffset += static_cast<uint32>(Section.Indices.Num());
 		}
-
-		// 버퍼 해제
-		SafeRelease(DynamicVB);
-		SafeRelease(DynamicIB);
 	}
 
 	Pipeline->SetConstantBuffer(2, EShaderType::PS, nullptr);

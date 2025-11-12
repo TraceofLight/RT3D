@@ -3,6 +3,9 @@
 #include "Component/Mesh/Public/SkeletalMesh.h"
 #include "Source/Physics/Public/AABB.h"
 
+
+struct FDynamicMeshBuffer;
+
 // Base component for skinned rendering. Holds mesh and final skin matrices.
 class USkinnedMeshComponent : public UMeshComponent
 {
@@ -29,7 +32,8 @@ public:
 
 	const TArray<FNormalVertex>* GetVerticesData() const override;
 	const TArray<uint32>* GetIndicesData() const override;
-
+	ID3D11Buffer* GetVertexBuffer() const override;
+	ID3D11Buffer* GetIndexBuffer() const override;
 private:
     void UpdateSkinnedVerticesCache() const;
 
@@ -44,4 +48,6 @@ protected:
     mutable TArray<FNormalVertex> CachedSkinnedVertices;
     mutable TArray<uint32> CachedSkinnedIndices;
     mutable bool bSkinnedVerticesDirty = true;
+
+	FDynamicMeshBuffer* DynamicMeshBuffer;
 };
