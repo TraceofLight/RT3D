@@ -309,6 +309,10 @@ UFbxViewportWindow::UFbxViewportWindow()
 	Config.bMovable = true;
 	Config.bCollapsible = true;
 	Config.Priority = 25;
+
+	// 이 줄 추가: 뷰포트 밖으로 나갈 수 있도록 설정
+	Config.WindowFlags |= ImGuiWindowFlags_NoNav;  // 네비게이션 비활성화
+
 	Config.UpdateWindowFlags();
 
 	SetConfig(Config);
