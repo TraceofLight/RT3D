@@ -12,6 +12,8 @@
 #include "Manager/Time/Public/TimeManager.h"
 #include "Runtime/CoreUObject/Public/NewObject.h"
 #include "ImGui/imgui.h"
+#include "Component/Mesh/Public/SkeletalMesh.h"
+#include "Texture/Public/Material.h"
 
 IMPLEMENT_CLASS(UFbxViewportWindow, UUIWindow)
 
@@ -126,6 +128,10 @@ void UFbxViewportWindow::SetPreviewSkeletalMesh(USkeletalMesh* SkeletalMesh)
 	{
 		SkeletalWidget->SetTargetComponent(PreviewComponent);
 	}
+
+	// Material Instancing
+	CleanupMaterialInstances();
+	CreateMaterialInstances();
 }
 
 void UFbxViewportWindow::Initialize()
@@ -161,6 +167,8 @@ void UFbxViewportWindow::Cleanup()
     ColorRT.Reset();
     DSV.Reset();
     DepthTex.Reset();
+
+	CleanupMaterialInstances();
 
     if (PreviewScene)
     {
@@ -642,6 +650,48 @@ void UFbxViewportWindow::UpdateSkeletalWidgetTargets()
 	SkeletalWidget->SetTargetComponent(PreviewComponent);
 
 	SkeletalWidget->SetPreviewViewportClient(PreviewClient);
+}
+
+void UFbxViewportWindow::CreateMaterialInstances()
+{
+	USkeletalMeshComponent* PreviewComponent = PreviewScene ? PreviewScene->GetPreviewSkeletalComponent() : nullptr;
+	if (!PreviewComponent) return;
+
+	USkeletalMesh* Mesh = PreviewComponent->GetSkeletalMesh();
+	if (!Mesh) return;
+
+	const int32 NumMaterials = Mesh->GetNumMaterials();
+	MaterialInstances.SetNum(NumMaterials);
+
+	for (int32 i = 0; i < NumMaterials; ++i)
+	{
+		UMaterial* OriginalMaterial = Mesh->GetMaterial(i);
+		if (OriginalMaterial)
+		{
+			// Create a new material instance, duplicating the original
+			FString InstName = OriginalMaterial->GetName().ToString() + "_Inst_";
+			UMaterial* MaterialInstance = NewObject<UMaterial>(PreviewComponent);
+			MaterialInstance->SetName(InstName);
+
+			MaterialInstance->CopyFrom(OriginalMaterial);
+			
+			MaterialInstances[i] = MaterialInstance;
+			
+			PreviewComponent->SetMaterial(i, MaterialInstance);
+		}
+		else
+		{
+			MaterialInstances[i] = nullptr;
+		}
+	}
+}
+
+void UFbxViewportWindow::CleanupMaterialInstances()
+{
+	// The material instances are UObjects and will be garbage collected
+	// when their outer (the PreviewComponent) is destroyed.
+	// We just need to clear our references to them.
+	MaterialInstances.Empty();
 }
 
 UFbxViewportWindow::UFbxViewportWindow()

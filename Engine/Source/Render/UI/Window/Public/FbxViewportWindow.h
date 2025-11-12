@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "Render/UI/Window/Public/UIWindow.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
 
@@ -69,11 +69,18 @@ private:
 	void HandleMouseClick(const ImVec2& LocalMousePos);
 	void UpdatePreviewCamera(float DeltaTime);
 
+	// Material Instancing
+	void CreateMaterialInstances();
+	void CleanupMaterialInstances();
+
 	FViewport*       PreviewViewport   = nullptr;
 	FPreviewViewportClient* PreviewClient     = nullptr;
 	FPreviewScene*   PreviewScene      = nullptr;
 	USkeletalMeshComponentWidget* SkeletalWidget = nullptr;
 	UViewportControlWidget* ViewportControlWidget = nullptr;
+
+	// Material Instancing
+	TArray<class UMaterial*> MaterialInstances;
 
 	bool bPreviewReady = false;
 	bool bHovered = false;

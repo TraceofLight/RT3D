@@ -257,3 +257,21 @@ const TArray<uint32>* USkinnedMeshComponent::GetIndicesData() const
 	GetSkinnedIndices();
 	return &CachedSkinnedIndices;
 }
+
+UMaterial* USkinnedMeshComponent::GetMaterial(int32 ElementIndex) const
+{
+	if (ElementIndex >= 0 && ElementIndex < OverrideMaterials.Num())
+	{
+		if (OverrideMaterials[ElementIndex])
+		{
+			return OverrideMaterials[ElementIndex];
+		}
+	}
+
+	if (SkeletalMesh)
+	{
+		return SkeletalMesh->GetMaterial(ElementIndex);
+	}
+
+	return nullptr;
+}

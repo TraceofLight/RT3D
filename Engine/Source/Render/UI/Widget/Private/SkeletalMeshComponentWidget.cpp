@@ -167,7 +167,7 @@ void USkeletalMeshComponentWidget::RenderMaterialSections()
 
 	for (int32 SlotIndex = 0; SlotIndex < MeshAsset->MaterialInfo.Num(); ++SlotIndex)
 	{
-		UMaterial* CurrentMaterial = CurrentMesh->GetMaterial(SlotIndex);
+		UMaterial* CurrentMaterial = SkeletalMeshComponent->GetMaterial(SlotIndex);
 		FString PreviewName = CurrentMaterial ? GetMaterialDisplayName(CurrentMaterial) : "None";
 
 		ImGui::PushID(SlotIndex);
@@ -277,7 +277,7 @@ void USkeletalMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotInde
 		}
 
 		FString MaterialName = GetMaterialDisplayName(Material);
-		bool bIsSelected = (SkeletalMeshComponent->GetSkeletalMesh()->GetMaterial(TargetSlotIndex) == Material);
+		bool bIsSelected = (SkeletalMeshComponent->GetMaterial(TargetSlotIndex) == Material);
 
 		constexpr float RowPreviewSize = 20.0f;
 		UTexture* RowPreviewTexture = GetPreviewTextureForMaterial(Material);
@@ -299,7 +299,7 @@ void USkeletalMeshComponentWidget::RenderAvailableMaterials(int32 TargetSlotInde
 
 		if (ImGui::Selectable(MaterialName.c_str(), bIsSelected))
 		{
-			SkeletalMeshComponent->GetSkeletalMesh()->SetMaterial(TargetSlotIndex, Material);
+			SkeletalMeshComponent->SetMaterial(TargetSlotIndex, Material);
 		}
 
 		if (bIsSelected)

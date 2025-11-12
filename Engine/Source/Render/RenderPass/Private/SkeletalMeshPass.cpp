@@ -153,7 +153,7 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 			if (Section.Indices.IsEmpty()) { continue; }
 
 			// Material 바인딩
-			UMaterial* Material = SkeletalMeshAsset->GetMaterial(Section.MaterialSlot);
+			UMaterial* Material = MeshComp->GetMaterial(Section.MaterialSlot);
 			if (Material)
 			{
 				FMaterialConstants MaterialConstants = {};

@@ -30,6 +30,8 @@ public:
 	const TArray<FNormalVertex>* GetVerticesData() const override;
 	const TArray<uint32>* GetIndicesData() const override;
 
+	UMaterial* GetMaterial(int32 ElementIndex) const override;
+
 private:
     void UpdateSkinnedVerticesCache() const;
 
