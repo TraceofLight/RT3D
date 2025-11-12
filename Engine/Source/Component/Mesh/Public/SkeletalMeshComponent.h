@@ -46,6 +46,9 @@ public:
 	// GlobalPose 접근자
 	const TArray<FMatrix>& GetGlobalPose() const { return GlobalPose; }
 
+	// HitProxy 렌더링 (Joint + Bone 입체)
+	void RenderBoneHitProxies();
+
 private:
     TArray<FTransform> LocalPose;   // 부모와 상대적인 좌표
     TArray<FMatrix>    GlobalPose;  // component/global space matrices

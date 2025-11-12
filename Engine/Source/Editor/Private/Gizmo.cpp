@@ -70,9 +70,15 @@ UGizmo::UGizmo()
 
 UGizmo::~UGizmo() = default;
 
-void UGizmo::UpdateScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
+void UGizmo::UpdateScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport, bool bUpdateTargetFromEditor)
 {
-	TargetComponent = Cast<USceneComponent>(GEditor->GetEditorModule()->GetSelectedComponent());
+	// Main Editor Gizmo는 Editor에서 선택된 컴포넌트를 가져옴
+	// Preview Gizmo는 이미 SetSelectedComponent로 설정된 컴포넌트 사용
+	if (bUpdateTargetFromEditor)
+	{
+		TargetComponent = Cast<USceneComponent>(GEditor->GetEditorModule()->GetSelectedComponent());
+	}
+
 	if (!TargetComponent || !InClient)
 	{
 		return;

@@ -704,3 +704,116 @@ void UBatchLines::SetIndices()
 	}
 }
 
+/**
+ * @brief HitProxy용 Bone 입체 메시 생성 (이중 원뿔 형태)
+ * @param Skeleton 스켈레톤 데이터
+ * @param GlobalPose 본별 월드 행렬
+ * @param ComponentToWorld 컴포넌트 월드 행렬
+ * @param WidthScale Bone 두께 스케일
+ * @param BaseBias Base Center 위치 (0: Parent, 1: Child)
+ * @param OutMesh 출력 메시 데이터
+ */
+void UBatchLines::GenerateBoneMeshForHitProxy(
+	const FSkeleton* Skeleton,
+	const TArray<FMatrix>& GlobalPose,
+	const FMatrix& ComponentToWorld,
+	float WidthScale,
+	float BaseBias,
+	FBoneMesh& OutMesh)
+{
+	OutMesh.Reset();
+
+	if (!Skeleton || GlobalPose.IsEmpty())
+	{
+		return;
+	}
+
+	auto XformPos = [](const FMatrix& M) -> FVector
+	{
+		return M.TransformPosition(FVector(0, 0, 0));
+	};
+
+	const int32 Num = Skeleton->Parents.Num();
+	if (Num <= 0)
+	{
+		return;
+	}
+
+	// 월드 보정된 본 위치 계산
+	TArray<FVector> WorldPos;
+	WorldPos.SetNum(Num);
+	for (int32 i = 0; i < Num; ++i)
+	{
+		const FMatrix WorldBoneMatrix = GlobalPose[i] * ComponentToWorld;
+		WorldPos[i] = XformPos(WorldBoneMatrix);
+	}
+
+	// 각 Bone에 대해 이중 원뿔 메시 생성
+	for (int32 ParentIdx = 0; ParentIdx < Num; ++ParentIdx)
+	{
+		for (int32 ChildIdx : Skeleton->Childs[ParentIdx])
+		{
+			const FVector P = WorldPos[ParentIdx];
+			const FVector C = WorldPos[ChildIdx];
+			FVector Direction = (C - P);
+			const float L = Direction.Length();
+
+			if (L < 1e-4f)
+			{
+				continue;  // 너무 짧은 Bone은 스킵
+			}
+
+			Direction *= (1.0f / L);  // Normalize
+
+			// 직교 축 계산
+			FVector U, V;
+			OrthonormalBasis(Direction, U, V);
+
+			// Base Center 계산 (Parent 쪽으로 편향)
+			const float t = clamp(BaseBias, 0.05f, 0.95f);
+			const FVector BaseCenter = P + Direction * (L * t);
+
+			// Bone 두께 계산
+			const float Width = max(0.002f, L * WidthScale);
+
+			// Base Center의 4개 코너 정점
+			const FVector c0 = BaseCenter + (U * Width);
+			const FVector c1 = BaseCenter + (V * Width);
+			const FVector c2 = BaseCenter - (U * Width);
+			const FVector c3 = BaseCenter - (V * Width);
+
+			// 정점 인덱스 시작
+			const uint32 BaseVertIdx = OutMesh.Vertices.Num();
+
+			// 정점 추가 (6개: tip0, tip1, c0, c1, c2, c3)
+			OutMesh.Vertices.Add(P);   // 0: tip0 (Parent)
+			OutMesh.Vertices.Add(C);   // 1: tip1 (Child)
+			OutMesh.Vertices.Add(c0);  // 2
+			OutMesh.Vertices.Add(c1);  // 3
+			OutMesh.Vertices.Add(c2);  // 4
+			OutMesh.Vertices.Add(c3);  // 5
+
+			// Helper lambda: 삼각형 추가
+			auto AddTriangle = [&](uint32 i0, uint32 i1, uint32 i2, int32 BoneIdx)
+			{
+				OutMesh.Indices.Add(BaseVertIdx + i0);
+				OutMesh.Indices.Add(BaseVertIdx + i1);
+				OutMesh.Indices.Add(BaseVertIdx + i2);
+				OutMesh.BoneIndices.Add(BoneIdx);
+			};
+
+			// Parent 쪽 피라미드 (4개 삼각형) - ParentIdx HitProxy
+			AddTriangle(0, 2, 3, ParentIdx);
+			AddTriangle(0, 3, 4, ParentIdx);
+			AddTriangle(0, 4, 5, ParentIdx);
+			AddTriangle(0, 5, 2, ParentIdx);
+
+			// Child 쪽 피라미드 (4개 삼각형) - ParentIdx HitProxy (Bone 클릭 시 Parent 선택)
+			AddTriangle(1, 3, 2, ParentIdx);  // 반시계 방향
+			AddTriangle(1, 4, 3, ParentIdx);
+			AddTriangle(1, 5, 4, ParentIdx);
+			AddTriangle(1, 2, 5, ParentIdx);
+		}
+	}
+}
+

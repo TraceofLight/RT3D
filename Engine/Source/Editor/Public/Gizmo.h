@@ -54,8 +54,8 @@ class UGizmo :
 public:
 	UGizmo();
 	~UGizmo() override;
-	void UpdateScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
-	void RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
+	void UpdateScale(const FViewportClient* InClient, const D3D11_VIEWPORT& InViewport, bool bUpdateTargetFromEditor = true);
+	void RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport, bool bUpdateTargetFromEditor = true);
 	void RenderForHitProxy(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 	void CollectRotationAngleOverlay(class FD2DOverlayManager& OverlayManager, FViewportClient* InClient, const D3D11_VIEWPORT& InViewport);
 	void ChangeGizmoMode();

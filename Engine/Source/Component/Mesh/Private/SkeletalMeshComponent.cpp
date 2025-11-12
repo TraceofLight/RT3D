@@ -319,3 +319,39 @@ void USkeletalMeshComponent::RenderDebugBones(UBatchLines& BatchLines, int32 Sel
 	);
 }
 
+/**
+ * @brief Bone HitProxy 렌더링 (Joint 구체 + Bone 입체 메시)
+ * @note ObjectPicker에서 Bone 피킹 시 호출됨
+ */
+void USkeletalMeshComponent::RenderBoneHitProxies()
+{
+	if (!bInBoneEditMode || !SkeletalMesh)
+	{
+		return;
+	}
+
+	FSkeleton* Skeleton = SkeletalMesh->GetSkeleton();
+	if (!Skeleton || GlobalPose.IsEmpty())
+	{
+		return;
+	}
+
+	const FMatrix CompToWorld = GetWorldTransformMatrix();
+
+	// Bone 입체 메시 생성
+	UBatchLines::FBoneMesh BoneMesh;
+	UBatchLines::GenerateBoneMeshForHitProxy(
+		Skeleton,
+		GlobalPose,
+		CompToWorld,
+		0.06f,  // WidthScale
+		0.35f,  // BaseBias
+		BoneMesh
+	);
+
+	// TODO: 이 부분은 실제 HitProxy 렌더링 구현 시 완성
+	// 현재는 구조만 작성 (ObjectPicker 또는 Renderer에서 호출 필요)
+	UE_LOG("SkeletalMeshComponent: Generated %d triangles for Bone HitProxy",
+		BoneMesh.GetNumTriangles());
+}
+

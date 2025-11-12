@@ -32,18 +32,43 @@ public:
 		}
 	};
 
+	// HitProxy용 Bone 입체 메시 구조체
+	struct FBoneMesh
+	{
+		TArray<FVector> Vertices;       // 정점 (World Space)
+		TArray<uint32> Indices;         // 삼각형 인덱스
+		TArray<int32> BoneIndices;      // 각 삼각형이 속한 BoneIndex (Parent Index)
+
+		void Reset() { Vertices.Empty(); Indices.Empty(); BoneIndices.Empty(); }
+		uint32 GetNumVertices() const { return static_cast<uint32>(Vertices.Num()); }
+		uint32 GetNumIndices() const { return static_cast<uint32>(Indices.Num()); }
+		uint32 GetNumTriangles() const { return static_cast<uint32>(Indices.Num()) / 3; }
+	};
+
 	// 종류별 Vertices 업데이트
 	void UpdateUGridVertices(const float newCellSize);
 	void UpdateBoundingBoxVertices(const IBoundingVolume* NewBoundingVolume);
 	void UpdateOctreeVertices(const FOctree* InOctree);
+
 	// Decal SpotLight용 불법 증축
 	void UpdateDecalSpotLightVertices(UDecalSpotLightComponent* SpotLightComponent);
 	void UpdateConeVertices(const FVector& InCenter, float InGeneratingLineLength
 		, float InOuterHalfAngleRad, float InInnerHalfAngleRad, FQuat InRotation);
+
 	// Skeleton용 불법 증축
 	void UpdateSkeletonVertices(const FSkeleton* Skeleton, const TArray<FMatrix>& GlobalPose,
 		const FMatrix& ComponentWorld, int32 SelectedBone,
 		float JointRadius = 0.1, float WidthScale = 0.06f, float BaseBiasTowardParent = 0.35f);
+
+	// HitProxy용 Bone 입체 메시 생성
+	static void GenerateBoneMeshForHitProxy(
+		const FSkeleton* Skeleton,
+		const TArray<FMatrix>& GlobalPose,
+		const FMatrix& ComponentToWorld,
+		float WidthScale,
+		float BaseBias,
+		FBoneMesh& OutMesh);
+
 	// GPU VertexBuffer에 복사
 	void UpdateVertexBuffer();
 

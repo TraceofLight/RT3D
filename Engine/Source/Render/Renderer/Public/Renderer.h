@@ -125,6 +125,11 @@ public:
 	ID3D11ShaderResourceView* GetDepthBufferSRV() const { return DeviceResources->GetDepthBufferSRV(); }
 
 	UDeviceResources* GetDeviceResources() const { return DeviceResources; }
+
+	// HitProxy 셰이더 Getters
+	ID3D11VertexShader* GetHitProxyVS() const { return HitProxyVS; }
+	ID3D11PixelShader* GetHitProxyPS() const { return HitProxyPS; }
+	ID3D11InputLayout* GetHitProxyInputLayout() const { return HitProxyInputLayout; }
 	FViewport* GetViewportClient() const { return ViewportClient; }
 	UPipeline* GetPipeline() const { return Pipeline; }
 	bool GetIsResizing() const { return bIsResizing; }

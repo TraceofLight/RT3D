@@ -6,6 +6,11 @@ IMPLEMENT_CLASS(UBoneTransformProxy, USceneComponent)
 
 UBoneTransformProxy::UBoneTransformProxy()
 {
+	// BoneTransformProxy는 World Space에서 독립적으로 동작해야 함
+	// 부모의 Transform을 무시하고 절대 좌표계 사용
+	SetAbsoluteLocation(true);
+	SetAbsoluteRotation(true);
+	SetAbsoluteScale(true);
 }
 
 UBoneTransformProxy::~UBoneTransformProxy() = default;
@@ -39,7 +44,7 @@ void UBoneTransformProxy::SyncTransformFromBone()
 	const FMatrix& ComponentToWorld = MeshComponent->GetWorldTransformMatrix();
 	const FMatrix BoneWorldMatrix = BoneComponentMatrix * ComponentToWorld;
 
-	// World Transform 설정
+	// World Transform 설정 (Absolute 플래그로 부모 Transform 무시)
 	FVector Location = BoneWorldMatrix.GetLocation();
 	FQuat Rotation = BoneWorldMatrix.ToQuaternion();
 	FVector Scale = BoneWorldMatrix.GetScale();

@@ -11,6 +11,11 @@
 #include "Render/UI/Viewport/Public/PreviewViewportClient.h"
 #include "Manager/Time/Public/TimeManager.h"
 #include "Runtime/CoreUObject/Public/NewObject.h"
+#include "Runtime/Renderer/Public/RenderResourceFactory.h"
+#include "Editor/Public/BatchLines.h"
+#include "Editor/Public/Gizmo.h"
+#include "Editor/Public/GizmoMath.h"
+#include "Manager/Asset/Public/AssetManager.h"
 #include "ImGui/imgui.h"
 #include "Component/Mesh/Public/SkeletalMesh.h"
 #include "Texture/Public/Material.h"
@@ -50,6 +55,12 @@ void UFbxViewportWindow::SelectBone(int32 BoneIndex)
 	// 새로운 본 선택
 	SelectedBoneIndex = BoneIndex;
 
+	// Bone 선택 시 자동으로 BoneEdit 모드로 전환
+	if (CurrentEditMode != EEditMode::BoneEdit)
+	{
+		SetEditMode(EEditMode::BoneEdit);
+	}
+
 	// BoneTransformProxy 생성
 	if (!BoneTransformProxy)
 	{
@@ -59,10 +70,10 @@ void UFbxViewportWindow::SelectBone(int32 BoneIndex)
 	BoneTransformProxy->SetBoneInfo(PreviewComponent, BoneIndex);
 	BoneTransformProxy->SyncTransformFromBone();
 
-	// PreviewClient의 Gizmo에 타겟 설정
-	if (PreviewClient && PreviewClient->GetGizmo())
+	// PreviewGizmo에 타겟 설정
+	if (PreviewGizmo)
 	{
-		PreviewClient->GetGizmo()->SetSelectedComponent(BoneTransformProxy);
+		PreviewGizmo->SetSelectedComponent(BoneTransformProxy);
 	}
 
 	// SkeletalWidget에 하이라이팅 전파
@@ -79,10 +90,10 @@ void UFbxViewportWindow::DeselectBone()
 	// BoneTransformProxy 정리
 	if (BoneTransformProxy)
 	{
-		// PreviewClient의 Gizmo 타겟 해제
-		if (PreviewClient && PreviewClient->GetGizmo())
+		// PreviewGizmo 타겟 해제
+		if (PreviewGizmo)
 		{
-			PreviewClient->GetGizmo()->SetSelectedComponent(nullptr);
+			PreviewGizmo->SetSelectedComponent(nullptr);
 		}
 
 		SafeDelete(BoneTransformProxy);
@@ -155,6 +166,19 @@ void UFbxViewportWindow::Initialize()
         ViewportControlWidget->Initialize();
     }
 
+    // PreviewGizmo 생성
+    if (!PreviewGizmo)
+    {
+        PreviewGizmo = NewObject<UGizmo>(this);
+        PreviewGizmo->SetGizmoMode(EGizmoMode::Translate);
+    }
+
+    // PreviewClient에 PreviewGizmo 설정 (드래그 처리를 위해)
+    if (PreviewClient && PreviewGizmo)
+    {
+        PreviewClient->SetGizmo(PreviewGizmo);
+    }
+
     UE_LOG("FbxViewportWindow: initialized");
 }
 
@@ -188,6 +212,11 @@ void UFbxViewportWindow::Cleanup()
 
     SafeDelete(PreviewClient);
     PreviewClient = nullptr;
+
+    if (PreviewGizmo)
+    {
+        PreviewGizmo = nullptr;
+    }
 
     bPreviewReady = false;
 
@@ -471,18 +500,45 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		int LocalY = static_cast<int>(LocalMouse.y);
 
 		// 키보드 입력 처리 (W/E/R: 기즈모 모드 전환, Space: 사이클)
-		if (ImGui::IsKeyPressed(ImGuiKey_W))
+		// 우클릭 중에는 카메라 컨트롤이므로 기즈모 모드 변경 무시
+		const bool bRightMouseDown = ImGui::IsMouseDown(ImGuiMouseButton_Right);
+
+		if (!bRightMouseDown)
 		{
-			PreviewClient->InputKey(EKeyInput::W, true);
+			// BoneEdit 모드일 때 Gizmo 모드 변경 (W/E/R)
+			if (CurrentEditMode == EEditMode::BoneEdit && PreviewGizmo)
+			{
+				if (ImGui::IsKeyPressed(ImGuiKey_W))
+				{
+					PreviewGizmo->SetGizmoMode(EGizmoMode::Translate);
+				}
+				if (ImGui::IsKeyPressed(ImGuiKey_E))
+				{
+					PreviewGizmo->SetGizmoMode(EGizmoMode::Rotate);
+				}
+				if (ImGui::IsKeyPressed(ImGuiKey_R))
+				{
+					PreviewGizmo->SetGizmoMode(EGizmoMode::Scale);
+				}
+			}
+			else
+			{
+				// View 모드일 때는 PreviewClient에 전달
+				if (ImGui::IsKeyPressed(ImGuiKey_W))
+				{
+					PreviewClient->InputKey(EKeyInput::W, true);
+				}
+				if (ImGui::IsKeyPressed(ImGuiKey_E))
+				{
+					PreviewClient->InputKey(EKeyInput::E, true);
+				}
+				if (ImGui::IsKeyPressed(ImGuiKey_R))
+				{
+					PreviewClient->InputKey(EKeyInput::R, true);
+				}
+			}
 		}
-		if (ImGui::IsKeyPressed(ImGuiKey_E))
-		{
-			PreviewClient->InputKey(EKeyInput::E, true);
-		}
-		if (ImGui::IsKeyPressed(ImGuiKey_R))
-		{
-			PreviewClient->InputKey(EKeyInput::R, true);
-		}
+
 		if (ImGui::IsKeyPressed(ImGuiKey_Space))
 		{
 			PreviewClient->InputKey(EKeyInput::Space, true);
@@ -492,8 +548,8 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
 		{
 			PreviewViewport->HandleMouseDown(0, LocalX, LocalY);
-			// ViewportClient의 HandleClick 호출 (기즈모/오브젝트 피킹)
-			PreviewClient->HandleClick(LocalX, LocalY);
+			// Gizmo/Bone 피킹
+			HandleMouseClick(LocalMouse);
 		}
 		if (ImGui::IsMouseClicked(ImGuiMouseButton_Right))
 		{
@@ -509,7 +565,18 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		{
 			PreviewViewport->HandleMouseUp(0, LocalX, LocalY);
 			// 기즈모 드래그 종료
-			PreviewClient->InputKey(EKeyInput::MouseLeft, false);
+			if (PreviewGizmo && PreviewGizmo->IsDragging())
+			{
+				EGizmoDirection Direction = PreviewGizmo->GetGizmoDirection();
+				PreviewGizmo->OnMouseRelease(Direction);
+				PreviewGizmo->SetGizmoDirection(EGizmoDirection::None);
+
+				// 최종 Transform 적용
+				if (BoneTransformProxy)
+				{
+					BoneTransformProxy->ApplyTransformToBone();
+				}
+			}
 		}
 		if (ImGui::IsMouseReleased(ImGuiMouseButton_Right))
 		{
@@ -524,10 +591,13 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		if (ImGui::IsMouseDragging(ImGuiMouseButton_Left))
 		{
 			PreviewViewport->HandleCapturedMouseMove(LocalX, LocalY);
-			// 기즈모 드래그 처리
-			ImVec2 MouseDelta = ImGui::GetMouseDragDelta(ImGuiMouseButton_Left, 0.0f);
-			PreviewClient->ProcessGizmoDrag(FVector2(MouseDelta.x, MouseDelta.y));
-			ImGui::ResetMouseDragDelta(ImGuiMouseButton_Left);
+
+			// Gizmo 드래그 중일 때 Bone Transform 업데이트
+			if (PreviewGizmo && PreviewGizmo->IsDragging() && BoneTransformProxy)
+			{
+				// Bone Transform을 BoneTransformProxy를 통해 즉시 반영
+				BoneTransformProxy->ApplyTransformToBone();
+			}
 		}
 		else if (ImGui::IsMouseDragging(ImGuiMouseButton_Right) ||
 		         ImGui::IsMouseDragging(ImGuiMouseButton_Middle))
@@ -538,6 +608,12 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		{
 			// 일반 마우스 이동
 			PreviewViewport->HandleMouseMove(LocalX, LocalY);
+
+			// TODO: Gizmo 호버링 처리 (성능 문제로 임시 비활성화)
+			// if (CurrentEditMode == EEditMode::BoneEdit && PreviewGizmo && PreviewGizmo->HasComponent())
+			// {
+			// 	UpdateGizmoHover(LocalMouse);
+			// }
 		}
 	}
 
@@ -642,52 +718,73 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 	}
 
 	// PreviewGizmo 렌더링 (BoneEdit 모드일 때만)
-	if (CurrentEditMode == EEditMode::BoneEdit && PreviewScene)
+	if (CurrentEditMode == EEditMode::BoneEdit && PreviewGizmo && PreviewGizmo->HasComponent())
 	{
-		UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
-		if (PreviewGizmo && PreviewGizmo->HasComponent())
+		// BoneTransformProxy Transform 동기화 (매 프레임)
+		if (BoneTransformProxy && !PreviewGizmo->IsDragging())
 		{
-			D3D11_VIEWPORT D3DViewport;
-			D3DViewport.TopLeftX = 0;
-			D3DViewport.TopLeftY = 0;
-			D3DViewport.Width = viewportAvail.x;
-			D3DViewport.Height = viewportAvail.y;
-			D3DViewport.MinDepth = 0.0f;
-			D3DViewport.MaxDepth = 1.0f;
+			BoneTransformProxy->SyncTransformFromBone();
+		}
 
-			auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
+		D3D11_VIEWPORT D3DViewport;
+		D3DViewport.TopLeftX = 0;
+		D3DViewport.TopLeftY = 0;
+		D3DViewport.Width = viewportAvail.x;
+		D3DViewport.Height = viewportAvail.y;
+		D3DViewport.MinDepth = 0.0f;
+		D3DViewport.MaxDepth = 1.0f;
 
-			// 기존 RenderTarget 백업
-			ID3D11RenderTargetView* OldRTV = nullptr;
-			ID3D11DepthStencilView* OldDSV = nullptr;
-			DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
+		auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
 
-			UINT NumViewports = 1;
-			D3D11_VIEWPORT OldViewport;
-			DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
+		// 기존 RenderTarget 백업
+		ID3D11RenderTargetView* OldRTV = nullptr;
+		ID3D11DepthStencilView* OldDSV = nullptr;
+		DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
 
-			// Gizmo 렌더링 (PreviewClient의 Gizmo 사용)
-			if (PreviewClient && PreviewClient->UsesTransformGizmo())
+		UINT NumViewports = 1;
+		D3D11_VIEWPORT OldViewport;
+		DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
+
+		// FbxViewportWindow의 RTV/DSV 설정
+		DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
+		DeviceContext->RSSetViewports(1, &D3DViewport);
+
+		// Gizmo 위치 로그 (BoneTransformProxy를 통해)
+		if (BoneTransformProxy)
+		{
+			FVector GizmoLoc = BoneTransformProxy->GetWorldLocation();
+			static int GizmoLogCount = 0;
+			if (++GizmoLogCount % 60 == 0)
 			{
-				UGizmo* Gizmo = PreviewClient->GetGizmo();
-				if (Gizmo && Gizmo->HasComponent())
-				{
-					// FbxViewportWindow의 RTV/DSV 설정
-					DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
-					DeviceContext->RSSetViewports(1, &D3DViewport);
-
-					Gizmo->UpdateScale(PreviewClient, D3DViewport);
-					Gizmo->RenderGizmo(PreviewClient, D3DViewport);
-
-					// RenderTarget 복원
-					DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
-					DeviceContext->RSSetViewports(1, &OldViewport);
-
-					if (OldRTV) OldRTV->Release();
-					if (OldDSV) OldDSV->Release();
-				}
+				UE_LOG("FbxViewportWindow: Gizmo render at Location=(%.1f,%.1f,%.1f)", GizmoLoc.X, GizmoLoc.Y, GizmoLoc.Z);
 			}
 		}
+
+		// Depth Test 비활성화 (Gizmo가 항상 보이도록)
+		ID3D11DepthStencilState* OldDepthStencilState = nullptr;
+		UINT OldStencilRef = 0;
+		DeviceContext->OMGetDepthStencilState(&OldDepthStencilState, &OldStencilRef);
+
+		auto& Renderer = URenderer::GetInstance();
+		DeviceContext->OMSetDepthStencilState(Renderer.GetDisabledDepthStencilState(), 0);
+
+		// Gizmo 렌더링 (false = TargetComponent를 Editor에서 가져오지 않음)
+		if (PreviewClient)
+		{
+			PreviewGizmo->UpdateScale(PreviewClient, D3DViewport, false);
+			PreviewGizmo->RenderGizmo(PreviewClient, D3DViewport, false);
+		}
+
+		// DepthStencilState 복원
+		DeviceContext->OMSetDepthStencilState(OldDepthStencilState, OldStencilRef);
+		if (OldDepthStencilState) OldDepthStencilState->Release();
+
+		// RenderTarget 복원
+		DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
+		DeviceContext->RSSetViewports(1, &OldViewport);
+
+		if (OldRTV) OldRTV->Release();
+		if (OldDSV) OldDSV->Release();
 	}
 
 	ImGui::EndChild();
@@ -701,7 +798,7 @@ void UFbxViewportWindow::RenderLeftControlsPanel(const ImVec2& InSize)
 	if (SkeletalWidget && PreviewScene) {
 		UWorld* SceneWorld = PreviewScene->GetWorld();
 		USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
-		if (SceneWorld && PreviewComponent) {			
+		if (SceneWorld && PreviewComponent) {
 			SkeletalWidget->RenderPreviewTopControls(SceneWorld, PreviewComponent);
 		}
 	}
@@ -734,6 +831,7 @@ void UFbxViewportWindow::RenderBoneHeriarchy(const ImVec2& InSize)
 
 	ImGui::EndChild();
 }
+
 
 void UFbxViewportWindow::RenderSkeletalInspector(const ImVec2& InSize)
 {
@@ -948,9 +1046,9 @@ void UFbxViewportWindow::CreateMaterialInstances()
 			MaterialInstance->SetName(InstName);
 
 			MaterialInstance->CopyFrom(OriginalMaterial);
-			
+
 			MaterialInstances[i] = MaterialInstance;
-			
+
 			PreviewComponent->SetMaterial(i, MaterialInstance);
 		}
 		else
@@ -1035,15 +1133,9 @@ void UFbxViewportWindow::UpdatePreviewCamera(float DeltaTime)
 	}
 }
 
-void UFbxViewportWindow::HandleMouseClick(const ImVec2& LocalMousePos)
+void UFbxViewportWindow::UpdateGizmoHover(const ImVec2& LocalMousePos)
 {
-	if (!PreviewScene || !PreviewClient || !HitProxyRTV || !HitProxyStagingTex)
-	{
-		return;
-	}
-
-	UGizmo* PreviewGizmo = PreviewScene->GetPreviewGizmo();
-	if (!PreviewGizmo)
+	if (!PreviewClient || !HitProxyRTV || !HitProxyStagingTex || !PreviewScene || !PreviewGizmo)
 	{
 		return;
 	}
@@ -1075,8 +1167,16 @@ void UFbxViewportWindow::HandleMouseClick(const ImVec2& LocalMousePos)
 	DeviceContext->OMSetRenderTargets(1, HitProxyRTV.GetAddressOf(), DSV.Get());
 	DeviceContext->RSSetViewports(1, &D3DViewport);
 
-	// Gizmo HitProxy 렌더링
-	PreviewGizmo->RenderForHitProxy(PreviewClient, D3DViewport);
+	// ViewProj Constant Buffer 업데이트
+	auto& Renderer = URenderer::GetInstance();
+	const FCameraConstants& CameraConstants = PreviewClient->GetCameraConstants();
+
+	ID3D11Buffer* ConstantBufferViewProj = Renderer.GetConstantBufferViewProj();
+	FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferViewProj, CameraConstants);
+	Renderer.GetPipeline()->SetConstantBuffer(1, EShaderType::VS, ConstantBufferViewProj);
+
+	// Gizmo HitProxy만 렌더링 (호버링용 - 간단한 버전)
+	RenderGizmoHitProxySimple();
 
 	// RenderTarget 복원
 	DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
@@ -1102,14 +1202,471 @@ void UFbxViewportWindow::HandleMouseClick(const ImVec2& LocalMousePos)
 
 			uint32_t HitProxyID = (Pixel[0]) | (Pixel[1] << 8) | (Pixel[2] << 16);
 
-			UE_LOG("FbxViewportWindow: HandleMouseClick at (%.0f, %.0f), HitProxyID=%u",
-				LocalMousePos.x, LocalMousePos.y, HitProxyID);
-
-			// TODO: HitProxyID로 Gizmo 액션 처리
+			// Gizmo 호버링만 처리 (HitProxyID 1-6)
+			// 드래그 중이 아닐 때만 호버링 업데이트
+			if (!PreviewGizmo->IsDragging())
+			{
+				if (HitProxyID >= 1 && HitProxyID <= 6)
+				{
+					EGizmoDirection Direction = static_cast<EGizmoDirection>(HitProxyID);
+					PreviewGizmo->SetGizmoDirection(Direction);
+				}
+				else
+				{
+					PreviewGizmo->SetGizmoDirection(EGizmoDirection::None);
+				}
+			}
 		}
 
 		DeviceContext->Unmap(HitProxyStagingTex.Get(), 0);
 	}
+}
+
+void UFbxViewportWindow::HandleMouseClick(const ImVec2& LocalMousePos)
+{
+	if (!PreviewClient || !HitProxyRTV || !HitProxyStagingTex || !PreviewScene)
+	{
+		return;
+	}
+
+	// HitProxy 렌더링
+	D3D11_VIEWPORT D3DViewport;
+	D3DViewport.TopLeftX = 0;
+	D3DViewport.TopLeftY = 0;
+	D3DViewport.Width = CachedSize.x;
+	D3DViewport.Height = CachedSize.y;
+	D3DViewport.MinDepth = 0.0f;
+	D3DViewport.MaxDepth = 1.0f;
+
+	auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
+
+	// RenderTarget 백업
+	ID3D11RenderTargetView* OldRTV = nullptr;
+	ID3D11DepthStencilView* OldDSV = nullptr;
+	DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
+
+	UINT NumViewports = 1;
+	D3D11_VIEWPORT OldViewport;
+	DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
+
+	// HitProxy RTV로 전환하고 클리어
+	const float ClearColor[4] = {0, 0, 0, 0};
+	DeviceContext->ClearRenderTargetView(HitProxyRTV.Get(), ClearColor);
+	DeviceContext->ClearDepthStencilView(DSV.Get(), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
+	DeviceContext->OMSetRenderTargets(1, HitProxyRTV.GetAddressOf(), DSV.Get());
+	DeviceContext->RSSetViewports(1, &D3DViewport);
+
+	// ViewProj Constant Buffer 업데이트 (Preview Viewport의 카메라 사용)
+	auto& Renderer = URenderer::GetInstance();
+	const FCameraConstants& CameraConstants = PreviewClient->GetCameraConstants();
+
+	ID3D11Buffer* ConstantBufferViewProj = Renderer.GetConstantBufferViewProj();
+	FRenderResourceFactory::UpdateConstantBufferData(ConstantBufferViewProj, CameraConstants);
+	Renderer.GetPipeline()->SetConstantBuffer(1, EShaderType::VS, ConstantBufferViewProj);
+
+	// Gizmo HitProxy 렌더링 (BoneEdit 모드이고 PreviewGizmo + BoneTransformProxy가 있을 때)
+	if (CurrentEditMode == EEditMode::BoneEdit && PreviewGizmo && BoneTransformProxy)
+	{
+		// 간단한 고정 ID HitProxy 렌더링 (ID 1-6 사용)
+		// Bone은 컴포넌트가 아니므로 BoneTransformProxy를 통해 Transform 처리
+		RenderGizmoHitProxySimple();
+	}
+
+	// Bone HitProxy 렌더링 (SkeletalMeshComponent)
+	USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+	if (PreviewComponent && PreviewComponent->GetSkeletalMesh())
+	{
+		const FSkeleton* Skeleton = PreviewComponent->GetSkeletalMesh()->GetSkeleton();
+		const TArray<FMatrix>& GlobalPose = PreviewComponent->GetGlobalPose();
+		const FMatrix& ComponentWorld = PreviewComponent->GetWorldTransformMatrix();
+
+		if (Skeleton && !GlobalPose.IsEmpty())
+		{
+			// 각 Bone을 HitProxy로 렌더링 (HitProxyID = 100 + BoneIndex)
+			auto& Renderer = URenderer::GetInstance();
+			const float BoneSphereRadius = 0.5f;
+			constexpr int NumSegments = 8;
+			constexpr int NumRings = 6;
+
+			for (int32 BoneIndex = 0; BoneIndex < Skeleton->GetNumBones(); ++BoneIndex)
+			{
+				FMatrix BoneWorldMatrix = GlobalPose[BoneIndex] * ComponentWorld;
+				FVector BoneWorldPos(BoneWorldMatrix._41, BoneWorldMatrix._42, BoneWorldMatrix._43);
+
+				// HitProxyID를 색상으로 인코딩 (100 + BoneIndex)
+				uint32_t HitProxyID = 100 + BoneIndex;
+				uint8_t R = (HitProxyID) & 0xFF;
+				uint8_t G = (HitProxyID >> 8) & 0xFF;
+				uint8_t B = (HitProxyID >> 16) & 0xFF;
+				FVector4 HitProxyColor(R / 255.0f, G / 255.0f, B / 255.0f, 1.0f);
+
+				// UV Sphere 메시 생성
+				TArray<FNormalVertex> Vertices;
+				TArray<uint32> Indices;
+
+				for (int ring = 0; ring <= NumRings; ++ring)
+				{
+					float Phi = static_cast<float>(ring) / NumRings * PI;
+					float SinPhi = std::sin(Phi);
+					float CosPhi = std::cos(Phi);
+
+					for (int seg = 0; seg <= NumSegments; ++seg)
+					{
+						float Theta = static_cast<float>(seg) / NumSegments * 2.0f * PI;
+						float SinTheta = std::sin(Theta);
+						float CosTheta = std::cos(Theta);
+
+						FVector Pos(SinPhi * CosTheta, SinPhi * SinTheta, CosPhi);
+						FVector Normal = Pos.GetSafeNormal();
+						Pos = Pos * BoneSphereRadius;
+
+						Vertices.Add({Pos, Normal});
+					}
+				}
+
+				// 인덱스 생성
+				for (int ring = 0; ring < NumRings; ++ring)
+				{
+					for (int seg = 0; seg < NumSegments; ++seg)
+					{
+						int Current = ring * (NumSegments + 1) + seg;
+						int Next = Current + NumSegments + 1;
+
+						Indices.Add(Current);
+						Indices.Add(Next);
+						Indices.Add(Current + 1);
+
+						Indices.Add(Current + 1);
+						Indices.Add(Next);
+						Indices.Add(Next + 1);
+					}
+				}
+
+				// 임시 버퍼 생성
+				ID3D11Buffer* TempVB = nullptr;
+				ID3D11Buffer* TempIB = nullptr;
+
+				D3D11_BUFFER_DESC VBDesc = {};
+				VBDesc.Usage = D3D11_USAGE_DEFAULT;
+				VBDesc.ByteWidth = static_cast<UINT>(sizeof(FNormalVertex) * Vertices.Num());
+				VBDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+				D3D11_SUBRESOURCE_DATA VBData = {};
+				VBData.pSysMem = Vertices.GetData();
+				Renderer.GetDevice()->CreateBuffer(&VBDesc, &VBData, &TempVB);
+
+				D3D11_BUFFER_DESC IBDesc = {};
+				IBDesc.Usage = D3D11_USAGE_DEFAULT;
+				IBDesc.ByteWidth = static_cast<UINT>(sizeof(uint32) * Indices.Num());
+				IBDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+				D3D11_SUBRESOURCE_DATA IBData = {};
+				IBData.pSysMem = Indices.GetData();
+				Renderer.GetDevice()->CreateBuffer(&IBDesc, &IBData, &TempIB);
+
+				// Primitive 설정 및 렌더링 (HitProxy 셰이더 사용)
+				FEditorPrimitive PrimitiveInfo;
+				PrimitiveInfo.Location = BoneWorldPos;
+				PrimitiveInfo.Rotation = FQuat::Identity();
+				PrimitiveInfo.Scale = FVector(1.0f, 1.0f, 1.0f);
+				PrimitiveInfo.VertexBuffer = TempVB;
+				PrimitiveInfo.NumVertices = static_cast<uint32>(Vertices.Num());
+				PrimitiveInfo.IndexBuffer = TempIB;
+				PrimitiveInfo.NumIndices = static_cast<uint32>(Indices.Num());
+				PrimitiveInfo.Color = HitProxyColor;
+				PrimitiveInfo.bShouldAlwaysVisible = true;
+				PrimitiveInfo.Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+				// HitProxy 셰이더 명시적 설정
+				PrimitiveInfo.VertexShader = Renderer.GetHitProxyVS();
+				PrimitiveInfo.PixelShader = Renderer.GetHitProxyPS();
+				PrimitiveInfo.InputLayout = Renderer.GetHitProxyInputLayout();
+
+				FRenderState RenderState = { ECullMode::Back, EFillMode::Solid };
+				Renderer.RenderEditorPrimitive(PrimitiveInfo, RenderState, sizeof(FNormalVertex));
+
+				// 버퍼 해제
+				TempVB->Release();
+				TempIB->Release();
+			}
+
+			// Bone 입체 메시 HitProxy 렌더링
+			UBatchLines::FBoneMesh BoneMesh;
+			UBatchLines::GenerateBoneMeshForHitProxy(
+				Skeleton,
+				GlobalPose,
+				ComponentWorld,
+				0.06f,  // WidthScale
+				0.35f,  // BaseBias
+				BoneMesh
+			);
+
+			// Bone 메시 렌더링 (각 삼각형마다 HitProxyID 설정)
+			for (uint32 TriIdx = 0; TriIdx < BoneMesh.GetNumTriangles(); ++TriIdx)
+			{
+				int32 ParentBoneIndex = BoneMesh.BoneIndices[TriIdx];
+
+				// HitProxyID를 색상으로 인코딩 (100 + ParentBoneIndex)
+				uint32_t HitProxyID = 100 + ParentBoneIndex;
+				uint8_t R = (HitProxyID) & 0xFF;
+				uint8_t G = (HitProxyID >> 8) & 0xFF;
+				uint8_t B = (HitProxyID >> 16) & 0xFF;
+				FVector4 HitProxyColor(R / 255.0f, G / 255.0f, B / 255.0f, 1.0f);
+
+				// 삼각형 3개 정점
+				uint32 i0 = BoneMesh.Indices[TriIdx * 3 + 0];
+				uint32 i1 = BoneMesh.Indices[TriIdx * 3 + 1];
+				uint32 i2 = BoneMesh.Indices[TriIdx * 3 + 2];
+
+				FVector v0 = BoneMesh.Vertices[i0];
+				FVector v1 = BoneMesh.Vertices[i1];
+				FVector v2 = BoneMesh.Vertices[i2];
+
+				// 삼각형 Normal 계산
+				FVector Edge1 = v1 - v0;
+				FVector Edge2 = v2 - v0;
+				FVector Normal = Edge1.Cross(Edge2).GetSafeNormal();
+
+				// Vertex Buffer 생성
+				TArray<FNormalVertex> TriVertices;
+				TriVertices.Add({v0, Normal});
+				TriVertices.Add({v1, Normal});
+				TriVertices.Add({v2, Normal});
+
+				TArray<uint32> TriIndices = {0, 1, 2};
+
+				ID3D11Buffer* TriVB = nullptr;
+				ID3D11Buffer* TriIB = nullptr;
+
+				D3D11_BUFFER_DESC VBDesc = {};
+				VBDesc.Usage = D3D11_USAGE_DEFAULT;
+				VBDesc.ByteWidth = static_cast<UINT>(TriVertices.Num() * sizeof(FNormalVertex));
+				VBDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+
+				D3D11_SUBRESOURCE_DATA VBData = {};
+				VBData.pSysMem = TriVertices.GetData();
+				Renderer.GetDevice()->CreateBuffer(&VBDesc, &VBData, &TriVB);
+
+				D3D11_BUFFER_DESC IBDesc = {};
+				IBDesc.Usage = D3D11_USAGE_DEFAULT;
+				IBDesc.ByteWidth = static_cast<UINT>(TriIndices.Num() * sizeof(uint32));
+				IBDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
+
+				D3D11_SUBRESOURCE_DATA IBData = {};
+				IBData.pSysMem = TriIndices.GetData();
+				Renderer.GetDevice()->CreateBuffer(&IBDesc, &IBData, &TriIB);
+
+				// Primitive 설정 및 렌더링
+				FEditorPrimitive PrimitiveInfo;
+				PrimitiveInfo.Location = FVector(0, 0, 0);  // 이미 월드 좌표
+				PrimitiveInfo.Rotation = FQuat::Identity();
+				PrimitiveInfo.Scale = FVector(1.0f, 1.0f, 1.0f);
+				PrimitiveInfo.VertexBuffer = TriVB;
+				PrimitiveInfo.NumVertices = 3;
+				PrimitiveInfo.IndexBuffer = TriIB;
+				PrimitiveInfo.NumIndices = 3;
+				PrimitiveInfo.Color = HitProxyColor;
+				PrimitiveInfo.bShouldAlwaysVisible = true;
+				PrimitiveInfo.Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+				PrimitiveInfo.VertexShader = Renderer.GetHitProxyVS();
+				PrimitiveInfo.PixelShader = Renderer.GetHitProxyPS();
+				PrimitiveInfo.InputLayout = Renderer.GetHitProxyInputLayout();
+
+				FRenderState RenderState = {ECullMode::Back, EFillMode::Solid};
+				Renderer.RenderEditorPrimitive(PrimitiveInfo, RenderState, sizeof(FNormalVertex));
+
+				// 버퍼 해제
+				TriVB->Release();
+				TriIB->Release();
+			}
+		}
+	}
+
+	// RenderTarget 복원
+	DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
+	DeviceContext->RSSetViewports(1, &OldViewport);
+
+	if (OldRTV) OldRTV->Release();
+	if (OldDSV) OldDSV->Release();
+
+	// HitProxy 텍스처를 Staging으로 복사
+	DeviceContext->CopyResource(HitProxyStagingTex.Get(), HitProxyRT.Get());
+
+	// CPU에서 픽셀 읽기
+	D3D11_MAPPED_SUBRESOURCE MappedResource;
+	if (SUCCEEDED(DeviceContext->Map(HitProxyStagingTex.Get(), 0, D3D11_MAP_READ, 0, &MappedResource)))
+	{
+		int X = static_cast<int>(LocalMousePos.x);
+		int Y = static_cast<int>(LocalMousePos.y);
+
+		if (X >= 0 && X < static_cast<int>(CachedSize.x) && Y >= 0 && Y < static_cast<int>(CachedSize.y))
+		{
+			uint8_t* PixelData = static_cast<uint8_t*>(MappedResource.pData);
+			uint8_t* Pixel = PixelData + (Y * MappedResource.RowPitch) + (X * 4);
+
+			uint32_t HitProxyID = (Pixel[0]) | (Pixel[1] << 8) | (Pixel[2] << 16);
+
+			UE_LOG("FbxViewportWindow: HitProxyID at (%d,%d) = %d (RGB=%d,%d,%d)", X, Y, HitProxyID, Pixel[0], Pixel[1], Pixel[2]);
+
+			// HitProxyID 처리
+			if (HitProxyID >= 1 && HitProxyID <= 6)
+			{
+				// Gizmo 피킹 (HitProxyID = 1~6)
+				EGizmoDirection Direction = static_cast<EGizmoDirection>(HitProxyID);
+				if (PreviewGizmo)
+				{
+					PreviewGizmo->SetGizmoDirection(Direction);
+
+					// 드래그 시작 처리 (충돌 지점 계산)
+					FVector CollisionPoint = PreviewGizmo->GetGizmoLocation();
+					PreviewGizmo->OnMouseDragStart(PreviewClient, CollisionPoint);
+
+					UE_LOG("FbxViewportWindow: Gizmo picked - Direction=%d", static_cast<int>(Direction));
+				}
+			}
+			else if (HitProxyID >= 100)
+			{
+				// Bone 피킹 (HitProxyID = 100 + BoneIndex)
+				int32 BoneIndex = static_cast<int32>(HitProxyID - 100);
+				USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+				if (PreviewComponent && PreviewComponent->GetSkeletalMesh())
+				{
+					const FSkeleton* Skeleton = PreviewComponent->GetSkeletalMesh()->GetSkeleton();
+					if (BoneIndex >= 0 && BoneIndex < Skeleton->GetNumBones())
+					{
+						SelectBone(BoneIndex);
+						UE_LOG("FbxViewportWindow: Bone picked - BoneIndex=%d, Name=%s", BoneIndex, Skeleton->BoneNames[BoneIndex].ToString().data());
+					}
+				}
+			}
+			else
+			{
+				// 빈 공간 클릭 - 선택 해제 (BoneEdit 모드일 때만)
+				if (CurrentEditMode == EEditMode::BoneEdit)
+				{
+					DeselectBone();
+					UE_LOG("FbxViewportWindow: Bone deselected (empty space clicked)");
+				}
+			}
+		}
+
+		DeviceContext->Unmap(HitProxyStagingTex.Get(), 0);
+	}
+}
+
+void UFbxViewportWindow::RenderGizmoHitProxySimple()
+{
+	if (!PreviewGizmo || !PreviewClient)
+	{
+		return;
+	}
+
+	// Gizmo 위치 계산
+	FVector GizmoLocation = PreviewGizmo->GetGizmoLocation();
+	EGizmoMode GizmoMode = PreviewGizmo->GetGizmoMode();
+
+	// Screen space scale 계산
+	D3D11_VIEWPORT D3DViewport;
+	D3DViewport.TopLeftX = 0;
+	D3DViewport.TopLeftY = 0;
+	D3DViewport.Width = CachedSize.x;
+	D3DViewport.Height = CachedSize.y;
+	D3DViewport.MinDepth = 0.0f;
+	D3DViewport.MaxDepth = 1.0f;
+
+	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(PreviewClient, D3DViewport, GizmoLocation, 120.0f);
+
+	// Base rotation 계산
+	FQuat BaseRot;
+	USceneComponent* TargetComp = PreviewGizmo->GetTargetComponent();
+	if (!TargetComp)
+	{
+		return;
+	}
+
+	if (GizmoMode == EGizmoMode::Scale)
+	{
+		BaseRot = TargetComp->GetWorldRotationAsQuaternion();
+	}
+	else
+	{
+		BaseRot = PreviewGizmo->IsWorldMode() ? FQuat::Identity() : TargetComp->GetWorldRotationAsQuaternion();
+	}
+
+	// Axis rotations (Translate/Scale 공통)
+	FQuat AxisRots[3] = {
+		FQuat::Identity(),
+		FQuat::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(90.0f)),
+		FQuat::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(-90.0f))
+	};
+
+	auto& Renderer = URenderer::GetInstance();
+	UAssetManager& AssetManager = UAssetManager::GetInstance();
+
+	// Primitive 타입별 메시 가져오기
+	EPrimitiveType PrimitiveType;
+	if (GizmoMode == EGizmoMode::Translate)
+	{
+		PrimitiveType = EPrimitiveType::Arrow;
+	}
+	else if (GizmoMode == EGizmoMode::Rotate)
+	{
+		// Rotate 모드는 동적 메시 생성이 필요하므로 간단히 스킵
+		return;
+	}
+	else if (GizmoMode == EGizmoMode::Scale)
+	{
+		PrimitiveType = EPrimitiveType::CubeArrow;
+	}
+	else
+	{
+		return;
+	}
+
+	ID3D11Buffer* GizmoVertexBuffer = AssetManager.GetVertexBuffer(PrimitiveType);
+	ID3D11Buffer* GizmoIndexBuffer = AssetManager.GetIndexBuffer(PrimitiveType);
+	uint32 NumVertices = AssetManager.GetNumVertices(PrimitiveType);
+	uint32 NumIndices = AssetManager.GetNumIndices(PrimitiveType);
+
+	if (!GizmoVertexBuffer || !GizmoIndexBuffer)
+	{
+		return;
+	}
+
+	FRenderState RenderState = { ECullMode::Back, EFillMode::Solid };
+
+	// X/Y/Z 축 렌더링 (HitProxyID 1/2/3)
+	for (int AxisIdx = 0; AxisIdx < 3; ++AxisIdx)
+	{
+		FQuat AxisRotation = BaseRot * AxisRots[AxisIdx];
+
+		// HitProxyID: 1=Forward(X), 2=Right(Y), 3=Up(Z)
+		uint32_t HitProxyID = AxisIdx + 1;
+		uint8_t R = (HitProxyID) & 0xFF;
+		uint8_t G = (HitProxyID >> 8) & 0xFF;
+		uint8_t B = (HitProxyID >> 16) & 0xFF;
+		FVector4 HitProxyColor(R / 255.0f, G / 255.0f, B / 255.0f, 1.0f);
+
+		FEditorPrimitive P;
+		P.Location = GizmoLocation;
+		P.Rotation = AxisRotation;
+		P.Scale = FVector(RenderScale, RenderScale, RenderScale);
+		P.Color = HitProxyColor;
+		P.VertexBuffer = GizmoVertexBuffer;
+		P.NumVertices = NumVertices;
+		P.IndexBuffer = GizmoIndexBuffer;
+		P.NumIndices = NumIndices;
+		P.bShouldAlwaysVisible = true;
+		P.Topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		// HitProxy 셰이더 설정
+		P.VertexShader = Renderer.GetHitProxyVS();
+		P.PixelShader = Renderer.GetHitProxyPS();
+		P.InputLayout = Renderer.GetHitProxyInputLayout();
+
+		Renderer.RenderEditorPrimitive(P, RenderState);
+	}
+
+	UE_LOG("FbxViewportWindow: RenderGizmoHitProxySimple - Mode=%d, Location=(%.1f,%.1f,%.1f)",
+		static_cast<int>(GizmoMode), GizmoLocation.X, GizmoLocation.Y, GizmoLocation.Z);
 }
 
 FString UFbxViewportWindow::GetMaterialDisplayName(UMaterial* Material)

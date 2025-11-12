@@ -10,10 +10,10 @@ class FPreviewScene;
 class FPreviewViewportClient;
 class USkeletalMeshComponentWidget;
 class USkeletalMesh;
-class UBatchLines;
 class UViewportControlWidget;
 class UMaterial;
 class UTexture;
+class UGizmo;
 
 enum class EEditMode : uint8
 {
@@ -71,7 +71,9 @@ private:
 	void RenderSkeletalInspector(const ImVec2& InSize);
 	void UpdateSkeletalWidgetTargets();
 	void HandleMouseClick(const ImVec2& LocalMousePos);
+	void UpdateGizmoHover(const ImVec2& LocalMousePos);
 	void UpdatePreviewCamera(float DeltaTime);
+	void RenderGizmoHitProxySimple();
 
 	// SkeletalMesh / Material
 	void RenderSkeletalMeshSelector();
@@ -87,6 +89,7 @@ private:
 	FPreviewScene*   PreviewScene      = nullptr;
 	USkeletalMeshComponentWidget* SkeletalWidget = nullptr;
 	UViewportControlWidget* ViewportControlWidget = nullptr;
+	UGizmo*          PreviewGizmo      = nullptr;
 
 	// Material Instancing
 	TArray<class UMaterial*> MaterialInstances;

@@ -67,7 +67,15 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 	Pipeline->SetConstantBuffer(0, EShaderType::VS, ConstantBufferModel);
 	Pipeline->SetConstantBuffer(1, EShaderType::VS | EShaderType::PS, ConstantBufferCamera);
 
-	if (!(Context.ShowFlags & EEngineShowFlags::SF_SkeletalMesh)) { return; }
+	if (!(Context.ShowFlags & EEngineShowFlags::SF_SkeletalMesh))
+	{
+		static int LogCount = 0;
+		if (++LogCount % 60 == 0)
+		{
+			UE_LOG("SkeletalMeshPass: ShowFlags check failed (SF_SkeletalMesh not set), skipping render");
+		}
+		return;
+	}
 
 	TArray<USkeletalMeshComponent*>& MeshComponents = Context.SkeletalMeshes;
 
@@ -122,6 +130,12 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 
 		if (SkinnedVertices.IsEmpty() || SkinnedIndices.IsEmpty())
 		{
+			static int EmptyLogCount = 0;
+			if (++EmptyLogCount % 60 == 0)
+			{
+				UE_LOG("SkeletalMeshPass: Skipping render - Skinned vertices/indices empty (Verts=%d, Indices=%d)",
+					SkinnedVertices.Num(), SkinnedIndices.Num());
+			}
 			continue;
 		}
 
@@ -134,6 +148,7 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 
 		// Section별로 Material 바인딩 및 DrawIndexed 호출
 		uint32 CurrentIndexOffset = 0;
+
 		for (const FSkeletalMeshSection& Section : MeshData->Sections)
 		{
 			if (Section.Indices.IsEmpty()) { continue; }
@@ -193,9 +208,10 @@ void FSkeletalMeshPass::Execute(FRenderingContext& Context)
 			}
 
 			// DrawIndexed (offset 사용)
-			Pipeline->DrawIndexed(static_cast<uint32>(Section.Indices.Num()), CurrentIndexOffset, 0);
+			uint32 IndexCount = static_cast<uint32>(Section.Indices.Num());
+			Pipeline->DrawIndexed(IndexCount, CurrentIndexOffset, 0);
 
-			CurrentIndexOffset += static_cast<uint32>(Section.Indices.Num());
+			CurrentIndexOffset += IndexCount;
 		}
 	}
 

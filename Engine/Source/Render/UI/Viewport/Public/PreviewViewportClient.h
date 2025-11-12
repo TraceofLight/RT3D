@@ -16,6 +16,7 @@ public:
 
 	// Gizmo Access
 	UGizmo* GetGizmo() override { return Gizmo; }
+	void SetGizmo(UGizmo* InGizmo) { Gizmo = InGizmo; }
 	bool UsesTransformGizmo() const override { return Gizmo != nullptr; }
 
 	// Input Handlers

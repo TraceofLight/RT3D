@@ -87,9 +87,15 @@ void FGizmoBatchRenderer::Clear()
 	Meshes.Empty();
 }
 
-void UGizmo::RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport)
+void UGizmo::RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InViewport, bool bUpdateTargetFromEditor)
 {
-	TargetComponent = Cast<USceneComponent>(GEditor->GetEditorModule()->GetSelectedComponent());
+	// Main Editor Gizmo는 Editor에서 선택된 컴포넌트를 가져옴
+	// Preview Gizmo는 이미 SetSelectedComponent로 설정된 컴포넌트 사용
+	if (bUpdateTargetFromEditor)
+	{
+		TargetComponent = Cast<USceneComponent>(GEditor->GetEditorModule()->GetSelectedComponent());
+	}
+
 	if (!TargetComponent || !InClient)
 	{
 		return;
@@ -105,6 +111,14 @@ void UGizmo::RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InView
 	else
 	{
 		GizmoLocation = TargetComponent->GetWorldLocation();
+	}
+
+	static int GizmoRenderLogCount = 0;
+	if (!bUpdateTargetFromEditor && ++GizmoRenderLogCount % 60 == 0)
+	{
+		UE_LOG("Gizmo: RenderGizmo GizmoLocation=(%.1f,%.1f,%.1f), TargetComponent=%s",
+			GizmoLocation.X, GizmoLocation.Y, GizmoLocation.Z,
+			TargetComponent ? TargetComponent->GetClass()->GetName().ToString().data() : "nullptr");
 	}
 
 	const float RenderScale = FGizmoMath::CalculateScreenSpaceScale(InClient, InViewport, GizmoLocation, 120.0f);
@@ -138,11 +152,13 @@ void UGizmo::RenderGizmo(FViewportClient* InClient, const D3D11_VIEWPORT& InView
 	UAssetManager& AssetManager = UAssetManager::GetInstance();
 	bool bIsRotateMode = (GizmoMode == EGizmoMode::Rotate);
 
-	// 각 링을 해당 평면으로 회전시키는 변환 (드래그 시 Ring 사용)
+	// 각 축을 올바른 방향으로 회전시키는 변환
+	// Translate/Scale: 축 화살표 방향 설정
+	// Rotate: 각 링을 해당 평면으로 회전
 	FQuat AxisRots[3] = {
-		FQuat::Identity(),  // X링: YZ 평면
-		FQuat::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(90.0f)),  // Y링: XZ 평면
-		FQuat::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(-90.0f))  // Z링: XY 평면
+		FQuat::Identity(),  // X축/링: YZ 평면
+		FQuat::FromAxisAngle(FVector::UpVector(), FVector::GetDegreeToRadian(90.0f)),  // Y축/링: XZ 평면
+		FQuat::FromAxisAngle(FVector::RightVector(), FVector::GetDegreeToRadian(-90.0f))  // Z축/링: XY 평면
 	};
 
 	// 각 축의 BaseAxis 정의
