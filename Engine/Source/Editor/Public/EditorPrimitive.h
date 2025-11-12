@@ -2,6 +2,12 @@
 #include <d3d11.h>
 #include "Global/Vector.h"
 
+struct FVertexPositionColor
+{
+	FVector Position;
+	FVector4 Color;
+};
+
 struct FEditorPrimitive
 {
 	ID3D11VertexShader* VertexShader =  nullptr;

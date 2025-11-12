@@ -88,31 +88,35 @@ bool FFbxImporter::LoadSkeletalMesh(const FString& FilePath, FSkeletalMesh& OutM
 
 	//Right Hand+ UP:eZAxis  + Front: Even
 	// UP: Z Front: Y, Right: -X
-	FbxAxisSystem::ECoordSystem CoordSystem = FbxAxisSystem::eLeftHanded;
-	FbxAxisSystem::EUpVector UpVector = FbxAxisSystem::eZAxis;
-	FbxAxisSystem::EFrontVector	FrontVector = FbxAxisSystem::eParityEven;
-	FbxAxisSystem UnrealImportAxis(UpVector, FrontVector, CoordSystem);
-	UnrealImportAxis.DeepConvertScene(Scene);
-	/* 
-	FbxAxisSystem SourceSetup = Scene->GetGlobalSettings().GetAxisSystem();
 
-	if (SourceSetup != UnrealImportAxis)
-	{
-		FbxRootNodeUtility::RemoveAllFbxRoots(Scene);
+	// RightHand  + up: XAxis + Even
+	//blender 거쳤을 때 (z up, x front)
+	//FbxAxisSystem::ECoordSystem CoordSystem = FbxAxisSystem::eLeftHanded;
+	//FbxAxisSystem::EUpVector UpVector = FbxAxisSystem::eXAxis;
+	//FbxAxisSystem::EFrontVector FrontVector = FbxAxisSystem::eParityEven; 
+	//FbxAxisSystem UnrealImportAxis(UpVector, FrontVector, CoordSystem);
+	//UnrealImportAxis.DeepConvertScene(Scene);
 
-		FbxAMatrix SourceMatrix;
-		SourceSetup.GetMatrix(SourceMatrix);
-		FbxAMatrix UE4Matrix;
-		UnrealImportAxis.GetMatrix(UE4Matrix);
-		AxisConversionMatrix = SourceMatrix.Inverse() * UE4Matrix;
-		 
-		JointOrientationMatrix.SetR(FbxVector4(-90.0, -90.0, 0.0)); 
-	} 
+	// MIXAMO
+	//FbxAxisSystem::ECoordSystem CoordSystem = FbxAxisSystem::eRightHanded;
+	//FbxAxisSystem::EUpVector UpVector = FbxAxisSystem::eZAxis;
+	//FbxAxisSystem::EFrontVector FrontVector = FbxAxisSystem::eParityEven; 
+	//FbxAxisSystem UnrealImportAxis(UpVector, FrontVector, CoordSystem);
+	//UnrealImportAxis.DeepConvertScene(Scene);
 
-	SetJointPostConversionMatrix(JointOrientationMatrix); 
-	SetAxisConversionMatrix(AxisConversionMatrix);
-	 */ 
-
+	const FbxAxisSystem EngineTargetAxis(
+		FbxAxisSystem::eZAxis,
+		FbxAxisSystem::eParityEven,
+		FbxAxisSystem::eLeftHanded
+	);
+	 
+	FbxAxisSystem SourceAxis = Scene->GetGlobalSettings().GetAxisSystem();
+	 
+	if (SourceAxis != EngineTargetAxis)
+	{ 
+		EngineTargetAxis.DeepConvertScene(Scene);
+	}
+	 
 	 // 단위 변환 (센티미터로 통일)
 	FbxSystemUnit SceneSystemUnit = Scene->GetGlobalSettings().GetSystemUnit();
 	if (SceneSystemUnit != FbxSystemUnit::cm)

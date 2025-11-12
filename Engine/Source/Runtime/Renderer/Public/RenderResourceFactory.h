@@ -13,6 +13,7 @@ public:
 												 ID3D11VertexShader** OutVertexShader, ID3D11InputLayout** OutInputLayout,
 												 EShaderVariant ShaderVariant = EShaderVariant::None, EShaderFeatureFlag ShaderFeatureFlag = EShaderFeatureFlag::None, const char* InEntryPoint = "mainVS");
 	static ID3D11Buffer* CreateVertexBuffer(FNormalVertex* InVertices, uint32 InByteWidth);
+	static ID3D11Buffer* CreateVertexBuffer(FVertexPositionColor* InVertices, uint32 InByteWidth, bool bCpuAccess);
 	static ID3D11Buffer* CreateVertexBuffer(FVector* InVertices, uint32 InByteWidth, bool bCpuAccess);
 	static ID3D11Buffer* CreateIndexBuffer(const void* InIndices, uint32 InByteWidth);
 	static ID3D11Buffer* CreateDynamicVertexBuffer(const void* InVertices, int32 InByteWidth);

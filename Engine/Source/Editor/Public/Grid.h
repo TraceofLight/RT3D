@@ -10,7 +10,7 @@ public:
 	~UGrid() override;
 
 	void UpdateVerticesBy(float NewCellSize);
-	void MergeVerticesAt(TArray<FVector>& DestVertices, size_t InsertStartIndex);
+	void MergeVerticesAt(TArray<FVertexPositionColor>& DestVertices, size_t InsertStartIndex);
 
 	uint32 GetNumVertices() const
 	{
@@ -30,6 +30,6 @@ public:
 private:
 	float CellSize = -1.0f;
 	int NumLines = 250;
-	TArray<FVector> Vertices;
+	TArray<FVertexPositionColor> Vertices;
 	uint32 NumVertices;
 };
