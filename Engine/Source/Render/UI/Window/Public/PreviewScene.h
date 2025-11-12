@@ -10,6 +10,7 @@ class UStaticMeshComponent;
 class UAmbientLightComponent;
 class UDirectionalLightComponent;
 class UGizmo;
+class UBatchLines;
 
 /**
  * @brief Lightweight helper that owns the mini preview world used by FBX viewport windows.
@@ -27,6 +28,7 @@ public:
 	UWorld* GetWorld() const { return PreviewWorld; }
 	USkeletalMeshComponent* GetPreviewSkeletalComponent() const { return PreviewSkeletal; }
 	UGizmo* GetPreviewGizmo() const { return PreviewGizmo; }
+	UBatchLines* GetBatchLines() const { return PreviewBatchLines; }
 
 private:
 	void CreatePreviewWorld();
@@ -50,5 +52,8 @@ private:
 
 	// Gizmo (메인 에디터와 독립)
 	UGizmo* PreviewGizmo = nullptr;
+
+	// BatchLines (Skeleton 시각화)
+	UBatchLines* PreviewBatchLines = nullptr;
 };
 

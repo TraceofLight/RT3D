@@ -2,6 +2,7 @@
 #include "Render/UI/Window/Public/FbxViewportWindow.h"
 #include "Render/UI/Window/Public/PreviewScene.h"
 #include "Render/UI/Widget/Public/SkeletalMeshComponentWidget.h"
+#include "Render/UI/Widget/Public/ViewportControlWidget.h"
 #include "Render/Renderer/Public/Renderer.h"
 #include "Component/Mesh/Public/SkeletalMeshComponent.h"
 #include "Component/Mesh/Public/BoneTransformProxy.h"
@@ -138,9 +139,12 @@ void UFbxViewportWindow::Initialize()
 
     UpdateSkeletalWidgetTargets();
 
-    if (!PreviewBatchLines)
+
+    // ViewportControlWidget 생성
+    if (!ViewportControlWidget)
     {
-        PreviewBatchLines = new UBatchLines();
+        ViewportControlWidget = new UViewportControlWidget();
+        ViewportControlWidget->Initialize();
     }
 
     UE_LOG("FbxViewportWindow: initialized");
@@ -157,12 +161,6 @@ void UFbxViewportWindow::Cleanup()
     ColorRT.Reset();
     DSV.Reset();
     DepthTex.Reset();
-
-    if (PreviewBatchLines)
-    {
-        delete PreviewBatchLines;
-        PreviewBatchLines = nullptr;
-    }
 
     if (PreviewScene)
     {
@@ -185,6 +183,9 @@ void UFbxViewportWindow::Cleanup()
 
     SafeDelete(SkeletalWidget);
     SkeletalWidget = nullptr;
+
+    SafeDelete(ViewportControlWidget);
+    ViewportControlWidget = nullptr;
 }
 
 
@@ -355,6 +356,17 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 	ImDrawList* dl = ImGui::GetWindowDrawList();
 	dl->AddImage((ImTextureID)SRV.Get(), p0, p1);
 
+	// PreviewViewport Rect 업데이트 (RenderTarget 상대 좌표 사용 - 0,0 기준)
+	if (PreviewViewport)
+	{
+		PreviewViewport->SetRect({
+			0,
+			0,
+			static_cast<int>(p1.x - p0.x),
+			static_cast<int>(p1.y - p0.y)
+		});
+	}
+
 	bHovered = ImGui::IsItemHovered();
 	if (PreviewClient) PreviewClient->SetInputEnabled(bHovered);
 
@@ -441,6 +453,14 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		}
 	}
 
+	// ViewportControlWidget 툴바 렌더링 (공통 툴바 사용)
+	if (ViewportControlWidget && PreviewViewport && PreviewClient)
+	{
+		// Child Window 내부에서 커서를 좌상단으로 설정
+		ImGui::SetCursorScreenPos(p0);
+		ViewportControlWidget->RenderViewportToolbar(PreviewViewport, PreviewClient);
+	}
+
 	// 선택된 본 이름 표시 (Overlay)
 	if (SelectedBoneIndex >= 0 && PreviewScene)
 	{
@@ -453,8 +473,8 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 				const FName& BoneName = Skeleton->BoneNames[SelectedBoneIndex];
 				const std::string BoneNameStr = BoneName.ToString();
 
-				// Viewport 좌상단에 오버레이 표시
-				ImGui::SetCursorScreenPos(ImVec2(p0.x + 10, p0.y + 10));
+				// Viewport 좌상단에 오버레이 표시 (ViewportControl 아래)
+				ImGui::SetCursorScreenPos(ImVec2(p0.x + 10, p0.y + 50));
 				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f)); // 노란색
 				ImGui::Text("Selected Bone: %s [%d]", BoneNameStr.c_str(), SelectedBoneIndex);
 				ImGui::PopStyleColor();
@@ -477,11 +497,17 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 
 	if (!PreviewViewport || !PreviewClient) return;
 
-	// PreviewScene의 SkeletalMeshComponent Bone 렌더링 준비
-	if (PreviewBatchLines && PreviewScene)
+	// RenderExternalViewport가 PreviewScene의 World를 렌더링
+	URenderer::GetInstance().RenderExternalViewport(
+		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), SceneWorld);
+
+	// PreviewBatchLines 렌더링 (Skeleton 시각화)
+	// BatchLines는 UObject이므로 RenderExternalViewport가 자동으로 렌더링하지 않음
+	if (PreviewScene)
 	{
+		UBatchLines* PreviewBatchLines = PreviewScene->GetBatchLines();
 		USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
-		if (PreviewComponent && PreviewComponent->GetSkeletalMesh())
+		if (PreviewBatchLines && PreviewComponent && PreviewComponent->GetSkeletalMesh())
 		{
 			const FSkeleton* Skeleton = PreviewComponent->GetSkeletalMesh()->GetSkeleton();
 			const TArray<FMatrix>& GlobalPose = PreviewComponent->GetGlobalPose();
@@ -491,47 +517,40 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 			{
 				PreviewBatchLines->UpdateSkeletonVertices(Skeleton, GlobalPose, ComponentWorld, SelectedBoneIndex);
 				PreviewBatchLines->UpdateVertexBuffer();
+
+				D3D11_VIEWPORT D3DViewport;
+				D3DViewport.TopLeftX = 0;
+				D3DViewport.TopLeftY = 0;
+				D3DViewport.Width = viewportAvail.x;
+				D3DViewport.Height = viewportAvail.y;
+				D3DViewport.MinDepth = 0.0f;
+				D3DViewport.MaxDepth = 1.0f;
+
+				auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
+
+				// RenderTarget 백업
+				ID3D11RenderTargetView* OldRTV = nullptr;
+				ID3D11DepthStencilView* OldDSV = nullptr;
+				DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
+
+				UINT NumViewports = 1;
+				D3D11_VIEWPORT OldViewport;
+				DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
+
+				// FbxViewportWindow의 RTV/DSV 설정
+				DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
+				DeviceContext->RSSetViewports(1, &D3DViewport);
+
+				PreviewBatchLines->Render();
+
+				// RenderTarget 복원
+				DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
+				DeviceContext->RSSetViewports(1, &OldViewport);
+
+				if (OldRTV) OldRTV->Release();
+				if (OldDSV) OldDSV->Release();
 			}
 		}
-	}
-
-	URenderer::GetInstance().RenderExternalViewport(
-		PreviewViewport, PreviewClient, RTV.Get(), DSV.Get(), SceneWorld);
-
-	// PreviewBatchLines 렌더링 (Bone 시각화)
-	if (PreviewBatchLines)
-	{
-		D3D11_VIEWPORT D3DViewport;
-		D3DViewport.TopLeftX = 0;
-		D3DViewport.TopLeftY = 0;
-		D3DViewport.Width = viewportAvail.x;
-		D3DViewport.Height = viewportAvail.y;
-		D3DViewport.MinDepth = 0.0f;
-		D3DViewport.MaxDepth = 1.0f;
-
-		auto* DeviceContext = URenderer::GetInstance().GetDeviceContext();
-
-		// RenderTarget 백업
-		ID3D11RenderTargetView* OldRTV = nullptr;
-		ID3D11DepthStencilView* OldDSV = nullptr;
-		DeviceContext->OMGetRenderTargets(1, &OldRTV, &OldDSV);
-
-		UINT NumViewports = 1;
-		D3D11_VIEWPORT OldViewport;
-		DeviceContext->RSGetViewports(&NumViewports, &OldViewport);
-
-		// FbxViewportWindow의 RTV/DSV 설정
-		DeviceContext->OMSetRenderTargets(1, RTV.GetAddressOf(), DSV.Get());
-		DeviceContext->RSSetViewports(1, &D3DViewport);
-
-		PreviewBatchLines->Render();
-
-		// RenderTarget 복원
-		DeviceContext->OMSetRenderTargets(1, &OldRTV, OldDSV);
-		DeviceContext->RSSetViewports(1, &OldViewport);
-
-		if (OldRTV) OldRTV->Release();
-		if (OldDSV) OldDSV->Release();
 	}
 
 	// PreviewGizmo 렌더링 (BoneEdit 모드일 때만)

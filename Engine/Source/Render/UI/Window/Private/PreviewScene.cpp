@@ -11,6 +11,7 @@
 #include "Component/Public/DirectionalLightComponent.h"
 #include "Editor/Public/EditorEngine.h"
 #include "Editor/Public/Gizmo.h"
+#include "Editor/Public/BatchLines.h"
 
 FPreviewScene::~FPreviewScene()
 {
@@ -150,6 +151,12 @@ void FPreviewScene::InjectDefaultContent()
 		PreviewGizmo = NewObject<UGizmo>(Outer);
 	}
 
+	// PreviewBatchLines 생성 (UObject이므로 Level에 등록하지 않음)
+	if (!PreviewBatchLines)
+	{
+		PreviewBatchLines = new UBatchLines();
+	}
+
     bContentInjected = true;
 }
 
@@ -172,6 +179,12 @@ void FPreviewScene::RemoveInjectedContent()
     {
         SafeDelete(PreviewGizmo);
         PreviewGizmo = nullptr;
+    }
+
+    if (PreviewBatchLines)
+    {
+        delete PreviewBatchLines;
+        PreviewBatchLines = nullptr;
     }
 
     bContentInjected = false;

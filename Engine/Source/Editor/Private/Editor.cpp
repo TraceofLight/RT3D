@@ -26,6 +26,7 @@
 #include "Render/UI/Overlay/Public/D2DOverlayManager.h"
 #include "Render/ui/Viewport/Public/ViewportClient.h"
 #include "Render/UI/Viewport/Public/Viewport.h"
+#include "Render/UI/Window/Public/FbxViewportWindow.h"
 
 IMPLEMENT_CLASS(UEditor, UObject)
 
@@ -510,8 +511,20 @@ void UEditor::ProcessMouseInput()
 	}
 
 	// W/E/R 키로 기즈모 모드 직접 전환 (우클릭 중이 아닐 때만)
+	// FbxViewportWindow가 hover되었을 때는 입력 무시
 	bool bIsRightMouseDown = InputManager.IsKeyDown(EKeyInput::MouseRight);
-	if (!bIsRightMouseDown)
+	bool bIsFbxViewportHovered = false;
+
+	// FbxViewportWindow 인스턴스 체크
+	if (UUIWindow* Window = UUIManager::GetInstance().FindUIWindow(FName("FbxViewportWindow")))
+	{
+		if (UFbxViewportWindow* FbxWindow = Cast<UFbxViewportWindow>(Window))
+		{
+			bIsFbxViewportHovered = FbxWindow->IsViewportHovered();
+		}
+	}
+
+	if (!bIsRightMouseDown && !bIsFbxViewportHovered)
 	{
 		if (InputManager.IsKeyPressed(EKeyInput::W))
 		{

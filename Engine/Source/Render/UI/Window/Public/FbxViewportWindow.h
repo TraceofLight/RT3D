@@ -11,6 +11,7 @@ class FPreviewViewportClient;
 class USkeletalMeshComponentWidget;
 class USkeletalMesh;
 class UBatchLines;
+class UViewportControlWidget;
 
 enum class EEditMode : uint8
 {
@@ -41,6 +42,9 @@ public:
 	void DeselectBone();
 	int32 GetSelectedBoneIndex() const { return SelectedBoneIndex; }
 
+	// Viewport State
+	bool IsViewportHovered() const { return bHovered; }
+
 protected:
 	void OnPostRenderWindow() override;
 
@@ -69,7 +73,7 @@ private:
 	FPreviewViewportClient* PreviewClient     = nullptr;
 	FPreviewScene*   PreviewScene      = nullptr;
 	USkeletalMeshComponentWidget* SkeletalWidget = nullptr;
-	UBatchLines*     PreviewBatchLines = nullptr;
+	UViewportControlWidget* ViewportControlWidget = nullptr;
 
 	bool bPreviewReady = false;
 	bool bHovered = false;
