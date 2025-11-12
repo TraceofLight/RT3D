@@ -74,9 +74,9 @@ void USkinnedMeshComponent::SetSkinMatrices(const FMatrix* InMatrices, int32 Cou
     bSkinnedVerticesDirty = true;
 }
 
-FVector USkinnedMeshComponent::SkinTangent(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats)
+FVector USkinnedMeshComponent::SkinTangent(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats, const FVector& Normal)
 {
-	FVector Out = FVector::ZeroVector();
+	FVector Tangent = FVector::ZeroVector();
 
 	for (int k = 0; k < 4; ++k)
 	{
@@ -97,10 +97,11 @@ FVector USkinnedMeshComponent::SkinTangent(const FSkeletalVertex& V, const FSkel
 			continue;
 		}
 		const FMatrix& M = SkinMats[skelIdx];
-		Out += M.TransformVector( FVector(V.Vertex.Tangent.X, V.Vertex.Tangent.Y, V.Vertex.Tangent.Z) ) * w;
+		Tangent += M.TransformVector( FVector(V.Vertex.Tangent.X, V.Vertex.Tangent.Y, V.Vertex.Tangent.Z) ) * w;
+		Tangent -= Normal * Normal.Dot(Tangent);		//그람슈미트
 	}
-	Out.Normalize();
-	return Out;
+	Tangent.Normalize();
+	return Tangent;
 }
 
 FVector USkinnedMeshComponent::SkinPosition(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats)
@@ -131,7 +132,7 @@ FVector USkinnedMeshComponent::SkinPosition(const FSkeletalVertex& V, const FSke
 
 FVector USkinnedMeshComponent::SkinNormal(const FSkeletalVertex& V, const FSkeletalMeshSection& Sec, const TArray<FMatrix>& SkinMats)
 {
-    FVector Out = FVector::ZeroVector();
+    FVector Normal = FVector::ZeroVector();
     for (int k = 0; k < 4; ++k)
     {
         const float w = V.Skin.BoneWeights[k];
@@ -150,10 +151,14 @@ FVector USkinnedMeshComponent::SkinNormal(const FSkeletalVertex& V, const FSkele
 	        continue;
         }
         const FMatrix& M = SkinMats[skelIdx];
-        Out += M.TransformVector(V.Vertex.Normal) * w; // ignore translation
+		FMatrix IVM = M;
+		IVM.RemoveTranslationData();	//이동성분 제거
+		IVM = IVM.Transpose();			//전치
+		IVM = IVM.Inverse();			//역행렬
+		Normal += IVM.TransformVector(V.Vertex.Normal) * w; // ignore translation
     }
-    Out.Normalize();
-    return Out;
+	Normal.Normalize();
+    return Normal;
 }
 
 const TArray<FNormalVertex>& USkinnedMeshComponent::GetSkinnedVertices() const
@@ -245,7 +250,7 @@ void USkinnedMeshComponent::UpdateSkinnedVerticesCache() const
                 OutVert.Position = SkinPosition(SkelVert, Section, FinalSkinMatrices);
                 OutVert.Normal = SkinNormal(SkelVert, Section, FinalSkinMatrices);
 
-				FVector SkinnedTangent = SkinTangent(SkelVert, Section, FinalSkinMatrices);
+				FVector SkinnedTangent = SkinTangent(SkelVert, Section, FinalSkinMatrices, OutVert.Normal);
 				OutVert.Tangent = FVector4(SkinnedTangent, SkelVert.Vertex.Tangent.W);
 
                 OutVert.Color = SkelVert.Vertex.Color;
