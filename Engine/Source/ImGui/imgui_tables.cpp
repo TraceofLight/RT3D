@@ -1,5 +1,6 @@
 #include "pch.h"
-// dear imgui, v1.92.5 WIP
+
+// dear imgui, v1.92.2 WIP
 // (tables and columns code)
 
 /*
@@ -438,7 +439,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
         if (table->InnerWindow->SkipItems && outer_window_is_measuring_size)
             table->InnerWindow->SkipItems = false;
 
-        // When using multiple instances, ensure they have the same amount of horizontal decorations (aka vertical scrollbar) so stretched columns can be aligned
+        // When using multiple instances, ensure they have the same amount of horizontal decorations (aka vertical scrollbar) so stretched columns can be aligned)
         if (instance_no == 0)
         {
             table->HasScrollbarYPrev = table->HasScrollbarYCurr;
@@ -452,7 +453,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
         // But at this point we do NOT have a correct value for .Max.y (unless a height has been explicitly passed in). It will only be updated in EndTable().
         table->WorkRect = table->OuterRect = table->InnerRect = outer_rect;
         table->HasScrollbarYPrev = table->HasScrollbarYCurr = false;
-        table->InnerWindow->DC.TreeDepth++; // This is designed to always linking ImGuiTreeNodeFlags_DrawLines linking across a table
+        table->InnerWindow->DC.TreeDepth++; // This is designed to always linking ImGuiTreeNodeFlags_DrawLines linking accross a table
     }
 
     // Push a standardized ID for both child-using and not-child-using tables
@@ -465,7 +466,6 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
     table->HostIndentX = inner_window->DC.Indent.x;
     table->HostClipRect = inner_window->ClipRect;
     table->HostSkipItems = inner_window->SkipItems;
-    temp_data->WindowID = inner_window->ID;
     temp_data->HostBackupWorkRect = inner_window->WorkRect;
     temp_data->HostBackupParentWorkRect = inner_window->ParentWorkRect;
     temp_data->HostBackupColumnsOffset = outer_window->DC.ColumnsOffset;
@@ -544,7 +544,7 @@ bool    ImGui::BeginTableEx(const char* name, ImGuiID id, int columns_count, ImG
 
     // Make table current
     g.CurrentTable = table;
-    inner_window->DC.NavIsScrollPushableX = false; // Shortcut for NavUpdateCurrentWindowIsScrollPushableX();
+    outer_window->DC.NavIsScrollPushableX = false; // Shortcut for NavUpdateCurrentWindowIsScrollPushableX();
     outer_window->DC.CurrentTableIdx = table_idx;
     if (inner_window != outer_window) // So EndChild() within the inner window can restore the table properly.
         inner_window->DC.CurrentTableIdx = table_idx;
@@ -948,7 +948,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
             // (e.g. TextWrapped) too much. Otherwise what tends to happen is that TextWrapped would output a very
             // large height (= first frame scrollbar display very off + clipper would skip lots of items).
             // This is merely making the side-effect less extreme, but doesn't properly fixes it.
-            // FIXME: Move this to ->WidthGiven to avoid temporary lossyness?
+            // FIXME: Move this to ->WidthGiven to avoid temporary lossyless?
             // FIXME: This break IsPreserveWidthAuto from not flickering if the stored WidthAuto was smaller.
             if (column->AutoFitQueue > 0x01 && table->IsInitializing && !column->IsPreserveWidthAuto)
                 column->WidthRequest = ImMax(column->WidthRequest, table->MinColumnWidth * 4.0f); // FIXME-TABLE: Another constant/scale?
@@ -1192,7 +1192,7 @@ void ImGui::TableUpdateLayout(ImGuiTable* table)
     }
 
     // In case the table is visible (e.g. decorations) but all columns clipped, we keep a column visible.
-    // Else if give no chance to a clipper-savvy user to submit rows and therefore total contents height used by scrollbar.
+    // Else if give no chance to a clipper-savy user to submit rows and therefore total contents height used by scrollbar.
     if (has_at_least_one_column_requesting_output == false)
     {
         table->Columns[table->LeftMostEnabledColumn].IsRequestOutput = true;
@@ -1368,7 +1368,7 @@ void    ImGui::EndTable()
     ImGuiWindow* inner_window = table->InnerWindow;
     ImGuiWindow* outer_window = table->OuterWindow;
     ImGuiTableTempData* temp_data = table->TempData;
-    IM_ASSERT(inner_window == g.CurrentWindow && inner_window->ID == temp_data->WindowID);
+    IM_ASSERT(inner_window == g.CurrentWindow);
     IM_ASSERT(outer_window == inner_window || outer_window == inner_window->ParentWindow);
 
     if (table->IsInsideRow)
@@ -1561,7 +1561,7 @@ void    ImGui::EndTable()
     IM_ASSERT(g.CurrentWindow == outer_window && g.CurrentTable == table);
     IM_ASSERT(g.TablesTempDataStacked > 0);
     temp_data = (--g.TablesTempDataStacked > 0) ? &g.TablesTempData[g.TablesTempDataStacked - 1] : NULL;
-    g.CurrentTable = temp_data && (temp_data->WindowID == outer_window->ID) ? g.Tables.GetByIndex(temp_data->TableIndex) : NULL;
+    g.CurrentTable = temp_data ? g.Tables.GetByIndex(temp_data->TableIndex) : NULL;
     if (g.CurrentTable)
     {
         g.CurrentTable->TempData = temp_data;
@@ -2056,11 +2056,10 @@ void ImGui::TableEndRow(ImGuiTable* table)
     }
 
     // End frozen rows (when we are past the last frozen row line, teleport cursor and alter clipping rectangle)
-    // - We need to do that in TableEndRow() instead of TableBeginRow() so the list clipper can mark
-    //   end of row and get the new cursor position.
+    // We need to do that in TableEndRow() instead of TableBeginRow() so the list clipper can mark end of row and
+    // get the new cursor position.
     if (unfreeze_rows_request)
     {
-        IM_ASSERT(table->FreezeRowsRequest > 0);
         for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
             table->Columns[column_n].NavLayerCurrent = table->NavLayer;
         const float y0 = ImMax(table->RowPosY2 + 1, table->InnerClipRect.Min.y);
@@ -2527,7 +2526,7 @@ void ImGui::TablePopColumnChannel()
 // - NoClip                       --> 2+D+1 channels: bg0/1 + bg2 + foreground (same clip rect == always 1 draw call)
 // - Clip                         --> 2+D+N channels
 // - FreezeRows                   --> 2+D+N*2 (unless scrolling value is zero)
-// - FreezeRows || FreezeColumns  --> 3+D+N*2 (unless scrolling value is zero)
+// - FreezeRows || FreezeColunns  --> 3+D+N*2 (unless scrolling value is zero)
 // Where D is 1 if any column is clipped or hidden (dummy channel) otherwise 0.
 void ImGui::TableSetupDrawChannels(ImGuiTable* table)
 {
@@ -2820,13 +2819,8 @@ void ImGui::TableDrawBorders(ImGuiTable* table)
                 continue;
 
             // Draw in outer window so right-most column won't be clipped
-            float draw_y2 = draw_y2_head;
-            if (is_frozen_separator)
-                draw_y2 = draw_y2_body;
-            else if ((table->Flags & ImGuiTableFlags_NoBordersInBodyUntilResize) != 0 && (is_hovered || is_resized))
-                draw_y2 = draw_y2_body;
-            else if ((table->Flags & (ImGuiTableFlags_NoBordersInBodyUntilResize | ImGuiTableFlags_NoBordersInBody)) == 0)
-                draw_y2 = draw_y2_body;
+            // Always draw full height border when being resized/hovered, or on the delimitation of frozen column scrolling.
+            float draw_y2 = (is_hovered || is_resized || is_frozen_separator || (table->Flags & (ImGuiTableFlags_NoBordersInBody | ImGuiTableFlags_NoBordersInBodyUntilResize)) == 0) ? draw_y2_body : draw_y2_head;
             if (draw_y2 > draw_y1)
                 inner_drawlist->AddLine(ImVec2(column->MaxX, draw_y1), ImVec2(column->MaxX, draw_y2), TableGetColumnBorderCol(table, order_n, column_n), border_size);
         }
@@ -3422,7 +3416,7 @@ void ImGui::TableAngledHeadersRowEx(ImGuiID row_id, float angle, float max_label
 
                 // Left<>Right alignment
                 float line_off_curr_x = flip_label ? (label_lines - 1) * line_off_step_x : 0.0f;
-                float line_off_for_align_x = ImFloor(ImMax((((column->MaxX - column->MinX) - padding.x * 2.0f) - (label_lines * line_off_step_x)), 0.0f) * align.x);
+                float line_off_for_align_x = ImMax((((column->MaxX - column->MinX) - padding.x * 2.0f) - (label_lines * line_off_step_x)), 0.0f) * align.x;
                 line_off_curr_x += line_off_for_align_x - line_off_for_ascent_x;
 
                 // Register header width
@@ -3950,7 +3944,7 @@ void ImGui::TableSettingsAddSettingsHandler()
 // - TableGcCompactSettings() [Internal]
 //-------------------------------------------------------------------------
 
-// Remove Table data (currently only used by TestEngine)
+// Remove Table (currently only used by TestEngine)
 void ImGui::TableRemove(ImGuiTable* table)
 {
     //IMGUI_DEBUG_PRINT("TableRemove() id=0x%08X\n", table->ID);
@@ -4029,9 +4023,9 @@ void ImGui::DebugNodeTable(ImGuiTable* table)
     bool open = TreeNode(table, "Table 0x%08X (%d columns, in '%s')%s", table->ID, table->ColumnsCount, table->OuterWindow->Name, is_active ? "" : " *Inactive*");
     if (!is_active) { PopStyleColor(); }
     if (IsItemHovered())
-        GetForegroundDrawList(table->OuterWindow)->AddRect(table->OuterRect.Min, table->OuterRect.Max, IM_COL32(255, 255, 0, 255));
+        GetForegroundDrawList()->AddRect(table->OuterRect.Min, table->OuterRect.Max, IM_COL32(255, 255, 0, 255));
     if (IsItemVisible() && table->HoveredColumnBody != -1)
-        GetForegroundDrawList(table->OuterWindow)->AddRect(GetItemRectMin(), GetItemRectMax(), IM_COL32(255, 255, 0, 255));
+        GetForegroundDrawList()->AddRect(GetItemRectMin(), GetItemRectMax(), IM_COL32(255, 255, 0, 255));
     if (!open)
         return;
     if (table->InstanceCurrent > 0)
@@ -4085,7 +4079,7 @@ void ImGui::DebugNodeTable(ImGuiTable* table)
         if (IsItemHovered())
         {
             ImRect r(column->MinX, table->OuterRect.Min.y, column->MaxX, table->OuterRect.Max.y);
-            GetForegroundDrawList(table->OuterWindow)->AddRect(r.Min, r.Max, IM_COL32(255, 255, 0, 255));
+            GetForegroundDrawList()->AddRect(r.Min, r.Max, IM_COL32(255, 255, 0, 255));
         }
     }
     if (ImGuiTableSettings* settings = TableGetBoundSettings(table))

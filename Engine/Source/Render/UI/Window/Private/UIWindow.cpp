@@ -104,11 +104,8 @@ void UUIWindow::ClampWindow() const
 	if (!IsVisible())
 	{
 		return;
-	}  
-	if (Config.WindowTitle == "FBX Viewport")
-	{
-		return; 
 	}
+
 	const ImGuiViewport* Viewport = ImGui::GetMainViewport();
 	const ImVec2 WorkPosition = Viewport->WorkPos;
 	const ImVec2 WorkSize = Viewport->WorkSize;
@@ -185,12 +182,6 @@ void UUIWindow::RenderWindow()
 	// 도킹 설정 적용
 	ApplyDockingSettings();
 
-	// FBX Viewport는 메인 윈도우 밖으로 나갈 수 있도록 viewport 제약 해제
-	if (Config.WindowTitle == "FBX Viewport")
-	{
-		ImGui::SetNextWindowViewport(0);  // Platform viewport 사용
-	}
-
 	// 메인 메뉴바 높이 고려용 오프셋 계산
 	float MenuBarOffset = GetMenuBarOffset();
 
@@ -234,25 +225,6 @@ void UUIWindow::RenderWindow()
 
 		ImGui::SetNextWindowSize(Config.DefaultSize, ImGuiCond_FirstUseEver);
 	}
-	// *** 핵심 추가: FBX Viewport가 아닌 경우만 viewport 제약 설정 ***
-	if (Config.WindowTitle != "FBX Viewport")
-	{
-		// 메인 viewport 안에 갇히도록 설정
-		ImGuiViewport* Viewport = ImGui::GetMainViewport();
-		ImGui::SetNextWindowViewport(Viewport->ID);
-
-		// 메인 윈도우 경계를 벗어나지 못하도록 제약
-		ImGui::SetNextWindowSizeConstraints(
-			Config.MinSize,
-			ImVec2(Viewport->WorkSize.x, Viewport->WorkSize.y)
-		);
-
-		// 위치 제약 (메뉴바 아래로만)
-		ImVec2 WorkMin = ImVec2(Viewport->WorkPos.x, Viewport->WorkPos.y + MenuBarOffset);
-		ImVec2 WorkMax = ImVec2(Viewport->WorkPos.x + Viewport->WorkSize.x,
-			Viewport->WorkPos.y + Viewport->WorkSize.y);
-		ImGui::SetNextWindowBgAlpha(1.0f);
-	}
 
 	OnPreRenderWindow(MenuBarOffset);
 
@@ -282,16 +254,6 @@ void UUIWindow::RenderWindow()
 
 		// Post-render 처리
 		OnPostRenderWindow();
-
-		// *** FBX Viewport가 아닌 경우만 클램핑 적용 ***
-		if (Config.WindowTitle != "FBX Viewport")
-		{
-			ClampWindow();
-		}
-		else
-		{
-			int check = 0; 
-		}
 	}
 
 	if (bIsResized)
