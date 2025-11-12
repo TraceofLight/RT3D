@@ -439,9 +439,8 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 {
 	FSkeleton* Skeleton = SkeletalMeshComponent->GetSkeletalMesh()->GetSkeletalMeshAsset()->Skeleton;
 	uint32 BoneCount = Skeleton->BoneNames.Num();
-	DrawSkeletalBone(Skeleton, 0);
-	ImGui::Text("Transform");
 
+	ImGui::Text("Selected Bone Transform");
 	if (SelectedBoneIdx != -1)
 	{
 		FTransform& BoneTransform = SkeletalMeshComponent->GetLocalPose(SelectedBoneIdx);
@@ -458,6 +457,7 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 		SkeletalMeshComponent->SetLocalPose(SelectedBoneIdx, BoneTransform);
 	}
 
+	DrawSkeletalBone(Skeleton, 0);
 }
 
 void USkeletalMeshComponentWidget::OpenFbxPreviewViewport(USkeletalMesh* SkeletalMesh)
