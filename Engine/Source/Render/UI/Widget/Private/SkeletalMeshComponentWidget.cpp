@@ -358,7 +358,7 @@ void USkeletalMeshComponentWidget::RenderPreviewTopControls(UWorld* TargetWorld,
             if (ImGui::DragFloat3("Location", &Location.X, 0.5f)) {
                 TargetComponent->SetRelativeLocation(Location);
             }
-        	if (ImGui::DragFloat3("Rotation", &Rotation.X, 5.0f)) {
+        	if (ImGui::DragFloat3("Rotation", &Rotation.X, 0.5f)) {
         		TargetComponent->SetRelativeRotation(FQuat::FromEuler(Rotation));
         	}
 
@@ -450,8 +450,9 @@ void USkeletalMeshComponentWidget::RenderBoneHierachy(USkeletalMeshComponent* Sk
 		ImGui::DragFloat3("Bone Location", &BoneTransform.Location.X, 0.1f);
 
 		FVector EulerRotation = BoneTransform.Rotation.ToEuler();
-		if (ImGui::DragFloat3("Bone Rotation", &EulerRotation.X, 0.001f))
+		if (ImGui::DragFloat3("Bone Rotation", &EulerRotation.X, 0.1f))
 		{
+
 			BoneTransform.Rotation = FQuat::FromEuler(EulerRotation);
 		}
 
