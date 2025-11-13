@@ -18,6 +18,7 @@
 #include "Manager/Asset/Public/AssetManager.h"
 #include "ImGui/imgui.h"
 #include "Component/Mesh/Public/SkeletalMesh.h"
+#include "Level/Public/Level.h"
 #include "Texture/Public/Material.h"
 #include "Texture/Public/Texture.h"
 #include "Runtime/CoreUObject/Public/ObjectIterator.h"
@@ -75,12 +76,6 @@ void UFbxViewportWindow::SelectBone(int32 BoneIndex)
 	{
 		PreviewGizmo->SetSelectedComponent(BoneTransformProxy);
 	}
-
-	// SkeletalWidget에 하이라이팅 전파
-	if (SkeletalWidget)
-	{
-		SkeletalWidget->SetHighlightedBoneIndex(BoneIndex);
-	}
 }
 
 void UFbxViewportWindow::DeselectBone()
@@ -98,12 +93,6 @@ void UFbxViewportWindow::DeselectBone()
 
 		SafeDelete(BoneTransformProxy);
 		BoneTransformProxy = nullptr;
-	}
-
-	// SkeletalWidget 하이라이팅 해제
-	if (SkeletalWidget)
-	{
-		SkeletalWidget->SetHighlightedBoneIndex(-1);
 	}
 }
 
@@ -382,9 +371,9 @@ void UFbxViewportWindow::OnPostRenderWindow()
 		viewportWidth -= (RightPanelWidth + SplitterThickness + ImGui::GetStyle().ItemSpacing.x);
 	viewportWidth = std::max(viewportWidth, minViewportWidth);
 
-	// 1) 왼쪽 패널 (PreviewTopControls)
+	// 1) 왼쪽 패널 (BoneHierarchy)
 	if (bLeftVisible) {
-		RenderLeftControlsPanel(ImVec2(LeftPanelWidth, totalAvail.y));
+		RenderBoneHeriarchy(ImVec2(LeftPanelWidth, totalAvail.y));
 		ImGui::SameLine();
 
 		// Left Splitter (왼쪽 패널 오른쪽 경계)
@@ -403,10 +392,19 @@ void UFbxViewportWindow::OnPostRenderWindow()
 
 		if (held) {
 			float dx = ImGui::GetIO().MouseDelta.x;
-			// 왼쪽 패널은 오른쪽으로 드래그(+dx) => 폭 증가
-			float usedRight = bRightVisible ? (RightPanelWidth + SplitterThickness + ImGui::GetStyle().ItemSpacing.x) : 0.0f;
-			float maxLeft = std::max(LeftMinWidth, totalAvail.x - usedRight - minViewportWidth);
-			LeftPanelWidth = std::clamp(LeftPanelWidth + dx, LeftMinWidth, maxLeft);
+			if (dx != 0.0f)
+			{
+				// 왼쪽 패널은 오른쪽으로 드래그(+dx) => 폭 증가
+				float usedRight = bRightVisible ? (RightPanelWidth + SplitterThickness + ImGui::GetStyle().ItemSpacing.x) : 0.0f;
+				float maxLeft = std::max(LeftMinWidth, totalAvail.x - usedRight - minViewportWidth);
+				float newWidth = LeftPanelWidth + dx;
+
+				// max에 도달하면 더 이상 증가하지 않음
+				if (newWidth <= maxLeft)
+				{
+					LeftPanelWidth = std::max(LeftMinWidth, newWidth);
+				}
+			}
 		}
 
 		if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -420,7 +418,7 @@ void UFbxViewportWindow::OnPostRenderWindow()
 	// 2) 가운데 뷰포트
 	RenderPreviewViewport(ImVec2(viewportWidth, totalAvail.y));
 
-	// 3) 오른쪽 스플리터 + 오른쪽 패널 (BoneHierachy)
+	// 3) 오른쪽 스플리터 + 오른쪽 패널 (PreviewControls)
 	if (bRightVisible) {
 		ImGui::SameLine();
 
@@ -440,10 +438,19 @@ void UFbxViewportWindow::OnPostRenderWindow()
 
 		if (held) {
 			float dx = ImGui::GetIO().MouseDelta.x;
-			// 오른쪽 패널은 오른쪽으로 드래그(+dx) => 폭 감소 (경계가 오른쪽으로 이동)
-			float usedLeft = bLeftVisible ? (LeftPanelWidth + SplitterThickness + ImGui::GetStyle().ItemSpacing.x) : 0.0f;
-			float maxRight = std::max(RightMinWidth, totalAvail.x - usedLeft - minViewportWidth);
-			RightPanelWidth = std::clamp(RightPanelWidth - dx, RightMinWidth, maxRight);
+			if (dx != 0.0f)
+			{
+				// 오른쪽 패널은 오른쪽으로 드래그(+dx) => 폭 감소 (경계가 오른쪽으로 이동)
+				float usedLeft = bLeftVisible ? (LeftPanelWidth + SplitterThickness + ImGui::GetStyle().ItemSpacing.x) : 0.0f;
+				float maxRight = std::max(RightMinWidth, totalAvail.x - usedLeft - minViewportWidth);
+				float newWidth = RightPanelWidth - dx;
+
+				// max에 도달하면 더 이상 증가하지 않음
+				if (newWidth <= maxRight)
+				{
+					RightPanelWidth = std::max(RightMinWidth, newWidth);
+				}
+			}
 		}
 
 		if (hovered && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -452,7 +459,7 @@ void UFbxViewportWindow::OnPostRenderWindow()
 		}
 
 		ImGui::SameLine();
-		RenderBoneHeriarchy(ImVec2(RightPanelWidth, totalAvail.y));
+		RenderLeftControlsPanel(ImVec2(RightPanelWidth, totalAvail.y));
 	}
 }
 
@@ -618,31 +625,315 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 		}
 	}
 
-	// ViewportControlWidget 툴바 렌더링 (공통 툴바 사용)
-	if (ViewportControlWidget && PreviewViewport && PreviewClient)
+	// Preview Viewport Toolbar 렌더링 (윈도우 없이 직접 렌더링)
 	{
-		// Child Window 내부에서 커서를 좌상단으로 설정
-		ImGui::SetCursorScreenPos(p0);
-		ViewportControlWidget->RenderViewportToolbar(PreviewViewport, PreviewClient);
-	}
+		constexpr int32 ToolbarH = 32;
+		const ImVec2 ToolbarMin = p0;
+		const ImVec2 ToolbarMax = ImVec2(p1.x, p0.y + ToolbarH);
 
-	// 선택된 본 이름 표시 (Overlay)
-	if (SelectedBoneIndex >= 0 && PreviewScene)
-	{
-		USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
-		if (PreviewComponent && PreviewComponent->GetSkeletalMesh() && PreviewComponent->GetSkeletalMesh()->GetSkeleton())
+		// 툴바 배경
+		ImDrawList* DrawLine = ImGui::GetBackgroundDrawList();
+		DrawLine->AddRectFilled(ToolbarMin, ToolbarMax, IM_COL32(30, 30, 30, 100));
+		DrawLine->AddLine(ImVec2(ToolbarMin.x, ToolbarMax.y), ImVec2(ToolbarMax.x, ToolbarMax.y), IM_COL32(70, 70, 70, 120), 1.0f);
+
+		// 버튼들을 화면 좌표로 직접 렌더링
 		{
-			const FSkeleton* Skeleton = PreviewComponent->GetSkeletalMesh()->GetSkeleton();
-			if (SelectedBoneIndex < Skeleton->BoneNames.Num())
-			{
-				const FName& BoneName = Skeleton->BoneNames[SelectedBoneIndex];
-				const std::string BoneNameStr = BoneName.ToString();
+			UEditor* Editor = GEditor ? GEditor->GetEditorModule() : nullptr;
+			UGizmo* Gizmo = Editor ? Editor->GetGizmo() : nullptr;
+			EGizmoMode CurrentGizmoMode = Gizmo ? Gizmo->GetGizmoMode() : EGizmoMode::Translate;
 
-				// Viewport 좌상단에 오버레이 표시 (ViewportControl 아래)
-				ImGui::SetCursorScreenPos(ImVec2(p0.x + 10, p0.y + 50));
-				ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(1.0f, 1.0f, 0.0f, 1.0f)); // 노란색
-				ImGui::Text("Selected Bone: %s [%d]", BoneNameStr.c_str(), SelectedBoneIndex);
-				ImGui::PopStyleColor();
+			constexpr float GizmoButtonSize = 24.0f;
+			constexpr float GizmoIconSize = 16.0f;
+			constexpr float GizmoButtonSpacing = 4.0f;
+			constexpr float ToolbarPadding = 6.0f;
+
+			// 시작 위치 계산
+			float CurrentX = ToolbarMin.x + ToolbarPadding;
+			float CurrentY = ToolbarMin.y + (ToolbarH - GizmoButtonSize) * 0.5f;
+
+			// Gizmo Mode 버튼들
+			if (SkeletalWidget)
+			{
+				// Select 버튼
+				if (SkeletalWidget->IconSelect && SkeletalWidget->IconSelect->GetTextureSRV())
+				{
+					ImVec2 ButtonPos = ImVec2(CurrentX, CurrentY);
+					ImGui::SetCursorScreenPos(ButtonPos);
+					ImGui::InvisibleButton("##PreviewGizmoSelect", ImVec2(GizmoButtonSize, GizmoButtonSize));
+					bool bHovered = ImGui::IsItemHovered();
+
+					ImDrawList* DL = ImGui::GetWindowDrawList();
+					ImU32 BgColor = bHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255);
+					if (ImGui::IsItemActive()) BgColor = IM_COL32(38, 38, 38, 255);
+
+					DL->AddRectFilled(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BgColor, 4.0f);
+					DL->AddRect(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), IM_COL32(96, 96, 96, 255), 4.0f);
+
+					ImVec2 IconPos = ImVec2(ButtonPos.x + (GizmoButtonSize - GizmoIconSize) * 0.5f, ButtonPos.y + (GizmoButtonSize - GizmoIconSize) * 0.5f);
+					DL->AddImage(SkeletalWidget->IconSelect->GetTextureSRV(), IconPos, ImVec2(IconPos.x + GizmoIconSize, IconPos.y + GizmoIconSize));
+
+					if (bHovered) ImGui::SetTooltip("Select (Q)");
+					CurrentX += GizmoButtonSize + GizmoButtonSpacing;
+				}
+
+				// Translate 버튼
+				if (SkeletalWidget->IconTranslate && SkeletalWidget->IconTranslate->GetTextureSRV())
+				{
+					bool bActive = (PreviewGizmo && PreviewGizmo->GetGizmoMode() == EGizmoMode::Translate);
+					ImVec2 ButtonPos = ImVec2(CurrentX, CurrentY);
+					ImGui::SetCursorScreenPos(ButtonPos);
+					ImGui::InvisibleButton("##PreviewGizmoTranslate", ImVec2(GizmoButtonSize, GizmoButtonSize));
+					bool bClicked = ImGui::IsItemClicked();
+					bool bHovered = ImGui::IsItemHovered();
+
+					ImDrawList* DL = ImGui::GetWindowDrawList();
+					ImU32 BgColor = bActive ? IM_COL32(20, 20, 20, 255) : (bHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255));
+					if (ImGui::IsItemActive()) BgColor = IM_COL32(38, 38, 38, 255);
+
+					DL->AddRectFilled(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BgColor, 4.0f);
+					ImU32 BorderColor = bActive ? IM_COL32(46, 163, 255, 255) : IM_COL32(96, 96, 96, 255);
+					DL->AddRect(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BorderColor, 4.0f);
+
+					ImVec2 IconPos = ImVec2(ButtonPos.x + (GizmoButtonSize - GizmoIconSize) * 0.5f, ButtonPos.y + (GizmoButtonSize - GizmoIconSize) * 0.5f);
+					DL->AddImage(SkeletalWidget->IconTranslate->GetTextureSRV(), IconPos, ImVec2(IconPos.x + GizmoIconSize, IconPos.y + GizmoIconSize));
+
+					if (bHovered) ImGui::SetTooltip("Translate (W)");
+					if (bClicked && PreviewGizmo) PreviewGizmo->SetGizmoMode(EGizmoMode::Translate);
+					CurrentX += GizmoButtonSize + GizmoButtonSpacing;
+				}
+
+				// Rotate 버튼
+				if (SkeletalWidget->IconRotate && SkeletalWidget->IconRotate->GetTextureSRV())
+				{
+					bool bActive = (PreviewGizmo && PreviewGizmo->GetGizmoMode() == EGizmoMode::Rotate);
+					ImVec2 ButtonPos = ImVec2(CurrentX, CurrentY);
+					ImGui::SetCursorScreenPos(ButtonPos);
+					ImGui::InvisibleButton("##PreviewGizmoRotate", ImVec2(GizmoButtonSize, GizmoButtonSize));
+					bool bClicked = ImGui::IsItemClicked();
+					bool bHovered = ImGui::IsItemHovered();
+
+					ImDrawList* DL = ImGui::GetWindowDrawList();
+					ImU32 BgColor = bActive ? IM_COL32(20, 20, 20, 255) : (bHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255));
+					if (ImGui::IsItemActive()) BgColor = IM_COL32(38, 38, 38, 255);
+
+					DL->AddRectFilled(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BgColor, 4.0f);
+					ImU32 BorderColor = bActive ? IM_COL32(46, 163, 255, 255) : IM_COL32(96, 96, 96, 255);
+					DL->AddRect(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BorderColor, 4.0f);
+
+					ImVec2 IconPos = ImVec2(ButtonPos.x + (GizmoButtonSize - GizmoIconSize) * 0.5f, ButtonPos.y + (GizmoButtonSize - GizmoIconSize) * 0.5f);
+					DL->AddImage(SkeletalWidget->IconRotate->GetTextureSRV(), IconPos, ImVec2(IconPos.x + GizmoIconSize, IconPos.y + GizmoIconSize));
+
+					if (bHovered) ImGui::SetTooltip("Rotate (E)");
+					if (bClicked && PreviewGizmo) PreviewGizmo->SetGizmoMode(EGizmoMode::Rotate);
+					CurrentX += GizmoButtonSize + GizmoButtonSpacing;
+				}
+
+				// Scale 버튼
+				if (SkeletalWidget->IconScale && SkeletalWidget->IconScale->GetTextureSRV())
+				{
+					bool bActive = (PreviewGizmo && PreviewGizmo->GetGizmoMode() == EGizmoMode::Scale);
+					ImVec2 ButtonPos = ImVec2(CurrentX, CurrentY);
+					ImGui::SetCursorScreenPos(ButtonPos);
+					ImGui::InvisibleButton("##PreviewGizmoScale", ImVec2(GizmoButtonSize, GizmoButtonSize));
+					bool bClicked = ImGui::IsItemClicked();
+					bool bHovered = ImGui::IsItemHovered();
+
+					ImDrawList* DL = ImGui::GetWindowDrawList();
+					ImU32 BgColor = bActive ? IM_COL32(20, 20, 20, 255) : (bHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255));
+					if (ImGui::IsItemActive()) BgColor = IM_COL32(38, 38, 38, 255);
+
+					DL->AddRectFilled(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BgColor, 4.0f);
+					ImU32 BorderColor = bActive ? IM_COL32(46, 163, 255, 255) : IM_COL32(96, 96, 96, 255);
+					DL->AddRect(ButtonPos, ImVec2(ButtonPos.x + GizmoButtonSize, ButtonPos.y + GizmoButtonSize), BorderColor, 4.0f);
+
+					ImVec2 IconPos = ImVec2(ButtonPos.x + (GizmoButtonSize - GizmoIconSize) * 0.5f, ButtonPos.y + (GizmoButtonSize - GizmoIconSize) * 0.5f);
+					DL->AddImage(SkeletalWidget->IconScale->GetTextureSRV(), IconPos, ImVec2(IconPos.x + GizmoIconSize, IconPos.y + GizmoIconSize));
+
+					if (bHovered) ImGui::SetTooltip("Scale (R)");
+					if (bClicked && PreviewGizmo) PreviewGizmo->SetGizmoMode(EGizmoMode::Scale);
+					CurrentX += GizmoButtonSize + GizmoButtonSpacing + 10.0f;
+				}
+
+				// Rotation Snap (Rotate 모드일 때만)
+				if (PreviewGizmo && PreviewGizmo->GetGizmoMode() == EGizmoMode::Rotate)
+				{
+					constexpr float SnapButtonSize = 24.0f;
+					constexpr float SnapIconRadius = 6.0f;
+
+					// Snap 토글 버튼
+					ImVec2 SnapTogglePos = ImVec2(CurrentX, CurrentY);
+					ImGui::SetCursorScreenPos(SnapTogglePos);
+					ImGui::InvisibleButton("##PreviewSnapToggle", ImVec2(SnapButtonSize, SnapButtonSize));
+					bool bSnapToggleClicked = ImGui::IsItemClicked();
+					bool bSnapToggleHovered = ImGui::IsItemHovered();
+
+					ImDrawList* SnapDL = ImGui::GetWindowDrawList();
+					bool bSnapEnabled = GetRotationSnappingEnabled();
+					ImU32 SnapBgColor = bSnapToggleHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255);
+					if (ImGui::IsItemActive()) SnapBgColor = IM_COL32(38, 38, 38, 255);
+
+					SnapDL->AddRectFilled(SnapTogglePos, ImVec2(SnapTogglePos.x + SnapButtonSize, SnapTogglePos.y + SnapButtonSize), SnapBgColor, 4.0f);
+					ImU32 SnapBorderColor = bSnapEnabled ? IM_COL32(46, 163, 255, 255) : IM_COL32(96, 96, 96, 255);
+					SnapDL->AddRect(SnapTogglePos, ImVec2(SnapTogglePos.x + SnapButtonSize, SnapTogglePos.y + SnapButtonSize), SnapBorderColor, 4.0f);
+
+					ImVec2 CircleCenter = ImVec2(SnapTogglePos.x + SnapButtonSize * 0.5f, SnapTogglePos.y + SnapButtonSize * 0.5f);
+					ImU32 CircleColor = bSnapEnabled ? IM_COL32(46, 163, 255, 255) : IM_COL32(128, 128, 128, 255);
+					SnapDL->AddCircle(CircleCenter, SnapIconRadius, CircleColor, 0, 2.0f);
+
+					if (bSnapToggleHovered) ImGui::SetTooltip(bSnapEnabled ? "Disable rotation snapping" : "Enable rotation snapping");
+					if (bSnapToggleClicked) SetRotationSnappingEnabled(!bSnapEnabled);
+					CurrentX += SnapButtonSize + GizmoButtonSpacing;
+
+					// Snap 각도 선택
+					float SnapAngle = GetRotationSnapAngle();
+					char SnapAngleText[16];
+					(void)snprintf(SnapAngleText, sizeof(SnapAngleText), "%.1f°", SnapAngle);
+
+					constexpr float SnapAngleButtonWidth = 60.0f;
+					constexpr float SnapAngleButtonHeight = 24.0f;
+
+					ImVec2 SnapAnglePos = ImVec2(CurrentX, CurrentY);
+					ImGui::SetCursorScreenPos(SnapAnglePos);
+					ImGui::InvisibleButton("##PreviewSnapAngle", ImVec2(SnapAngleButtonWidth, SnapAngleButtonHeight));
+					bool bSnapAngleClicked = ImGui::IsItemClicked();
+					bool bSnapAngleHovered = ImGui::IsItemHovered();
+
+					ImU32 SnapAngleBgColor = bSnapAngleHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255);
+					if (ImGui::IsItemActive()) SnapAngleBgColor = IM_COL32(38, 38, 38, 255);
+
+					SnapDL->AddRectFilled(SnapAnglePos, ImVec2(SnapAnglePos.x + SnapAngleButtonWidth, SnapAnglePos.y + SnapAngleButtonHeight), SnapAngleBgColor, 4.0f);
+					SnapDL->AddRect(SnapAnglePos, ImVec2(SnapAnglePos.x + SnapAngleButtonWidth, SnapAnglePos.y + SnapAngleButtonHeight), IM_COL32(96, 96, 96, 255), 4.0f);
+
+					ImVec2 TextSize = ImGui::CalcTextSize(SnapAngleText);
+					ImVec2 TextPos = ImVec2(SnapAnglePos.x + (SnapAngleButtonWidth - TextSize.x) * 0.5f, SnapAnglePos.y + (SnapAngleButtonHeight - ImGui::GetTextLineHeight()) * 0.5f);
+					SnapDL->AddText(TextPos, IM_COL32(220, 220, 220, 255), SnapAngleText);
+
+					if (bSnapAngleClicked) ImGui::OpenPopup("##PreviewSnapAnglePopup");
+
+					if (ImGui::BeginPopup("##PreviewSnapAnglePopup"))
+					{
+						ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+						constexpr float SnapAngles[] = {5.0f, 10.0f, 15.0f, 22.5f, 30.0f, 45.0f, 60.0f, 90.0f};
+						for (float Angle : SnapAngles)
+						{
+							char AngleLabel[16];
+							(void)snprintf(AngleLabel, sizeof(AngleLabel), "%.1f°", Angle);
+							bool bIsCurrentAngle = (std::abs(SnapAngle - Angle) < 0.01f);
+							if (ImGui::MenuItem(AngleLabel, nullptr, bIsCurrentAngle))
+							{
+								SetRotationSnapAngle(Angle);
+							}
+						}
+
+						ImGui::PopStyleColor();
+						ImGui::EndPopup();
+					}
+
+					if (bSnapAngleHovered) ImGui::SetTooltip("Choose rotation snap angle");
+				}
+
+				// Bone On/Off 버튼 & 카메라 속도 버튼 (우측 정렬)
+				constexpr float BoneButtonWidth = 80.0f;
+				constexpr float CameraSpeedButtonWidth = 70.0f;
+				constexpr float CameraSpeedButtonHeight = 24.0f;
+				constexpr float RightButtonSpacing = 4.0f;
+
+				float RightX = ToolbarMax.x - ToolbarPadding - BoneButtonWidth - RightButtonSpacing - CameraSpeedButtonWidth;
+
+				// 카메라 속도 버튼
+				if (PreviewClient && SkeletalWidget->IconCamera && SkeletalWidget->IconCamera->GetTextureSRV())
+				{
+					constexpr float CameraSpeedPadding = 8.0f;
+					constexpr float CameraSpeedIconSize = 16.0f;
+
+					float EditorCameraSpeed = PreviewClient->GetMoveSpeedBase();
+					char CameraSpeedText[16];
+					(void)snprintf(CameraSpeedText, sizeof(CameraSpeedText), "%.0f", EditorCameraSpeed);
+
+					ImVec2 CameraSpeedButtonPos = ImVec2(RightX, CurrentY);
+					ImGui::SetCursorScreenPos(CameraSpeedButtonPos);
+					ImGui::InvisibleButton("##PreviewCameraSpeedButton", ImVec2(CameraSpeedButtonWidth, CameraSpeedButtonHeight));
+					bool bCameraSpeedClicked = ImGui::IsItemClicked();
+					bool bCameraSpeedHovered = ImGui::IsItemHovered();
+
+					ImDrawList* CameraSpeedDrawList = ImGui::GetWindowDrawList();
+					ImU32 CameraSpeedBgColor = bCameraSpeedHovered ? IM_COL32(26, 26, 26, 255) : IM_COL32(0, 0, 0, 255);
+					if (ImGui::IsItemActive()) CameraSpeedBgColor = IM_COL32(38, 38, 38, 255);
+
+					CameraSpeedDrawList->AddRectFilled(CameraSpeedButtonPos, ImVec2(CameraSpeedButtonPos.x + CameraSpeedButtonWidth, CameraSpeedButtonPos.y + CameraSpeedButtonHeight), CameraSpeedBgColor, 4.0f);
+					CameraSpeedDrawList->AddRect(CameraSpeedButtonPos, ImVec2(CameraSpeedButtonPos.x + CameraSpeedButtonWidth, CameraSpeedButtonPos.y + CameraSpeedButtonHeight), IM_COL32(96, 96, 96, 255), 4.0f);
+
+					const ImVec2 CameraSpeedIconPos = ImVec2(
+						CameraSpeedButtonPos.x + CameraSpeedPadding,
+						CameraSpeedButtonPos.y + (CameraSpeedButtonHeight - CameraSpeedIconSize) * 0.5f
+					);
+					CameraSpeedDrawList->AddImage(
+						SkeletalWidget->IconCamera->GetTextureSRV(),
+						CameraSpeedIconPos,
+						ImVec2(CameraSpeedIconPos.x + CameraSpeedIconSize, CameraSpeedIconPos.y + CameraSpeedIconSize)
+					);
+
+					const ImVec2 CameraSpeedTextSize = ImGui::CalcTextSize(CameraSpeedText);
+					const ImVec2 CameraSpeedTextPos = ImVec2(
+						CameraSpeedButtonPos.x + CameraSpeedButtonWidth - CameraSpeedTextSize.x - CameraSpeedPadding,
+						CameraSpeedButtonPos.y + (CameraSpeedButtonHeight - ImGui::GetTextLineHeight()) * 0.5f
+					);
+					CameraSpeedDrawList->AddText(CameraSpeedTextPos, IM_COL32(220, 220, 220, 255), CameraSpeedText);
+
+					if (bCameraSpeedClicked) ImGui::OpenPopup("##PreviewCameraSettingsPopup");
+
+					if (ImGui::BeginPopup("##PreviewCameraSettingsPopup"))
+					{
+						ImGui::PushStyleColor(ImGuiCol_PopupBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+
+						ImGui::Text("Preview Camera Settings");
+						ImGui::Separator();
+
+						float CameraSpeed = PreviewClient->GetMoveSpeedBase();
+						if (ImGui::DragFloat("Camera Speed", &CameraSpeed, 1.0f, 1.0f, 2000.0f, "%.0f"))
+						{
+							PreviewClient->SetMoveSpeedBase(CameraSpeed);
+						}
+
+						ImGui::PopStyleColor();
+						ImGui::EndPopup();
+					}
+				}
+
+				// Bone On/Off 버튼 (카메라 속도 버튼 옆)
+				if (PreviewScene && PreviewScene->GetWorld())
+				{
+					UWorld* PreviewWorld = PreviewScene->GetWorld();
+					if (ULevel* PreviewLevel = PreviewWorld->GetLevel())
+					{
+						uint64 ShowFlags = PreviewLevel->GetShowFlags();
+						bool bShowBones = (ShowFlags & EEngineShowFlags::SF_Bone) != 0;
+						const char* BoneButtonLabel = bShowBones ? "Bone: ON" : "Bone: OFF";
+
+						ImVec2 BoneButtonPos = ImVec2(RightX + CameraSpeedButtonWidth + RightButtonSpacing, CurrentY);
+						ImGui::SetCursorScreenPos(BoneButtonPos);
+
+						ImGui::PushStyleColor(ImGuiCol_Button, bShowBones ? ImVec4(0.2f, 0.5f, 0.2f, 0.8f) : ImVec4(0.5f, 0.2f, 0.2f, 0.8f));
+						ImGui::PushStyleColor(ImGuiCol_ButtonHovered, bShowBones ? ImVec4(0.25f, 0.6f, 0.25f, 0.9f) : ImVec4(0.6f, 0.25f, 0.25f, 0.9f));
+						ImGui::PushStyleColor(ImGuiCol_ButtonActive, bShowBones ? ImVec4(0.3f, 0.7f, 0.3f, 1.0f) : ImVec4(0.7f, 0.3f, 0.3f, 1.0f));
+
+						if (ImGui::Button(BoneButtonLabel, ImVec2(BoneButtonWidth, GizmoButtonSize)))
+						{
+							if (bShowBones)
+							{
+								ShowFlags &= ~static_cast<uint64>(EEngineShowFlags::SF_Bone);
+							}
+							else
+							{
+								ShowFlags |= static_cast<uint64>(EEngineShowFlags::SF_Bone);
+							}
+							PreviewLevel->SetShowFlags(ShowFlags);
+						}
+
+						ImGui::PopStyleColor(3);
+					}
+				}
 			}
 		}
 	}
@@ -793,8 +1084,26 @@ void UFbxViewportWindow::RenderPreviewViewport(const ImVec2& InSize)
 
 void UFbxViewportWindow::RenderLeftControlsPanel(const ImVec2& InSize)
 {
-	ImVec2 sz(std::max(1.0f, InSize.x), std::max(1.0f, InSize.y));
-	ImGui::BeginChild("FBX_LeftControls", sz, true);
+	ImGui::BeginChild("FBX_LeftControls", ImVec2(InSize.x, InSize.y), false);
+
+	// Transform 렌더링
+	if (SkeletalWidget && PreviewScene)
+	{
+		USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
+		if (PreviewComponent && PreviewComponent->GetSkeletalMesh())
+		{
+			// Bone이 선택되어 있으면 Bone Transform, 아니면 Component Transform
+			if (SelectedBoneIndex >= 0)
+			{
+				SkeletalWidget->RenderBoneTransformEdit(PreviewComponent, SelectedBoneIndex);
+			}
+			else
+			{
+				SkeletalWidget->RenderComponentTransformEdit(PreviewComponent);
+			}
+			ImGui::Separator();
+		}
+	}
 
 	if (SkeletalWidget && PreviewScene) {
 		UWorld* SceneWorld = PreviewScene->GetWorld();
@@ -820,7 +1129,12 @@ void UFbxViewportWindow::RenderLeftControlsPanel(const ImVec2& InSize)
 void UFbxViewportWindow::RenderBoneHeriarchy(const ImVec2& InSize)
 {
 	ImVec2 sz(std::max(1.0f, InSize.x), std::max(1.0f, InSize.y));
-	ImGui::BeginChild("FBX_BoneHierarchy", sz, true);
+	ImGui::BeginChild("FBX_BoneHierarchy", sz, false);
+
+	// Detail 패널과 동일한 검은색 스타일 적용
+	ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+	ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0.15f, 0.15f, 0.15f, 1.0f));
 
 	if (SkeletalWidget && PreviewScene) {
 		USkeletalMeshComponent* PreviewComponent = PreviewScene->GetPreviewSkeletalComponent();
@@ -830,6 +1144,7 @@ void UFbxViewportWindow::RenderBoneHeriarchy(const ImVec2& InSize)
 		}
 	}
 
+	ImGui::PopStyleColor(3);
 	ImGui::EndChild();
 }
 
@@ -1070,7 +1385,7 @@ void UFbxViewportWindow::CleanupMaterialInstances()
 UFbxViewportWindow::UFbxViewportWindow()
 {
 	FUIWindowConfig Config;
-	Config.WindowTitle = "FBX Viewport";
+	Config.WindowTitle = "Preview";
 	Config.DefaultSize = ImVec2(1440, 960);
 	Config.MinSize = ImVec2(360, 240);
 	Config.DefaultPosition = ImVec2(140, 120);

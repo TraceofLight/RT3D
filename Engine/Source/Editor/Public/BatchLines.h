@@ -10,12 +10,15 @@
 struct FVertex;
 class FOctree;
 class UDecalSpotLightComponent;
+class UWorld;
 class UBatchLines : UObject
 {
 	DECLARE_CLASS(UBatchLines, UObject)
 public:
 	UBatchLines();
 	~UBatchLines();
+
+	void SetOwningWorld(UWorld* InWorld) { OwningWorld = InWorld; }
 
 	struct FBoneLines
 	{
@@ -132,5 +135,7 @@ private:
 	bool bRenderBox;
 	bool bRenderSpotLight = false;
 	bool bRenderBones = false;
+
+	UWorld* OwningWorld = nullptr;
 };
 

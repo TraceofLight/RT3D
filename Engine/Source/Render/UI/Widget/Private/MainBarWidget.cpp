@@ -425,6 +425,23 @@ void UMainBarWidget::RenderShowFlagsMenu()
 			CurrentLevel->SetShowFlags(ShowFlags);
 		}
 
+		// SkeletalMesh 표시 옵션
+		bool bShowSkeletalMesh = (ShowFlags & EEngineShowFlags::SF_SkeletalMesh) != 0;
+		if (ImGui::MenuItem("스켈레탈 메쉬 표시", nullptr, bShowSkeletalMesh))
+		{
+			if (bShowSkeletalMesh)
+			{
+				ShowFlags &= ~static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh);
+				UE_LOG("MainBarWidget: 스켈레탈 메쉬 비표시");
+			}
+			else
+			{
+				ShowFlags |= static_cast<uint64>(EEngineShowFlags::SF_SkeletalMesh);
+				UE_LOG("MainBarWidget: 스켈레탈 메쉬 표시");
+			}
+			CurrentLevel->SetShowFlags(ShowFlags);
+		}
+
 		// Text 표시 옵션
 		bool bShowText = (ShowFlags & EEngineShowFlags::SF_Text) != 0;
 		if (ImGui::MenuItem("텍스트 표시", nullptr, bShowText))

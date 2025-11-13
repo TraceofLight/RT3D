@@ -103,14 +103,25 @@ private:
 	// Bone Selection (메인 에디터와 독립)
 	int32 SelectedBoneIndex = -1;
 	class UBoneTransformProxy* BoneTransformProxy = nullptr;
+
+	// Rotation Snap (Preview 전용)
+	bool bRotationSnappingEnabled = false;
+	float RotationSnapAngle = 15.0f;
+
+public:
+	bool GetRotationSnappingEnabled() const { return bRotationSnappingEnabled; }
+	void SetRotationSnappingEnabled(bool bEnabled) { bRotationSnappingEnabled = bEnabled; }
+	float GetRotationSnapAngle() const { return RotationSnapAngle; }
+	void SetRotationSnapAngle(float Angle) { RotationSnapAngle = Angle; }
+
 private:
 	// --- 3-Column split layout state ---
 	float LeftPanelWidth = 300.0f;
-	float RightPanelWidth = 320.0f;
+	float RightPanelWidth = 420.0f;
 	float LeftMinWidth = 220.0f;
-	float RightMinWidth = 220.0f;
+	float RightMinWidth = 320.0f;
 	float LeftPrevWidth = 300.0f;   // toggle 복구용
-	float RightPrevWidth = 320.0f;   // toggle 복구용
+	float RightPrevWidth = 420.0f;   // toggle 복구용
 	bool  bLeftVisible = true;
 	bool  bRightVisible = true;
 	float SplitterThickness = 6.0f;

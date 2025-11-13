@@ -528,6 +528,22 @@ void UBatchLines::RenderSkeleton()
 {
 	if (!bRenderBones) return;
 
+	// ShowFlags 체크 (OwningWorld 우선, 없으면 EditorWorld)
+	UWorld* TargetWorld = OwningWorld;
+	if (!TargetWorld && GEditor)
+	{
+		TargetWorld = GEditor->GetEditorWorldContext().World();
+	}
+
+	if (TargetWorld && TargetWorld->GetLevel())
+	{
+		uint64 ShowFlags = TargetWorld->GetLevel()->GetShowFlags();
+		if (!(ShowFlags & EEngineShowFlags::SF_Bone))
+		{
+			return;
+		}
+	}
+
 	URenderer& Renderer = URenderer::GetInstance();
 
 	const uint32 NumGridIndices = Grid.GetNumVertices();

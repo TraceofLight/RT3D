@@ -182,6 +182,7 @@ enum class EEngineShowFlags : uint64
 	SF_Octree = 1 << 8,
 	SF_UUID = 1 << 9,
 	SF_Collision = 1 << 10,
+	SF_Bone = 1 << 11,
 };
 
 inline uint64 operator|(EEngineShowFlags lhs, EEngineShowFlags rhs)

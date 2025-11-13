@@ -29,22 +29,15 @@ public:
 	// FbxViewportWindow 연동 (양방향 본 선택)
 	void SetOwningFbxViewportWindow(UFbxViewportWindow* InWindow) { OwningFbxViewportWindow = InWindow; }
 
-	// FbxViewportWindow 전용 하이라이팅 (전역 선택과 독립)
-	void SetHighlightedBoneIndex(int32 BoneIdx) { HighlightedBoneIndex = BoneIdx; }
-	int32 GetHighlightedBoneIndex() const { return HighlightedBoneIndex; }
-
 	UDirectionalLightComponent*  FindFirstDirectional(UWorld* TargetWorld) const;
 
 	void RenderPreviewTopControls(UWorld* TargetWorld, USkeletalMeshComponent* TargetComponent);
 	void RenderBoneHierachy(USkeletalMeshComponent* SkeletalMeshComponent);
+	void RenderComponentTransformEdit(USkeletalMeshComponent* Component);
+	void RenderBoneTransformEdit(USkeletalMeshComponent* Component, int32 BoneIndex);
 private:
 	USkeletalMeshComponent* SkeletalMeshComponent{};
 	USkeletalMeshComponent* OverrideTargetComponent = nullptr;
-	FName SelectedBoneName;
-	uint32 SelectedBoneIdx = -1;
-
-	// FbxViewportWindow 전용 하이라이팅 (전역 선택과 독립)
-	int32 HighlightedBoneIndex = -1;
 
 	UWorld* World = nullptr;
 	FViewportClient* PreviewClient = nullptr; /* FBX Viewport의 카메라 속도 */
@@ -61,4 +54,14 @@ private:
 	// 유틸리티 함수
 	static FString GetMaterialDisplayName(UMaterial* Material);
 	static UTexture* GetPreviewTextureForMaterial(const UMaterial* Material);
+	static int32 CountAllDescendants(FSkeleton* Skeleton, int32 BoneIndex);
+	static bool IsAncestorOf(FSkeleton* Skeleton, int32 AncestorIndex, int32 DescendantIndex);
+
+public:
+	// Preview 컨트롤용 아이콘 (FbxViewportWindow에서 접근)
+	UTexture* IconSelect = nullptr;
+	UTexture* IconTranslate = nullptr;
+	UTexture* IconRotate = nullptr;
+	UTexture* IconScale = nullptr;
+	UTexture* IconCamera = nullptr;
 };

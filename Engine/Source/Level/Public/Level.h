@@ -122,6 +122,7 @@ private:
 		static_cast<uint64>(EEngineShowFlags::SF_Decal) |
 		static_cast<uint64>(EEngineShowFlags::SF_Fog) |
 		static_cast<uint64>(EEngineShowFlags::SF_Collision) |
+		static_cast<uint64>(EEngineShowFlags::SF_Bone) |
 		static_cast<uint64>(EEngineShowFlags::SF_FXAA) ;
 
 	/*-----------------------------------------------------------------------------

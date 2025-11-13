@@ -63,6 +63,14 @@ void FPreviewScene::CreatePreviewWorld()
     PreviewWorld->SetWorldType(EWorldType::EditorPreview);
     PreviewWorld->CreateNewLevel("FBX", false);
 
+    // Preview World ShowFlags 설정: Bone 렌더링 기본 ON
+    if (ULevel* PreviewLevel = PreviewWorld->GetLevel())
+    {
+        uint64 ShowFlags = PreviewLevel->GetShowFlags();
+        ShowFlags |= static_cast<uint64>(EEngineShowFlags::SF_Bone); // Bone OFF
+        PreviewLevel->SetShowFlags(ShowFlags);
+    }
+
     if (GEditor && !bWorldRegistered)
     {
         GEditor->RegisterPreviewWorld(PreviewWorld);
@@ -141,9 +149,9 @@ void FPreviewScene::InjectDefaultContent()
 		PreviewDirectional->SetLightEnabled(true);
 		PreviewDirectional->SetVisible(true);
 		PreviewDirectional->SetLightColor(FVector(1.0, 1.0, 1.0));
-		PreviewDirectional->SetRelativeRotation(FQuat::FromEuler(FVector( 0.f, -50.f, 0.f)));
+		PreviewDirectional->SetRelativeRotation(FQuat::FromEuler(FVector(-50.f, -50.f, 50.f)));
 		PreviewDirectional->SetRelativeLocation(FVector(0, 0, 10000));
-		PreviewDirectional->SetIntensity(1.0);
+		PreviewDirectional->SetIntensity(0.5);
 	}
 
 	// PreviewGizmo 생성 (메인 에디터와 독립)
@@ -156,6 +164,7 @@ void FPreviewScene::InjectDefaultContent()
 	if (!PreviewBatchLines)
 	{
 		PreviewBatchLines = new UBatchLines();
+		PreviewBatchLines->SetOwningWorld(PreviewWorld);
 	}
 
     bContentInjected = true;
