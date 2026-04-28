@@ -7,10 +7,10 @@ class UAnimationGraph;
 class UAnimationAsset;
 class UAnimSequence;
 class UAnimInstance;
-class FBodyInstance;
-class FConstraintInstance;
 class FPhysScene;
 class UPhysicsAsset;
+struct FBodyInstance;
+struct FConstraintInstance;
 struct FPendingAnimNotify;
 
 enum class EPhysicsAnimationState : uint8

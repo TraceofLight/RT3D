@@ -1,7 +1,7 @@
 ﻿#pragma once
 
 class FPhysScene;
-class FBodyInstance;
+struct FBodyInstance;
 struct FConstraintLimitData;
 
 // PhysX의 PxJoint 전방 선언
