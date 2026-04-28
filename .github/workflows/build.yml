@@ -38,10 +38,10 @@ jobs:
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: game-jam-build-${{ matrix.configuration }}-${{ matrix.platform }}
+          name: engine-build-${{ matrix.configuration }}-${{ matrix.platform }}
           path: |
-            x64/${{ matrix.configuration }}/Game.exe
-            x64/${{ matrix.configuration }}/Game.pdb
+            x64/${{ matrix.configuration }}/Engine.exe
+            x64/${{ matrix.configuration }}/Engine.pdb
           retention-days: 7
 
       - name: Upload Build Logs (on failure)
@@ -50,6 +50,6 @@ jobs:
         with:
           name: build-logs-${{ matrix.configuration }}-${{ matrix.platform }}
           path: |
-            PinBall/x64/${{ matrix.configuration }}/*.log
+            Engine/x64/${{ matrix.configuration }}/*.log
             *.log
           retention-days: 7
