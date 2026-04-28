@@ -121,7 +121,7 @@
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
           xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\$(Configuration)\lua.dll" "$(OutDir)"
-          xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
+          if exist "$(ProjectDir)ThirdParty\CrashHandler\" xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -155,7 +155,7 @@
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Debug\libfbxsdk.dll" "$(OutDir)"
             xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\Debug\lua.dll" "$(OutDir)"
-            xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
+            if exist "$(ProjectDir)ThirdParty\CrashHandler\" xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
         </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -193,7 +193,7 @@
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\$(Configuration)\libfbxsdk.dll" "$(OutDir)"
                 xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\$(Configuration)\lua.dll" "$(OutDir)"
-                xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
+                if exist "$(ProjectDir)ThirdParty\CrashHandler\" xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
       </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -231,7 +231,7 @@
     <PostBuildEvent>
       <Command> xcopy /y /d "$(ProjectDir)ThirdParty\FBXSDK\lib\Release\libfbxsdk.dll" "$(OutDir)"
             xcopy /y /d "$(ProjectDir)ThirdParty\Lua\Bin\Release\lua.dll" "$(OutDir)"
-            xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
+            if exist "$(ProjectDir)ThirdParty\CrashHandler\" xcopy /y /d /i "$(ProjectDir)ThirdParty\CrashHandler\*" "$(OutDir)"
         </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
