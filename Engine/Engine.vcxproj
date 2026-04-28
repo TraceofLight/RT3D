@@ -21,10 +21,10 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{5284615b-23b0-454b-8694-15890740bd76}</ProjectGuid>
+    <ProjectGuid>{F0FA0242-F319-424C-986E-8187D4AEC898}</ProjectGuid>
     <RootNamespace>Week02</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>Mundi</ProjectName>
+    <ProjectName>Engine</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -112,7 +112,7 @@
     </Link>
     <PreBuildEvent>
       <Command>
-              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Engine.vcxproj"
 
               powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
           </Command>
@@ -146,7 +146,7 @@
     </Link>
     <PreBuildEvent>
       <Command>
-              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Engine.vcxproj"
 
               powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
           </Command>
@@ -184,7 +184,7 @@
     </Link>
     <PreBuildEvent>
       <Command>
-              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+              call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Engine.vcxproj"
 
               powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
           </Command>
@@ -222,7 +222,7 @@
     </Link>
     <PreBuildEvent>
       <Command>
-          call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Mundi.vcxproj"
+          call "$(ProjectDir)Tools\CodeGenerator\RunCodeGen.bat" --source-dir "$(ProjectDir)Source\Runtime" --output-dir "$(ProjectDir)Generated" --vcxproj "$(ProjectDir)Engine.vcxproj"
 
           powershell -ExecutionPolicy Bypass -File "$(ProjectDir)Tools\GenSourceLink.ps1" -ProjectDir "$(ProjectDir)." -OutDir "$(IntDir)."
       </Command>
