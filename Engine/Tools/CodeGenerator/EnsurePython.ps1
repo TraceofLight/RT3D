@@ -10,11 +10,18 @@ $ErrorActionPreference = "Stop"
 
 $PythonDir = Join-Path $ProjectRoot "ThirdParty\Python"
 $PythonExe = Join-Path $PythonDir "python.exe"
+$PythonZip = Get-ChildItem -Path $PythonDir -Filter "python*.zip" -ErrorAction SilentlyContinue | Select-Object -First 1
 
-# Python이 이미 설치되어 있는지 확인
-if (Test-Path $PythonExe) {
+# 정상 설치 확인 (python.exe + stdlib zip 둘 다 존재)
+if ((Test-Path $PythonExe) -and ($PythonZip -ne $null)) {
     Write-Host "[OK] Python already exists: $PythonExe"
     exit 0
+}
+
+# 부분 설치 상태면 깨끗하게 비우고 재설치
+if (Test-Path $PythonDir) {
+    Write-Host "[Setup] Detected partial Python install. Wiping for clean reinstall..."
+    Remove-Item -Path $PythonDir -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Write-Host "[Setup] Downloading Python $PythonVersion (embeddable)..."
